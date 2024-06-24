@@ -11,6 +11,7 @@ struct SongView: View {
   var viewModel: AlbumViewModel
   var playerViewModel: PlayerViewModel
 
+  var albumName: String
   var albumArt: String
   var songs: [Song] = []
 
@@ -38,6 +39,7 @@ struct SongView: View {
         let selectedSong = NowPlaying(
           artistName: song.artist,
           songName: song.title,
+          albumName: albumName,
           albumCover: albumArt,
           streamUrl: viewModel.getStreamUrl(id: song.id),
           bitRate: song.bitRate,
@@ -161,7 +163,8 @@ struct AlbumView: View {
 
       // FIXME: I think the songs props is fishy
       SongView(
-        viewModel: viewModel, playerViewModel: playerViewModel, albumArt: albumArt,
+        viewModel: viewModel, playerViewModel: playerViewModel, albumName: album.name,
+        albumArt: albumArt,
         songs: album.songs ?? viewModel.album.songs ?? [])
 
     }.onAppear {

@@ -9,22 +9,15 @@ import AVFoundation
 import MediaPlayer
 import SwiftUI
 
-struct NowPlaying: Encodable, Decodable {
-  var artistName: String = "Unknown Artist"
-  var songName: String = "Untitled"
-  var albumCover: String = ""
-  var streamUrl: String = ""
-  var bitRate: Int = 0
-  var suffix: String = ""
-}
-
 class PlayerViewModel: ObservableObject {
   private var player: AVPlayer?
   private var playerItem: AVPlayerItem?
   private var timeObserverToken: Any?
 
   @Published var nowPlaying: NowPlaying = NowPlaying()
+  @Published var playbackMode = PlaybackMode.defaultPlayback
 
+  @Published var isShuffling: Bool = false  // TODO: implement play list later
   @Published var isPlaying: Bool = false
   @Published var isSeeking: Bool = false
   @Published var isLyricsMode: Bool = false
@@ -122,10 +115,20 @@ class PlayerViewModel: ObservableObject {
       UserDefaultsManager.nowPlayingProgress = progress
 
       if currentTime >= self.totalDuration {
-        self.isFinished = true
-        self.isPlaying = false
+        if self.playbackMode == PlaybackMode.defaultPlayback {
+          self.isFinished = true
+          self.isPlaying = false
 
-        self.player?.pause()
+          self.player?.pause()
+        }
+
+        // TODO: implement play list later
+        if self.playbackMode == PlaybackMode.repeatAlbum {
+        }
+
+        if self.playbackMode == PlaybackMode.repeatOnce {
+          self.setNowPlaying(data: self.nowPlaying)
+        }
 
         UserDefaultsManager.removeObject(key: UserDefaultsKeys.nowPlayingProgress)
       }
@@ -195,6 +198,17 @@ class PlayerViewModel: ObservableObject {
       seconds: progress * totalDuration, preferredTimescale: CMTimeScale(NSEC_PER_SEC))
 
     player?.seek(to: newTime)
+  }
+
+  // TODO: Make this persistent
+  func setPlaybackMode() {
+    if self.playbackMode == PlaybackMode.defaultPlayback {
+      self.playbackMode = PlaybackMode.repeatAlbum
+    } else if self.playbackMode == PlaybackMode.repeatAlbum {
+      self.playbackMode = PlaybackMode.repeatOnce
+    } else {
+      self.playbackMode = PlaybackMode.defaultPlayback
+    }
   }
 
   // TODO: implement play list later

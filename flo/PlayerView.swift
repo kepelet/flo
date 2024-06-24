@@ -15,10 +15,86 @@ struct PlayerView: View {
   @State private var offset = CGSize.zero
   @State private var isDragging = false
 
+  @State private var showQueue = false
+
   var body: some View {
     GeometryReader {
       let size = $0.size
       let imageSize: CGFloat = 300
+
+      // FIXME: Refactor this?
+      ZStack(alignment: .topLeading) {
+        Color.white
+          .ignoresSafeArea()
+          .clipShape(
+            RoundedRectangle(cornerRadius: 15, style: .continuous)
+          )
+          .shadow(radius: 5)
+        VStack(alignment: .leading) {
+          HStack {
+            Text("Queue")
+              .customFont(.title2)
+              .fontWeight(.bold)
+            Spacer()
+            Button {
+              self.showQueue = false
+            } label: {
+              Text("Close").customFont(.callout).fontWeight(.medium)
+            }
+          }
+
+          Group {
+            VStack(alignment: .leading, spacing: 3) {
+              Text("Playing Next").customFont(.headline)
+              HStack(spacing: 10) {
+                Text("From \(viewModel.nowPlaying.albumName)").customFont(.subheadline)
+                Spacer()
+                Button {
+
+                } label: {
+                  Image(systemName: "shuffle")
+                    // TODO: implement play list later
+                    // .foregroundColor(Color.player)
+                    .foregroundColor(Color.gray)
+                    .fontWeight(.bold)
+                    .padding(5)
+                    .background(viewModel.isShuffling ? Color.gray.opacity(0.2) : Color.white)
+                    .cornerRadius(5)
+                }
+                // TODO: implement play list later
+                .disabled(true)
+                Button {
+                  viewModel.setPlaybackMode()
+                } label: {
+                  Image(systemName: "repeat")
+                    .foregroundColor(Color.player)
+                    .fontWeight(.bold)
+                    .overlay(
+                      Group {
+                        Text("1")
+                          .font(.caption)
+                          .clipShape(Circle())
+                          .offset(x: 10, y: -5)
+                          .fontWeight(.bold)
+                      }.opacity(viewModel.playbackMode == PlaybackMode.repeatOnce ? 1 : 0)
+                    )
+                    .padding(5)
+                    .background(
+                      viewModel.playbackMode == PlaybackMode.defaultPlayback
+                        ? Color.white : Color.gray.opacity(0.2)
+                    )
+                    .cornerRadius(5)
+                }
+              }
+            }
+          }.padding(.top, 10)
+        }.padding()
+      }
+      .foregroundColor(.primary)
+      .zIndex(1)
+      .offset(y: showQueue ? UIScreen.main.bounds.height - 350 : UIScreen.main.bounds.height)
+      .frame(height: 350)
+      .animation(.spring(), value: showQueue)
 
       ZStack {
         AsyncImage(url: URL(string: viewModel.nowPlaying.albumCover)) { phase in
@@ -184,21 +260,32 @@ struct PlayerView: View {
             Spacer()
 
             Button {
-
+              self.showQueue.toggle()
             } label: {
               Image(systemName: "list.bullet")
                 .font(.title2)
-                .foregroundColor(.gray)
                 .overlay(
                   Group {
                     Image(systemName: "repeat")
                       .font(.caption)
-                      .clipShape(Circle())
-                      .foregroundColor(.gray)
-                      .offset(x: 10, y: -10)
+                      .overlay(
+                        Group {
+                          Text("1")
+                            .font(.system(size: 8))
+                        }
+                        .offset(x: 7, y: -4)
+                        .opacity(viewModel.playbackMode == PlaybackMode.repeatOnce ? 1 : 0)
+                      )
+                      .opacity(viewModel.playbackMode == PlaybackMode.defaultPlayback ? 0 : 1)
                   }
+                  .padding(5)
+                  .background(
+                    .black.opacity(viewModel.playbackMode == PlaybackMode.defaultPlayback ? 0 : 0.2)
+                  )
+                  .clipShape(Circle())
+                  .offset(x: 10, y: -10)
                 )
-            }.disabled(true)
+            }
           }
         }
         .padding(.horizontal, 30)

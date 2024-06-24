@@ -23,6 +23,12 @@ struct API {
   }
 }
 
+enum PlaybackMode {
+  static let defaultPlayback = "default"
+  static let repeatAlbum = "repeatAlbum"
+  static let repeatOnce = "repeatOnce"
+}
+
 enum AppMeta {
   static let name = "flo"
   static let identifier = "net.faultables.flo"
