@@ -62,8 +62,6 @@ class PlayerViewModel: ObservableObject {
     self.playerItem = AVPlayerItem(url: audioURL!)
     self.player?.replaceCurrentItem(with: self.playerItem)
 
-    setupRemoteCommandCenter()
-
     if let jsonData = try? JSONEncoder().encode(data) {
       UserDefaultsManager.nowPlaying = jsonData
     } else {
@@ -71,28 +69,39 @@ class PlayerViewModel: ObservableObject {
     }
 
     Task {
-      let duration = try await self.player?.currentItem?.asset.load(.duration)
+      do {
+        let duration = try await self.player?.currentItem?.asset.load(.duration)
 
-      self.totalDuration = CMTimeGetSeconds(duration!)
-      self.totalTimeString = timeString(for: totalDuration)
+        DispatchQueue.main.async {
+          let playbackDuration = CMTimeGetSeconds(duration!)
 
-      let newTimeString = self.progress * self.totalDuration
+          self.totalDuration = playbackDuration
+          self.totalTimeString = timeString(for: playbackDuration)
 
-      self.currentTimeString = timeString(for: newTimeString)
+          let newTimeString = self.progress * playbackDuration
 
-      if playAudio {
-        self.seek(to: 0.0)
-      } else {
-        self.seek(to: self.progress)
+          self.currentTimeString = timeString(for: newTimeString)
+
+          if playAudio {
+            self.seek(to: 0.0)
+          } else {
+            self.seek(to: self.progress)
+          }
+
+          self.setupRemoteCommandCenter()
+        }
       }
-
-      self.updateNowPlayingInfo()
     }
 
     addPeriodicTimeObserver()
 
     if playAudio {
       self.play()
+      self.updateNowPlayingInfo(
+        title: self.nowPlaying.songName,
+        artist: self.nowPlaying.artistName,
+        playbackDuration: self.totalDuration,
+        playbackRate: 1.0)
     }
   }
 
@@ -123,13 +132,20 @@ class PlayerViewModel: ObservableObject {
     }
   }
 
-  private func updateNowPlayingInfo() {
+  private func updateNowPlayingInfo(
+    title: String, artist: String, playbackDuration: Double, playbackRate: Float?
+  ) {
     var nowPlayingInfo = [String: Any]()
 
-    nowPlayingInfo[MPMediaItemPropertyTitle] = self.nowPlaying.songName
-    nowPlayingInfo[MPMediaItemPropertyArtist] = self.nowPlaying.artistName
-    nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] = self.totalDuration
-    nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = self.player?.rate
+    nowPlayingInfo[MPMediaItemPropertyTitle] = title
+    nowPlayingInfo[MPMediaItemPropertyArtist] = artist
+    nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] = playbackDuration
+
+    if let rate = playbackRate {
+      nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = rate
+    } else {
+      nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = 1.0
+    }
 
     MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
   }
@@ -137,15 +153,17 @@ class PlayerViewModel: ObservableObject {
   private func setupRemoteCommandCenter() {
     let commandCenter = MPRemoteCommandCenter.shared()
 
+    commandCenter.playCommand.isEnabled = true
+
     commandCenter.playCommand.addTarget { [unowned self] event in
       self.play()
-      self.updateNowPlayingInfo()
+
       return .success
     }
 
     commandCenter.pauseCommand.addTarget { [unowned self] event in
       self.pause()
-      self.updateNowPlayingInfo()
+
       return .success
     }
   }
