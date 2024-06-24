@@ -14,6 +14,7 @@ class PlayerViewModel: ObservableObject {
   private var playerItem: AVPlayerItem?
   private var timeObserverToken: Any?
 
+  @Published var queue: [NowPlaying] = []
   @Published var nowPlaying: NowPlaying = NowPlaying()
   @Published var playbackMode = PlaybackMode.defaultPlayback
 

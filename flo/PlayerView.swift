@@ -46,11 +46,18 @@ struct PlayerView: View {
           Group {
             VStack(alignment: .leading, spacing: 3) {
               Text("Playing Next").customFont(.headline)
-              HStack(spacing: 10) {
-                Text("From \(viewModel.nowPlaying.albumName)").customFont(.subheadline)
-                Spacer()
-                Button {
 
+              HStack(alignment: .bottom, spacing: 10) {
+                if !viewModel.queue.isEmpty {
+                  Text("").customFont(.subheadline)
+                } else {
+                  Text("From \(viewModel.nowPlaying.albumName)").customFont(.subheadline)
+                }
+
+                Spacer()
+
+                Button {
+                  self.viewModel.shuffleByAlbum()
                 } label: {
                   Image(systemName: "shuffle")
                     // TODO: implement play list later
