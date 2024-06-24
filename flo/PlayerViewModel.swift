@@ -101,7 +101,7 @@ class PlayerViewModel: ObservableObject {
         title: self.nowPlaying.songName,
         artist: self.nowPlaying.artistName,
         playbackDuration: self.totalDuration,
-        playbackRate: 1.0)
+        playbackRate: self.player?.rate)
     }
   }
 
