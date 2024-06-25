@@ -13,4 +13,6 @@ struct Album: Codable, Identifiable {
   var artist: String = ""
   var songs: [Song]?
   var albumCover: String?
+  var genre: String = ""
+  var minYear: Int = 0
 }

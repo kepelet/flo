@@ -98,10 +98,11 @@ struct AlbumView: View {
           .multilineTextAlignment(.center)
           .padding(.bottom, 10)
 
-        // TODO: handle this later
-        //        Text("Genre • Release year")
-        //          .customFont(.subheadline)
-        //          .fontWeight(.medium)
+        Text(
+          "\(album.genre.isEmpty ? "Unknown genre" : album.genre) • \(album.minYear.description)"
+        )
+        .customFont(.subheadline)
+        .fontWeight(.medium)
 
         HStack(spacing: 20) {
           Button(action: {
