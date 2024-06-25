@@ -99,7 +99,7 @@ struct AlbumView: View {
           .padding(.bottom, 10)
 
         Text(
-          "\(album.genre.isEmpty ? "Unknown genre" : album.genre) • \(album.minYear.description)"
+          "\(album.genre.isEmpty ? "Unknown genre" : album.genre) • \(album.minYear == 0 ? "Unknown release year" : album.minYear.description)"
         )
         .customFont(.subheadline)
         .fontWeight(.medium)
