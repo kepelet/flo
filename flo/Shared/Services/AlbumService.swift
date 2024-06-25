@@ -9,6 +9,8 @@ import Alamofire
 import Foundation
 
 class AlbumService {
+  static let shared = AlbumService()
+
   func getStreamUrl(id: String) -> String {
     let streamUrl =
       "\(UserDefaultsManager.serverBaseURL)\(API.SubsonicEndpoint.stream)\(AuthService.shared.getCreds(key: "subsonicToken"))&id=\(id)"
