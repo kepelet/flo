@@ -11,12 +11,11 @@ struct SongView: View {
   var viewModel: AlbumViewModel
   var playerViewModel: PlayerViewModel
 
-  var albumName: String
-  var albumArt: String
+  var album: Album
   var songs: [Song] = []
 
   var body: some View {
-    ForEach(songs, id: \.self) { song in
+    ForEach(Array(songs.enumerated()), id: \.element) { idx, song in
       VStack {
         HStack(alignment: .top) {
           Text("\(song.trackNumber.description)")
@@ -36,16 +35,7 @@ struct SongView: View {
       .listRowSeparator(.hidden)
       .contentShape(Rectangle())
       .onTapGesture {
-        let selectedSong = NowPlaying(
-          artistName: song.artist,
-          songName: song.title,
-          albumName: albumName,
-          albumCover: albumArt,
-          streamUrl: viewModel.getStreamUrl(id: song.id),
-          bitRate: song.bitRate,
-          suffix: song.suffix
-        )
-        playerViewModel.setNowPlaying(data: selectedSong)
+        playerViewModel.addToQueue(idx: idx, item: album, songs: songs)
       }
     }
     .environment(\.defaultMinListRowHeight, 60)
@@ -106,7 +96,8 @@ struct AlbumView: View {
 
         HStack(spacing: 20) {
           Button(action: {
-            playerViewModel.playByAlbum()
+            playerViewModel.playByAlbum(
+              item: album, songs: album.songs ?? viewModel.album.songs ?? [])  // FIXME: I think the songs props is fishy
           }) {
             Text("Play")
               .foregroundColor(.white)
@@ -115,9 +106,10 @@ struct AlbumView: View {
               .padding(.horizontal, 30)
               .background(Color("PlayerColor"))
               .cornerRadius(5)
-          }.disabled(true)
+          }
           Button(action: {
-            playerViewModel.shuffleByAlbum()
+            playerViewModel.shuffleByAlbum(
+              item: album, songs: album.songs ?? viewModel.album.songs ?? [])  // FIXME: I think the songs props is fishy
           }) {
             Text("Shuffle")
               .foregroundColor(.white)
@@ -126,7 +118,7 @@ struct AlbumView: View {
               .padding(.horizontal, 30)
               .background(Color("PlayerColor"))
               .cornerRadius(5)
-          }.disabled(true)
+          }
         }.padding(10)
       }.padding(10)
 
@@ -164,8 +156,8 @@ struct AlbumView: View {
 
       // FIXME: I think the songs props is fishy
       SongView(
-        viewModel: viewModel, playerViewModel: playerViewModel, albumName: album.name,
-        albumArt: albumArt,
+        viewModel: viewModel, playerViewModel: playerViewModel,
+        album: album,
         songs: album.songs ?? viewModel.album.songs ?? [])
 
     }.onAppear {

@@ -14,11 +14,17 @@ class PlayerViewModel: ObservableObject {
   private var playerItem: AVPlayerItem?
   private var timeObserverToken: Any?
 
-  @Published var queue: [NowPlaying] = []
+  @Published var queue: [Song] = []
   @Published var nowPlaying: NowPlaying = NowPlaying()
   @Published var playbackMode = PlaybackMode.defaultPlayback
 
-  @Published var isShuffling: Bool = false  // TODO: implement play list later
+  private var tempAlbumName: String = ""
+  private var tempAlbumCover: String = ""
+  private var tempOriginQueue: [Song] = []
+
+  @Published var activeQueueIdx: Int = 0
+
+  @Published var isShuffling: Bool = false
   @Published var isPlaying: Bool = false
   @Published var isSeeking: Bool = false
   @Published var isLyricsMode: Bool = false
@@ -32,35 +38,59 @@ class PlayerViewModel: ObservableObject {
   private var totalDuration: Double = 0.0
 
   init() {
-    if let lastPlayData = UserDefaultsManager.nowPlaying,
-      let lastPlay = try? JSONDecoder().decode(NowPlaying.self, from: lastPlayData)
-    {
-      self.setNowPlaying(data: lastPlay, playAudio: false)
-
-    }
-
-    self.progress = UserDefaultsManager.nowPlayingProgress
+    // FIXME: pikirin nanti (ini si NowPlaying udah bukan lagi source of truth harusbya)
+    //    if let lastPlayData = UserDefaultsManager.nowPlaying,
+    //      let lastPlay = try? JSONDecoder().decode(NowPlaying.self, from: lastPlayData)
+    //    {
+    //      self.setNowPlaying(data: lastPlay, playAudio: false)
+    //
+    //    }
+    //
+    //    self.progress = UserDefaultsManager.nowPlayingProgress
   }
 
   func hasNowPlaying() -> Bool {
     return self.nowPlaying.streamUrl != ""
   }
 
-  func setNowPlaying(data: NowPlaying, playAudio: Bool = true) {
-    let audioURL = URL(string: data.streamUrl)
+  func addToQueue(idx: Int, item: Album, songs: [Song]) {
+    // FIXME: of course
+    self.tempAlbumName = item.name
+    self.tempAlbumCover = AlbumService.shared.getCoverArt(id: item.id)
+    self.tempOriginQueue = songs
 
-    self.nowPlaying = data
+    self.activeQueueIdx = idx
+    self.queue = songs
+    self.setNowPlaying()
+  }
+
+  func setNowPlaying(playAudio: Bool = true) {
+    let activeSong = self.queue[activeQueueIdx]
+    let selectedSong = NowPlaying(
+      artistName: activeSong.artist,
+      songName: activeSong.title,
+      albumName: self.tempAlbumName,
+      albumCover: self.tempAlbumCover,
+      streamUrl: AlbumService.shared.getStreamUrl(id: activeSong.id),
+      bitRate: activeSong.bitRate,
+      suffix: activeSong.suffix
+    )
+
+    let audioURL = URL(string: selectedSong.streamUrl)
+
+    self.nowPlaying = selectedSong
 
     self.player = AVPlayer()
 
     self.playerItem = AVPlayerItem(url: audioURL!)
     self.player?.replaceCurrentItem(with: self.playerItem)
 
-    if let jsonData = try? JSONEncoder().encode(data) {
-      UserDefaultsManager.nowPlaying = jsonData
-    } else {
-      print("error storing in UserDefaults")
-    }
+    //  FIXME: pikirin nanti (ini si NowPlaying udah bukan lagi source of truth harusbya)
+    //    if let jsonData = try? JSONEncoder().encode(selectedSong) {
+    //      UserDefaultsManager.nowPlaying = jsonData
+    //    } else {
+    //      print("error storing in UserDefaults")
+    //    }
 
     Task {
       do {
@@ -116,20 +146,7 @@ class PlayerViewModel: ObservableObject {
       UserDefaultsManager.nowPlayingProgress = progress
 
       if currentTime >= self.totalDuration {
-        if self.playbackMode == PlaybackMode.defaultPlayback {
-          self.isFinished = true
-          self.isPlaying = false
-
-          self.player?.pause()
-        }
-
-        // TODO: implement play list later
-        if self.playbackMode == PlaybackMode.repeatAlbum {
-        }
-
-        if self.playbackMode == PlaybackMode.repeatOnce {
-          self.setNowPlaying(data: self.nowPlaying)
-        }
+        self.nextSong()
 
         UserDefaultsManager.removeObject(key: UserDefaultsKeys.nowPlayingProgress)
       }
@@ -192,6 +209,9 @@ class PlayerViewModel: ObservableObject {
   func stop() {
     player?.pause()
     player?.seek(to: CMTime.zero)
+
+    self.isFinished = true
+    self.isPlaying = false
   }
 
   func seek(to progress: Double) {
@@ -212,25 +232,87 @@ class PlayerViewModel: ObservableObject {
     }
   }
 
-  // TODO: implement play list later
-  func playByAlbum() {
+  func playByAlbum(item: Album, songs: [Song]) {
+    self.addToQueue(idx: 0, item: item, songs: songs)
   }
 
-  // TODO: implement play list later
-  func shuffleByAlbum() {
+  func shuffleByAlbum(item: Album, songs: [Song]) {
+    // FIXME: gw penasaran kenapa pake songs instead of Album.songs
+    let shuffledSongs = songs.shuffled()
+    self.addToQueue(idx: 0, item: item, songs: shuffledSongs)
   }
 
-  // TODO: implement play list later
+  func shuffleCurrentQueue() {
+    self.isShuffling.toggle()
+
+    if self.isShuffling {
+      self.queue = self.queue.shuffled()
+    } else {
+      self.queue = self.tempOriginQueue
+    }
+  }
+
+  func playFromQueue(idx: Int) {
+    self.activeQueueIdx = idx
+    self.setNowPlaying()
+  }
+
   func prevSong() {
-    player?.seek(to: CMTime.zero)
+    // TODO: handle experience saat album abis -> balik ke index 0 -> prevSong() -> expect nya i guess ke index .count?
+    if self.activeQueueIdx != 0 {
+      if self.playbackMode != PlaybackMode.repeatOnce {
+        self.activeQueueIdx = self.activeQueueIdx - 1
+      }
+    } else {
+      self.activeQueueIdx = 0
+    }
+
+    self.setNowPlaying()
   }
 
-  // TODO: implement play list later
   func nextSong() {
-    let newTime = CMTime(
-      seconds: totalDuration, preferredTimescale: CMTimeScale(NSEC_PER_SEC))
-
-    player?.seek(to: newTime)
+    // TODO: refactor later ngantuk bosss
+    // singles
+    if self.queue.count == 1 {
+      // klo kaga repeat, stop
+      if self.playbackMode == PlaybackMode.defaultPlayback {
+        self.stop()
+      } else {
+        // klo repeat, ulang
+        self.setNowPlaying()
+      }
+    } else {
+      // albums
+      if self.playbackMode == PlaybackMode.repeatOnce {
+        // klo repeat sekali, ulang
+        self.setNowPlaying()
+      } else if self.playbackMode == PlaybackMode.repeatAlbum {
+        // klo repeat album
+        // ni udah di lagu terakhir blm?
+        // harusnya bisa pakai >= gasi?
+        if self.activeQueueIdx + 1 > self.queue.count - 1 {
+          // klo iya, balik ke lagu pertama
+          self.activeQueueIdx = 0
+          self.setNowPlaying()
+        } else {
+          // klo bukan, lanjut
+          self.activeQueueIdx = self.activeQueueIdx + 1
+          self.setNowPlaying()
+        }
+      } else {
+        // klo bukan repeat
+        // ni udah di lagu terakhir blm?
+        // harusnya bisa pakai >= gasi?
+        if self.activeQueueIdx + 1 > self.queue.count - 1 {
+          // klo iya, stop
+          self.stop()
+        } else {
+          // klo bukan, lanjut
+          self.activeQueueIdx = self.activeQueueIdx + 1
+          self.setNowPlaying()
+        }
+      }
+    }
   }
 
   deinit {

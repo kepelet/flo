@@ -41,66 +41,77 @@ struct PlayerView: View {
             } label: {
               Text("Close").customFont(.callout).fontWeight(.medium)
             }
-          }
+          }.padding()
+          VStack(alignment: .leading, spacing: 3) {
+            Text("Playing Next").customFont(.headline)
 
-          Group {
-            VStack(alignment: .leading, spacing: 3) {
-              Text("Playing Next").customFont(.headline)
+            HStack(alignment: .bottom, spacing: 10) {
+              if viewModel.queue.isEmpty {
+                Text("").customFont(.subheadline)
+              } else {
+                Text("From \(viewModel.nowPlaying.albumName)").customFont(.subheadline)
+              }
 
-              HStack(alignment: .bottom, spacing: 10) {
-                if !viewModel.queue.isEmpty {
-                  Text("").customFont(.subheadline)
-                } else {
-                  Text("From \(viewModel.nowPlaying.albumName)").customFont(.subheadline)
-                }
+              Spacer()
 
-                Spacer()
+              Button {
+                viewModel.shuffleCurrentQueue()
+              } label: {
+                Image(systemName: "shuffle")
+                  .foregroundColor(Color.player)
+                  .fontWeight(.bold)
+                  .padding(5)
+                  .background(viewModel.isShuffling ? Color.gray.opacity(0.2) : Color.white)
+                  .cornerRadius(5)
+              }
 
-                Button {
-                  self.viewModel.shuffleByAlbum()
-                } label: {
-                  Image(systemName: "shuffle")
-                    // TODO: implement play list later
-                    // .foregroundColor(Color.player)
-                    .foregroundColor(Color.gray)
-                    .fontWeight(.bold)
-                    .padding(5)
-                    .background(viewModel.isShuffling ? Color.gray.opacity(0.2) : Color.white)
-                    .cornerRadius(5)
-                }
-                // TODO: implement play list later
-                .disabled(true)
-                Button {
-                  viewModel.setPlaybackMode()
-                } label: {
-                  Image(systemName: "repeat")
-                    .foregroundColor(Color.player)
-                    .fontWeight(.bold)
-                    .overlay(
-                      Group {
-                        Text("1")
-                          .font(.caption)
-                          .clipShape(Circle())
-                          .offset(x: 10, y: -5)
-                          .fontWeight(.bold)
-                      }.opacity(viewModel.playbackMode == PlaybackMode.repeatOnce ? 1 : 0)
-                    )
-                    .padding(5)
-                    .background(
-                      viewModel.playbackMode == PlaybackMode.defaultPlayback
-                        ? Color.white : Color.gray.opacity(0.2)
-                    )
-                    .cornerRadius(5)
-                }
+              Button {
+                viewModel.setPlaybackMode()
+              } label: {
+                Image(systemName: "repeat")
+                  .foregroundColor(Color.player)
+                  .fontWeight(.bold)
+                  .overlay(
+                    Group {
+                      Text("1")
+                        .font(.caption)
+                        .clipShape(Circle())
+                        .offset(x: 10, y: -5)
+                        .fontWeight(.bold)
+                    }.opacity(viewModel.playbackMode == PlaybackMode.repeatOnce ? 1 : 0)
+                  )
+                  .padding(5)
+                  .background(
+                    viewModel.playbackMode == PlaybackMode.defaultPlayback
+                      ? Color.white : Color.gray.opacity(0.2)
+                  )
+                  .cornerRadius(5)
               }
             }
-          }.padding(.top, 10)
-        }.padding()
+          }.padding()
+
+          ScrollView {
+            VStack(alignment: .leading) {
+              ForEach(Array(viewModel.queue.enumerated()), id: \.element) { idx, song in
+                if viewModel.activeQueueIdx < idx {
+                  Text(song.title)
+                    .customFont(.body)
+                    .fontWeight(.medium)
+                    .padding(.bottom, 20)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .onTapGesture {
+                      viewModel.playFromQueue(idx: idx)
+                    }
+                }
+              }
+            }.padding()
+          }.padding(.bottom, 60)
+        }
       }
       .foregroundColor(.primary)
       .zIndex(1)
-      .offset(y: showQueue ? UIScreen.main.bounds.height - 350 : UIScreen.main.bounds.height)
-      .frame(height: 350)
+      .offset(y: showQueue ? UIScreen.main.bounds.height - 666 : UIScreen.main.bounds.height)
+      .frame(height: 666)
       .animation(.spring(), value: showQueue)
 
       ZStack {
