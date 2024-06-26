@@ -13,7 +13,7 @@ struct AlbumView: View {
 
   var body: some View {
     ScrollView {
-      AsyncImage(url: URL(string: viewModel.getAlbumArt(id: viewModel.album.id))) { phase in
+      AsyncImage(url: URL(string: viewModel.album.albumCover)) { phase in
         switch phase {
         case .empty:
           ProgressView().frame(width: 200, height: 200)

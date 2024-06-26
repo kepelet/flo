@@ -23,6 +23,7 @@ class AlbumViewModel: ObservableObject {
 
   func setActiveAlbum(album: Album) {
     self.album = album
+    self.album.albumCover = self.getAlbumArt(id: album.id)
 
     if !album.id.isEmpty {
       self.fetchSongs(id: album.id)
