@@ -30,16 +30,6 @@ class UserDefaultsManager {
     }
   }
 
-  // FIXME: https://github.com/kepelet/flo/issues/4 on "something-is-wrong-with-songs-props"
-  static var _albumPlayQueue: Data? {
-    get {
-      return UserDefaults.standard.data(forKey: UserDefaultsKeys._albumPlayQueue)
-    }
-    set {
-      UserDefaults.standard.set(newValue, forKey: UserDefaultsKeys._albumPlayQueue)
-    }
-  }
-
   static var playQueue: Data? {
     get {
       return UserDefaults.standard.data(forKey: UserDefaultsKeys.playQueue)

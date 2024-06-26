@@ -39,15 +39,9 @@ class PlayerViewModel: ObservableObject {
 
   init() {
     if let lastPlayData = UserDefaultsManager.playQueue,
-      let lastPlay = try? JSONDecoder().decode([Song].self, from: lastPlayData)
+      let lastPlay = try? JSONDecoder().decode(Album.self, from: lastPlayData)
     {
-
-      if let albumPlayQeueue = UserDefaultsManager._albumPlayQueue,
-        let albumData = try? JSONDecoder().decode(Album.self, from: albumPlayQeueue)
-      {
-        self.addToQueue(
-          idx: UserDefaultsManager.queueActiveIdx, item: albumData, songs: lastPlay, persist: false)
-      }
+      self.addToQueue(idx: UserDefaultsManager.queueActiveIdx, item: lastPlay, persist: false)
     }
 
     self.progress = UserDefaultsManager.nowPlayingProgress
@@ -58,25 +52,19 @@ class PlayerViewModel: ObservableObject {
     return self.nowPlaying.streamUrl != ""
   }
 
-  func addToQueue(idx: Int, item: Album, songs: [Song], persist: Bool = true) {
+  func addToQueue(idx: Int, item: Album, persist: Bool = true) {
     // FIXME: of course
     self.tempAlbumName = item.name
+    self.tempOriginQueue = item.songs
     self.tempAlbumCover = AlbumService.shared.getCoverArt(id: item.id)
-    self.tempOriginQueue = songs
 
     self.activeQueueIdx = idx
-    self.queue = songs
+    self.queue = item.songs
     self.setNowPlaying(playAudio: persist)
 
     if persist {
       if let albumPlayQueue = try? JSONEncoder().encode(item) {
-        UserDefaultsManager._albumPlayQueue = albumPlayQueue
-      } else {
-        print("error storing in UserDefaults")
-      }
-
-      if let playQueue = try? JSONEncoder().encode(songs) {
-        UserDefaultsManager.playQueue = playQueue
+        UserDefaultsManager.playQueue = albumPlayQueue
         UserDefaultsManager.queueActiveIdx = idx
       } else {
         print("error storing in UserDefaults")
@@ -246,14 +234,15 @@ class PlayerViewModel: ObservableObject {
     UserDefaultsManager.playbackMode = self.playbackMode
   }
 
-  func playByAlbum(item: Album, songs: [Song]) {
-    self.addToQueue(idx: 0, item: item, songs: songs)
+  func playByAlbum(item: Album) {
+    self.addToQueue(idx: 0, item: item)
   }
 
-  func shuffleByAlbum(item: Album, songs: [Song]) {
-    // FIXME: gw penasaran kenapa pake songs instead of Album.songs
-    let shuffledSongs = songs.shuffled()
-    self.addToQueue(idx: 0, item: item, songs: shuffledSongs)
+  func shuffleByAlbum(item: Album) {
+    var shuffledItem = item
+    shuffledItem.songs.shuffle()
+
+    self.addToQueue(idx: 0, item: shuffledItem)
   }
 
   func shuffleCurrentQueue() {
@@ -269,6 +258,8 @@ class PlayerViewModel: ObservableObject {
   func playFromQueue(idx: Int) {
     self.activeQueueIdx = idx
     self.setNowPlaying()
+
+    UserDefaultsManager.queueActiveIdx = self.activeQueueIdx
   }
 
   func prevSong() {

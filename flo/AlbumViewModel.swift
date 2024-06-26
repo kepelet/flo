@@ -9,7 +9,6 @@ import Foundation
 
 class AlbumViewModel: ObservableObject {
   @Published var albums: [Album] = []
-  @Published var songs: [Song] = []
   @Published var album: Album = Album()
 
   @Published var isLoading = false
@@ -17,9 +16,17 @@ class AlbumViewModel: ObservableObject {
 
   private let albumService = AlbumService()
 
-  init(albums: [Album] = [Album()], songs: [Song] = []) {
+  init(album: Album = Album(), albums: [Album] = [Album()]) {
+    self.album = album
     self.albums = albums
-    self.songs = songs
+  }
+
+  func setActiveAlbum(album: Album) {
+    self.album = album
+
+    if !album.id.isEmpty {
+      self.fetchSongs(id: album.id)
+    }
   }
 
   func fetchSongs(id: String) {

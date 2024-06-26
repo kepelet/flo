@@ -22,50 +22,11 @@ struct LibraryView: View {
           ForEach(viewModel.albums) { album in
             NavigationLink(
               destination:
-                AlbumView(
-                  viewModel: viewModel, album: album, albumArt: viewModel.getAlbumArt(id: album.id))
-            ) {
-              VStack(alignment: .leading) {
-                AsyncImage(url: URL(string: viewModel.getAlbumArt(id: album.id))) { phase in
-                  switch phase {
-                  case .empty:
-                    ProgressView().frame(width: 150, height: 150)
-                  case .success(let image):
-                    image
-                      .resizable()
-                      .aspectRatio(contentMode: .fit)
-                      .frame(width: 150, height: 150)
-                      .clipShape(
-                        RoundedRectangle(cornerRadius: 5, style: .continuous)
-                      )
-
-                  case .failure:
-                    Color("PlayerColor").frame(width: 150, height: 150)
-                      .cornerRadius(5)
-                  @unknown default:
-                    EmptyView().frame(width: 150, height: 150)
-                  }
+                AlbumView(viewModel: viewModel).onAppear {
+                  viewModel.setActiveAlbum(album: album)
                 }
-
-                Text(album.name)
-                  .customFont(.caption1)
-                  .fontWeight(.bold)
-                  .foregroundColor(.primary)
-                  .truncationMode(.tail)
-                  .padding(.trailing, 20)
-                  .lineLimit(1)
-                  .multilineTextAlignment(.leading)
-                  .frame(maxWidth: .infinity, alignment: .leading)
-
-                Text(album.artist)
-                  .customFont(.caption2)
-                  .foregroundColor(.gray)
-                  .truncationMode(.tail)
-                  .padding(.trailing, 20)
-                  .lineLimit(1)
-                  .frame(maxWidth: .infinity, alignment: .leading)
-
-              }.padding(.horizontal)
+            ) {
+              AlbumsView(viewModel: viewModel, album: album)
             }
           }
         }.padding(.top, 10).padding(.bottom, 100)

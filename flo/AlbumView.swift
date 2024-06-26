@@ -7,53 +7,13 @@
 
 import SwiftUI
 
-struct SongView: View {
-  var viewModel: AlbumViewModel
-  var playerViewModel: PlayerViewModel
-
-  var album: Album
-  var songs: [Song] = []
-
-  var body: some View {
-    ForEach(Array(songs.enumerated()), id: \.element) { idx, song in
-      VStack {
-        HStack(alignment: .top) {
-          Text("\(song.trackNumber.description)")
-            .customFont(.caption1)
-            .foregroundColor(.gray)
-            .padding(.trailing, 5)
-
-          Text(song.title)
-            .fontWeight(.medium)
-
-          Spacer()
-          Text(timeString(for: song.duration)).customFont(.caption1)
-
-        }
-      }
-      .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
-      .listRowSeparator(.hidden)
-      .contentShape(Rectangle())
-      .onTapGesture {
-        playerViewModel.addToQueue(idx: idx, item: album, songs: songs)
-      }
-    }
-    .environment(\.defaultMinListRowHeight, 60)
-    .listStyle(PlainListStyle()).padding().customFont(.body)
-  }
-}
-
 struct AlbumView: View {
-  @ObservedObject var viewModel: AlbumViewModel
-
-  var album: Album
-  var albumArt: String
-
   @EnvironmentObject var playerViewModel: PlayerViewModel
+  @ObservedObject var viewModel: AlbumViewModel
 
   var body: some View {
     ScrollView {
-      AsyncImage(url: URL(string: albumArt)) { phase in
+      AsyncImage(url: URL(string: viewModel.getAlbumArt(id: viewModel.album.id))) { phase in
         switch phase {
         case .empty:
           ProgressView().frame(width: 200, height: 200)
@@ -68,28 +28,28 @@ struct AlbumView: View {
             .shadow(radius: 5)
 
         case .failure:
-          Color("PlayerColor").frame(width: 150, height: 150)
+          Color("PlayerColor").frame(width: 200, height: 200)
             .cornerRadius(5)
 
         @unknown default:
-          EmptyView().frame(width: 150, height: 150)
+          EmptyView().frame(width: 200, height: 200)
         }
       }.padding(.bottom, 10)
 
       VStack {
-        Text(album.name)
+        Text(viewModel.album.name)
           .customFont(.title)
           .fontWeight(.bold)
           .multilineTextAlignment(.center)
           .padding(.bottom, 5)
 
-        Text(album.artist)
+        Text(viewModel.album.artist)
           .customFont(.title3)
           .multilineTextAlignment(.center)
           .padding(.bottom, 10)
 
         Text(
-          "\(album.genre.isEmpty ? "Unknown genre" : album.genre) • \(album.minYear == 0 ? "Unknown release year" : album.minYear.description)"
+          "\(viewModel.album.genre.isEmpty ? "Unknown genre" : viewModel.album.genre) • \(viewModel.album.minYear == 0 ? "Unknown release year" : viewModel.album.minYear.description)"
         )
         .customFont(.subheadline)
         .fontWeight(.medium)
@@ -97,7 +57,7 @@ struct AlbumView: View {
         HStack(spacing: 20) {
           Button(action: {
             playerViewModel.playByAlbum(
-              item: album, songs: album.songs ?? viewModel.album.songs ?? [])  // FIXME: I think the songs props is fishy
+              item: viewModel.album)
           }) {
             Text("Play")
               .foregroundColor(.white)
@@ -109,7 +69,7 @@ struct AlbumView: View {
           }
           Button(action: {
             playerViewModel.shuffleByAlbum(
-              item: album, songs: album.songs ?? viewModel.album.songs ?? [])  // FIXME: I think the songs props is fishy
+              item: viewModel.album)
           }) {
             Text("Shuffle")
               .foregroundColor(.white)
@@ -154,23 +114,14 @@ struct AlbumView: View {
         ProgressView()
       }
 
-      // FIXME: I think the songs props is fishy
       SongView(
-        viewModel: viewModel, playerViewModel: playerViewModel,
-        album: album,
-        songs: album.songs ?? viewModel.album.songs ?? [])
+        viewModel: viewModel, playerViewModel: playerViewModel)
 
-    }.onAppear {
-      if album.id != "" {
-        viewModel.fetchSongs(id: album.id)
-      }
     }.padding(.bottom, 100)
   }
 }
 
 struct AlbumViewPreview_Previews: PreviewProvider {
-  @StateObject static var viewModel: AlbumViewModel = AlbumViewModel()
-
   static var songs: [Song] = [
     Song(
       id: "0", title: "Song 1", artist: "Artist Name", trackNumber: 1, discNumber: 0, bitRate: 0,
@@ -201,8 +152,10 @@ struct AlbumViewPreview_Previews: PreviewProvider {
   static var album: Album = Album(
     name: "Album name", artist: "Artist name", songs: songs)
 
+  @StateObject static var viewModel: AlbumViewModel = AlbumViewModel(album: album)
+
   static var previews: some View {
-    AlbumView(viewModel: viewModel, album: album, albumArt: "").environmentObject(
+    AlbumView(viewModel: viewModel).environmentObject(
       PlayerViewModel())
   }
 }
