@@ -38,16 +38,19 @@ class PlayerViewModel: ObservableObject {
   private var totalDuration: Double = 0.0
 
   init() {
-    // FIXME: pikirin nanti (ini si NowPlaying udah bukan lagi source of truth harusbya)
-    //    if let lastPlayData = UserDefaultsManager.nowPlaying,
-    //      let lastPlay = try? JSONDecoder().decode(NowPlaying.self, from: lastPlayData)
-    //    {
-    //      self.setNowPlaying(data: lastPlay, playAudio: false)
-    //
-    //    }
-    //
-    //    self.progress = UserDefaultsManager.nowPlayingProgress
+    if let lastPlayData = UserDefaultsManager.playQueue,
+      let lastPlay = try? JSONDecoder().decode([Song].self, from: lastPlayData)
+    {
 
+      if let albumPlayQeueue = UserDefaultsManager._albumPlayQueue,
+        let albumData = try? JSONDecoder().decode(Album.self, from: albumPlayQeueue)
+      {
+        self.addToQueue(
+          idx: UserDefaultsManager.queueActiveIdx, item: albumData, songs: lastPlay, persist: false)
+      }
+    }
+
+    self.progress = UserDefaultsManager.nowPlayingProgress
     self.playbackMode = UserDefaultsManager.playbackMode
   }
 
@@ -55,7 +58,7 @@ class PlayerViewModel: ObservableObject {
     return self.nowPlaying.streamUrl != ""
   }
 
-  func addToQueue(idx: Int, item: Album, songs: [Song]) {
+  func addToQueue(idx: Int, item: Album, songs: [Song], persist: Bool = true) {
     // FIXME: of course
     self.tempAlbumName = item.name
     self.tempAlbumCover = AlbumService.shared.getCoverArt(id: item.id)
@@ -63,7 +66,22 @@ class PlayerViewModel: ObservableObject {
 
     self.activeQueueIdx = idx
     self.queue = songs
-    self.setNowPlaying()
+    self.setNowPlaying(playAudio: persist)
+
+    if persist {
+      if let albumPlayQueue = try? JSONEncoder().encode(item) {
+        UserDefaultsManager._albumPlayQueue = albumPlayQueue
+      } else {
+        print("error storing in UserDefaults")
+      }
+
+      if let playQueue = try? JSONEncoder().encode(songs) {
+        UserDefaultsManager.playQueue = playQueue
+        UserDefaultsManager.queueActiveIdx = idx
+      } else {
+        print("error storing in UserDefaults")
+      }
+    }
   }
 
   func setNowPlaying(playAudio: Bool = true) {
@@ -86,13 +104,6 @@ class PlayerViewModel: ObservableObject {
 
     self.playerItem = AVPlayerItem(url: audioURL!)
     self.player?.replaceCurrentItem(with: self.playerItem)
-
-    //  FIXME: pikirin nanti (ini si NowPlaying udah bukan lagi source of truth harusbya)
-    //    if let jsonData = try? JSONEncoder().encode(selectedSong) {
-    //      UserDefaultsManager.nowPlaying = jsonData
-    //    } else {
-    //      print("error storing in UserDefaults")
-    //    }
 
     Task {
       do {
@@ -316,6 +327,8 @@ class PlayerViewModel: ObservableObject {
         }
       }
     }
+
+    UserDefaultsManager.queueActiveIdx = self.activeQueueIdx
   }
 
   deinit {

@@ -30,6 +30,34 @@ class UserDefaultsManager {
     }
   }
 
+  // FIXME: https://github.com/kepelet/flo/issues/4 on "something-is-wrong-with-songs-props"
+  static var _albumPlayQueue: Data? {
+    get {
+      return UserDefaults.standard.data(forKey: UserDefaultsKeys._albumPlayQueue)
+    }
+    set {
+      UserDefaults.standard.set(newValue, forKey: UserDefaultsKeys._albumPlayQueue)
+    }
+  }
+
+  static var playQueue: Data? {
+    get {
+      return UserDefaults.standard.data(forKey: UserDefaultsKeys.playQueue)
+    }
+    set {
+      UserDefaults.standard.set(newValue, forKey: UserDefaultsKeys.playQueue)
+    }
+  }
+
+  static var queueActiveIdx: Int {
+    get {
+      return UserDefaults.standard.integer(forKey: UserDefaultsKeys.queueActiveIdx)
+    }
+    set {
+      UserDefaults.standard.set(newValue, forKey: UserDefaultsKeys.queueActiveIdx)
+    }
+  }
+
   static var nowPlayingProgress: Double {
     get {
       return UserDefaults.standard.double(forKey: UserDefaultsKeys.nowPlayingProgress)
