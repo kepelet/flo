@@ -47,6 +47,8 @@ class PlayerViewModel: ObservableObject {
     //    }
     //
     //    self.progress = UserDefaultsManager.nowPlayingProgress
+
+    self.playbackMode = UserDefaultsManager.playbackMode
   }
 
   func hasNowPlaying() -> Bool {
@@ -221,7 +223,6 @@ class PlayerViewModel: ObservableObject {
     player?.seek(to: newTime)
   }
 
-  // TODO: Make this persistent
   func setPlaybackMode() {
     if self.playbackMode == PlaybackMode.defaultPlayback {
       self.playbackMode = PlaybackMode.repeatAlbum
@@ -230,6 +231,8 @@ class PlayerViewModel: ObservableObject {
     } else {
       self.playbackMode = PlaybackMode.defaultPlayback
     }
+
+    UserDefaultsManager.playbackMode = self.playbackMode
   }
 
   func playByAlbum(item: Album, songs: [Song]) {

@@ -38,4 +38,14 @@ class UserDefaultsManager {
       UserDefaults.standard.set(newValue, forKey: UserDefaultsKeys.nowPlayingProgress)
     }
   }
+
+  static var playbackMode: String {
+    get {
+      return UserDefaults.standard.string(forKey: UserDefaultsKeys.playbackMode)
+        ?? PlaybackMode.defaultPlayback
+    }
+    set {
+      UserDefaults.standard.set(newValue, forKey: UserDefaultsKeys.playbackMode)
+    }
+  }
 }

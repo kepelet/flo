@@ -39,6 +39,7 @@ enum UserDefaultsKeys {
   static let serverURL = "serverURL"
   static let nowPlaying = "nowPlaying"
   static let nowPlayingProgress = "nowPlayingProgress"
+  static let playbackMode = "playbackMode"
 }
 
 enum KeychainKeys {
