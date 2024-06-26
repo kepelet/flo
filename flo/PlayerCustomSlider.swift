@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct PlayerCustomSlider: View {
+  var isMediaLoading: Bool = false
+
   @Binding var isSeeking: Bool
   @Binding var value: Double
 
@@ -31,6 +33,7 @@ struct PlayerCustomSlider: View {
               (self.value - self.range.lowerBound) / (self.range.upperBound - self.range.lowerBound)
             ) * geometry.size.width, height: 4
           )
+          .opacity(isMediaLoading ? 0 : 1)
           .cornerRadius(2)
 
         if self.isSeeking {
@@ -52,6 +55,7 @@ struct PlayerCustomSlider: View {
               (self.value - self.range.lowerBound) / (self.range.upperBound - self.range.lowerBound)
             ) * geometry.size.width - 6
           )
+          .opacity(isMediaLoading ? 0 : 1)
           .animation(.easeInOut(duration: 0.3), value: self.value)
           .gesture(
             DragGesture()

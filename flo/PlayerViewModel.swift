@@ -6,6 +6,7 @@
 //
 
 import AVFoundation
+import Combine
 import MediaPlayer
 import SwiftUI
 
@@ -24,6 +25,7 @@ class PlayerViewModel: ObservableObject {
 
   @Published var activeQueueIdx: Int = 0
 
+  @Published var isMediaLoading: Bool = false
   @Published var isShuffling: Bool = false
   @Published var isPlaying: Bool = false
   @Published var isSeeking: Bool = false
@@ -36,6 +38,7 @@ class PlayerViewModel: ObservableObject {
 
   private var isFinished: Bool = false
   private var totalDuration: Double = 0.0
+  private var playerItemObservation: AnyCancellable?
 
   init() {
     if let lastPlayData = UserDefaultsManager.playQueue,
@@ -117,6 +120,21 @@ class PlayerViewModel: ObservableObject {
         }
       }
     }
+
+    playerItemObservation = playerItem?.publisher(for: \.status)
+      .sink { [weak self] status in
+        guard let self = self else { return }
+
+        if status != .readyToPlay {
+          DispatchQueue.main.async {
+            self.isMediaLoading = true
+          }
+        } else {
+          DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+            self.isMediaLoading = false
+          }
+        }
+      }
 
     addPeriodicTimeObserver()
 

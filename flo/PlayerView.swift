@@ -212,6 +212,8 @@ struct PlayerView: View {
               Image(systemName: viewModel.isPlaying ? "pause.fill" : "play.fill")
                 .font(.system(size: 50))
             }
+            .foregroundColor(viewModel.isMediaLoading ? .gray : .white)
+            .disabled(viewModel.isMediaLoading)
 
             Button {
               viewModel.nextSong()
@@ -225,6 +227,7 @@ struct PlayerView: View {
           VStack {
 
             PlayerCustomSlider(
+              isMediaLoading: viewModel.isMediaLoading,
               isSeeking: $viewModel.isSeeking, value: $viewModel.progress, range: 0...1
             ) { newValue in
               viewModel.seek(to: newValue)

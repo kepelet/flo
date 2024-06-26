@@ -58,20 +58,22 @@ struct FloatingPlayerView: View {
                     (viewModel.progress - range.lowerBound) / (range.upperBound - range.lowerBound))
                     * geometry.size.width, height: 3
                 )
-                .cornerRadius(10)
+                .cornerRadius(10).opacity(viewModel.isMediaLoading ? 0 : 1)
             }.frame(height: 3)
           }.frame(height: 3)
         }
 
         HStack(spacing: 20) {
-          Button {
-
-          } label: {
-            Image(systemName: viewModel.isPlaying ? "pause.fill" : "play.fill")
-              .font(.system(size: 20))
-              .onTapGesture {
-                viewModel.isPlaying ? viewModel.pause() : viewModel.play()
-              }
+          if viewModel.isMediaLoading {
+            ProgressView().progressViewStyle(CircularProgressViewStyle(tint: .white))
+          } else {
+            Button {
+              viewModel.isPlaying ? viewModel.pause() : viewModel.play()
+            } label: {
+              Image(systemName: viewModel.isPlaying ? "pause.fill" : "play.fill")
+                .font(.system(size: 20))
+                .disabled(viewModel.isMediaLoading)
+            }
           }
         }.padding()
       }.padding(8).foregroundColor(.white)
