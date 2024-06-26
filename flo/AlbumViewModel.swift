@@ -47,6 +47,30 @@ class AlbumViewModel: ObservableObject {
     }
   }
 
+  func getAlbumInfo() {
+    albumService.getAlbumInfo(id: self.album.id) { [weak self] result in
+      DispatchQueue.main.async {
+        switch result {
+        case .success(let response):
+          if let albumInfo = response.subsonicResponse.albumInfo.notes {
+            let regex = try! NSRegularExpression(pattern: "<a href=\".*\">.*</a>\\.")
+            let range = NSRange(location: 0, length: albumInfo.utf16.count)
+
+            let stripped = regex.stringByReplacingMatches(
+              in: albumInfo, range: range, withTemplate: "")
+
+            self?.album.info = stripped
+          } else {
+            self?.album.info = "Description Unavailable"
+          }
+
+        case .failure(let error):
+          self?.error = error
+        }
+      }
+    }
+  }
+
   func getStreamUrl(id: String) -> String {
     return albumService.getStreamUrl(id: id)
   }

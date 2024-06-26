@@ -7,11 +7,29 @@
 
 import Foundation
 
+struct AlbumInfo: Codable {
+  struct SubsonicResponse: Codable {
+    struct AlbumInfo: Codable {
+      let notes: String?
+    }
+
+    let albumInfo: AlbumInfo
+  }
+
+  let subsonicResponse: SubsonicResponse
+
+  enum CodingKeys: String, CodingKey {
+    // FIXME: constants?
+    case subsonicResponse = "subsonic-response"
+  }
+}
+
 struct Album: Codable, Identifiable {
   var id: String = ""
   var name: String = ""
   var artist: String = ""
   var albumCover: String = ""
+  var info: String = ""
   var songs: [Song] = []
   var genre: String = ""
   var minYear: Int = 0

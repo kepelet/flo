@@ -11,6 +11,8 @@ struct AlbumView: View {
   @EnvironmentObject var playerViewModel: PlayerViewModel
   @ObservedObject var viewModel: AlbumViewModel
 
+  @State private var showAlbumInfo: Bool = false
+
   var body: some View {
     ScrollView {
       AsyncImage(url: URL(string: viewModel.album.albumCover)) { phase in
@@ -83,14 +85,75 @@ struct AlbumView: View {
       }.padding(10)
 
       HStack(spacing: 40) {
-        Button(action: {}) {
+        Button(action: {
+          self.showAlbumInfo.toggle()
+          viewModel.getAlbumInfo()
+        }) {
           VStack(spacing: 8) {
             Image(systemName: "info.circle")
               .font(.system(size: 24))
             Text("Album Info")
               .font(.caption)
           }
-        }.disabled(true)
+        }.sheet(isPresented: $showAlbumInfo) {
+          VStack {
+            ScrollView {
+              Spacer()
+
+              AsyncImage(url: URL(string: viewModel.album.albumCover)) { phase in
+                switch phase {
+                case .empty:
+                  ProgressView().frame(width: 300, height: 300)
+                case .success(let image):
+                  image
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 300, height: 300)
+                    .clipShape(
+                      RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    )
+
+                case .failure:
+                  Color("PlayerColor").frame(width: 300, height: 300)
+                    .cornerRadius(5)
+
+                @unknown default:
+                  EmptyView().frame(width: 300, height: 300)
+                }
+              }.padding()
+
+              VStack {
+
+                Text(viewModel.album.name)
+                  .customFont(.title2)
+                  .fontWeight(.bold)
+                  .multilineTextAlignment(.center)
+                  .padding(.bottom, 5)
+
+                Text(viewModel.album.artist)
+                  .customFont(.title3)
+                  .multilineTextAlignment(.center)
+                  .padding(.bottom, 10)
+
+                Text(
+                  "\(viewModel.album.genre.isEmpty ? "Unknown genre" : viewModel.album.genre) • \(viewModel.album.minYear == 0 ? "Unknown release year" : viewModel.album.minYear.description)"
+                )
+                .customFont(.subheadline)
+                .fontWeight(.medium)
+              }.padding(.bottom, 20)
+
+              Spacer()
+
+              Text(viewModel.album.info)
+                .customFont(.subheadline)
+                .multilineTextAlignment(.center)
+                .lineSpacing(5)
+
+              Spacer()
+            }.padding()
+            Spacer()
+          }
+        }
 
         Button(action: {}) {
           VStack(spacing: 8) {

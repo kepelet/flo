@@ -19,6 +19,7 @@ struct API {
   struct SubsonicEndpoint {
     static let stream = "/rest/stream"
     static let coverArt = "/rest/getCoverArt"
+    static let albuminfo = "/rest/getAlbumInfo"
     static let scanStatus = "/rest/getScanStatus"
   }
 }

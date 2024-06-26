@@ -56,4 +56,20 @@ class AlbumService {
       }
     }
   }
+
+  func getAlbumInfo(id: String, completion: @escaping (Result<AlbumInfo, Error>) -> Void) {
+    let params: [String: Any] = ["id": id]
+
+    APIManager.shared.SubsonicEndpointRequest(
+      endpoint: API.SubsonicEndpoint.albuminfo, parameters: params
+    ) {
+      (response: DataResponse<AlbumInfo, AFError>) in
+      switch response.result {
+      case .success(let status):
+        completion(.success(status))
+      case .failure(let error):
+        completion(.failure(error))
+      }
+    }
+  }
 }
