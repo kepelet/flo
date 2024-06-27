@@ -17,20 +17,41 @@ struct AlbumsView: View {
         switch phase {
         case .empty:
           ProgressView().frame(width: 150, height: 150)
+
         case .success(let image):
           image
             .resizable()
-            .aspectRatio(contentMode: .fit)
-            .frame(width: 150, height: 150)
+            .aspectRatio(contentMode: .fill)
+            .frame(maxWidth: .infinity, maxHeight: 300)
             .clipShape(
               RoundedRectangle(cornerRadius: 5, style: .continuous)
             )
 
         case .failure:
-          Color("PlayerColor").frame(width: 150, height: 150)
-            .cornerRadius(5)
+          ZStack {
+            Color("PlayerColor")
+              .frame(maxWidth: .infinity, maxHeight: 300)
+              .clipShape(RoundedRectangle(cornerRadius: 5, style: .continuous))
+            Image(systemName: "photo")
+              .resizable()
+              .aspectRatio(contentMode: .fit)
+              .padding()
+              .padding(.bottom, 20)
+              .foregroundColor(Color("PlayerColor"))
+          }
+
         @unknown default:
-          EmptyView().frame(width: 150, height: 150)
+          ZStack {
+            Color("PlayerColor")
+              .frame(maxWidth: .infinity, maxHeight: 250)
+              .clipShape(RoundedRectangle(cornerRadius: 5, style: .continuous))
+            Image(systemName: "photo")
+              .resizable()
+              .aspectRatio(contentMode: .fit)
+              .padding()
+              .padding(.bottom, 20)
+              .foregroundColor(Color("PlayerColor"))
+          }
         }
       }
 
