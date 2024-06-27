@@ -14,8 +14,6 @@ class AlbumViewModel: ObservableObject {
   @Published var isLoading = false
   @Published var error: Error?
 
-  private let albumService = AlbumService()
-
   init(album: Album = Album(), albums: [Album] = [Album()]) {
     self.album = album
     self.albums = albums
@@ -32,7 +30,7 @@ class AlbumViewModel: ObservableObject {
 
   func fetchSongs(id: String) {
     isLoading = true
-    albumService.getSongFromAlbum(id: id) { [weak self] result in
+    AlbumService.shared.getSongFromAlbum(id: id) { [weak self] result in
       DispatchQueue.main.async {
         self?.isLoading = false
 
@@ -48,7 +46,7 @@ class AlbumViewModel: ObservableObject {
   }
 
   func getAlbumInfo() {
-    albumService.getAlbumInfo(id: self.album.id) { [weak self] result in
+    AlbumService.shared.getAlbumInfo(id: self.album.id) { [weak self] result in
       DispatchQueue.main.async {
         switch result {
         case .success(let response):
@@ -72,16 +70,16 @@ class AlbumViewModel: ObservableObject {
   }
 
   func getStreamUrl(id: String) -> String {
-    return albumService.getStreamUrl(id: id)
+    return AlbumService.shared.getStreamUrl(id: id)
   }
 
   func getAlbumArt(id: String) -> String {
-    return albumService.getCoverArt(id: id)
+    return AlbumService.shared.getCoverArt(id: id)
   }
 
   func fetchAlbums() {
     isLoading = true
-    albumService.getAlbum { [weak self] result in
+    AlbumService.shared.getAlbum { [weak self] result in
       DispatchQueue.main.async {
         self?.isLoading = false
         switch result {

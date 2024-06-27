@@ -10,10 +10,8 @@ import SwiftUI
 class ScanStatusViewModel: ObservableObject {
   @Published var scanStatus: ScanStatusResponse.SubsonicResponse? = nil
 
-  private let scanStatusService = ScanStatusService()
-
   func checkScanStatus() {
-    scanStatusService.getScanStatus { [weak self] result in
+    ScanStatusService.shared.getScanStatus { [weak self] result in
       DispatchQueue.main.async {
         switch result {
         case .success(let status):

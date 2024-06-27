@@ -9,6 +9,8 @@ import Alamofire
 import Foundation
 
 class ScanStatusService {
+  static let shared = ScanStatusService()
+
   func getScanStatus(completion: @escaping (Result<ScanStatusResponse, Error>) -> Void) {
     let params: [String: Any] = [:]
 
