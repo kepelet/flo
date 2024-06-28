@@ -18,6 +18,25 @@ struct LibraryView: View {
   var body: some View {
     NavigationView {
       ScrollView {
+        if viewModel.albums.isEmpty && viewModel.error != nil {
+          VStack(alignment: .leading) {
+            Image("Home").resizable().aspectRatio(contentMode: .fit).frame(width: 300).padding()
+              .padding(.bottom, 10)
+            Group {
+              Text("Your Navidrome session may have expired")
+                .customFont(.title1)
+                .fontWeight(.bold)
+                .multilineTextAlignment(.leading)
+                .padding(.bottom, 10)
+              Text(
+                "The quickest action you can take is to log back in — for now."
+              )
+              .customFont(.subheadline)
+
+            }.padding(.horizontal, 20).foregroundColor(.accent)
+          }
+        }
+
         LazyVGrid(columns: columns, spacing: 20) {
           ForEach(viewModel.albums) { album in
             NavigationLink(

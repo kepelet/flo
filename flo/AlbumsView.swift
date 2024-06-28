@@ -36,7 +36,8 @@ struct AlbumsView: View {
               .resizable()
               .aspectRatio(contentMode: .fit)
               .padding()
-              .padding(.bottom, 20)
+              .padding(.top, 10)
+              .padding(.bottom, 10)
               .foregroundColor(Color("PlayerColor"))
           }
 

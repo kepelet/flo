@@ -14,7 +14,7 @@ class AlbumViewModel: ObservableObject {
   @Published var isLoading = false
   @Published var error: Error?
 
-  init(album: Album = Album(), albums: [Album] = [Album()]) {
+  init(album: Album = Album(), albums: [Album] = []) {
     self.album = album
     self.albums = albums
   }

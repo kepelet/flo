@@ -24,7 +24,7 @@ struct PlayerView: View {
 
       // FIXME: Refactor this?
       ZStack(alignment: .topLeading) {
-        Color.white
+        Color(.systemBackground)
           .ignoresSafeArea()
           .clipShape(
             RoundedRectangle(cornerRadius: 15, style: .continuous)
@@ -58,10 +58,12 @@ struct PlayerView: View {
                 viewModel.shuffleCurrentQueue()
               } label: {
                 Image(systemName: "shuffle")
-                  .foregroundColor(Color.player)
+                  .foregroundColor(Color.accentColor)
                   .fontWeight(.bold)
                   .padding(5)
-                  .background(viewModel.isShuffling ? Color.gray.opacity(0.2) : Color.white)
+                  .background(
+                    viewModel.isShuffling ? Color.gray.opacity(0.2) : Color(.systemBackground)
+                  )
                   .cornerRadius(5)
               }
 
@@ -69,7 +71,7 @@ struct PlayerView: View {
                 viewModel.setPlaybackMode()
               } label: {
                 Image(systemName: "repeat")
-                  .foregroundColor(Color.player)
+                  .foregroundColor(Color.accentColor)
                   .fontWeight(.bold)
                   .overlay(
                     Group {
@@ -83,7 +85,7 @@ struct PlayerView: View {
                   .padding(5)
                   .background(
                     viewModel.playbackMode == PlaybackMode.defaultPlayback
-                      ? Color.white : Color.gray.opacity(0.2)
+                      ? Color(.systemBackground) : Color.gray.opacity(0.2)
                   )
                   .cornerRadius(5)
               }
