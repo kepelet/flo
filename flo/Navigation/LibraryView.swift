@@ -37,7 +37,7 @@ struct LibraryView: View {
           }
         }
 
-        LazyVGrid(columns: columns, spacing: 20) {
+        LazyVGrid(columns: columns) {
           ForEach(viewModel.albums) { album in
             NavigationLink(
               destination:

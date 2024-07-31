@@ -76,6 +76,10 @@ class PlayerViewModel: ObservableObject {
   }
 
   func setNowPlaying(playAudio: Bool = true) {
+    if let timeObserverToken = timeObserverToken {
+      player?.removeTimeObserver(timeObserverToken)
+    }
+
     let activeSong = self.queue[activeQueueIdx]
     let selectedSong = NowPlaying(
       artistName: activeSong.artist,
@@ -177,17 +181,38 @@ class PlayerViewModel: ObservableObject {
   ) {
     var nowPlayingInfo = [String: Any]()
 
-    nowPlayingInfo[MPMediaItemPropertyTitle] = title
-    nowPlayingInfo[MPMediaItemPropertyArtist] = artist
-    nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] = playbackDuration
+    DispatchQueue.global().async {
+      guard let url = URL(string: self.nowPlaying.albumCover) else {
+        return
+      }
 
-    if let rate = playbackRate {
-      nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = rate
-    } else {
-      nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = 1.0
+      if let data = try? Data(contentsOf: url),
+        let image = UIImage(data: data)
+      {
+        let artwork = MPMediaItemArtwork(boundsSize: image.size) { size in
+          return image
+        }
+
+        DispatchQueue.main.async {
+          nowPlayingInfo[MPMediaItemPropertyArtwork] = artwork
+          nowPlayingInfo[MPMediaItemPropertyTitle] = title
+          nowPlayingInfo[MPMediaItemPropertyArtist] = artist
+          nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] = playbackDuration
+          nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = playbackRate ?? 1.0
+
+          MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
+        }
+      } else {
+        DispatchQueue.main.async {
+          nowPlayingInfo[MPMediaItemPropertyTitle] = title
+          nowPlayingInfo[MPMediaItemPropertyArtist] = artist
+          nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] = playbackDuration
+          nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = playbackRate ?? 1.0
+
+          MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
+        }
+      }
     }
-
-    MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
   }
 
   private func setupRemoteCommandCenter() {
