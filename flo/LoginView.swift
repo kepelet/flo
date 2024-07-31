@@ -13,22 +13,24 @@ struct Login: View {
 
   var body: some View {
     VStack {
-      Spacer()
-
       VStack {
-        VStack {
-          Image("logo").resizable().scaledToFit().frame(width: 130)
-        }.padding(.bottom, 20)
+        Image("logo")
+          .resizable()
+          .scaledToFit()
+          .frame(width: 130)
+          .padding(.bottom, 20)
 
-        VStack {
-          Text("Thanks for choosing flo!").customFont(.title1).fontWeight(.bold).padding(.bottom, 5)
-          Text("Login to your Navidrome server to continue")
-            .font(.body)
-            .multilineTextAlignment(.center)
-        }.padding(.horizontal, 20)
-      }.padding(.top, 50)
+        Text("Thanks for choosing flo!")
+          .foregroundColor(.white)
+          .customFont(.title1)
+          .fontWeight(.bold)
+          .padding(.bottom, 10)
 
-      Spacer()
+        Text("Login to your Navidrome server to continue")
+          .foregroundColor(.white)
+          .customFont(.body)
+          .multilineTextAlignment(.center)
+      }.padding(.horizontal, 20).padding(.vertical, 50)
 
       VStack {
         VStack(alignment: .leading) {

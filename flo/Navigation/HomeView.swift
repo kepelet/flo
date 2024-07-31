@@ -53,7 +53,9 @@ struct HomeView: View {
 
       }
       .sheet(isPresented: shouldShowLoginSheet()) {
-        Login(viewModel: viewModel, showLoginSheet: $showLoginSheet)
+        ScrollView {
+          Login(viewModel: viewModel, showLoginSheet: $showLoginSheet)
+        }.background(Color(red: 43 / 255, green: 42 / 255, blue: 94 / 255))
       }
       .padding()
 
