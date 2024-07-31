@@ -52,34 +52,41 @@ struct PreferencesView: View {
           }
         }
 
-        Section(header: Text("Make it yours")) {
-          ColorPicker("Accent color", selection: $accentColor).disabled(true)
-          ColorPicker("Player color", selection: $playerColor).disabled(true)
+        // TODO: finish this later
+        if false {
+          Section(header: Text("Make it yours")) {
+            ColorPicker("Accent color", selection: $accentColor).disabled(true)
+            ColorPicker("Player color", selection: $playerColor).disabled(true)
 
-          Picker(selection: $customFontFamily, label: Text("Font Family")) {
-            ForEach(["Plus Jakarta Sans", "System", "JetBrains Mono", "Comic Sans MS"], id: \.self)
-            {
-              Text($0)
-            }
-          }.disabled(true)
+            Picker(selection: $customFontFamily, label: Text("Font Family")) {
+              ForEach(
+                ["Plus Jakarta Sans", "System", "JetBrains Mono", "Comic Sans MS"], id: \.self
+              ) {
+                Text($0)
+              }
+            }.disabled(true)
+          }
         }
 
-        Section(header: Text("Experimental")) {
-          Toggle(isOn: $storeCredsInKeychain) {
-            Text("Store username & password in iCloud Keychain")
-          }.disabled(true)
-          Toggle(isOn: $storeCredsInKeychain) {
-            Text("Cache album covers")
-          }.disabled(true)
-          Toggle(isOn: $storeCredsInKeychain) {
-            Text("Scrobble to Last.fm")
-          }.disabled(true)
-          Toggle(isOn: $storeCredsInKeychain) {
-            Text("Scrobble to ListenBrainz")
-          }.disabled(true)
-          Toggle(isOn: $storeCredsInKeychain) {
-            Text("Share my listening activity to Discord now playing status")
-          }.disabled(true)
+        // TODO: finish this later
+        if false {
+          Section(header: Text("Experimental")) {
+            Toggle(isOn: $storeCredsInKeychain) {
+              Text("Store username & password in iCloud Keychain")
+            }.disabled(true)
+            Toggle(isOn: $storeCredsInKeychain) {
+              Text("Cache album covers")
+            }.disabled(true)
+            Toggle(isOn: $storeCredsInKeychain) {
+              Text("Scrobble to Last.fm")
+            }.disabled(true)
+            Toggle(isOn: $storeCredsInKeychain) {
+              Text("Scrobble to ListenBrainz")
+            }.disabled(true)
+            Toggle(isOn: $storeCredsInKeychain) {
+              Text("Share my listening activity to Discord now playing status")
+            }.disabled(true)
+          }
         }
 
         // TODO: finish this later
