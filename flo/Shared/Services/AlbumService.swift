@@ -72,4 +72,27 @@ class AlbumService {
       }
     }
   }
+
+  func share(
+    albumId: String, description: String, downloadable: Bool,
+    completion: @escaping (Result<AlbumShare, Error>) -> Void
+  ) {
+    let params: [String: Any] = [
+      "description": description, "resourceIds": albumId, "downloadable": downloadable,
+      "resourceType": "album",
+    ]
+
+    APIManager.shared.NDEndpointRequest(
+      endpoint: API.NDEndpoint.shareAlbum, method: .post, parameters: params,
+      encoding: JSONEncoding.default
+    ) {
+      (response: DataResponse<AlbumShare, AFError>) in
+      switch response.result {
+      case .success(let id):
+        completion(.success(id))
+      case .failure(let error):
+        completion(.failure(error))
+      }
+    }
+  }
 }

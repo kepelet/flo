@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct NowPlaying: Encodable, Decodable {
+struct NowPlaying: Codable {
   var artistName: String = "Unknown Artist"
   var songName: String = "Untitled"
   var albumName: String = "Unknown Album"

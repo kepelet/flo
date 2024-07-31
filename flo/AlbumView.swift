@@ -13,6 +13,13 @@ struct AlbumView: View {
 
   @State private var showAlbumInfo: Bool = false
 
+  @State private var shareDescription: String = ""
+  @State private var generatedShareURL: String = ""
+  @State private var showShareAlert: Bool = false
+  @State private var showShareURLAlert: Bool = false
+
+  var isDownloadScreen: Bool = false
+
   var body: some View {
     ScrollView {
       AsyncImage(url: URL(string: viewModel.album.albumCover)) { phase in
@@ -155,22 +162,57 @@ struct AlbumView: View {
           }
         }
 
-        Button(action: {}) {
+        Button(action: {
+          viewModel.downloadAlbum()
+        }) {
           VStack(spacing: 8) {
             Image(systemName: "arrow.down.circle")
               .font(.system(size: 24))
             Text("Download")
               .font(.caption)
           }
-        }.disabled(true)
-        Button(action: {}) {
+        }.disabled(viewModel.ifNotDownloadable(isDownloadScreen: isDownloadScreen))
+
+        Button(action: {
+          self.showShareAlert = true
+        }) {
           VStack(spacing: 8) {
             Image(systemName: "square.and.arrow.up")
               .font(.system(size: 24))
             Text("Share")
               .font(.caption)
+          }.alert(
+            "Share album '\(viewModel.album.name)'",
+            isPresented: $showShareAlert
+          ) {
+            Button("Cancel", role: .cancel) {
+              self.shareDescription = ""
+            }
+            Button("Share") {
+              self.viewModel.shareAlbum(description: self.shareDescription) { result in
+                UIPasteboard.general.string = result
+
+                self.generatedShareURL = result
+                self.showShareAlert = false
+                self.showShareURLAlert = true
+              }
+            }
+            TextField("Description (i.e: for my wife)", text: $shareDescription)
+          } message: {
+            Text(
+              "Share features with Download option is disabled, please update directly in Navidrome UI if needed"
+            )
+          }.alert(
+            "Link copied to clipboard! (\(self.generatedShareURL))", isPresented: $showShareURLAlert
+          ) {
+            Button("OK", role: .cancel) {
+              self.shareDescription = ""
+              self.generatedShareURL = ""
+
+              self.showShareURLAlert = false
+            }
           }
-        }.disabled(true)
+        }.disabled(viewModel.ifNotSharable(isDownloadScreen: isDownloadScreen))
       }
 
       if viewModel.isLoading {

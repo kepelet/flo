@@ -24,6 +24,10 @@ struct AlbumInfo: Codable {
   }
 }
 
+struct AlbumShare: Codable {
+  var id: String
+}
+
 struct Album: Codable, Identifiable {
   var id: String = ""
   var name: String = ""
@@ -64,5 +68,14 @@ struct Album: Codable, Identifiable {
     self.songs = songs
     self.genre = genre
     self.minYear = minYear
+  }
+
+  init(from playlist: PlaylistEntity) {
+    self.id = playlist.id ?? UUID().uuidString
+    self.name = playlist.name ?? "Unknown Album"
+    self.artist = playlist.artistName ?? "Unknown Artist"
+    self.genre = playlist.genre ?? "Unknown Genre"
+    self.minYear = Int(playlist.minYear)
+    self.albumCover = playlist.albumCover ?? ""
   }
 }

@@ -14,6 +14,7 @@ struct API {
     static let login = "/auth/login"
     static let getAlbum = "/api/album"
     static let getSong = "/api/song"
+    static let shareAlbum = "/api/share"
   }
 
   struct SubsonicEndpoint {

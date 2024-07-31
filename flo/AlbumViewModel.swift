@@ -19,6 +19,24 @@ class AlbumViewModel: ObservableObject {
     self.albums = albums
   }
 
+  func ifNotSharable(isDownloadScreen: Bool) -> Bool {
+    //TODO: add logic to check server-side config
+    if isDownloadScreen {
+      return true
+    }
+
+    return false
+  }
+
+  func ifNotDownloadable(isDownloadScreen: Bool) -> Bool {
+    //TODO: add logic to check server-side config
+    if isDownloadScreen {
+      return true
+    }
+
+    return false
+  }
+
   func setActiveAlbum(album: Album) {
     self.album = album
     self.album.albumCover = self.getAlbumArt(id: album.id)
@@ -75,6 +93,19 @@ class AlbumViewModel: ObservableObject {
 
   func getAlbumArt(id: String) -> String {
     return AlbumService.shared.getCoverArt(id: id)
+  }
+
+  func shareAlbum(description: String, completion: @escaping (String) -> Void) {
+    AlbumService.shared.share(albumId: self.album.id, description: description, downloadable: false)
+    { result in
+      switch result {
+      case .success(let share):
+        completion("\(UserDefaultsManager.serverBaseURL)/share/\(share.id)")
+
+      case .failure(let error):
+        print("error>>>", error)
+      }
+    }
   }
 
   func fetchAlbums() {
