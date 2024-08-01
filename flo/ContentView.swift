@@ -30,8 +30,10 @@ struct ContentView: View {
           }
         }
 
-        DownloadsView().tabItem {
+        DownloadsView(viewModel: albumViewModel).tabItem {
           Label("Downloads", systemImage: "arrow.down.circle")
+        }.environmentObject(playerViewModel).onAppear {
+          albumViewModel.fetchAlbum()
         }
 
         PreferencesView(authViewModel: authViewModel).tabItem {
