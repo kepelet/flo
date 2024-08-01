@@ -22,6 +22,7 @@ struct API {
     static let coverArt = "/rest/getCoverArt"
     static let albuminfo = "/rest/getAlbumInfo"
     static let scanStatus = "/rest/getScanStatus"
+    static let download = "/rest/download"
   }
 }
 
