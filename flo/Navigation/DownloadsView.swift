@@ -8,26 +8,57 @@
 import SwiftUI
 
 struct DownloadsView: View {
-  var body: some View {
-    VStack(alignment: .leading) {
-      Image("Downloads").resizable().aspectRatio(contentMode: .fit).frame(width: 300).padding()
-        .padding(.bottom, 10)
-      Group {
-        Text("Going off the grid?")
-          .customFont(.title1)
-          .fontWeight(.bold)
-          .multilineTextAlignment(.leading)
-          .padding(.bottom, 10)
-        Text(
-          "Bring your music anywhere, even when you're offline. Your downloaded music will be here."
-        )
-        .customFont(.subheadline)
+  @ObservedObject var viewModel: AlbumViewModel
 
-      }.padding(.horizontal, 20).foregroundColor(.accent)
+  let columns = [
+    GridItem(.flexible()),
+    GridItem(.flexible()),
+  ]
+
+  var body: some View {
+    NavigationView {
+      ScrollView {
+        if viewModel.offlinePlaylist.isEmpty {
+          VStack(alignment: .leading) {
+            Image("Downloads").resizable().aspectRatio(contentMode: .fit).frame(width: 300)
+              .padding()
+              .padding(.bottom, 10)
+            Group {
+              Text("Going off the grid?")
+                .customFont(.title1)
+                .fontWeight(.bold)
+                .multilineTextAlignment(.leading)
+                .padding(.bottom, 10)
+              Text(
+                "Bring your music anywhere, even when you're offline. Your downloaded music will be here."
+              )
+              .customFont(.subheadline)
+
+            }.padding(.horizontal, 20).foregroundColor(.accent)
+          }
+        }
+
+        LazyVGrid(columns: columns, spacing: 20) {
+          ForEach(viewModel.offlinePlaylist) { album in
+            NavigationLink(
+              destination:
+                AlbumView(viewModel: viewModel, isDownloadScreen: true).onAppear {
+                  viewModel.setActiveAlbum(album: album)
+                }
+            ) {
+              AlbumsView(viewModel: viewModel, album: album)
+            }
+          }
+        }.padding(.top, 10).padding(.bottom, 100).navigationTitle("Downloads")
+      }
     }
   }
 }
 
-#Preview {
-  DownloadsView()
+struct DownloadsView_Previews: PreviewProvider {
+  @StateObject static var viewModel: AlbumViewModel = AlbumViewModel()
+
+  static var previews: some View {
+    DownloadsView(viewModel: viewModel)
+  }
 }
