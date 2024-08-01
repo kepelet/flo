@@ -48,4 +48,28 @@ class APIManager {
       completion(response)
     }
   }
+
+  func SubsonicEndpointDownload(
+    endpoint: String, method: HTTPMethod = .get, parameters: Parameters?,
+    encoding: ParameterEncoding = URLEncoding.queryString,
+    completion: @escaping (Result<Data, AFError>) -> Void
+  ) {
+
+    // FIXME: refactor getCreds(key: "subsonicToken")
+    let url =
+      "\(UserDefaultsManager.serverBaseURL)\(endpoint)\(AuthService.shared.getCreds(key: "subsonicToken"))"
+
+    AF.request(
+      url, method: method, parameters: parameters, encoding: encoding
+    )
+    .validate(statusCode: 200..<500)
+    .responseData { response in
+      switch response.result {
+      case .success(let data):
+        completion(.success(data))
+      case .failure(let error):
+        completion(.failure(error))
+      }
+    }
+  }
 }
