@@ -8,8 +8,12 @@
 import Foundation
 
 func timeString(for seconds: Double) -> String {
-  let minutes = Int(seconds) / 60
-  let seconds = Int(seconds) % 60
+  if seconds.isFinite, !seconds.isNaN {
+    let minutes = Int(seconds) / 60
+    let seconds = Int(seconds) % 60
 
-  return String(format: "%02d:%02d", minutes, seconds)
+    return String(format: "%02d:%02d", minutes, seconds)
+  }
+
+  return "00:00"
 }
