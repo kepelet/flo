@@ -27,7 +27,8 @@ struct HomeView: View {
   var body: some View {
     VStack {
       HStack {
-        Text("Home").customFont(.title1).fontWeight(.bold)
+        Text("Home").font(.system(size: 32)).foregroundColor(.primary).fontWeight(.bold).padding(
+          .vertical)
         Spacer()
         Menu {
           Button(action: {
@@ -50,14 +51,13 @@ struct HomeView: View {
           Image(systemName: "person.crop.circle.fill")
             .font(.largeTitle)
         }
-
-      }
-      .sheet(isPresented: shouldShowLoginSheet()) {
-        ScrollView {
-          Login(viewModel: viewModel, showLoginSheet: $showLoginSheet)
-        }.background(Color(red: 43 / 255, green: 42 / 255, blue: 94 / 255))
-      }
-      .padding()
+      }.padding(.vertical)
+        .sheet(isPresented: shouldShowLoginSheet()) {
+          ScrollView {
+            Login(viewModel: viewModel, showLoginSheet: $showLoginSheet)
+          }.background(Color(red: 43 / 255, green: 42 / 255, blue: 94 / 255))
+        }
+        .padding()
 
       VStack(alignment: .leading) {
         Image("Home").resizable().aspectRatio(contentMode: .fit).frame(width: 300).padding()
@@ -82,6 +82,10 @@ struct HomeView: View {
       Spacer()
 
     }.onAppear {
+      if viewModel.isLoggedIn {
+        self.scanStatusViewModel.checkScanStatus()
+      }
+    }.onDisappear {
       if viewModel.isLoggedIn {
         self.scanStatusViewModel.checkScanStatus()
       }
