@@ -25,6 +25,7 @@ class PlayerViewModel: ObservableObject {
 
   @Published var activeQueueIdx: Int = 0
 
+  @Published var isMediaFailed: Bool = false
   @Published var isMediaLoading: Bool = false
   @Published var isShuffling: Bool = false
   @Published var isPlaying: Bool = false
@@ -128,15 +129,19 @@ class PlayerViewModel: ObservableObject {
     playerItemObservation = playerItem?.publisher(for: \.status)
       .sink { [weak self] status in
         guard let self = self else { return }
-
-        if status != .readyToPlay {
-          DispatchQueue.main.async {
-            self.isMediaLoading = true
-          }
-        } else {
+        switch status {
+        case .readyToPlay:
           DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
             self.isMediaLoading = false
+            self.isMediaFailed = false
           }
+        case .failed:
+          self.isMediaLoading = false
+          self.isMediaFailed = true
+        case .unknown:
+          self.isMediaLoading = false
+        @unknown default:
+          self.isMediaLoading = true
         }
       }
 

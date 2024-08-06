@@ -73,7 +73,7 @@ struct FloatingPlayerView: View {
               Image(systemName: viewModel.isPlaying ? "pause.fill" : "play.fill")
                 .font(.system(size: 20))
                 .disabled(viewModel.isMediaLoading)
-            }
+            }.opacity(viewModel.isMediaFailed ? 0 : 1)
           }
         }.padding()
       }.padding(8).foregroundColor(.white)
