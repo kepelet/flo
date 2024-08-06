@@ -68,7 +68,7 @@ class CoreDataManager: ObservableObject {
     }
   }
 
-  func countEntities<T: NSManagedObject>(entity: T.Type) -> Int {
+  func countRecords<T: NSManagedObject>(entity: T.Type) -> Int {
     let request: NSFetchRequest<T> = NSFetchRequest<T>(entityName: String(describing: T.self))
 
     request.resultType = .countResultType

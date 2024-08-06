@@ -8,13 +8,13 @@
 import SwiftUI
 
 class ScanStatusViewModel: ObservableObject {
-  @Published var scanStatus: ScanStatusResponse.SubsonicResponse? = nil
+  @Published var scanStatus: ScanStatusService.status = nil
   @Published var downloadedAlbums: Int = 0
   @Published var downloadedSongs: Int = 0
 
   func getLocalStorageInformation() {
-    self.downloadedAlbums = CoreDataManager.shared.countEntities(entityName: "PlaylistEntity")
-    self.downloadedSongs = CoreDataManager.shared.countEntities(entityName: "SongEntity")
+    self.downloadedAlbums = ScanStatusService.shared.getDownloadedAlbumsCount()
+    self.downloadedSongs = ScanStatusService.shared.getDownloadedSongsCount()
   }
 
   func optimizeLocalStorage() {
@@ -28,7 +28,7 @@ class ScanStatusViewModel: ObservableObject {
       DispatchQueue.main.async {
         switch result {
         case .success(let status):
-          self?.scanStatus = status.subsonicResponse
+          self?.scanStatus = status
         case .failure(let error):
           print("error>>>", error)
         }
