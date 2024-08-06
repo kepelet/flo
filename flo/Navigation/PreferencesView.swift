@@ -22,6 +22,26 @@ struct PreferencesView: View {
   var body: some View {
     NavigationView {
       Form {
+        Section(header: Text("Local Storage")) {
+          HStack {
+            Text("Downloaded Albums")
+            Spacer()
+            Text(scanStatusViewModel.downloadedAlbums.description)
+          }
+
+          HStack {
+            Text("Downloaded Songs")
+            Spacer()
+            Text(scanStatusViewModel.downloadedSongs.description)
+          }
+
+          HStack {
+            Text("Optimize local storage")
+          }.onTapGesture {
+            scanStatusViewModel.optimizeLocalStorage()
+          }
+        }
+
         if authViewModel.isLoggedIn {
           Section(header: Text("Server Information")) {
             HStack {
@@ -110,6 +130,8 @@ struct PreferencesView: View {
       }
       .navigationBarTitle("Preferences", displayMode: .inline).padding(.bottom, 100)
     }.onAppear {
+      scanStatusViewModel.getLocalStorageInformation()
+
       if authViewModel.isLoggedIn {
         self.scanStatusViewModel.checkScanStatus()
       }

@@ -9,6 +9,19 @@ import SwiftUI
 
 class ScanStatusViewModel: ObservableObject {
   @Published var scanStatus: ScanStatusResponse.SubsonicResponse? = nil
+  @Published var downloadedAlbums: Int = 0
+  @Published var downloadedSongs: Int = 0
+
+  func getLocalStorageInformation() {
+    self.downloadedAlbums = CoreDataManager.shared.countEntities(entityName: "PlaylistEntity")
+    self.downloadedSongs = CoreDataManager.shared.countEntities(entityName: "SongEntity")
+  }
+
+  func optimizeLocalStorage() {
+    print("checking all songs")
+    print("checking missing songs")
+    print("deleting missing songs")
+  }
 
   func checkScanStatus() {
     ScanStatusService.shared.getScanStatus { [weak self] result in
