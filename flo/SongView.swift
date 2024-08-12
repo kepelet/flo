@@ -25,6 +25,12 @@ struct SongView: View {
               .fontWeight(.medium)
 
             Spacer()
+
+            if !song.fileUrl.isEmpty {
+              Image(systemName: "arrow.down.circle.fill")
+                .font(.system(size: 14))
+            }
+
             Text(timeString(for: song.duration)).customFont(.caption1)
           }
         }
