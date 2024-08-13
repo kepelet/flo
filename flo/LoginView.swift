@@ -77,7 +77,7 @@ struct Login: View {
               .textCase(.uppercase)
               .padding()
               .frame(maxWidth: .infinity)
-              .background(.accent)
+              .background(Color("PlayerColor"))
               .cornerRadius(5)
               .shadow(radius: 10)
           }.padding(.top, 10).padding()
