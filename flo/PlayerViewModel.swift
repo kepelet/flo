@@ -60,7 +60,8 @@ class PlayerViewModel: ObservableObject {
     // FIXME: of course
     self.tempAlbumName = item.name
     self.tempOriginQueue = item.songs
-    self.tempAlbumCover = AlbumService.shared.getCoverArt(id: item.id)
+    self.tempAlbumCover = AlbumService.shared.getAlbumCover(
+      artistName: item.artist, albumName: item.name, albumId: item.id)
 
     self.activeQueueIdx = idx
     self.queue = item.songs
