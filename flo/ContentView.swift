@@ -33,7 +33,7 @@ struct ContentView: View {
         DownloadsView(viewModel: albumViewModel).tabItem {
           Label("Downloads", systemImage: "arrow.down.circle")
         }.environmentObject(playerViewModel).onAppear {
-          albumViewModel.fetchAlbum()
+          albumViewModel.fetchDownloadedAlbums()
         }
 
         PreferencesView(authViewModel: authViewModel).tabItem {
