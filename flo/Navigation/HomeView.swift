@@ -60,20 +60,28 @@ struct HomeView: View {
         .padding()
 
       VStack(alignment: .leading) {
-        Image("Home").resizable().aspectRatio(contentMode: .fit).frame(width: 300).padding()
+        Image("Home").resizable().aspectRatio(contentMode: .fit).frame(
+          maxWidth: .infinity, maxHeight: 300
+        ).padding()
 
         Group {
-          Text("Have a nice day, \(viewModel.user?.name ?? "sigma")!")
-            .customFont(.title1)
-            .fontWeight(.bold)
-            .multilineTextAlignment(.leading)
           if viewModel.isLoggedIn {
+            Text("Have a nice day, \(viewModel.user?.name ?? "undefined")!")
+              .customFont(.title1)
+              .fontWeight(.bold)
+              .multilineTextAlignment(.leading)
+
             Text(
               "Navidrome Music Server \(scanStatusViewModel.scanStatus?.serverVersion ?? "undefined")"
             )
             .customFont(.subheadline)
           } else {
-            Text("You're not logged in by the way. Tap the user icon above, I guess?")
+            Text("You're not logged in")
+              .customFont(.title1)
+              .fontWeight(.bold)
+              .multilineTextAlignment(.leading)
+
+            Text("Login to start streaming your music by tapping the icon above")
           }
 
         }.padding(5)

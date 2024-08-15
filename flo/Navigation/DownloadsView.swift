@@ -18,7 +18,7 @@ struct DownloadsView: View {
   var body: some View {
     NavigationView {
       ScrollView {
-        if viewModel.offlinePlaylist.isEmpty {
+        if viewModel.downloadedAlbums.isEmpty {
           VStack(alignment: .leading) {
             Image("Downloads").resizable().aspectRatio(contentMode: .fit).frame(width: 300)
               .padding()
@@ -39,7 +39,7 @@ struct DownloadsView: View {
         }
 
         LazyVGrid(columns: columns, spacing: 20) {
-          ForEach(viewModel.offlinePlaylist) { album in
+          ForEach(viewModel.downloadedAlbums) { album in
             NavigationLink(
               destination:
                 AlbumView(viewModel: viewModel, isDownloadScreen: true).onAppear {
