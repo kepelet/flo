@@ -23,6 +23,7 @@ class AuthViewModel: ObservableObject {
   static let shared = AuthViewModel()
 
   init() {
+    // TODO: invalidate authz token somewhere here
     do {
       if let jsonString = try KeychainManager.getAuthCreds(),
         let jsonData = jsonString.data(using: .utf8)
