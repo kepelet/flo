@@ -14,7 +14,7 @@ class CoreDataManager: ObservableObject {
   private init() {}
 
   lazy var persistentContainer: NSPersistentContainer = {
-    let container = NSPersistentContainer(name: "OfflineData")  //FIXME: constants?
+    let container = NSPersistentContainer(name: "flo")  //FIXME: constants?
 
     container.loadPersistentStores { _, error in
       if let error {
