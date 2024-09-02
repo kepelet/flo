@@ -14,7 +14,17 @@
             </uniquenessConstraint>
         </uniquenessConstraints>
     </entity>
-    <entity name="QueueEntity" representedClassName="QueueEntity" syncable="YES" codeGenerationType="class"/>
+    <entity name="QueueEntity" representedClassName="QueueEntity" syncable="YES" codeGenerationType="class">
+        <attribute name="albumCover" optional="YES" attributeType="String"/>
+        <attribute name="albumId" optional="YES" attributeType="String"/>
+        <attribute name="albumName" optional="YES" attributeType="String"/>
+        <attribute name="artistName" optional="YES" attributeType="String"/>
+        <attribute name="bitRate" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="id" optional="YES" attributeType="String"/>
+        <attribute name="isFromLocal" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="songName" optional="YES" attributeType="String"/>
+        <attribute name="suffix" optional="YES" attributeType="String"/>
+    </entity>
     <entity name="SongEntity" representedClassName="SongEntity" syncable="YES" codeGenerationType="class">
         <attribute name="albumId" attributeType="String"/>
         <attribute name="artistName" optional="YES" attributeType="String"/>
