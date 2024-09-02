@@ -94,14 +94,15 @@ class CoreDataManager: ObservableObject {
   }
 
   func deleteRecords<T: NSManagedObject>(entity: T.Type) {
-    let request: NSFetchRequest<NSFetchRequestResult> = NSFetchRequest<NSFetchRequestResult>(entityName: String(describing: T.self))
+    let request: NSFetchRequest<NSFetchRequestResult> = NSFetchRequest<NSFetchRequestResult>(
+      entityName: String(describing: T.self))
     let deleteRequest = NSBatchDeleteRequest(fetchRequest: request)
 
     do {
       try self.viewContext.execute(deleteRequest)
       try self.viewContext.save()
     } catch {
-        print("Failed to delete records: \(error.localizedDescription)")
+      print("Failed to delete records: \(error.localizedDescription)")
     }
   }
 }
