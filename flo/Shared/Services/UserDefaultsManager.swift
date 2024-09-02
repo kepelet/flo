@@ -21,15 +21,6 @@ class UserDefaultsManager {
     }
   }
 
-  static var playQueue: Data? {
-    get {
-      return UserDefaults.standard.data(forKey: UserDefaultsKeys.playQueue)
-    }
-    set {
-      UserDefaults.standard.set(newValue, forKey: UserDefaultsKeys.playQueue)
-    }
-  }
-
   static var queueActiveIdx: Int {
     get {
       return UserDefaults.standard.integer(forKey: UserDefaultsKeys.queueActiveIdx)
