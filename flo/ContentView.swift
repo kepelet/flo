@@ -42,7 +42,9 @@ struct ContentView: View {
       }
 
       ZStack {
-        PlayerView(isExpanded: $isPlayerExpanded, viewModel: playerViewModel)
+        if playerViewModel.hasNowPlaying() {
+          PlayerView(isExpanded: $isPlayerExpanded, viewModel: playerViewModel)
+        }
       }
       .offset(y: isPlayerExpanded ? 0 : UIScreen.main.bounds.height)
       .animation(.spring(), value: isPlayerExpanded)
@@ -50,15 +52,17 @@ struct ContentView: View {
       VStack {
         Spacer()
 
-        FloatingPlayerView(viewModel: playerViewModel)
-          .padding(.bottom, 50)
-          .shadow(radius: 10)
-          .opacity(playerViewModel.hasNowPlaying() ? 1 : 0)
-          .offset(y: isPlayerExpanded ? UIScreen.main.bounds.height : 0)
-          .animation(.spring(), value: isPlayerExpanded)
-          .onTapGesture {
-            self.isPlayerExpanded = true
-          }
+        if playerViewModel.hasNowPlaying() {
+          FloatingPlayerView(viewModel: playerViewModel)
+            .padding(.bottom, 50)
+            .shadow(radius: 10)
+            .opacity(playerViewModel.hasNowPlaying() ? 1 : 0)
+            .offset(y: isPlayerExpanded ? UIScreen.main.bounds.height : 0)
+            .animation(.spring(), value: isPlayerExpanded)
+            .onTapGesture {
+              self.isPlayerExpanded = true
+            }
+        }
       }
     }
   }
