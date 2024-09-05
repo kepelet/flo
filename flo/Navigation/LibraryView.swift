@@ -20,8 +20,9 @@ struct LibraryView: View {
       ScrollView {
         if viewModel.albums.isEmpty && viewModel.error != nil {
           VStack(alignment: .leading) {
-            Image("Home").resizable().aspectRatio(contentMode: .fit).frame(width: 300).padding()
-              .padding(.bottom, 10)
+            Image("Home").resizable().aspectRatio(contentMode: .fit).frame(
+              maxWidth: .infinity, maxHeight: 300
+            ).padding()
             Group {
               Text("Your Navidrome session may have expired")
                 .customFont(.title1)
