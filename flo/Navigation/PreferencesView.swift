@@ -35,10 +35,10 @@ struct PreferencesView: View {
             Text(scanStatusViewModel.downloadedSongs.description)
           }
 
-          HStack {
-            Text("Optimize local storage")
-          }.onTapGesture {
+          Button(action: {
             scanStatusViewModel.optimizeLocalStorage()
+          }) {
+            Text("Optimize local storage")
           }
         }
 
@@ -60,12 +60,12 @@ struct PreferencesView: View {
               Text(scanStatusViewModel.scanStatus?.version ?? "undefined")
             }
             HStack {
-              Text("Total Folders Scanned:")
+              Text("Total Folders Scanned")
               Spacer()
               Text(scanStatusViewModel.scanStatus?.scanStatus.folderCount.description ?? "0")
             }
             HStack {
-              Text("Total Files Scanned:")
+              Text("Total Files Scanned")
               Spacer()
               Text(scanStatusViewModel.scanStatus?.scanStatus.count.description ?? "0")
             }
@@ -109,13 +109,29 @@ struct PreferencesView: View {
           }
         }
 
-        // TODO: finish this later
-        //        Section(header: Text("Development")) {
-        //          Text("About")
-        //          Text("Get in touch")
-        //          Text("Source Code (GitHub)")
-        //          Text("Tip me <3 (Trakteer)")
-        //        }
+        Section(header: Text("Development")) {
+          Button(action: {
+            if let url = URL(string: "https://client.flooo.club/about") {
+              UIApplication.shared.open(url)
+            }
+          }) {
+            Text("About flo")
+          }
+
+          Button(action: {
+            if let url = URL(string: "https://github.com/kepelet/flo") {
+              UIApplication.shared.open(url)
+            }
+          }) {
+            Text("Source Code")
+          }
+
+          HStack {
+            Text("App Version")
+            Spacer()
+            Text("dev")  // TODO: change me later
+          }
+        }
 
         if authViewModel.isLoggedIn {
           Section(header: Text("Logged in as \(authViewModel.user?.username ?? "sigma")")) {
@@ -127,9 +143,8 @@ struct PreferencesView: View {
             }
           }
         }
-      }
-      .navigationBarTitle("Preferences", displayMode: .inline).padding(.bottom, 100)
-    }.onAppear {
+      }.navigationBarTitle("Preferences", displayMode: .inline)
+    }.padding(.bottom, 100).onAppear {
       scanStatusViewModel.getLocalStorageInformation()
 
       if authViewModel.isLoggedIn {
