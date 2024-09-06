@@ -15,32 +15,45 @@ struct FloatingPlayerView: View {
   var body: some View {
     Group {
       HStack {
-        AsyncImage(url: URL(string: viewModel.nowPlaying.albumCover)) { phase in
-          switch phase {
-          case .empty:
-            ProgressView().frame(width: 50, height: 50)
-          case .success(let image):
-            image
+        if viewModel.nowPlaying.isFromLocal {
+          if let image = UIImage(contentsOfFile: viewModel.getAlbumCoverArt()) {
+            Image(uiImage: image)
               .resizable()
               .aspectRatio(contentMode: .fit)
               .frame(width: 50, height: 50)
               .clipShape(
-                RoundedRectangle(cornerRadius: 5, style: .continuous)
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
               )
+              .shadow(radius: 5)
+          }
+        } else {
+          AsyncImage(url: URL(string: viewModel.getAlbumCoverArt())) { phase in
+            switch phase {
+            case .empty:
+              ProgressView().frame(width: 50, height: 50)
+            case .success(let image):
+              image
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: 50, height: 50)
+                .clipShape(
+                  RoundedRectangle(cornerRadius: 5, style: .continuous)
+                )
 
-          case .failure:
-            Color("PlayerColor").frame(width: 50, height: 50)
-          @unknown default:
-            EmptyView().frame(width: 50, height: 50)
+            case .failure:
+              Color("PlayerColor").frame(width: 50, height: 50)
+            @unknown default:
+              EmptyView().frame(width: 50, height: 50)
+            }
           }
         }
 
         VStack(alignment: .leading) {
-          Text(viewModel.nowPlaying.songName)
+          Text(viewModel.nowPlaying.songName ?? "")
             .foregroundColor(.white)
             .customFont(.headline)
             .lineLimit(1)
-          Text(viewModel.nowPlaying.artistName)
+          Text(viewModel.nowPlaying.artistName ?? "")
             .foregroundColor(.white)
             .customFont(.subheadline)
 

@@ -49,7 +49,7 @@ struct PlayerView: View {
               if viewModel.queue.isEmpty {
                 Text("").customFont(.subheadline)
               } else {
-                Text("From \(viewModel.nowPlaying.albumName)").customFont(.subheadline)
+                Text("From \(viewModel.nowPlaying.albumName ?? "")").customFont(.subheadline)
               }
 
               Spacer()
@@ -94,9 +94,9 @@ struct PlayerView: View {
 
           ScrollView {
             VStack(alignment: .leading) {
-              ForEach(Array(viewModel.queue.enumerated()), id: \.element) { idx, song in
+              ForEach(viewModel.queue.indices, id: \.self) { idx in
                 if viewModel.activeQueueIdx < idx {
-                  Text(song.title)
+                  Text(viewModel.queue[idx].songName ?? "")
                     .customFont(.body)
                     .fontWeight(.medium)
                     .padding(.bottom, 20)
@@ -117,12 +117,9 @@ struct PlayerView: View {
       .animation(.spring(), value: showQueue)
 
       ZStack {
-        AsyncImage(url: URL(string: viewModel.nowPlaying.albumCover)) { phase in
-          switch phase {
-          case .empty:
-            Color("PlayerColor")
-          case .success(let image):
-            image
+        if viewModel.nowPlaying.isFromLocal {
+          if let image = UIImage(contentsOfFile: viewModel.getAlbumCoverArt()) {
+            Image(uiImage: image)
               .resizable()
               .scaledToFill()
               .frame(width: size.width, height: size.height)
@@ -130,14 +127,31 @@ struct PlayerView: View {
               .blur(radius: 80)
               .opacity(0.5)
               .edgesIgnoringSafeArea(.all)
-
-          case .failure:
-            Color("PlayerColor")
-          @unknown default:
-            EmptyView()
-              .frame(width: imageSize, height: imageSize)
+              .background(Color("PlayerColor"))
           }
-        }.background(Color("PlayerColor"))
+        } else {
+          AsyncImage(url: URL(string: viewModel.getAlbumCoverArt())) { phase in
+            switch phase {
+            case .empty:
+              Color("PlayerColor")
+            case .success(let image):
+              image
+                .resizable()
+                .scaledToFill()
+                .frame(width: size.width, height: size.height)
+                .clipped()
+                .blur(radius: 80)
+                .opacity(0.5)
+                .edgesIgnoringSafeArea(.all)
+
+            case .failure:
+              Color("PlayerColor")
+            @unknown default:
+              EmptyView()
+                .frame(width: imageSize, height: imageSize)
+            }
+          }.background(Color("PlayerColor"))
+        }
 
         VStack {
 
@@ -149,17 +163,9 @@ struct PlayerView: View {
 
           Spacer()
 
-          AsyncImage(url: URL(string: viewModel.nowPlaying.albumCover)) { phase in
-            switch phase {
-            case .empty:
-              Color.gray.opacity(0.3)
-                .frame(width: imageSize, height: imageSize)
-                .clipShape(
-                  RoundedRectangle(cornerRadius: 15, style: .continuous)
-                )
-                .shadow(radius: 10)
-            case .success(let image):
-              image
+          if viewModel.nowPlaying.isFromLocal {
+            if let image = UIImage(contentsOfFile: viewModel.getAlbumCoverArt()) {
+              Image(uiImage: image)
                 .resizable()
                 .aspectRatio(contentMode: .fit)
                 .frame(width: imageSize, height: imageSize)
@@ -167,23 +173,44 @@ struct PlayerView: View {
                   RoundedRectangle(cornerRadius: 15, style: .continuous)
                 )
                 .shadow(radius: 10)
-            case .failure:
-              Color.gray.opacity(0.3)
-                .frame(width: imageSize, height: imageSize)
-                .clipShape(
-                  RoundedRectangle(cornerRadius: 15, style: .continuous)
-                )
-                .shadow(radius: 10)
-            @unknown default:
-              EmptyView()
-                .frame(width: imageSize, height: imageSize)
+            }
+          } else {
+            AsyncImage(url: URL(string: viewModel.getAlbumCoverArt())) { phase in
+              switch phase {
+              case .empty:
+                Color.gray.opacity(0.3)
+                  .frame(width: imageSize, height: imageSize)
+                  .clipShape(
+                    RoundedRectangle(cornerRadius: 15, style: .continuous)
+                  )
+                  .shadow(radius: 10)
+              case .success(let image):
+                image
+                  .resizable()
+                  .aspectRatio(contentMode: .fit)
+                  .frame(width: imageSize, height: imageSize)
+                  .clipShape(
+                    RoundedRectangle(cornerRadius: 15, style: .continuous)
+                  )
+                  .shadow(radius: 10)
+              case .failure:
+                Color.gray.opacity(0.3)
+                  .frame(width: imageSize, height: imageSize)
+                  .clipShape(
+                    RoundedRectangle(cornerRadius: 15, style: .continuous)
+                  )
+                  .shadow(radius: 10)
+              @unknown default:
+                EmptyView()
+                  .frame(width: imageSize, height: imageSize)
+              }
             }
           }
 
           Spacer()
 
           VStack(alignment: .center, spacing: 10) {
-            Text(viewModel.nowPlaying.songName)
+            Text(viewModel.nowPlaying.songName ?? "")
               .foregroundColor(.white)
               .customFont(.title1)
               .fontWeight(.bold)
@@ -191,7 +218,7 @@ struct PlayerView: View {
               .multilineTextAlignment(.center)
               .lineLimit(3)
 
-            Text(viewModel.nowPlaying.artistName)
+            Text(viewModel.nowPlaying.artistName ?? "")
               .foregroundColor(.white.opacity(0.8))
               .customFont(.title3)
               .shadow(radius: 2)
@@ -243,12 +270,14 @@ struct PlayerView: View {
 
               Spacer()
 
-              Text("\(viewModel.nowPlaying.suffix)   \(viewModel.nowPlaying.bitRate.description)")
-                .foregroundColor(.white)
-                .customFont(.caption2)
-                .fontWeight(.bold)
-                .textCase(.uppercase)
-                .frame(maxWidth: .infinity, alignment: .center)
+              Text(
+                "\(viewModel.nowPlaying.suffix ?? "")   \(viewModel.nowPlaying.bitRate.description)"
+              )
+              .foregroundColor(.white)
+              .customFont(.caption2)
+              .fontWeight(.bold)
+              .textCase(.uppercase)
+              .frame(maxWidth: .infinity, alignment: .center)
 
               Spacer()
 
