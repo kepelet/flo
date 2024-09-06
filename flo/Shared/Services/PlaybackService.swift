@@ -39,9 +39,11 @@ class PlaybackService {
       queue.albumName = item.name
       queue.artistName = item.artist
       queue.bitRate = Int16(song.bitRate)
+      queue.sampleRate = Int32(song.sampleRate)
       queue.songName = song.title
       queue.suffix = song.suffix
       queue.isFromLocal = isFromLocal
+      queue.duration = song.duration
 
       CoreDataManager.shared.saveRecord()
     }

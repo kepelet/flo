@@ -14,6 +14,7 @@ struct Song: Codable, Identifiable, Hashable {
   let trackNumber: Int
   let discNumber: Int
   let bitRate: Int
+  let sampleRate: Int
   let suffix: String
   let duration: Double
 
@@ -26,6 +27,7 @@ struct Song: Codable, Identifiable, Hashable {
     case trackNumber
     case discNumber
     case bitRate
+    case sampleRate
     case suffix
     case duration
   }
@@ -39,12 +41,14 @@ struct Song: Codable, Identifiable, Hashable {
     self.trackNumber = try container.decode(Int.self, forKey: .trackNumber)
     self.discNumber = try container.decode(Int.self, forKey: .discNumber)
     self.bitRate = try container.decode(Int.self, forKey: .bitRate)
+    self.sampleRate = try container.decode(Int.self, forKey: .sampleRate)
     self.suffix = try container.decode(String.self, forKey: .suffix)
     self.duration = try container.decode(Double.self, forKey: .duration)
   }
 
   init(
     id: String, title: String, artist: String, trackNumber: Int, discNumber: Int, bitRate: Int,
+    sampleRate: Int,
     suffix: String, duration: Double
   ) {
     self.id = id
@@ -53,6 +57,7 @@ struct Song: Codable, Identifiable, Hashable {
     self.trackNumber = Int(trackNumber)
     self.discNumber = Int(discNumber)
     self.bitRate = Int(bitRate)
+    self.sampleRate = Int(sampleRate)
     self.suffix = suffix
     self.duration = duration
   }
@@ -64,6 +69,7 @@ struct Song: Codable, Identifiable, Hashable {
     self.trackNumber = Int(song.trackNumber)
     self.discNumber = Int(song.discNumber)
     self.bitRate = Int(song.bitRate)
+    self.sampleRate = Int(song.sampleRate)
     self.suffix = song.suffix ?? "N/A"
     self.duration = song.duration
     self.fileUrl = song.fileURL ?? ""

@@ -20,8 +20,10 @@
         <attribute name="albumName" optional="YES" attributeType="String"/>
         <attribute name="artistName" optional="YES" attributeType="String"/>
         <attribute name="bitRate" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="duration" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="id" optional="YES" attributeType="String"/>
         <attribute name="isFromLocal" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="sampleRate" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="songName" optional="YES" attributeType="String"/>
         <attribute name="suffix" optional="YES" attributeType="String"/>
     </entity>
@@ -33,6 +35,7 @@
         <attribute name="duration" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="fileURL" optional="YES" attributeType="String"/>
         <attribute name="id" attributeType="String"/>
+        <attribute name="sampleRate" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="status" optional="YES" attributeType="String"/>
         <attribute name="suffix" optional="YES" attributeType="String"/>
         <attribute name="title" optional="YES" attributeType="String"/>

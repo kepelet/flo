@@ -79,32 +79,32 @@ class AlbumViewModel: ObservableObject {
     if checkLocalSongs.first != nil {
       if checkLocalSongs.isEmpty {
         isLoading = true
-        AlbumService.shared.getSongFromAlbum(id: id) { [weak self] result in
+        AlbumService.shared.getSongFromAlbum(id: id) { result in
           DispatchQueue.main.async {
-            self?.isLoading = false
+            self.isLoading = false
 
             switch result {
             case .success(let songs):
-              self?.album.songs = songs
+              self.album.songs = songs
 
             case .failure(let error):
-              self?.error = error
+              self.error = error
             }
           }
         }
       }
     } else {
       isLoading = true
-      AlbumService.shared.getSongFromAlbum(id: id) { [weak self] result in
+      AlbumService.shared.getSongFromAlbum(id: id) { result in
         DispatchQueue.main.async {
-          self?.isLoading = false
+          self.isLoading = false
 
           switch result {
           case .success(let songs):
-            self?.album.songs = songs
+            self.album.songs = songs
 
           case .failure(let error):
-            self?.error = error
+            self.error = error
           }
         }
       }
@@ -112,7 +112,7 @@ class AlbumViewModel: ObservableObject {
   }
 
   func getAlbumInfo() {
-    AlbumService.shared.getAlbumInfo(id: self.album.id) { [weak self] result in
+    AlbumService.shared.getAlbumInfo(id: self.album.id) { result in
       DispatchQueue.main.async {
         switch result {
         case .success(let response):
@@ -123,13 +123,13 @@ class AlbumViewModel: ObservableObject {
             let stripped = regex.stringByReplacingMatches(
               in: albumInfo, range: range, withTemplate: "")
 
-            self?.album.info = stripped
+            self.album.info = stripped
           } else {
-            self?.album.info = "Description Unavailable"
+            self.album.info = "Description Unavailable"
           }
 
         case .failure(let error):
-          self?.error = error
+          self.error = error
         }
       }
     }
@@ -193,19 +193,19 @@ class AlbumViewModel: ObservableObject {
       AlbumService.shared.download(
         artistName: self.album.artist, albumName: self.album.name, id: song.id,
         trackNumber: song.trackNumber.description, title: song.title, suffix: song.suffix
-      ) { [weak self] result in
+      ) { result in
         switch result {
         case .success(let fileURL):
           DispatchQueue.main.async {
             if let fileURL = fileURL {
               AlbumService.shared.saveDownload(
-                albumId: self?.album.id, albumName: self?.album.name, song: song, fileURL: fileURL,
+                albumId: self.album.id, albumName: self.album.name, song: song, fileURL: fileURL,
                 status: "Downloaded")
             }
           }
         case .failure(let error):
           print(error)
-          self?.isDownloading = false
+          self.isDownloading = false
         }
 
         dispatchGroup.leave()
@@ -220,28 +220,28 @@ class AlbumViewModel: ObservableObject {
 
   func fetchAlbums() {
     isLoading = true
-    AlbumService.shared.getAlbum { [weak self] result in
+    AlbumService.shared.getAlbum { result in
       DispatchQueue.main.async {
-        self?.isLoading = false
+        self.isLoading = false
         switch result {
         case .success(let albums):
-          self?.albums = albums
+          self.albums = albums
         case .failure(let error):
           print("error>>>>", error)
-          self?.error = error
+          self.error = error
         }
       }
     }
   }
 
   func fetchDownloadedAlbums() {
-    AlbumService.shared.getDownloadedAlbum { [weak self] result in
+    AlbumService.shared.getDownloadedAlbum { result in
       DispatchQueue.main.async {
         switch result {
         case .success(let albums):
-          self?.downloadedAlbums = albums
+          self.downloadedAlbums = albums
         case .failure(let error):
-          self?.error = error
+          self.error = error
         }
       }
     }

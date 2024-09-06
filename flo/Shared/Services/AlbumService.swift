@@ -165,6 +165,7 @@ class AlbumService {
       downloadedSong.title = song.title
       downloadedSong.artistName = song.artist
       downloadedSong.bitRate = Int64(song.bitRate)
+      downloadedSong.sampleRate = Int32(song.sampleRate)
       downloadedSong.discNumber = Int16(song.discNumber)
       downloadedSong.trackNumber = Int16(song.trackNumber)
       downloadedSong.suffix = song.suffix

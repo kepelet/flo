@@ -41,6 +41,8 @@ class PlayerViewModel: ObservableObject {
   }
 
   init() {
+    self.player = AVPlayer()
+
     let lastPlayData = PlaybackService.shared.getQueue()
     let queueActiveIdx = UserDefaultsManager.queueActiveIdx
 
@@ -80,37 +82,21 @@ class PlayerViewModel: ObservableObject {
     let audioURL = URL(
       string: AlbumService.shared.getStreamUrl(id: self.nowPlaying.id ?? ""))
 
-    self.player = AVPlayer()
-
     self.playerItem = AVPlayerItem(url: audioURL!)
     self.player?.replaceCurrentItem(with: self.playerItem)
 
-    Task {
-      do {
-        let duration = try await self.player?.currentItem?.asset.load(.duration)
+    let duration = CMTime(
+      seconds: self.nowPlaying.duration, preferredTimescale: self.nowPlaying.sampleRate)
+    let playbackDuration = CMTimeGetSeconds(duration)
 
-        DispatchQueue.main.async {
-          let playbackDuration = CMTimeGetSeconds(duration!)
+    self.totalDuration = playbackDuration
+    self.totalTimeString = timeString(for: playbackDuration)
 
-          self.totalDuration = playbackDuration
-          self.totalTimeString = timeString(for: playbackDuration)
+    let newTimeString = self.progress * playbackDuration
 
-          let newTimeString = self.progress * playbackDuration
+    self.currentTimeString = timeString(for: newTimeString)
 
-          self.currentTimeString = timeString(for: newTimeString)
-
-          if playAudio {
-            self.seek(to: 0.0)
-          } else {
-            self.seek(to: self.progress)
-          }
-
-          self.setupRemoteCommandCenter()
-        }
-      }
-    }
-
-    playerItemObservation = playerItem?.publisher(for: \.status)
+    self.playerItemObservation = self.playerItem?.publisher(for: \.status)
       .sink { [weak self] status in
         guard let self = self else { return }
         switch status {
@@ -129,17 +115,20 @@ class PlayerViewModel: ObservableObject {
         }
       }
 
-    addPeriodicTimeObserver()
+    if playAudio {
+      self.seek(to: 0.0)
+      self.play()
+    } else {
+      self.seek(to: self.progress)
+    }
 
+    self.addPeriodicTimeObserver()
+    self.setupRemoteCommandCenter()
     self.updateNowPlayingInfo(
       title: self.nowPlaying.songName ?? "",
       artist: self.nowPlaying.artistName ?? "",
       playbackDuration: self.totalDuration,
       playbackRate: self.player?.rate)
-
-    if playAudio {
-      self.play()
-    }
   }
 
   private func addPeriodicTimeObserver() {
@@ -152,13 +141,14 @@ class PlayerViewModel: ObservableObject {
       guard let self = self else { return }
 
       let currentTime = CMTimeGetSeconds(time)
+      let roundedTotalDuration = round(self.totalDuration)
 
       self.progress = currentTime / self.totalDuration
       self.currentTimeString = timeString(for: currentTime)
 
       UserDefaultsManager.nowPlayingProgress = progress
 
-      if currentTime >= self.totalDuration {
+      if round(currentTime) >= roundedTotalDuration {
         self.nextSong()
 
         UserDefaultsManager.removeObject(key: UserDefaultsKeys.nowPlayingProgress)
@@ -218,6 +208,20 @@ class PlayerViewModel: ObservableObject {
 
     commandCenter.pauseCommand.addTarget { [unowned self] event in
       self.pause()
+
+      return .success
+    }
+
+    commandCenter.nextTrackCommand.isEnabled = true
+    commandCenter.nextTrackCommand.addTarget { event in
+      self.nextSong()
+
+      return .success
+    }
+
+    commandCenter.previousTrackCommand.isEnabled = true
+    commandCenter.previousTrackCommand.addTarget { event in
+      self.prevSong()
 
       return .success
     }
