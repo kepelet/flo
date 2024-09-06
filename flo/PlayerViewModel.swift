@@ -45,7 +45,7 @@ class PlayerViewModel: ObservableObject {
     let queueActiveIdx = UserDefaultsManager.queueActiveIdx
 
     if !lastPlayData.isEmpty && queueActiveIdx < lastPlayData.count {
-      self.addToNewQueue(
+      self.addToQueue(
         idx: UserDefaultsManager.queueActiveIdx, item: lastPlayData, playAudio: false)
       self.progress = UserDefaultsManager.nowPlayingProgress
       self.playbackMode = UserDefaultsManager.playbackMode
@@ -56,7 +56,7 @@ class PlayerViewModel: ObservableObject {
     }
   }
 
-  func addToNewQueue(idx: Int, item: [QueueEntity], playAudio: Bool = true) {
+  func addToQueue(idx: Int, item: [QueueEntity], playAudio: Bool = true) {
     self.activeQueueIdx = idx
     self.queue = item
     self.setNowPlaying(playAudio: playAudio)
@@ -78,7 +78,7 @@ class PlayerViewModel: ObservableObject {
     }
 
     let audioURL = URL(
-      string: AlbumService.shared.getStreamUrl(id: self.queue[activeQueueIdx].id ?? ""))
+      string: AlbumService.shared.getStreamUrl(id: self.nowPlaying.id ?? ""))
 
     self.player = AVPlayer()
 
@@ -270,13 +270,13 @@ class PlayerViewModel: ObservableObject {
   func playBySong(idx: Int, item: Album, isFromLocal: Bool) {
     let queue = PlaybackService.shared.addToQueue(item: item, isFromLocal: isFromLocal)
 
-    self.addToNewQueue(idx: idx, item: queue)
+    self.addToQueue(idx: idx, item: queue)
   }
 
   func playByAlbum(item: Album, isFromLocal: Bool) {
     let queue = PlaybackService.shared.addToQueue(item: item, isFromLocal: isFromLocal)
 
-    self.addToNewQueue(idx: 0, item: queue)
+    self.addToQueue(idx: 0, item: queue)
   }
 
   func shuffleByAlbum(item: Album, isFromLocal: Bool) {
@@ -284,7 +284,7 @@ class PlayerViewModel: ObservableObject {
     shuffledItem.songs.shuffle()
 
     let queue = PlaybackService.shared.addToQueue(item: shuffledItem, isFromLocal: isFromLocal)
-    self.addToNewQueue(idx: 0, item: queue)
+    self.addToQueue(idx: 0, item: queue)
   }
 
   func shuffleCurrentQueue() {
