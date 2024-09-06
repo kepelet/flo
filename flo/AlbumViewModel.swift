@@ -10,6 +10,10 @@ import Foundation
 class AlbumViewModel: ObservableObject {
   @Published var albums: [Album] = []
   @Published var album: Album = Album()
+  @Published var downloadedAlbums: [Album] = []
+
+  @Published var isDownloading = false
+  @Published var isDownloaded = false
 
   @Published var isLoading = false
   @Published var error: Error?
@@ -28,9 +32,9 @@ class AlbumViewModel: ObservableObject {
     return false
   }
 
-  func ifNotDownloadable(isDownloadScreen: Bool) -> Bool {
+  func ifNotDownloadable() -> Bool {
     //TODO: add logic to check server-side config
-    if isDownloadScreen {
+    if isDownloaded {
       return true
     }
 
@@ -39,25 +43,69 @@ class AlbumViewModel: ObservableObject {
 
   func setActiveAlbum(album: Album) {
     self.album = album
-    self.album.albumCover = self.getAlbumArt(id: album.id)
+    self.album.albumCover = self.getAlbumCoverArt(id: album.id)
 
     if !album.id.isEmpty {
+      self.getAlbumById()
       self.fetchSongs(id: album.id)
     }
   }
 
   func fetchSongs(id: String) {
-    isLoading = true
-    AlbumService.shared.getSongFromAlbum(id: id) { [weak self] result in
+    let checkLocalSongs = AlbumService.shared.getSongsByAlbumId(albumId: id)
+
+    self.album.songs = checkLocalSongs
+
+    AlbumService.shared.getSongFromAlbum(id: id) { result in
+      self.isLoading = true
+
       DispatchQueue.main.async {
-        self?.isLoading = false
+        self.isLoading = false
 
         switch result {
         case .success(let songs):
-          self?.album.songs = songs
+          let remoteSongs = songs.filter { song in
+            !self.album.songs.contains(where: { $0.id == song.id })
+          }
+
+          self.album.songs.append(contentsOf: remoteSongs)
 
         case .failure(let error):
-          self?.error = error
+          self.error = error
+        }
+      }
+    }
+
+    if checkLocalSongs.first != nil {
+      if checkLocalSongs.isEmpty {
+        isLoading = true
+        AlbumService.shared.getSongFromAlbum(id: id) { [weak self] result in
+          DispatchQueue.main.async {
+            self?.isLoading = false
+
+            switch result {
+            case .success(let songs):
+              self?.album.songs = songs
+
+            case .failure(let error):
+              self?.error = error
+            }
+          }
+        }
+      }
+    } else {
+      isLoading = true
+      AlbumService.shared.getSongFromAlbum(id: id) { [weak self] result in
+        DispatchQueue.main.async {
+          self?.isLoading = false
+
+          switch result {
+          case .success(let songs):
+            self?.album.songs = songs
+
+          case .failure(let error):
+            self?.error = error
+          }
         }
       }
     }
@@ -87,12 +135,9 @@ class AlbumViewModel: ObservableObject {
     }
   }
 
-  func getStreamUrl(id: String) -> String {
-    return AlbumService.shared.getStreamUrl(id: id)
-  }
-
-  func getAlbumArt(id: String) -> String {
-    return AlbumService.shared.getCoverArt(id: id)
+  func getAlbumCoverArt(id: String, artistName: String = "", albumName: String = "") -> String {
+    return AlbumService.shared.getAlbumCover(
+      artistName: artistName, albumName: albumName, albumId: id)
   }
 
   func shareAlbum(description: String, completion: @escaping (String) -> Void) {
@@ -108,6 +153,71 @@ class AlbumViewModel: ObservableObject {
     }
   }
 
+  func getAlbumById() {
+    self.isDownloaded = AlbumService.shared.checkIfAlbumDownloaded(albumID: self.album.id)
+  }
+
+  //FIXME: this function is mess. refactor later
+  func downloadAlbum() {
+    self.isDownloading = true
+
+    AlbumService.shared.downloadAlbumCover(
+      artistName: self.album.artist, albumId: self.album.id, albumName: self.album.name
+    ) { result in
+      switch result {
+      case .success:
+        if !AlbumService.shared.checkIfAlbumDownloaded(albumID: self.album.id) {
+          let album = PlaylistEntity(context: CoreDataManager.shared.viewContext)
+
+          album.id = self.album.id
+          album.name = self.album.name
+          album.genre = self.album.genre
+          album.minYear = Int64(self.album.minYear)
+          album.artistName = self.album.artist
+
+          CoreDataManager.shared.saveRecord()
+        }
+      case .failure(let error):
+        self.isDownloading = false
+        print("Failed to save image: \(error.localizedDescription)")
+      }
+    }
+
+    let dispatchGroup = DispatchGroup()
+
+    self.isDownloading = true
+
+    for song in self.album.songs {
+      dispatchGroup.enter()
+
+      AlbumService.shared.download(
+        artistName: self.album.artist, albumName: self.album.name, id: song.id,
+        trackNumber: song.trackNumber.description, title: song.title, suffix: song.suffix
+      ) { [weak self] result in
+        switch result {
+        case .success(let fileURL):
+          DispatchQueue.main.async {
+            if let fileURL = fileURL {
+              AlbumService.shared.saveDownload(
+                albumId: self?.album.id, albumName: self?.album.name, song: song, fileURL: fileURL,
+                status: "Downloaded")
+            }
+          }
+        case .failure(let error):
+          print(error)
+          self?.isDownloading = false
+        }
+
+        dispatchGroup.leave()
+      }
+    }
+
+    dispatchGroup.notify(queue: .main) {
+      self.fetchSongs(id: self.album.id)
+      self.isDownloading = false
+    }
+  }
+
   func fetchAlbums() {
     isLoading = true
     AlbumService.shared.getAlbum { [weak self] result in
@@ -118,6 +228,19 @@ class AlbumViewModel: ObservableObject {
           self?.albums = albums
         case .failure(let error):
           print("error>>>>", error)
+          self?.error = error
+        }
+      }
+    }
+  }
+
+  func fetchDownloadedAlbums() {
+    AlbumService.shared.getDownloadedAlbum { [weak self] result in
+      DispatchQueue.main.async {
+        switch result {
+        case .success(let albums):
+          self?.downloadedAlbums = albums
+        case .failure(let error):
           self?.error = error
         }
       }

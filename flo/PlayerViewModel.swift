@@ -15,13 +15,8 @@ class PlayerViewModel: ObservableObject {
   private var playerItem: AVPlayerItem?
   private var timeObserverToken: Any?
 
-  @Published var queue: [Song] = []
-  @Published var nowPlaying: NowPlaying = NowPlaying()
+  @Published var queue: [QueueEntity] = []
   @Published var playbackMode = PlaybackMode.defaultPlayback
-
-  private var tempAlbumName: String = ""
-  private var tempAlbumCover: String = ""
-  private var tempOriginQueue: [Song] = []
 
   @Published var activeQueueIdx: Int = 0
 
@@ -41,40 +36,40 @@ class PlayerViewModel: ObservableObject {
   private var totalDuration: Double = 0.0
   private var playerItemObservation: AnyCancellable?
 
-  init() {
-    if let lastPlayData = UserDefaultsManager.playQueue,
-      let lastPlay = try? JSONDecoder().decode(Album.self, from: lastPlayData)
-    {
-      self.addToQueue(idx: UserDefaultsManager.queueActiveIdx, item: lastPlay, persist: false)
-    }
+  var nowPlaying: QueueEntity {
+    return self.queue[self.activeQueueIdx]
+  }
 
-    self.progress = UserDefaultsManager.nowPlayingProgress
-    self.playbackMode = UserDefaultsManager.playbackMode
+  init() {
+    let lastPlayData = PlaybackService.shared.getQueue()
+    let queueActiveIdx = UserDefaultsManager.queueActiveIdx
+
+    if !lastPlayData.isEmpty && queueActiveIdx < lastPlayData.count {
+      self.addToNewQueue(
+        idx: UserDefaultsManager.queueActiveIdx, item: lastPlayData, playAudio: false)
+      self.progress = UserDefaultsManager.nowPlayingProgress
+      self.playbackMode = UserDefaultsManager.playbackMode
+    } else {
+      UserDefaultsManager.removeObject(key: UserDefaultsKeys.queueActiveIdx)
+      UserDefaultsManager.removeObject(key: UserDefaultsKeys.nowPlayingProgress)
+      PlaybackService.shared.clearQueue()
+    }
+  }
+
+  func addToNewQueue(idx: Int, item: [QueueEntity], playAudio: Bool = true) {
+    self.activeQueueIdx = idx
+    self.queue = item
+    self.setNowPlaying(playAudio: playAudio)
+  }
+
+  func getAlbumCoverArt() -> String {
+    return AlbumService.shared.getAlbumCover(
+      artistName: self.nowPlaying.artistName ?? "", albumName: self.nowPlaying.albumName ?? "",
+      albumId: self.nowPlaying.albumId ?? "")
   }
 
   func hasNowPlaying() -> Bool {
-    return self.nowPlaying.streamUrl != ""
-  }
-
-  func addToQueue(idx: Int, item: Album, persist: Bool = true) {
-    // FIXME: of course
-    self.tempAlbumName = item.name
-    self.tempOriginQueue = item.songs
-    self.tempAlbumCover = AlbumService.shared.getAlbumCover(
-      artistName: item.artist, albumName: item.name, albumId: item.id)
-
-    self.activeQueueIdx = idx
-    self.queue = item.songs
-    self.setNowPlaying(playAudio: persist)
-
-    if persist {
-      if let albumPlayQueue = try? JSONEncoder().encode(item) {
-        UserDefaultsManager.playQueue = albumPlayQueue
-        UserDefaultsManager.queueActiveIdx = idx
-      } else {
-        print("error storing in UserDefaults")
-      }
-    }
+    return !self.queue.isEmpty
   }
 
   func setNowPlaying(playAudio: Bool = true) {
@@ -82,20 +77,8 @@ class PlayerViewModel: ObservableObject {
       player?.removeTimeObserver(timeObserverToken)
     }
 
-    let activeSong = self.queue[activeQueueIdx]
-    let selectedSong = NowPlaying(
-      artistName: activeSong.artist,
-      songName: activeSong.title,
-      albumName: self.tempAlbumName,
-      albumCover: self.tempAlbumCover,
-      streamUrl: AlbumService.shared.getStreamUrl(id: activeSong.id),
-      bitRate: activeSong.bitRate,
-      suffix: activeSong.suffix
-    )
-
-    let audioURL = URL(string: selectedSong.streamUrl)
-
-    self.nowPlaying = selectedSong
+    let audioURL = URL(
+      string: AlbumService.shared.getStreamUrl(id: self.queue[activeQueueIdx].id ?? ""))
 
     self.player = AVPlayer()
 
@@ -148,13 +131,14 @@ class PlayerViewModel: ObservableObject {
 
     addPeriodicTimeObserver()
 
+    self.updateNowPlayingInfo(
+      title: self.nowPlaying.songName ?? "",
+      artist: self.nowPlaying.artistName ?? "",
+      playbackDuration: self.totalDuration,
+      playbackRate: self.player?.rate)
+
     if playAudio {
       self.play()
-      self.updateNowPlayingInfo(
-        title: self.nowPlaying.songName,
-        artist: self.nowPlaying.artistName,
-        playbackDuration: self.totalDuration,
-        playbackRate: self.player?.rate)
     }
   }
 
@@ -188,8 +172,17 @@ class PlayerViewModel: ObservableObject {
     var nowPlayingInfo = [String: Any]()
 
     DispatchQueue.global().async {
-      guard let url = URL(string: self.nowPlaying.albumCover) else {
-        return
+      let url: URL
+      let albumCoverArt = self.getAlbumCoverArt()
+
+      if albumCoverArt.hasPrefix("/") {
+        url = URL(fileURLWithPath: albumCoverArt)
+      } else {
+        guard let remoteURL = URL(string: albumCoverArt) else {
+          return
+        }
+
+        url = remoteURL
       }
 
       if let data = try? Data(contentsOf: url),
@@ -199,24 +192,15 @@ class PlayerViewModel: ObservableObject {
           return image
         }
 
-        DispatchQueue.main.async {
-          nowPlayingInfo[MPMediaItemPropertyArtwork] = artwork
-          nowPlayingInfo[MPMediaItemPropertyTitle] = title
-          nowPlayingInfo[MPMediaItemPropertyArtist] = artist
-          nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] = playbackDuration
-          nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = playbackRate ?? 1.0
+        nowPlayingInfo[MPMediaItemPropertyArtwork] = artwork
+      }
 
-          MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
-        }
-      } else {
-        DispatchQueue.main.async {
-          nowPlayingInfo[MPMediaItemPropertyTitle] = title
-          nowPlayingInfo[MPMediaItemPropertyArtist] = artist
-          nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] = playbackDuration
-          nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = playbackRate ?? 1.0
+      DispatchQueue.main.async {
+        nowPlayingInfo[MPMediaItemPropertyTitle] = title
+        nowPlayingInfo[MPMediaItemPropertyArtist] = artist
+        nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] = playbackDuration
 
-          MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
-        }
+        MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
       }
     }
   }
@@ -283,24 +267,33 @@ class PlayerViewModel: ObservableObject {
     UserDefaultsManager.playbackMode = self.playbackMode
   }
 
-  func playByAlbum(item: Album) {
-    self.addToQueue(idx: 0, item: item)
+  func playBySong(idx: Int, item: Album, isFromLocal: Bool) {
+    let queue = PlaybackService.shared.addToQueue(item: item, isFromLocal: isFromLocal)
+
+    self.addToNewQueue(idx: idx, item: queue)
   }
 
-  func shuffleByAlbum(item: Album) {
+  func playByAlbum(item: Album, isFromLocal: Bool) {
+    let queue = PlaybackService.shared.addToQueue(item: item, isFromLocal: isFromLocal)
+
+    self.addToNewQueue(idx: 0, item: queue)
+  }
+
+  func shuffleByAlbum(item: Album, isFromLocal: Bool) {
     var shuffledItem = item
     shuffledItem.songs.shuffle()
 
-    self.addToQueue(idx: 0, item: shuffledItem)
+    let queue = PlaybackService.shared.addToQueue(item: shuffledItem, isFromLocal: isFromLocal)
+    self.addToNewQueue(idx: 0, item: queue)
   }
 
   func shuffleCurrentQueue() {
     self.isShuffling.toggle()
 
     if self.isShuffling {
-      self.queue = self.queue.shuffled()
+      self.queue = PlaybackService.shared.shuffleQueue(currentIdx: self.activeQueueIdx)
     } else {
-      self.queue = self.tempOriginQueue
+      self.queue = PlaybackService.shared.getQueue()
     }
   }
 
