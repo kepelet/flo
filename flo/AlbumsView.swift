@@ -11,70 +11,88 @@ struct AlbumsView: View {
   var viewModel: AlbumViewModel
   var album: Album
 
+  var isDownloadScreen: Bool = false
+
   var body: some View {
-    VStack(alignment: .leading) {
-      AsyncImage(url: URL(string: viewModel.getAlbumArt(id: album.id))) { phase in
-        switch phase {
-        case .empty:
-          ProgressView().frame(width: 150, height: 150)
-
-        case .success(let image):
-          image
-            .resizable()
-            .aspectRatio(contentMode: .fill)
-            .frame(maxWidth: .infinity, maxHeight: 300)
-            .clipShape(
-              RoundedRectangle(cornerRadius: 5, style: .continuous)
-            )
-
-        case .failure:
-          ZStack {
-            Color("PlayerColor")
+    Group {
+      VStack(alignment: .leading) {
+        if self.isDownloadScreen {
+          if let image = UIImage(
+            contentsOfFile: viewModel.getAlbumCoverArt(
+              id: album.id, artistName: album.artist, albumName: album.name))
+          {
+            Image(uiImage: image)
+              .resizable()
+              .aspectRatio(contentMode: .fill)
               .frame(maxWidth: .infinity, maxHeight: 300)
-              .clipShape(RoundedRectangle(cornerRadius: 5, style: .continuous))
-            Image(systemName: "photo")
-              .resizable()
-              .aspectRatio(contentMode: .fit)
-              .padding()
-              .padding(.top, 10)
-              .padding(.bottom, 10)
-              .foregroundColor(Color("PlayerColor"))
+              .clipShape(
+                RoundedRectangle(cornerRadius: 5, style: .continuous)
+              )
           }
+        } else {
+          AsyncImage(url: URL(string: viewModel.getAlbumCoverArt(id: album.id))) { phase in
+            switch phase {
+            case .empty:
+              ProgressView().frame(width: 150, height: 150)
 
-        @unknown default:
-          ZStack {
-            Color("PlayerColor")
-              .frame(maxWidth: .infinity, maxHeight: 250)
-              .clipShape(RoundedRectangle(cornerRadius: 5, style: .continuous))
-            Image(systemName: "photo")
-              .resizable()
-              .aspectRatio(contentMode: .fit)
-              .padding()
-              .padding(.bottom, 20)
-              .foregroundColor(Color("PlayerColor"))
+            case .success(let image):
+              image
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+                .frame(maxWidth: .infinity, maxHeight: 300)
+                .clipShape(
+                  RoundedRectangle(cornerRadius: 5, style: .continuous)
+                )
+
+            case .failure:
+              ZStack {
+                Color("PlayerColor")
+                  .frame(maxWidth: .infinity, maxHeight: 300)
+                  .clipShape(RoundedRectangle(cornerRadius: 5, style: .continuous))
+                Image(systemName: "photo")
+                  .resizable()
+                  .aspectRatio(contentMode: .fit)
+                  .padding()
+                  .padding(.top, 10)
+                  .padding(.bottom, 10)
+                  .foregroundColor(Color("PlayerColor"))
+              }
+
+            @unknown default:
+              ZStack {
+                Color("PlayerColor")
+                  .frame(maxWidth: .infinity, maxHeight: 250)
+                  .clipShape(RoundedRectangle(cornerRadius: 5, style: .continuous))
+                Image(systemName: "photo")
+                  .resizable()
+                  .aspectRatio(contentMode: .fit)
+                  .padding()
+                  .padding(.bottom, 20)
+                  .foregroundColor(Color("PlayerColor"))
+              }
+            }
           }
         }
-      }
 
-      Text(album.name)
-        .customFont(.caption1)
-        .fontWeight(.bold)
-        .foregroundColor(.primary)
-        .truncationMode(.tail)
-        .padding(.trailing, 20)
-        .lineLimit(1)
-        .multilineTextAlignment(.leading)
-        .frame(maxWidth: .infinity, alignment: .leading)
+        Text(album.name)
+          .customFont(.caption1)
+          .fontWeight(.bold)
+          .foregroundColor(.primary)
+          .truncationMode(.tail)
+          .padding(.trailing, 20)
+          .lineLimit(1)
+          .multilineTextAlignment(.leading)
+          .frame(maxWidth: .infinity, alignment: .leading)
 
-      Text(album.artist)
-        .customFont(.caption2)
-        .foregroundColor(.gray)
-        .truncationMode(.tail)
-        .padding(.trailing, 20)
-        .lineLimit(1)
-        .frame(maxWidth: .infinity, alignment: .leading)
-
-    }.padding(.horizontal)
+        Text(album.artist)
+          .customFont(.caption2)
+          .foregroundColor(.gray)
+          .truncationMode(.tail)
+          .padding(.trailing, 20)
+          .lineLimit(1)
+          .frame(maxWidth: .infinity, alignment: .leading)
+      }.padding()
+    }
   }
 }
 

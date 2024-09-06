@@ -46,7 +46,7 @@ struct DownloadsView: View {
                   viewModel.setActiveAlbum(album: album)
                 }
             ) {
-              AlbumsView(viewModel: viewModel, album: album)
+              AlbumsView(viewModel: viewModel, album: album, isDownloadScreen: true)
             }
           }
         }.padding(.top, 10).padding(.bottom, 100).navigationTitle("Downloads")

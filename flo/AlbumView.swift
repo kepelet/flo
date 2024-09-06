@@ -22,12 +22,36 @@ struct AlbumView: View {
 
   var body: some View {
     ScrollView {
-      AsyncImage(url: URL(string: viewModel.album.albumCover)) { phase in
-        switch phase {
-        case .empty:
-          ProgressView().frame(width: 200, height: 200)
-        case .success(let image):
-          image
+      if !viewModel.isDownloaded {
+        AsyncImage(url: URL(string: viewModel.album.albumCover)) { phase in
+          switch phase {
+          case .empty:
+            ProgressView().frame(width: 200, height: 200)
+          case .success(let image):
+            image
+              .resizable()
+              .aspectRatio(contentMode: .fit)
+              .frame(width: 200, height: 200)
+              .clipShape(
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+              )
+              .shadow(radius: 5)
+
+          case .failure:
+            Color("PlayerColor").frame(width: 200, height: 200)
+              .cornerRadius(5)
+
+          @unknown default:
+            EmptyView().frame(width: 200, height: 200)
+          }
+        }.padding(.bottom, 10)
+      } else {
+        if let image = UIImage(
+          contentsOfFile: viewModel.getAlbumCoverArt(
+            id: viewModel.album.id, artistName: viewModel.album.artist,
+            albumName: viewModel.album.name))
+        {
+          Image(uiImage: image)
             .resizable()
             .aspectRatio(contentMode: .fit)
             .frame(width: 200, height: 200)
@@ -35,15 +59,8 @@ struct AlbumView: View {
               RoundedRectangle(cornerRadius: 10, style: .continuous)
             )
             .shadow(radius: 5)
-
-        case .failure:
-          Color("PlayerColor").frame(width: 200, height: 200)
-            .cornerRadius(5)
-
-        @unknown default:
-          EmptyView().frame(width: 200, height: 200)
         }
-      }.padding(.bottom, 10)
+      }
 
       VStack {
         Text(viewModel.album.name)
@@ -66,7 +83,8 @@ struct AlbumView: View {
         HStack(spacing: 20) {
           Button(action: {
             playerViewModel.playByAlbum(
-              item: viewModel.album)
+              item: viewModel.album,
+              isFromLocal: viewModel.isDownloaded)
           }) {
             Text("Play")
               .foregroundColor(.white)
@@ -75,10 +93,12 @@ struct AlbumView: View {
               .padding(.horizontal, 30)
               .background(Color("PlayerColor"))
               .cornerRadius(5)
-          }
+          }.disabled(viewModel.album.songs.isEmpty)
+
           Button(action: {
             playerViewModel.shuffleByAlbum(
-              item: viewModel.album)
+              item: viewModel.album,
+              isFromLocal: viewModel.isDownloaded)
           }) {
             Text("Shuffle")
               .foregroundColor(.white)
@@ -87,7 +107,7 @@ struct AlbumView: View {
               .padding(.horizontal, 30)
               .background(Color("PlayerColor"))
               .cornerRadius(5)
-          }
+          }.disabled(viewModel.album.songs.isEmpty)
         }.padding(10)
       }.padding(10)
 
@@ -102,7 +122,7 @@ struct AlbumView: View {
             Text("Album Info")
               .font(.caption)
           }
-        }.sheet(isPresented: $showAlbumInfo) {
+        }.disabled(isDownloadScreen).sheet(isPresented: $showAlbumInfo) {
           VStack {
             ScrollView {
               Spacer()
@@ -168,10 +188,13 @@ struct AlbumView: View {
           VStack(spacing: 8) {
             Image(systemName: "arrow.down.circle")
               .font(.system(size: 24))
-            Text("Download")
-              .font(.caption)
+            Text(
+              viewModel.isDownloading
+                ? "Downloading" : viewModel.isDownloaded ? "Redownload" : "Download"
+            )
+            .font(.caption)
           }
-        }.disabled(viewModel.ifNotDownloadable(isDownloadScreen: isDownloadScreen))
+        }.disabled(isDownloadScreen || viewModel.isDownloading)
 
         Button(action: {
           self.showShareAlert = true

@@ -38,7 +38,8 @@ struct SongView: View {
         .listRowSeparator(.hidden)
         .contentShape(Rectangle())
         .onTapGesture {
-          playerViewModel.addToQueue(idx: idx, item: viewModel.album)
+          playerViewModel.playBySong(
+            idx: idx, item: viewModel.album, isFromLocal: viewModel.isDownloaded)
         }
       }
       .environment(\.defaultMinListRowHeight, 60)
