@@ -35,6 +35,7 @@ class PlayerViewModel: ObservableObject {
   private var isFinished: Bool = false
   private var totalDuration: Double = 0.0
   private var playerItemObservation: AnyCancellable?
+  private var interruptionObservation = Set<AnyCancellable>()
 
   var nowPlaying: QueueEntity {
     return self.queue[self.activeQueueIdx]
@@ -42,6 +43,7 @@ class PlayerViewModel: ObservableObject {
 
   init() {
     self.player = AVPlayer()
+    self.observeInterruptionNotifications()
 
     let lastPlayData = PlaybackService.shared.getQueue()
     let queueActiveIdx = UserDefaultsManager.queueActiveIdx
@@ -55,6 +57,43 @@ class PlayerViewModel: ObservableObject {
       UserDefaultsManager.removeObject(key: UserDefaultsKeys.queueActiveIdx)
       UserDefaultsManager.removeObject(key: UserDefaultsKeys.nowPlayingProgress)
       PlaybackService.shared.clearQueue()
+    }
+  }
+
+  func observeInterruptionNotifications() {
+    NotificationCenter.default
+      .publisher(for: AVAudioSession.interruptionNotification)
+      .sink { notification in
+        self.handleInterruptionNotification(notification)
+      }
+      .store(in: &interruptionObservation)
+  }
+
+  func handleInterruptionNotification(_ notification: Notification) {
+    guard let userInfo = notification.userInfo,
+      let typeValue = userInfo[AVAudioSessionInterruptionTypeKey] as? Int,
+      let type = AVAudioSession.InterruptionType(rawValue: UInt(typeValue))
+    else {
+      return
+    }
+
+    switch type {
+    case .began:
+      self.pause()
+
+    case .ended:
+      self.play()
+
+      if let optionsValue = userInfo[AVAudioSessionInterruptionOptionKey] as? Int {
+        let options = AVAudioSession.InterruptionOptions(rawValue: UInt(optionsValue))
+
+        if options.contains(.shouldResume) {
+          self.play()
+        }
+      }
+
+    @unknown default:
+      break
     }
   }
 
