@@ -180,7 +180,7 @@ class PlayerViewModel: ObservableObject {
       guard let self = self else { return }
 
       let currentTime = CMTimeGetSeconds(time)
-      let roundedTotalDuration = round(self.totalDuration)
+      let roundedTotalDuration = floor(self.totalDuration)
 
       self.progress = currentTime / self.totalDuration
       self.currentTimeString = timeString(for: currentTime)
