@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		C401D09A2C5AED9F009F91C7 /* LocalFileManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C401D0992C5AED9F009F91C7 /* LocalFileManager.swift */; };
 		C4120FD92C15D58E00E712BE /* Errors.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4120FD82C15D58E00E712BE /* Errors.swift */; };
 		C4120FDB2C15E17B00E712BE /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4120FDA2C15E17B00E712BE /* User.swift */; };
 		C4120FDD2C15E1C300E712BE /* Song.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4120FDC2C15E1C300E712BE /* Song.swift */; };
@@ -38,6 +39,9 @@
 		C4A4BF372C14442F00363290 /* DownloadsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4A4BF362C14442F00363290 /* DownloadsView.swift */; };
 		C4A4BF392C14445000363290 /* PreferencesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4A4BF382C14445000363290 /* PreferencesView.swift */; };
 		C4A4BF3D2C1455A100363290 /* FloatingPlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4A4BF3C2C1455A100363290 /* FloatingPlayerView.swift */; };
+		C4D7F84D2C7F2AE900165EFD /* flo.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = C4D7F84B2C7F2AE900165EFD /* flo.xcdatamodeld */; };
+		C4D7F84F2C7F2C5D00165EFD /* PlaybackService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4D7F84E2C7F2C5D00165EFD /* PlaybackService.swift */; };
+		C4DE89182C2FFBC900E078CC /* CoreDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4DE89172C2FFBC900E078CC /* CoreDataManager.swift */; };
 		C4E8D95C2B763BA900C2353E /* App.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4E8D95B2B763BA900C2353E /* App.swift */; };
 		C4E8D95E2B763BA900C2353E /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4E8D95D2B763BA900C2353E /* ContentView.swift */; };
 		C4E8D9602B763BAB00C2353E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C4E8D95F2B763BAB00C2353E /* Assets.xcassets */; };
@@ -48,6 +52,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		C401D0992C5AED9F009F91C7 /* LocalFileManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalFileManager.swift; sourceTree = "<group>"; };
 		C4120FD82C15D58E00E712BE /* Errors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Errors.swift; sourceTree = "<group>"; };
 		C4120FDA2C15E17B00E712BE /* User.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
 		C4120FDC2C15E1C300E712BE /* Song.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Song.swift; sourceTree = "<group>"; };
@@ -79,6 +84,9 @@
 		C4A4BF362C14442F00363290 /* DownloadsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadsView.swift; sourceTree = "<group>"; };
 		C4A4BF382C14445000363290 /* PreferencesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesView.swift; sourceTree = "<group>"; };
 		C4A4BF3C2C1455A100363290 /* FloatingPlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloatingPlayerView.swift; sourceTree = "<group>"; };
+		C4D7F84C2C7F2AE900165EFD /* flo.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = flo.xcdatamodel; sourceTree = "<group>"; };
+		C4D7F84E2C7F2C5D00165EFD /* PlaybackService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaybackService.swift; sourceTree = "<group>"; };
+		C4DE89172C2FFBC900E078CC /* CoreDataManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreDataManager.swift; sourceTree = "<group>"; };
 		C4E8D9582B763BA900C2353E /* flo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = flo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		C4E8D95B2B763BA900C2353E /* App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App.swift; sourceTree = "<group>"; };
 		C4E8D95D2B763BA900C2353E /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -163,6 +171,9 @@
 				C4FE524A2C14E1F70053763A /* UserDefaultsManager.swift */,
 				C4FE524C2C14E71B0053763A /* KeychainManager.swift */,
 				C49495842C1C26D4006B4D1E /* ScanStatusService.swift */,
+				C4DE89172C2FFBC900E078CC /* CoreDataManager.swift */,
+				C401D0992C5AED9F009F91C7 /* LocalFileManager.swift */,
+				C4D7F84E2C7F2C5D00165EFD /* PlaybackService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -198,6 +209,7 @@
 		C4E8D95A2B763BA900C2353E /* flo */ = {
 			isa = PBXGroup;
 			children = (
+				C4D7F84B2C7F2AE900165EFD /* flo.xcdatamodeld */,
 				C4A4BF2F2C1442C000363290 /* Navigation */,
 				C4289F4E2C12553800C3A4FD /* Resources */,
 				C4289F4B2C1253B800C3A4FD /* Shared */,
@@ -320,19 +332,23 @@
 				C47876022C2BF15900184A33 /* AlbumsView.swift in Sources */,
 				C4120FD92C15D58E00E712BE /* Errors.swift in Sources */,
 				C415F55A2C11953000E3E1D2 /* Constants.swift in Sources */,
+				C401D09A2C5AED9F009F91C7 /* LocalFileManager.swift in Sources */,
 				C49495832C1C262C006B4D1E /* ScanStatusViewModel.swift in Sources */,
 				C4A4BF332C14437700363290 /* LibraryView.swift in Sources */,
 				C415F5642C11AA8700E3E1D2 /* Fonts.swift in Sources */,
 				C41E15152C0F95AD005BAE63 /* PlayerCustomSlider.swift in Sources */,
 				C4FE524B2C14E1F70053763A /* UserDefaultsManager.swift in Sources */,
 				C4E8D95C2B763BA900C2353E /* App.swift in Sources */,
+				C4D7F84D2C7F2AE900165EFD /* flo.xcdatamodeld in Sources */,
 				C4289F512C139B2E00C3A4FD /* AlbumView.swift in Sources */,
 				C4A4BF3D2C1455A100363290 /* FloatingPlayerView.swift in Sources */,
 				C415F54E2C11908100E3E1D2 /* AuthViewModel.swift in Sources */,
 				C4A4BF372C14442F00363290 /* DownloadsView.swift in Sources */,
 				C440228D2C09BE2E004EE9CD /* PlayerView.swift in Sources */,
+				C4DE89182C2FFBC900E078CC /* CoreDataManager.swift in Sources */,
 				C4120FDB2C15E17B00E712BE /* User.swift in Sources */,
 				C46C85C42C07114200903F54 /* LoginView.swift in Sources */,
+				C4D7F84F2C7F2C5D00165EFD /* PlaybackService.swift in Sources */,
 				C49134532C15BE0C00CCF2EB /* Strings.swift in Sources */,
 				C4875E002C149D9000D9BAEB /* AlbumService.swift in Sources */,
 				C41E15132C0F952A005BAE63 /* PlayerViewModel.swift in Sources */,
@@ -470,17 +486,19 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 20240726;
 				DEVELOPMENT_ASSET_PATHS = "\"flo/Resources/Preview Content\"";
 				DEVELOPMENT_TEAM = 8BJ4LW5J8P;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = flo/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.music";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UIStatusBarStyle = "";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -488,9 +506,13 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.penerbangwalet.flo;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;
 		};
@@ -500,17 +522,19 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 20240726;
 				DEVELOPMENT_ASSET_PATHS = "\"flo/Resources/Preview Content\"";
 				DEVELOPMENT_TEAM = 8BJ4LW5J8P;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = flo/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.music";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UIStatusBarStyle = "";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -518,9 +542,13 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.penerbangwalet.flo;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Release;
 		};
@@ -578,6 +606,20 @@
 			productName = Alamofire;
 		};
 /* End XCSwiftPackageProductDependency section */
+
+/* Begin XCVersionGroup section */
+		C4D7F84B2C7F2AE900165EFD /* flo.xcdatamodeld */ = {
+			isa = XCVersionGroup;
+			children = (
+				C4D7F84C2C7F2AE900165EFD /* flo.xcdatamodel */,
+			);
+			currentVersion = C4D7F84C2C7F2AE900165EFD /* flo.xcdatamodel */;
+			name = flo.xcdatamodeld;
+			path = /Users/rizaldy/Developer/flo/flo/flo.xcdatamodeld;
+			sourceTree = "<group>";
+			versionGroupType = wrapper.xcdatamodel;
+		};
+/* End XCVersionGroup section */
 	};
 	rootObject = C4E8D9502B763BA900C2353E /* Project object */;
 }
