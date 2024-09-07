@@ -19,6 +19,22 @@ struct PreferencesView: View {
 
   let themeColors = ["Blue", "Green", "Red", "Ohio"]
 
+  func getAppVersion() -> String {
+    if let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String {
+      return appVersion
+    }
+
+    return "dev"
+  }
+
+  func getBuildNumber() -> String {
+    if let buildNumber = Bundle.main.infoDictionary?["CFBundleVersion"] as? String {
+      return buildNumber
+    }
+
+    return "000000"
+  }
+
   var body: some View {
     NavigationView {
       Form {
@@ -129,7 +145,7 @@ struct PreferencesView: View {
           HStack {
             Text("App Version")
             Spacer()
-            Text("dev")  // TODO: change me later
+            Text("\(self.getAppVersion()) (\(self.getBuildNumber()))")
           }
         }
 
