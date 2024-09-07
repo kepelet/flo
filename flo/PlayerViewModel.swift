@@ -58,6 +58,8 @@ class PlayerViewModel: ObservableObject {
       UserDefaultsManager.removeObject(key: UserDefaultsKeys.nowPlayingProgress)
       PlaybackService.shared.clearQueue()
     }
+
+    self.setupRemoteCommandCenter()
   }
 
   func observeInterruptionNotifications() {
@@ -162,7 +164,6 @@ class PlayerViewModel: ObservableObject {
     }
 
     self.addPeriodicTimeObserver()
-    self.setupRemoteCommandCenter()
     self.initNowPlayingInfo(
       title: self.nowPlaying.songName ?? "",
       artist: self.nowPlaying.artistName ?? "",
