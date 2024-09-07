@@ -163,11 +163,10 @@ class PlayerViewModel: ObservableObject {
 
     self.addPeriodicTimeObserver()
     self.setupRemoteCommandCenter()
-    self.updateNowPlayingInfo(
+    self.initNowPlayingInfo(
       title: self.nowPlaying.songName ?? "",
       artist: self.nowPlaying.artistName ?? "",
-      playbackDuration: self.totalDuration,
-      playbackRate: self.player?.rate)
+      playbackDuration: self.totalDuration)
   }
 
   private func addPeriodicTimeObserver() {
@@ -195,8 +194,8 @@ class PlayerViewModel: ObservableObject {
     }
   }
 
-  private func updateNowPlayingInfo(
-    title: String, artist: String, playbackDuration: Double, playbackRate: Float?
+  private func initNowPlayingInfo(
+    title: String, artist: String, playbackDuration: Double
   ) {
     var nowPlayingInfo = [String: Any]()
 
@@ -234,6 +233,16 @@ class PlayerViewModel: ObservableObject {
     }
   }
 
+  func updateNowPlayingInfo(progress: TimeInterval, rate: Float) {
+    var nowPlayingInfo = MPNowPlayingInfoCenter.default().nowPlayingInfo ?? [String: Any]()
+
+    nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = progress * self.totalDuration
+    nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] = self.totalDuration
+    nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = rate
+
+    MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
+  }
+
   private func setupRemoteCommandCenter() {
     let commandCenter = MPRemoteCommandCenter.shared()
 
@@ -269,18 +278,21 @@ class PlayerViewModel: ObservableObject {
   func play() {
     if self.isFinished {
       self.stop()
+      self.updateNowPlayingInfo(progress: self.progress, rate: 0.0)
     }
 
     player?.play()
 
     self.isFinished = false
     self.isPlaying = true
+    self.updateNowPlayingInfo(progress: self.progress, rate: 1.0)
   }
 
   func pause() {
     player?.pause()
 
     self.isPlaying = false
+    self.updateNowPlayingInfo(progress: self.progress, rate: 0.0)
   }
 
   func stop() {
@@ -296,6 +308,8 @@ class PlayerViewModel: ObservableObject {
       seconds: progress * totalDuration, preferredTimescale: CMTimeScale(NSEC_PER_SEC))
 
     player?.seek(to: newTime)
+
+    self.updateNowPlayingInfo(progress: progress, rate: 1.0)
   }
 
   func setPlaybackMode() {
