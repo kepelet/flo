@@ -40,17 +40,6 @@ class PlayerViewModel: ObservableObject {
 
   var nowPlaying: QueueEntity {
     return self.queue[self.activeQueueIdx]
-    //    if self.hasNowPlaying() {
-    //      return self.queue[self.activeQueueIdx]
-    //    } else {
-    //      let dummyQueue = QueueEntity()
-    //
-    //      dummyQueue.songName = ""
-    //      dummyQueue.artistName = ""
-    //      dummyQueue.albumId = nil
-    //
-    //      return dummyQueue
-    //    }
   }
 
   init() {
