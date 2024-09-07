@@ -274,6 +274,19 @@ class PlayerViewModel: ObservableObject {
 
       return .success
     }
+
+    commandCenter.changePlaybackPositionCommand.isEnabled = true
+    commandCenter.changePlaybackPositionCommand.addTarget { event in
+      if let event = event as? MPChangePlaybackPositionCommandEvent {
+        let progress = event.positionTime / self.totalDuration
+
+        self.seek(to: progress)
+
+        return .success
+      }
+
+      return .commandFailed
+    }
   }
 
   func play() {
