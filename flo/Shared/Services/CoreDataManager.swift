@@ -105,4 +105,27 @@ class CoreDataManager: ObservableObject {
       print("Failed to delete records: \(error.localizedDescription)")
     }
   }
+
+  func clearEverything() {
+    let entities = ["QueueEntity", "SongEntity", "PlaylistEntity"]
+
+    for entity in entities {
+      let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: entity)
+      let batchDeleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
+
+      do {
+        try self.viewContext.execute(batchDeleteRequest)
+
+        print("Successfully deleted all records for \(entity).")
+      } catch {
+        print("Failed to delete records for \(entity): \(error.localizedDescription)")
+      }
+    }
+
+    do {
+      try self.viewContext.save()
+    } catch {
+      print("Failed to save context: \(error.localizedDescription)")
+    }
+  }
 }

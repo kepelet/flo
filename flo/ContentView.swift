@@ -38,11 +38,11 @@ struct ContentView: View {
 
         PreferencesView(authViewModel: authViewModel).tabItem {
           Label("Preferences", systemImage: "gear")
-        }.environmentObject(scanStatusViewModel)
+        }.environmentObject(scanStatusViewModel).environmentObject(playerViewModel)
       }
 
       ZStack {
-        if playerViewModel.hasNowPlaying() {
+        if playerViewModel.hasNowPlaying() && !playerViewModel.shouldHidePlayer {
           PlayerView(isExpanded: $isPlayerExpanded, viewModel: playerViewModel)
         }
       }
@@ -52,7 +52,7 @@ struct ContentView: View {
       VStack {
         Spacer()
 
-        if playerViewModel.hasNowPlaying() {
+        if playerViewModel.hasNowPlaying() && !playerViewModel.shouldHidePlayer {
           FloatingPlayerView(viewModel: playerViewModel)
             .padding(.bottom, 50)
             .shadow(radius: 10)

@@ -18,9 +18,19 @@ class ScanStatusViewModel: ObservableObject {
   }
 
   func optimizeLocalStorage() {
-    print("checking all songs")
-    print("checking missing songs")
-    print("deleting missing songs")
+    LocalFileManager.shared.deleteDownloadedAlbums { result in
+      switch result {
+      case .success(let shouldProceed):
+        if shouldProceed {
+          CoreDataManager.shared.clearEverything()
+        }
+
+        self.getLocalStorageInformation()
+
+      case .failure(let error):
+        print("error in optimizeLocalStorage>>>", error)
+      }
+    }
   }
 
   func checkScanStatus() {

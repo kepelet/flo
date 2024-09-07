@@ -10,12 +10,14 @@ import SwiftUI
 struct PreferencesView: View {
   @ObservedObject var authViewModel: AuthViewModel
   @State private var storeCredsInKeychain = false
+  @State private var optimizeLocalStorageAlert = false
 
   @State private var accentColor = Color(.accent)
   @State private var playerColor = Color(.player)
   @State private var customFontFamily = "Plus Jakarta Sans"
 
   @EnvironmentObject var scanStatusViewModel: ScanStatusViewModel
+  @EnvironmentObject var playerViewModel: PlayerViewModel
 
   let themeColors = ["Blue", "Green", "Red", "Ohio"]
 
@@ -52,10 +54,24 @@ struct PreferencesView: View {
           }
 
           Button(action: {
-            scanStatusViewModel.optimizeLocalStorage()
+            self.optimizeLocalStorageAlert.toggle()
           }) {
             Text("Optimize local storage")
-          }
+          }.alert(
+            "Optimize Local Storage", isPresented: $optimizeLocalStorageAlert,
+            actions: {
+              Button(
+                "Continue", role: .destructive,
+                action: {
+                  scanStatusViewModel.optimizeLocalStorage()
+                  playerViewModel.destroyPlayerAndQueue()
+                })
+            },
+            message: {
+              Text(
+                "For now this action means 'Delete all downloaded albums and songs' including its content. Continue?"
+              )
+            })
         }
 
         if authViewModel.isLoggedIn {

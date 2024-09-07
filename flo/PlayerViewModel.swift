@@ -31,6 +31,7 @@ class PlayerViewModel: ObservableObject {
 
   @Published var currentTimeString: String = "00:00"
   @Published var totalTimeString: String = "00:00"
+  @Published var shouldHidePlayer: Bool = false
 
   private var isFinished: Bool = false
   private var totalDuration: Double = 0.0
@@ -39,6 +40,17 @@ class PlayerViewModel: ObservableObject {
 
   var nowPlaying: QueueEntity {
     return self.queue[self.activeQueueIdx]
+    //    if self.hasNowPlaying() {
+    //      return self.queue[self.activeQueueIdx]
+    //    } else {
+    //      let dummyQueue = QueueEntity()
+    //
+    //      dummyQueue.songName = ""
+    //      dummyQueue.artistName = ""
+    //      dummyQueue.albumId = nil
+    //
+    //      return dummyQueue
+    //    }
   }
 
   init() {
@@ -116,6 +128,8 @@ class PlayerViewModel: ObservableObject {
   }
 
   func setNowPlaying(playAudio: Bool = true) {
+    self.shouldHidePlayer = false
+
     if let timeObserverToken = timeObserverToken {
       player?.removeTimeObserver(timeObserverToken)
     }
@@ -431,6 +445,18 @@ class PlayerViewModel: ObservableObject {
     }
 
     UserDefaultsManager.queueActiveIdx = self.activeQueueIdx
+  }
+
+  func destroyPlayerAndQueue() {
+    self.stop()
+    self.progress = 0.0
+
+    self.shouldHidePlayer = true
+
+    PlaybackService.shared.clearQueue()
+    UserDefaultsManager.removeObject(key: UserDefaultsKeys.nowPlayingProgress)
+
+    MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
   }
 
   deinit {
