@@ -176,7 +176,9 @@ struct PreferencesView: View {
           }
         }
       }.navigationBarTitle("Preferences", displayMode: .inline)
-    }.padding(.bottom, 100).onAppear {
+    }.padding(
+      .bottom, playerViewModel.hasNowPlaying() && !playerViewModel.shouldHidePlayer ? 100 : 0
+    ).onAppear {
       scanStatusViewModel.getLocalStorageInformation()
 
       if authViewModel.isLoggedIn {
