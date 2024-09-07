@@ -49,10 +49,10 @@ class PlayerViewModel: ObservableObject {
     let queueActiveIdx = UserDefaultsManager.queueActiveIdx
 
     if !lastPlayData.isEmpty && queueActiveIdx < lastPlayData.count {
-      self.addToQueue(
-        idx: UserDefaultsManager.queueActiveIdx, item: lastPlayData, playAudio: false)
       self.progress = UserDefaultsManager.nowPlayingProgress
       self.playbackMode = UserDefaultsManager.playbackMode
+      self.addToQueue(
+        idx: UserDefaultsManager.queueActiveIdx, item: lastPlayData, playAudio: false)
     } else {
       UserDefaultsManager.removeObject(key: UserDefaultsKeys.queueActiveIdx)
       UserDefaultsManager.removeObject(key: UserDefaultsKeys.nowPlayingProgress)
@@ -176,16 +176,14 @@ class PlayerViewModel: ObservableObject {
     let interval = CMTime(seconds: 1, preferredTimescale: CMTimeScale(NSEC_PER_SEC))
 
     timeObserverToken = player.addPeriodicTimeObserver(forInterval: interval, queue: .main) {
-      [weak self] time in
-      guard let self = self else { return }
-
+      time in
       let currentTime = CMTimeGetSeconds(time)
       let roundedTotalDuration = floor(self.totalDuration)
 
       self.progress = currentTime / self.totalDuration
       self.currentTimeString = timeString(for: currentTime)
 
-      UserDefaultsManager.nowPlayingProgress = progress
+      UserDefaultsManager.nowPlayingProgress = self.progress
 
       if round(currentTime) >= roundedTotalDuration {
         self.nextSong()
