@@ -75,40 +75,6 @@ class AlbumViewModel: ObservableObject {
         }
       }
     }
-
-    if checkLocalSongs.first != nil {
-      if checkLocalSongs.isEmpty {
-        isLoading = true
-        AlbumService.shared.getSongFromAlbum(id: id) { result in
-          DispatchQueue.main.async {
-            self.isLoading = false
-
-            switch result {
-            case .success(let songs):
-              self.album.songs = songs
-
-            case .failure(let error):
-              self.error = error
-            }
-          }
-        }
-      }
-    } else {
-      isLoading = true
-      AlbumService.shared.getSongFromAlbum(id: id) { result in
-        DispatchQueue.main.async {
-          self.isLoading = false
-
-          switch result {
-          case .success(let songs):
-            self.album.songs = songs
-
-          case .failure(let error):
-            self.error = error
-          }
-        }
-      }
-    }
   }
 
   func getAlbumInfo() {
@@ -197,10 +163,10 @@ class AlbumViewModel: ObservableObject {
         switch result {
         case .success(let fileURL):
           DispatchQueue.main.async {
-            if let fileURL = fileURL {
+            if fileURL != nil {
               AlbumService.shared.saveDownload(
-                albumId: self.album.id, albumName: self.album.name, song: song, fileURL: fileURL,
-                status: "Downloaded")
+                albumId: self.album.id, albumName: self.album.name, song: song, status: "Downloaded"
+              )
             }
           }
         case .failure(let error):

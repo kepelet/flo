@@ -147,16 +147,14 @@ class AlbumService {
     }
   }
 
-  func saveDownload(albumId: String?, albumName: String?, song: Song, fileURL: URL?, status: String)
-  {
-    if let checkExisting = CoreDataManager.shared.getRecordByKey(
-      entity: SongEntity.self, key: \SongEntity.albumId, value: albumId
-    ).first {
-      checkExisting.fileURL =
-        "Media/\(song.artist)/\(albumName ?? "Unknown Albums")/\(Int16(song.trackNumber)) \(song.title).\(song.suffix)"
-      checkExisting.status = status
+  func saveDownload(albumId: String?, albumName: String?, song: Song, status: String) {
+    let checkExistingSong = CoreDataManager.shared.getRecordByKey(
+      entity: SongEntity.self, key: \SongEntity.id, value: song.id, limit: 1)
 
-      CoreDataManager.shared.saveRecord()
+    if let existingSong = checkExistingSong.first {
+      existingSong.fileURL =
+        "Media/\(song.artist)/\(albumName ?? "Unknown Albums")/\(Int16(song.trackNumber)) \(song.title).\(song.suffix)"
+      existingSong.status = status
     } else {
       let downloadedSong = SongEntity(context: CoreDataManager.shared.viewContext)
 
@@ -173,9 +171,9 @@ class AlbumService {
       downloadedSong.fileURL =
         "Media/\(song.artist)/\(albumName ?? "Unknown Albums")/\(Int16(song.trackNumber)) \(song.title).\(song.suffix)"
       downloadedSong.status = status
-
-      CoreDataManager.shared.saveRecord()
     }
+
+    CoreDataManager.shared.saveRecord()
   }
 
   func checkIfAlbumDownloaded(albumID: String) -> Bool {
