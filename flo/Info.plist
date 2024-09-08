@@ -9,7 +9,6 @@
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>audio</string>
-		<string>airplay</string>
 	</array>
 </dict>
 </plist>
