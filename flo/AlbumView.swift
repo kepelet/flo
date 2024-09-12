@@ -26,23 +26,23 @@ struct AlbumView: View {
         AsyncImage(url: URL(string: viewModel.album.albumCover)) { phase in
           switch phase {
           case .empty:
-            ProgressView().frame(width: 200, height: 200)
+            ProgressView().frame(width: 300, height: 300)
           case .success(let image):
             image
               .resizable()
               .aspectRatio(contentMode: .fit)
-              .frame(width: 200, height: 200)
+              .frame(width: 300, height: 300)
               .clipShape(
                 RoundedRectangle(cornerRadius: 10, style: .continuous)
               )
               .shadow(radius: 5)
 
           case .failure:
-            Color("PlayerColor").frame(width: 200, height: 200)
+            Color("PlayerColor").frame(width: 300, height: 300)
               .cornerRadius(5)
 
           @unknown default:
-            EmptyView().frame(width: 200, height: 200)
+            EmptyView().frame(width: 300, height: 300)
           }
         }.padding(.bottom, 10)
       } else {
@@ -54,7 +54,7 @@ struct AlbumView: View {
           Image(uiImage: image)
             .resizable()
             .aspectRatio(contentMode: .fit)
-            .frame(width: 200, height: 200)
+            .frame(width: 300, height: 300)
             .clipShape(
               RoundedRectangle(cornerRadius: 10, style: .continuous)
             )
