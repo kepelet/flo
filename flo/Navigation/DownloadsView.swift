@@ -10,6 +10,8 @@ import SwiftUI
 struct DownloadsView: View {
   @ObservedObject var viewModel: AlbumViewModel
 
+  @EnvironmentObject var playerViewModel: PlayerViewModel
+
   let columns = [
     GridItem(.flexible()),
     GridItem(.flexible()),
@@ -49,7 +51,9 @@ struct DownloadsView: View {
               AlbumsView(viewModel: viewModel, album: album, isDownloadScreen: true)
             }
           }
-        }.padding(.top, 10).padding(.bottom, 100).navigationTitle("Downloads")
+        }.padding(.top, 10).padding(
+          .bottom, playerViewModel.hasNowPlaying() && !playerViewModel.shouldHidePlayer ? 100 : 0
+        ).navigationTitle("Downloads")
       }
     }
   }

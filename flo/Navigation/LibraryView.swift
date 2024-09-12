@@ -10,6 +10,8 @@ import SwiftUI
 struct LibraryView: View {
   @ObservedObject var viewModel: AlbumViewModel
 
+  @EnvironmentObject var playerViewModel: PlayerViewModel
+
   let columns = [
     GridItem(.flexible()),
     GridItem(.flexible()),
@@ -49,7 +51,8 @@ struct LibraryView: View {
               AlbumsView(viewModel: viewModel, album: album)
             }
           }
-        }.padding(.top, 10).padding(.bottom, 100)
+        }.padding(.top, 10).padding(
+          .bottom, playerViewModel.hasNowPlaying() && !playerViewModel.shouldHidePlayer ? 100 : 0)
       }
       .navigationTitle("Library")
     }

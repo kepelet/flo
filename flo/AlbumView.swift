@@ -245,7 +245,8 @@ struct AlbumView: View {
       SongView(
         viewModel: viewModel, playerViewModel: playerViewModel)
 
-    }.padding(.bottom, 100)
+    }.padding(
+      .bottom, playerViewModel.hasNowPlaying() && !playerViewModel.shouldHidePlayer ? 100 : 10)
   }
 }
 
