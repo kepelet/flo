@@ -127,6 +127,10 @@ class AlbumViewModel: ObservableObject {
   func downloadAlbum() {
     self.isDownloading = true
 
+    let dispatchGroup = DispatchGroup()
+
+    dispatchGroup.enter()
+
     AlbumService.shared.downloadAlbumCover(
       artistName: self.album.artist, albumId: self.album.id, albumName: self.album.name
     ) { result in
@@ -147,40 +151,45 @@ class AlbumViewModel: ObservableObject {
         self.isDownloading = false
         print("Failed to save image: \(error.localizedDescription)")
       }
-    }
 
-    let dispatchGroup = DispatchGroup()
+      dispatchGroup.leave()
+    }
 
     self.isDownloading = true
 
-    for song in self.album.songs {
-      dispatchGroup.enter()
-
-      AlbumService.shared.download(
-        artistName: self.album.artist, albumName: self.album.name, id: song.id,
-        trackNumber: song.trackNumber.description, title: song.title, suffix: song.suffix
-      ) { result in
-        switch result {
-        case .success(let fileURL):
-          DispatchQueue.main.async {
-            if fileURL != nil {
-              AlbumService.shared.saveDownload(
-                albumId: self.album.id, albumName: self.album.name, song: song, status: "Downloaded"
-              )
-            }
-          }
-        case .failure(let error):
-          print(error)
-          self.isDownloading = false
-        }
-
-        dispatchGroup.leave()
-      }
-    }
-
     dispatchGroup.notify(queue: .main) {
-      self.fetchSongs(id: self.album.id)
-      self.isDownloading = false
+      let songDispatchGroup = DispatchGroup()
+
+      for song in self.album.songs {
+        songDispatchGroup.enter()
+
+        AlbumService.shared.download(
+          artistName: self.album.artist, albumName: self.album.name, id: song.id,
+          trackNumber: song.trackNumber.description, title: song.title, suffix: song.suffix
+        ) { result in
+          switch result {
+          case .success(let fileURL):
+            DispatchQueue.main.async {
+              if fileURL != nil {
+                AlbumService.shared.saveDownload(
+                  albumId: self.album.id, albumName: self.album.name, song: song,
+                  status: "Downloaded"
+                )
+              }
+            }
+          case .failure(let error):
+            print(error)
+            self.isDownloading = false
+          }
+
+          songDispatchGroup.leave()
+        }
+      }
+
+      songDispatchGroup.notify(queue: .main) {
+        self.fetchSongs(id: self.album.id)
+        self.isDownloading = false
+      }
     }
   }
 
