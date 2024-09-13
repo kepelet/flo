@@ -623,7 +623,7 @@
 			);
 			currentVersion = C4D7F84C2C7F2AE900165EFD /* flo.xcdatamodel */;
 			name = flo.xcdatamodeld;
-			path = flo/flo.xcdatamodeld;
+			path = flo.xcdatamodeld;
 			sourceTree = "<group>";
 			versionGroupType = wrapper.xcdatamodel;
 		};
