@@ -40,6 +40,32 @@ This project uses integrated SwiftPM (Swift Package Manager) to manage app depen
 
 The minimum number of dependencies is intended to make the project easier to maintain.
 
+If you're part of the Kepelet org, make sure you have [fastlane](https://fastlane.tools) installed. Then, you can run `fastlane match development` and you're ready to go without having to mess with the provisioning profile too much!
+
+Practically, this project uses the Gitflow workflow, where:
+
+- `main` is the "App Store" version
+- `develop` is the "TestFlight" public version
+- `release/xxx` is the "TestFlight" internal version
+- `features/yyy` or `bugfix/zzz` is the "staging" area of the current release (feature/bugfix branches)
+
+Realistically, sometimes feature branches are unnecessary, as the project doesn't run tests (yet) and the developer tests the app anyway.
+
+As of version 1.1.0, the `release/xxx` branch delivers to the TestFlight public version. After the app is live on the App Store, that should change.
+
+So, the flow is:
+
+- Draft a release branch
+- Every week or so, if no critical errors are present, merge to develop and submit to the TestFlight external group
+- Wait for approval
+- Test the beta app
+- Every week or so, if no critical errors are present, submit for review to the App Store
+- Wait for approval
+- When it's live, merge to main
+- Repeat
+
+Coming from Web Development, where no one technically controls the release process, I hate this cycle — I used to ship as soon as it was ready and figure it out later. This time, I have to draft a release every 1-2 weeks. It might get approved, or it might be rejected. But at least I tried!
+
 ## Support
 
 Bug reports, typos, errors and feedback are welcome! Please use GitHub Issues for reports and GitHub Discussions for... discussion. For anything private,
