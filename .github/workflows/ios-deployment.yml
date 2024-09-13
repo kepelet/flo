@@ -3,7 +3,7 @@ name: ios-deployment
 on:
   push:
     branches:
-      - release
+      - 'release/*'
 
 jobs:
   deploy:
