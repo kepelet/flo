@@ -12,7 +12,7 @@ jobs:
       APPLE_ID: ${{ secrets.APPLE_ID }}
       ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
       ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
-      ASC_PRIVATE_KEY: ${{ secrets.ASC_PRIVATE_KEY }}
+      ASC_KEY_CONTENT: ${{ secrets.ASC_KEY_CONTENT }}
       MATCH_GIT_PRIVATE_KEY: ${{ secrets.MATCH_GIT_PRIVATE_KEY }}
       MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
 
@@ -25,7 +25,6 @@ jobs:
         with:
           ruby-version: 3.2.1
           bundler-cache: true
-      - run: echo "ASC_KEY_CONTENT=\"$ASC_PRIVATE_KEY\"" >> $GITHUB_ENV
       - run: bundle exec fastlane ios beta
       - uses: actions/upload-artifact@v4
         with:
