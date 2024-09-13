@@ -12,7 +12,8 @@ jobs:
       APPLE_ID: ${{ secrets.APPLE_ID }}
       ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
       ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
-      ASC_KEY_CONTENT: "${{ secrets.ASC_PRIVATE_KEY }}"
+      ASC_KEY_CONTENT: |
+        ${{ secrets.ASC_PRIVATE_KEY }}
       MATCH_GIT_PRIVATE_KEY: ${{ secrets.MATCH_GIT_PRIVATE_KEY }}
       MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
 
