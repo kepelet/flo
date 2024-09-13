@@ -549,7 +549,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.penerbangwalet.flo;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
-				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "match AppStore com.penerbangwalet.flo";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "match AppStore com.penerbangwalet.flo 1726141004";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
@@ -622,7 +622,6 @@
 				C4D7F84C2C7F2AE900165EFD /* flo.xcdatamodel */,
 			);
 			currentVersion = C4D7F84C2C7F2AE900165EFD /* flo.xcdatamodel */;
-			name = flo.xcdatamodeld;
 			path = flo.xcdatamodeld;
 			sourceTree = "<group>";
 			versionGroupType = wrapper.xcdatamodel;
