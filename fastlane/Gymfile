@@ -1,11 +1,6 @@
 scheme("flo")
 
-export_options({
-  method: "app-store",
-  provisioningProfiles: {
-    "com.penerbangwalet.flo" => "match AppStore com.penerbangwalet.flo" # is this necessary?
-  }
-})
+export_method("app-store")
 
 output_directory("./fastlane/builds")
 
