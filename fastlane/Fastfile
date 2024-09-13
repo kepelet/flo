@@ -58,12 +58,7 @@ platform :ios do
       changelog: "Build #{get_build_number}",
       api_key: api_key,
       app_identifier: app_identifier,
-      skip_screenshots: true,
-      skip_metadata: true,
-      skip_app_version_update: true,
       distribute_external: true,
-      run_precheck_before_submit: false,
-      force: true,
       groups: groups,
     )
   end
