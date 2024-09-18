@@ -51,8 +51,6 @@ Practically, this project uses the Gitflow workflow, where:
 
 Realistically, sometimes feature branches are unnecessary, as the project doesn't run tests (yet) and the developer tests the app anyway.
 
-As of version 1.1.0, the `release/xxx` branch delivers to the TestFlight public version. After the app is live on the App Store, that should change.
-
 So, the flow is:
 
 - Draft a release branch
