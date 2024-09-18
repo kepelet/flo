@@ -1,9 +1,13 @@
 name: ios-deployment
 
 on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+    branches:
+      - release/*
   push:
     branches:
-      - 'release/*'
+      - 'develop'
 
 jobs:
   deploy:
@@ -25,7 +29,12 @@ jobs:
         with:
           ruby-version: 3.2.1
           bundler-cache: true
-      - run: bundle exec fastlane ios beta
+      - run: |
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            bundle exec fastlane ios beta
+          elif [[ "${{ github.event_name }}" == "push" ]]; then
+            bundle exec fastlane ios beta public:true
+          fi
       - uses: actions/upload-artifact@v4
         with:
           name: appstore ipa & dsym

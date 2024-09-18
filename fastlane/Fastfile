@@ -46,7 +46,9 @@ platform :ios do
   end
 
   desc "push a new build to TestFlight"
-  lane :beta do
+  lane :beta do |options|
+    is_public = options[:public] || false
+
     setup_ci if ENV['CI']
 
     app_identifier = CredentialsManager::AppfileConfig.try_fetch_value(:app_identifier)
@@ -58,7 +60,7 @@ platform :ios do
       changelog: "Build #{get_build_number}",
       api_key: api_key,
       app_identifier: app_identifier,
-      distribute_external: true,
+      distribute_external: is_public,
       groups: groups,
     )
   end
