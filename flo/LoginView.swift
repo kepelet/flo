@@ -24,6 +24,7 @@ struct Login: View {
           .foregroundColor(.white)
           .customFont(.title1)
           .fontWeight(.bold)
+          .multilineTextAlignment(.center)
           .padding(.bottom, 10)
 
         Text("Login to your Navidrome server to continue")
