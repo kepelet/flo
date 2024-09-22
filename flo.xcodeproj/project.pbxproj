@@ -46,6 +46,7 @@
 		C4E8D95E2B763BA900C2353E /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4E8D95D2B763BA900C2353E /* ContentView.swift */; };
 		C4E8D9602B763BAB00C2353E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C4E8D95F2B763BAB00C2353E /* Assets.xcassets */; };
 		C4E8D9632B763BAB00C2353E /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C4E8D9622B763BAB00C2353E /* Preview Assets.xcassets */; };
+		C4E958982CA033BC00BBF394 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = C4E958972CA033BC00BBF394 /* Localizable.xcstrings */; };
 		C4EAA4862C297E35007EB2E0 /* NowPlaying.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4EAA4852C297E35007EB2E0 /* NowPlaying.swift */; };
 		C4FE524B2C14E1F70053763A /* UserDefaultsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4FE524A2C14E1F70053763A /* UserDefaultsManager.swift */; };
 		C4FE524D2C14E71B0053763A /* KeychainManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4FE524C2C14E71B0053763A /* KeychainManager.swift */; };
@@ -92,6 +93,7 @@
 		C4E8D95D2B763BA900C2353E /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		C4E8D95F2B763BAB00C2353E /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		C4E8D9622B763BAB00C2353E /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
+		C4E958972CA033BC00BBF394 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		C4EAA4852C297E35007EB2E0 /* NowPlaying.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowPlaying.swift; sourceTree = "<group>"; };
 		C4FE524A2C14E1F70053763A /* UserDefaultsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserDefaultsManager.swift; sourceTree = "<group>"; };
 		C4FE524C2C14E71B0053763A /* KeychainManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainManager.swift; sourceTree = "<group>"; };
@@ -147,6 +149,7 @@
 		C4289F4E2C12553800C3A4FD /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				C4E958972CA033BC00BBF394 /* Localizable.xcstrings */,
 				C4E8D95F2B763BAB00C2353E /* Assets.xcassets */,
 				C4E8D9612B763BAB00C2353E /* Preview Content */,
 				C4289F4F2C12553E00C3A4FD /* Fonts */,
@@ -285,6 +288,7 @@
 			knownRegions = (
 				en,
 				Base,
+				id,
 			);
 			mainGroup = C4E8D94F2B763BA900C2353E;
 			packageReferences = (
@@ -307,6 +311,7 @@
 			files = (
 				C4E8D9632B763BAB00C2353E /* Preview Assets.xcassets in Resources */,
 				C4E8D9602B763BAB00C2353E /* Assets.xcassets in Resources */,
+				C4E958982CA033BC00BBF394 /* Localizable.xcstrings in Resources */,
 				C415F55F2C11A34C00E3E1D2 /* PlusJakartaSans-VariableFont_wght.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
