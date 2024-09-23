@@ -64,6 +64,12 @@ So, the flow is:
 
 Coming from Web Development, where no one technically controls the release process, I hate this cycle — I used to ship as soon as it was ready and figure it out later. This time, I have to draft a release every 1-2 weeks. It might get approved, or it might be rejected. But at least I tried!
 
+## Localization
+
+One of the promises of flo is customization — to make flo look the way you want. More importantly, it aims to make flo easier to use, and one of the efforts is localization: to make flo speak the language you know best.
+
+Unfortunately, we don't use third-party apps/services to manage localizations in flo, which means Xcode is required. While the process itself is [relatively easy](https://developer.apple.com/documentation/xcode/localizing-and-varying-text-with-a-string-catalog), but, still, the existence of Xcode become a significant barrier to contributing more languages.
+
 ## Support
 
 Bug reports, typos, errors and feedback are welcome! Please use GitHub Issues for reports and GitHub Discussions for... discussion. For anything private,
