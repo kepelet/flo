@@ -29,8 +29,12 @@ class CoreDataManager: ObservableObject {
     return self.persistentContainer.viewContext
   }
 
-  func getRecordsByEntity<T: NSManagedObject>(entity: T.Type) -> [T] {
+  func getRecordsByEntity<T: NSManagedObject>(
+    entity: T.Type, sortDescriptors: [NSSortDescriptor]? = nil
+  ) -> [T] {
     let request: NSFetchRequest<T> = NSFetchRequest<T>(entityName: String(describing: T.self))
+
+    request.sortDescriptors = sortDescriptors
 
     do {
       return try self.viewContext.fetch(request)
@@ -43,7 +47,8 @@ class CoreDataManager: ObservableObject {
     entity: T.Type,
     key: KeyPath<T, V>,
     value: V?,
-    limit: Int = 0
+    limit: Int = 0,
+    sortDescriptors: [NSSortDescriptor]? = nil
   ) -> [T] {
     let request: NSFetchRequest<T> = NSFetchRequest<T>(entityName: String(describing: T.self))
     let keyPathString = key._kvcKeyPathString!
@@ -58,6 +63,7 @@ class CoreDataManager: ObservableObject {
 
     request.predicate = predicate
     request.fetchLimit = limit > 0 ? limit : 0
+    request.sortDescriptors = sortDescriptors
 
     do {
       return try self.viewContext.fetch(request)
