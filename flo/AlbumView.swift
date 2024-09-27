@@ -183,18 +183,18 @@ struct AlbumView: View {
         }
 
         Button(action: {
-          viewModel.downloadAlbum()
+          viewModel.downloadAlbum(viewModel.album)
         }) {
           VStack(spacing: 8) {
             Image(systemName: "arrow.down.circle")
               .font(.system(size: 24))
             Text(
-              viewModel.isDownloading
+              viewModel.isDownloadingAlbumId == viewModel.album.id
                 ? "Downloading" : viewModel.isDownloaded ? "Redownload" : "Download"
             )
             .font(.caption)
           }
-        }.disabled(isDownloadScreen || viewModel.isDownloading)
+        }.disabled(isDownloadScreen || viewModel.isDownloadingAlbumId == viewModel.album.id)
 
         Button(action: {
           self.showShareAlert = true
