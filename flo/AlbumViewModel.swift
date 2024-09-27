@@ -12,7 +12,7 @@ class AlbumViewModel: ObservableObject {
   @Published var album: Album = Album()
   @Published var downloadedAlbums: [Album] = []
 
-  @Published var isDownloading = false
+  @Published var isDownloadingAlbumId: String = ""
   @Published var isDownloaded = false
 
   @Published var isLoading = false
@@ -124,38 +124,39 @@ class AlbumViewModel: ObservableObject {
   }
 
   //FIXME: this function is mess. refactor later
-  func downloadAlbum() {
-    self.isDownloading = true
+  func downloadAlbum(_ albumToDownload: Album) {
+    self.isDownloadingAlbumId = albumToDownload.id
 
     let dispatchGroup = DispatchGroup()
 
     dispatchGroup.enter()
 
     AlbumService.shared.downloadAlbumCover(
-      artistName: self.album.artist, albumId: self.album.id, albumName: self.album.name
+      artistName: albumToDownload.artist, albumId: albumToDownload.id,
+      albumName: albumToDownload.name
     ) { result in
       switch result {
       case .success:
-        if !AlbumService.shared.checkIfAlbumDownloaded(albumID: self.album.id) {
+        if !AlbumService.shared.checkIfAlbumDownloaded(albumID: albumToDownload.id) {
           let album = PlaylistEntity(context: CoreDataManager.shared.viewContext)
 
-          album.id = self.album.id
-          album.name = self.album.name
-          album.genre = self.album.genre
-          album.minYear = Int64(self.album.minYear)
-          album.artistName = self.album.artist
+          album.id = albumToDownload.id
+          album.name = albumToDownload.name
+          album.genre = albumToDownload.genre
+          album.minYear = Int64(albumToDownload.minYear)
+          album.artistName = albumToDownload.artist
 
           CoreDataManager.shared.saveRecord()
         }
       case .failure(let error):
-        self.isDownloading = false
+        self.isDownloadingAlbumId = ""
         print("Failed to save image: \(error.localizedDescription)")
       }
 
       dispatchGroup.leave()
     }
 
-    self.isDownloading = true
+    self.isDownloadingAlbumId = albumToDownload.id
 
     dispatchGroup.notify(queue: .main) {
       let songDispatchGroup = DispatchGroup()
@@ -164,7 +165,7 @@ class AlbumViewModel: ObservableObject {
         songDispatchGroup.enter()
 
         AlbumService.shared.download(
-          artistName: self.album.artist, albumName: self.album.name, id: song.id,
+          artistName: albumToDownload.artist, albumName: albumToDownload.name, id: song.id,
           trackNumber: song.trackNumber.description, title: song.title, suffix: song.suffix
         ) { result in
           switch result {
@@ -172,14 +173,14 @@ class AlbumViewModel: ObservableObject {
             DispatchQueue.main.async {
               if fileURL != nil {
                 AlbumService.shared.saveDownload(
-                  albumId: self.album.id, albumName: self.album.name, song: song,
+                  albumId: albumToDownload.id, albumName: albumToDownload.name, song: song,
                   status: "Downloaded"
                 )
               }
             }
           case .failure(let error):
             print(error)
-            self.isDownloading = false
+            self.isDownloadingAlbumId = ""
           }
 
           songDispatchGroup.leave()
@@ -188,7 +189,7 @@ class AlbumViewModel: ObservableObject {
 
       songDispatchGroup.notify(queue: .main) {
         self.fetchSongs(id: self.album.id)
-        self.isDownloading = false
+        self.isDownloadingAlbumId = ""
       }
     }
   }
