@@ -1,12 +1,9 @@
 name: ios-deployment
 
 on:
-  pull_request:
-    types: [opened, reopened, synchronize]
-    branches:
-      - release/*
   push:
     branches:
+      - 'release/*'
       - 'develop'
 
 jobs:
