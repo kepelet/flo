@@ -106,8 +106,11 @@ class AlbumService {
   }
 
   func getSongsByAlbumId(albumId: String, limit: Int = 0) -> [Song] {
+    let sortByTrackNumber = NSSortDescriptor(key: "trackNumber", ascending: true)
+
     return CoreDataManager.shared.getRecordByKey(
-      entity: SongEntity.self, key: \SongEntity.albumId, value: albumId
+      entity: SongEntity.self, key: \SongEntity.albumId, value: albumId,
+      sortDescriptors: [sortByTrackNumber]
     ).map(Song.init)
   }
 
