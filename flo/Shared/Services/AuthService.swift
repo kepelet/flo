@@ -7,6 +7,7 @@
 
 import Alamofire
 import Foundation
+import Pulse
 
 class AuthService {
   static let shared = AuthService()
@@ -65,6 +66,19 @@ class AuthService {
         completion(.success(authResponse))
       case .failure(let afError):
         ErrorHandler.handleFailure(afError, response: response) { result in
+          // FIXME: temporary solution
+          let debugResponse = response.debugDescription.replacingOccurrences(
+            of: #""password"\s*:\s*"[^"]*""#,
+            with: #""password":"[REDACTED]""#,
+            options: .regularExpression
+          )
+
+          // FIXME: move to general Logger
+          LoggerStore.shared.storeMessage(
+            label: "AuthService.login",
+            level: .debug,
+            message: debugResponse
+          )
           completion(AuthResult(result: result))
         }
       }

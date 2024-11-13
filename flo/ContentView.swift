@@ -5,10 +5,14 @@
 //  Created by rizaldy on 01/06/24.
 //
 
+import PulseUI
 import SwiftUI
 
 struct ContentView: View {
+  @AppStorage(UserDefaultsKeys.enableDebug) private var enableDebug = false
+
   @State private var isPlayerExpanded: Bool = false
+  @State private var tabViewID = UUID()
 
   @StateObject private var authViewModel = AuthViewModel()
   @StateObject private var playerViewModel = PlayerViewModel()
@@ -39,6 +43,16 @@ struct ContentView: View {
         PreferencesView(authViewModel: authViewModel).tabItem {
           Label("Preferences", systemImage: "gear")
         }.environmentObject(scanStatusViewModel).environmentObject(playerViewModel)
+
+        if UserDefaultsManager.requestLogs {
+          ConsoleView().tabItem {
+            Label("Debug", systemImage: "terminal")
+          }
+        }
+      }
+      .id(tabViewID)
+      .onChange(of: enableDebug) { _ in
+        tabViewID = UUID()
       }
 
       ZStack {

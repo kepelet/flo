@@ -48,4 +48,13 @@ class UserDefaultsManager {
       UserDefaults.standard.set(newValue, forKey: UserDefaultsKeys.playbackMode)
     }
   }
+
+  static var requestLogs: Bool {
+    get {
+      return UserDefaults.standard.bool(forKey: UserDefaultsKeys.enableDebug)
+    }
+    set {
+      UserDefaults.standard.set(newValue, forKey: UserDefaultsKeys.enableDebug)
+    }
+  }
 }
