@@ -16,7 +16,7 @@ jobs:
 
   deploy:
     needs: check_draft
-    if: github.event_name == 'push' || (github.event_name == 'pull_request' && needs.check_draft.outputs.is_draft != 'true')
+    if: github.event_name == 'push' && (github.event_name == 'pull_request' && needs.check_draft.outputs.is_draft != 'true')
     runs-on: macos-latest
     env:
       APPLE_ID: ${{ secrets.APPLE_ID }}
