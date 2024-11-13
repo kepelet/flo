@@ -177,6 +177,22 @@
         }
       }
     },
+    "Artists" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Artists"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Artis"
+          }
+        }
+      }
+    },
     "Bring your music anywhere, even when you're offline. Your downloaded music will be here." : {
       "localizations" : {
         "en" : {
@@ -253,6 +269,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Lanjutkan"
+          }
+        }
+      }
+    },
+    "Debug" : {
+      "localizations" : {
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Debug"
           }
         }
       }
@@ -365,6 +391,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Unduhan"
+          }
+        }
+      }
+    },
+    "Enable Request Log" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enable Request Log"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aktifkan Log Permintaan"
+          }
+        }
+      }
+    },
+    "Experimental" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Experimental"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eksperimental"
           }
         }
       }
@@ -845,6 +903,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Scrobble ke ListenBrainz"
+          }
+        }
+      }
+    },
+    "Search" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Search"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cari"
           }
         }
       }
