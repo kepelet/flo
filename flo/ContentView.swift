@@ -44,7 +44,7 @@ struct ContentView: View {
           Label("Preferences", systemImage: "gear")
         }.environmentObject(scanStatusViewModel).environmentObject(playerViewModel)
 
-        if UserDefaultsManager.requestLogs {
+        if UserDefaultsManager.enableDebug {
           ConsoleView().tabItem {
             Label("Debug", systemImage: "terminal")
           }
