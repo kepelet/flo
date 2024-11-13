@@ -7,7 +7,16 @@ on:
       - 'develop'
 
 jobs:
+  check_draft:
+    runs-on: ubuntu-latest
+    outputs:
+      is_draft: ${{ github.event.pull_request.draft }}
+    steps:
+      - run: echo "checking PR status"
+
   deploy:
+    needs: check_draft
+    if: github.event_name == 'push' || (github.event_name == 'pull_request' && needs.check_draft.outputs.is_draft != 'true')
     runs-on: macos-latest
     env:
       APPLE_ID: ${{ secrets.APPLE_ID }}
