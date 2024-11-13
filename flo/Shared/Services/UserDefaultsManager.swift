@@ -49,7 +49,7 @@ class UserDefaultsManager {
     }
   }
 
-  static var requestLogs: Bool {
+  static var enableDebug: Bool {
     get {
       return UserDefaults.standard.bool(forKey: UserDefaultsKeys.enableDebug)
     }

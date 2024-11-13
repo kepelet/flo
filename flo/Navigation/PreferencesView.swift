@@ -125,9 +125,9 @@ struct PreferencesView: View {
           Toggle(
             "Enable Request Log",
             isOn: Binding(
-              get: { UserDefaultsManager.requestLogs },
+              get: { UserDefaultsManager.enableDebug },
               set: { value in
-                UserDefaultsManager.requestLogs = value
+                UserDefaultsManager.enableDebug = value
                 APIManager.shared.reconfigureSession()
               }
             ))

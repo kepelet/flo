@@ -44,7 +44,7 @@ class APIManager {
   private static func createSession() -> Session {
     LoggerStore.shared.removeAll()
 
-    return UserDefaultsManager.requestLogs
+    return UserDefaultsManager.enableDebug
       ? Alamofire.Session(eventMonitors: [NetworkLoggerEventMonitor()])
       : Alamofire.Session()
   }
