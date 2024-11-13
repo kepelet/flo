@@ -61,7 +61,7 @@ struct ContentView: View {
         }
       }
       .offset(y: isPlayerExpanded ? 0 : UIScreen.main.bounds.height)
-      .animation(.spring(), value: isPlayerExpanded)
+      .animation(.spring(duration: 0.2), value: isPlayerExpanded)
 
       VStack {
         Spacer()
@@ -72,7 +72,7 @@ struct ContentView: View {
             .shadow(radius: 10)
             .opacity(playerViewModel.hasNowPlaying() ? 1 : 0)
             .offset(y: isPlayerExpanded ? UIScreen.main.bounds.height : 0)
-            .animation(.spring(), value: isPlayerExpanded)
+            .animation(.spring(duration: 0.2), value: isPlayerExpanded)
             .onTapGesture {
               self.isPlayerExpanded = true
             }
