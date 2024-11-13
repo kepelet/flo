@@ -121,8 +121,18 @@ struct PreferencesView: View {
         }
 
         // TODO: finish this later
-        if false {
-          Section(header: Text("Experimental")) {
+        Section(header: Text("Experimental")) {
+          Toggle(
+            "Enable Request Log",
+            isOn: Binding(
+              get: { UserDefaultsManager.requestLogs },
+              set: { value in
+                UserDefaultsManager.requestLogs = value
+                APIManager.shared.reconfigureSession()
+              }
+            ))
+
+          if false {
             Toggle(isOn: $storeCredsInKeychain) {
               Text("Store username & password in iCloud Keychain")
             }.disabled(true)
