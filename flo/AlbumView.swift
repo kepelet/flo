@@ -5,6 +5,7 @@
 //  Created by rizaldy on 08/06/24.
 //
 
+import NukeUI
 import SwiftUI
 
 struct AlbumView: View {
@@ -23,11 +24,8 @@ struct AlbumView: View {
   var body: some View {
     ScrollView {
       if !viewModel.isDownloaded {
-        AsyncImage(url: URL(string: viewModel.album.albumCover)) { phase in
-          switch phase {
-          case .empty:
-            ProgressView().frame(width: 300, height: 300)
-          case .success(let image):
+        LazyImage(url: URL(string: viewModel.album.albumCover)) { state in
+          if let image = state.image {
             image
               .resizable()
               .aspectRatio(contentMode: .fit)
@@ -36,13 +34,11 @@ struct AlbumView: View {
                 RoundedRectangle(cornerRadius: 10, style: .continuous)
               )
               .shadow(radius: 5)
-
-          case .failure:
+              .padding(.top, 10)
+          } else {
             Color("PlayerColor").frame(width: 300, height: 300)
               .cornerRadius(5)
-
-          @unknown default:
-            EmptyView().frame(width: 300, height: 300)
+              .padding(.top, 10)
           }
         }.padding(.bottom, 10)
       } else {
@@ -59,6 +55,7 @@ struct AlbumView: View {
               RoundedRectangle(cornerRadius: 10, style: .continuous)
             )
             .shadow(radius: 5)
+            .padding(.top, 10)
         }
       }
 
@@ -127,11 +124,8 @@ struct AlbumView: View {
             ScrollView {
               Spacer()
 
-              AsyncImage(url: URL(string: viewModel.album.albumCover)) { phase in
-                switch phase {
-                case .empty:
-                  ProgressView().frame(width: 300, height: 300)
-                case .success(let image):
+              LazyImage(url: URL(string: viewModel.album.albumCover)) { state in
+                if let image = state.image {
                   image
                     .resizable()
                     .aspectRatio(contentMode: .fit)
@@ -139,13 +133,12 @@ struct AlbumView: View {
                     .clipShape(
                       RoundedRectangle(cornerRadius: 10, style: .continuous)
                     )
-
-                case .failure:
+                    .shadow(radius: 5)
+                    .padding(.top, 10)
+                } else {
                   Color("PlayerColor").frame(width: 300, height: 300)
                     .cornerRadius(5)
-
-                @unknown default:
-                  EmptyView().frame(width: 300, height: 300)
+                    .padding(.top, 10)
                 }
               }.padding()
 

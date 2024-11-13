@@ -5,6 +5,7 @@
 //  Created by rizaldy on 08/06/24.
 //
 
+import NukeUI
 import SwiftUI
 
 struct FloatingPlayerView: View {
@@ -24,14 +25,10 @@ struct FloatingPlayerView: View {
               .clipShape(
                 RoundedRectangle(cornerRadius: 10, style: .continuous)
               )
-              .shadow(radius: 5)
           }
         } else {
-          AsyncImage(url: URL(string: viewModel.getAlbumCoverArt())) { phase in
-            switch phase {
-            case .empty:
-              ProgressView().frame(width: 50, height: 50)
-            case .success(let image):
+          LazyImage(url: URL(string: viewModel.getAlbumCoverArt())) { state in
+            if let image = state.image {
               image
                 .resizable()
                 .aspectRatio(contentMode: .fit)
@@ -39,11 +36,8 @@ struct FloatingPlayerView: View {
                 .clipShape(
                   RoundedRectangle(cornerRadius: 5, style: .continuous)
                 )
-
-            case .failure:
+            } else {
               Color("PlayerColor").frame(width: 50, height: 50)
-            @unknown default:
-              EmptyView().frame(width: 50, height: 50)
             }
           }
         }

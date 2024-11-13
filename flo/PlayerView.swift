@@ -5,6 +5,7 @@
 //  Created by rizaldy on 01/06/24.
 //
 
+import NukeUI
 import SwiftUI
 
 struct PlayerView: View {
@@ -114,45 +115,9 @@ struct PlayerView: View {
       .zIndex(1)
       .offset(y: showQueue ? UIScreen.main.bounds.height - 666 : UIScreen.main.bounds.height)
       .frame(height: 666)
-      .animation(.spring(), value: showQueue)
+      .animation(.spring(duration: 0.2), value: showQueue)
 
       ZStack {
-        if viewModel.nowPlaying.isFromLocal {
-          if let image = UIImage(contentsOfFile: viewModel.getAlbumCoverArt()) {
-            Image(uiImage: image)
-              .resizable()
-              .scaledToFill()
-              .frame(width: size.width, height: size.height)
-              .clipped()
-              .blur(radius: 80)
-              .opacity(0.5)
-              .edgesIgnoringSafeArea(.all)
-              .background(Color("PlayerColor"))
-          }
-        } else {
-          AsyncImage(url: URL(string: viewModel.getAlbumCoverArt())) { phase in
-            switch phase {
-            case .empty:
-              Color("PlayerColor")
-            case .success(let image):
-              image
-                .resizable()
-                .scaledToFill()
-                .frame(width: size.width, height: size.height)
-                .clipped()
-                .blur(radius: 80)
-                .opacity(0.5)
-                .edgesIgnoringSafeArea(.all)
-
-            case .failure:
-              Color("PlayerColor")
-            @unknown default:
-              EmptyView()
-                .frame(width: imageSize, height: imageSize)
-            }
-          }.background(Color("PlayerColor"))
-        }
-
         VStack {
 
           Rectangle()
@@ -172,19 +137,10 @@ struct PlayerView: View {
                 .clipShape(
                   RoundedRectangle(cornerRadius: 15, style: .continuous)
                 )
-                .shadow(radius: 10)
             }
           } else {
-            AsyncImage(url: URL(string: viewModel.getAlbumCoverArt())) { phase in
-              switch phase {
-              case .empty:
-                Color.gray.opacity(0.3)
-                  .frame(width: imageSize, height: imageSize)
-                  .clipShape(
-                    RoundedRectangle(cornerRadius: 15, style: .continuous)
-                  )
-                  .shadow(radius: 10)
-              case .success(let image):
+            LazyImage(url: URL(string: viewModel.getAlbumCoverArt())) { state in
+              if let image = state.image {
                 image
                   .resizable()
                   .aspectRatio(contentMode: .fit)
@@ -192,17 +148,12 @@ struct PlayerView: View {
                   .clipShape(
                     RoundedRectangle(cornerRadius: 15, style: .continuous)
                   )
-                  .shadow(radius: 10)
-              case .failure:
+              } else {
                 Color.gray.opacity(0.3)
                   .frame(width: imageSize, height: imageSize)
                   .clipShape(
                     RoundedRectangle(cornerRadius: 15, style: .continuous)
                   )
-                  .shadow(radius: 10)
-              @unknown default:
-                EmptyView()
-                  .frame(width: imageSize, height: imageSize)
               }
             }
           }
@@ -343,6 +294,36 @@ struct PlayerView: View {
         .padding(.horizontal, 30)
       }
       .frame(maxHeight: .infinity)
+      .background {
+        ZStack {
+          if viewModel.nowPlaying.isFromLocal {
+            if let image = UIImage(contentsOfFile: viewModel.getAlbumCoverArt()) {
+              Image(uiImage: image)
+                .resizable()
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .blur(radius: 50, opaque: true)
+                .edgesIgnoringSafeArea(.all)
+            }
+          } else {
+            LazyImage(url: URL(string: viewModel.getAlbumCoverArt())) { state in
+              if let image = state.image {
+                image
+                  .resizable()
+                  .frame(maxWidth: .infinity, maxHeight: .infinity)
+                  .blur(radius: 50, opaque: true)
+                  .edgesIgnoringSafeArea(.all)
+              }
+            }
+          }
+
+          Rectangle().fill(.thinMaterial).edgesIgnoringSafeArea(.all)
+
+        }
+        .environment(\.colorScheme, .dark)
+        .clipShape(
+          RoundedRectangle(cornerRadius: 25, style: .continuous)
+        ).edgesIgnoringSafeArea(.all)
+      }
       .offset(y: offset.height)
       .gesture(
         DragGesture()

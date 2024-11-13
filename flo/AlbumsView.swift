@@ -5,6 +5,7 @@
 //  Created by rizaldy on 26/06/24.
 //
 
+import NukeUI
 import SwiftUI
 
 struct AlbumsView: View {
@@ -30,12 +31,8 @@ struct AlbumsView: View {
               )
           }
         } else {
-          AsyncImage(url: URL(string: viewModel.getAlbumCoverArt(id: album.id))) { phase in
-            switch phase {
-            case .empty:
-              ProgressView().frame(width: 150, height: 150)
-
-            case .success(let image):
+          LazyImage(url: URL(string: viewModel.getAlbumCoverArt(id: album.id))) { state in
+            if let image = state.image {
               image
                 .resizable()
                 .aspectRatio(contentMode: .fill)
@@ -43,33 +40,10 @@ struct AlbumsView: View {
                 .clipShape(
                   RoundedRectangle(cornerRadius: 5, style: .continuous)
                 )
-
-            case .failure:
-              ZStack {
-                Color("PlayerColor")
-                  .frame(maxWidth: .infinity, maxHeight: 300)
-                  .clipShape(RoundedRectangle(cornerRadius: 5, style: .continuous))
-                Image(systemName: "photo")
-                  .resizable()
-                  .aspectRatio(contentMode: .fit)
-                  .padding()
-                  .padding(.top, 10)
-                  .padding(.bottom, 10)
-                  .foregroundColor(Color("PlayerColor"))
-              }
-
-            @unknown default:
-              ZStack {
-                Color("PlayerColor")
-                  .frame(maxWidth: .infinity, maxHeight: 250)
-                  .clipShape(RoundedRectangle(cornerRadius: 5, style: .continuous))
-                Image(systemName: "photo")
-                  .resizable()
-                  .aspectRatio(contentMode: .fit)
-                  .padding()
-                  .padding(.bottom, 20)
-                  .foregroundColor(Color("PlayerColor"))
-              }
+            } else {
+              Color("PlayerColor")
+                .frame(maxWidth: .infinity, maxHeight: 300)
+                .clipShape(RoundedRectangle(cornerRadius: 5, style: .continuous))
             }
           }
         }
