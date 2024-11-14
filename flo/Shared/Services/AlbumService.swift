@@ -52,8 +52,8 @@ class AlbumService {
   }
 
   func getAlbum(completion: @escaping (Result<[Album], Error>) -> Void) {
-    // FIXME: get last 100 albums for now
-    let params: [String: Any] = ["_start": 0, "_end": 100, "_order": "ASC", "_sort": "name"]
+    // FIXME: now we fetch all albums. let's see if this will affect performance
+    let params: [String: Any] = ["_start": 0, "_end": 0, "_order": "ASC", "_sort": "name"]
 
     APIManager.shared.NDEndpointRequest(endpoint: API.NDEndpoint.getAlbum, parameters: params) {
       (response: DataResponse<[Album], AFError>) in
