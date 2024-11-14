@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct LibraryView: View {
+  @State private var searchAlbum = ""
+
   @ObservedObject var viewModel: AlbumViewModel
 
   @EnvironmentObject var playerViewModel: PlayerViewModel
@@ -16,6 +18,16 @@ struct LibraryView: View {
     GridItem(.flexible()),
     GridItem(.flexible()),
   ]
+
+  var filteredAlbums: [Album] {
+    if searchAlbum.isEmpty {
+      return viewModel.albums
+    } else {
+      return viewModel.albums.filter { album in
+        album.name.localizedCaseInsensitiveContains(searchAlbum)
+      }
+    }
+  }
 
   var body: some View {
     NavigationView {
@@ -41,7 +53,7 @@ struct LibraryView: View {
         }
 
         LazyVGrid(columns: columns) {
-          ForEach(viewModel.albums) { album in
+          ForEach(filteredAlbums) { album in
             NavigationLink(
               destination:
                 AlbumView(viewModel: viewModel).onAppear {
@@ -54,6 +66,11 @@ struct LibraryView: View {
         }.padding(.top, 10).padding(
           .bottom, playerViewModel.hasNowPlaying() && !playerViewModel.shouldHidePlayer ? 100 : 0)
       }
+      .searchable(
+        text: $searchAlbum,
+        placement: .navigationBarDrawer,
+        prompt: "Search"
+      )
       .navigationTitle("Library")
     }
   }
