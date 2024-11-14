@@ -41,9 +41,18 @@ struct AlbumsView: View {
                   RoundedRectangle(cornerRadius: 5, style: .continuous)
                 )
             } else {
-              Color("PlayerColor")
-                .frame(maxWidth: .infinity, maxHeight: 300)
-                .clipShape(RoundedRectangle(cornerRadius: 5, style: .continuous))
+              ZStack {
+                Color("PlayerColor")
+                  .frame(maxWidth: .infinity, maxHeight: 300)
+                  .clipShape(RoundedRectangle(cornerRadius: 5, style: .continuous))
+                Image(systemName: "photo")
+                  .resizable()
+                  .aspectRatio(contentMode: .fit)
+                  .padding()
+                  .padding(.top, 10)
+                  .padding(.bottom, 10)
+                  .foregroundColor(Color("PlayerColor"))
+              }
             }
           }
         }
