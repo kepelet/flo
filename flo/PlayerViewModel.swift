@@ -339,7 +339,7 @@ class PlayerViewModel: ObservableObject {
     UserDefaultsManager.playbackMode = self.playbackMode
   }
 
-  func playBySong(idx: Int, item: Album, isFromLocal: Bool) {
+  func playBySong<T: Playable>(idx: Int, item: T, isFromLocal: Bool) {
     let queue = PlaybackService.shared.addToQueue(item: item, isFromLocal: isFromLocal)
 
     self.addToQueue(idx: idx, item: queue)
