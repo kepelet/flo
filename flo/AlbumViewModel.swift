@@ -8,6 +8,11 @@
 import Foundation
 
 class AlbumViewModel: ObservableObject {
+  @Published var artists: [Artist] = []
+  @Published var playlists: [Playlist] = []
+  @Published var playlist: Playlist = Playlist()
+  @Published var songs: [Song] = []
+  @Published var artistAlbums: [Album] = []
   @Published var albums: [Album] = []
   @Published var album: Album = Album()
   @Published var downloadedAlbums: [Album] = []
@@ -51,6 +56,11 @@ class AlbumViewModel: ObservableObject {
     }
   }
 
+  func setActivePlaylist(playlist: Playlist) {
+    self.playlist = playlist
+    self.fetchSongsByPlaylist(id: playlist.id)
+  }
+
   func fetchSongs(id: String) {
     let checkLocalSongs = AlbumService.shared.getSongsByAlbumId(albumId: id)
 
@@ -69,6 +79,24 @@ class AlbumViewModel: ObservableObject {
           }
 
           self.album.songs.append(contentsOf: remoteSongs)
+
+        case .failure(let error):
+          self.error = error
+        }
+      }
+    }
+  }
+
+  func fetchAllSongs() {
+    AlbumService.shared.getAllSongs { result in
+      self.isLoading = true
+
+      DispatchQueue.main.async {
+        self.isLoading = false
+
+        switch result {
+        case .success(let songs):
+          self.songs = songs
 
         case .failure(let error):
           self.error = error
@@ -204,6 +232,58 @@ class AlbumViewModel: ObservableObject {
           self.albums = albums
         case .failure(let error):
           print("error>>>>", error)
+          self.error = error
+        }
+      }
+    }
+  }
+
+  func fetchAlbumsByArtist(id: String) {
+    AlbumService.shared.getAlbumsByArtist(id: id) { result in
+      DispatchQueue.main.async {
+        switch result {
+        case .success(let albums):
+          self.artistAlbums = albums
+        case .failure(let error):
+          self.error = error
+        }
+      }
+    }
+  }
+
+  func fetchSongsByPlaylist(id: String) {
+    AlbumService.shared.getSongsByPlaylist(id: id) { result in
+      DispatchQueue.main.async {
+        switch result {
+        case .success(let songs):
+          self.playlist.songs = songs
+        case .failure(let error):
+          self.error = error
+        }
+      }
+    }
+  }
+
+  func getPlaylists() {
+    AlbumService.shared.getPlaylists { result in
+      DispatchQueue.main.async {
+        switch result {
+        case .success(let playlists):
+          self.playlists = playlists
+        case .failure(let error):
+          self.error = error
+        }
+      }
+    }
+  }
+
+  func getArtists() {
+    AlbumService.shared.getArtists { result in
+      DispatchQueue.main.async {
+        switch result {
+        case .success(let artists):
+          self.artists = artists
+        case .failure(let error):
           self.error = error
         }
       }
