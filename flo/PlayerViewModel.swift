@@ -345,13 +345,13 @@ class PlayerViewModel: ObservableObject {
     self.addToQueue(idx: idx, item: queue)
   }
 
-  func playByAlbum(item: Album, isFromLocal: Bool) {
+  func playItem<T: Playable>(item: T, isFromLocal: Bool) {
     let queue = PlaybackService.shared.addToQueue(item: item, isFromLocal: isFromLocal)
 
     self.addToQueue(idx: 0, item: queue)
   }
 
-  func shuffleByAlbum(item: Album, isFromLocal: Bool) {
+  func shuffleItem<T: Playable>(item: T, isFromLocal: Bool) {
     var shuffledItem = item
     shuffledItem.songs.shuffle()
 

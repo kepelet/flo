@@ -28,16 +28,16 @@ class PlaybackService {
     return head + tail
   }
 
-  func addToQueue(item: Album, isFromLocal: Bool = false) -> [QueueEntity] {
+  func addToQueue<T: Playable>(item: T, isFromLocal: Bool = false) -> [QueueEntity] {
     self.clearQueue()
 
     for song in item.songs {
       let queue = QueueEntity(context: CoreDataManager.shared.viewContext)
 
-      queue.id = song.id
-      queue.albumId = item.id
+      queue.id = song.mediaFileId == "" ? song.id : song.mediaFileId
+      queue.albumId = song.albumId
       queue.albumName = item.name
-      queue.artistName = item.artist
+      queue.artistName = song.artist
       queue.bitRate = Int16(song.bitRate)
       queue.sampleRate = Int32(song.sampleRate)
       queue.songName = song.title
