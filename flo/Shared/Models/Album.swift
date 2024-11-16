@@ -28,7 +28,7 @@ struct AlbumShare: Codable {
   var id: String
 }
 
-struct Album: Codable, Identifiable {
+struct Album: Codable, Identifiable, Playable {
   var id: String = ""
   var name: String = ""
   var artist: String = ""
