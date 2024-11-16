@@ -13,6 +13,8 @@ struct API {
   struct NDEndpoint {
     static let login = "/auth/login"
     static let getAlbum = "/api/album"
+    static let getArtists = "/api/artist"
+    static let getPlaylists = "/api/playlist"
     static let getSong = "/api/song"
     static let shareAlbum = "/api/share"
   }
@@ -43,6 +45,7 @@ enum UserDefaultsKeys {
   static let queueActiveIdx = "queueActiveIdx"
   static let nowPlayingProgress = "nowPlayingProgress"
   static let playbackMode = "playbackMode"
+  static let enableDebug = "enableDebug"
 }
 
 enum KeychainKeys {
