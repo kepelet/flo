@@ -33,10 +33,12 @@ For now just clone it and figure it out :)
 
 Jokes aside, make sure you have Xcode installed. The latest stable version is recommended, and as of this writing, Swift 5 is used. Another step, such as setting up a "provisioning profile," may be required to run this app in a development environment.
 
-This project uses integrated SwiftPM (Swift Package Manager) to manage app dependencies. So far, only two package are being used:
+This project uses integrated SwiftPM (Swift Package Manager) to manage app dependencies. So far, only four package are being used:
 
 - Alamofire — everyone's favorite http library
 - KeychainAccess — a simple wrapper for Keychain access
+- Nuke — image loading system
+- Pulse — network logger for Apple platforms 
 
 The minimum number of dependencies is intended to make the project easier to maintain.
 
