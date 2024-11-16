@@ -79,7 +79,7 @@ struct AlbumView: View {
 
         HStack(spacing: 20) {
           Button(action: {
-            playerViewModel.playByAlbum(
+            playerViewModel.playItem(
               item: viewModel.album,
               isFromLocal: viewModel.isDownloaded)
           }) {
@@ -93,7 +93,7 @@ struct AlbumView: View {
           }.disabled(viewModel.album.songs.isEmpty)
 
           Button(action: {
-            playerViewModel.shuffleByAlbum(
+            playerViewModel.shuffleItem(
               item: viewModel.album,
               isFromLocal: viewModel.isDownloaded)
           }) {
@@ -246,37 +246,44 @@ struct AlbumView: View {
 struct AlbumViewPreview_Previews: PreviewProvider {
   static var songs: [Song] = [
     Song(
-      id: "0", title: "Song 1", artist: "Artist Name", trackNumber: 1, discNumber: 0, bitRate: 0,
+      id: "0", title: "Song 1", albumId: "", artist: "", trackNumber: 1, discNumber: 0, bitRate: 0,
       sampleRate: 44100,
-      suffix: "mp4a", duration: 200),
+      suffix: "mp4a", duration: 200, mediaFileId: "0"),
     Song(
-      id: "1", title: "Song 2", artist: "Artist Name", trackNumber: 2, discNumber: 0, bitRate: 0,
+      id: "1", title: "Song 2", albumId: "", artist: "Artist Name", trackNumber: 2, discNumber: 0,
+      bitRate: 0,
       sampleRate: 44100,
-      suffix: "mp4a", duration: 200),
+      suffix: "mp4a", duration: 200, mediaFileId: "1"),
     Song(
-      id: "2", title: "Song 3", artist: "Artist Name", trackNumber: 3, discNumber: 0, bitRate: 0,
+      id: "2", title: "Song 3", albumId: "", artist: "Artist Name", trackNumber: 3, discNumber: 0,
+      bitRate: 0,
       sampleRate: 44100,
-      suffix: "mp4a", duration: 200),
+      suffix: "mp4a", duration: 200, mediaFileId: "2"),
     Song(
-      id: "3", title: "Song 4", artist: "Artist Name", trackNumber: 4, discNumber: 0, bitRate: 0,
+      id: "3", title: "Song 4", albumId: "", artist: "Artist Name", trackNumber: 4, discNumber: 0,
+      bitRate: 0,
       sampleRate: 44100,
-      suffix: "mp4a", duration: 200),
+      suffix: "mp4a", duration: 200, mediaFileId: "3"),
     Song(
-      id: "4", title: "Song 6", artist: "Artist Name", trackNumber: 5, discNumber: 0, bitRate: 0,
+      id: "4", title: "Song 6", albumId: "", artist: "Artist Name", trackNumber: 5, discNumber: 0,
+      bitRate: 0,
       sampleRate: 44100,
-      suffix: "mp4a", duration: 200),
+      suffix: "mp4a", duration: 200, mediaFileId: "4"),
     Song(
-      id: "5", title: "Song 6", artist: "Artist Name", trackNumber: 6, discNumber: 0, bitRate: 0,
+      id: "5", title: "Song 6", albumId: "", artist: "Artist Name", trackNumber: 6, discNumber: 0,
+      bitRate: 0,
       sampleRate: 44100,
-      suffix: "mp4a", duration: 200),
+      suffix: "mp4a", duration: 200, mediaFileId: "5"),
     Song(
-      id: "6", title: "Song 7", artist: "Artist Name", trackNumber: 7, discNumber: 0, bitRate: 0,
+      id: "6", title: "Song 7", albumId: "", artist: "Artist Name", trackNumber: 7, discNumber: 0,
+      bitRate: 0,
       sampleRate: 44100,
-      suffix: "mp4a", duration: 200),
+      suffix: "mp4a", duration: 200, mediaFileId: "6"),
     Song(
-      id: "7", title: "Song 8", artist: "Artist Name", trackNumber: 8, discNumber: 0, bitRate: 0,
+      id: "7", title: "Song 8", albumId: "", artist: "Artist Name", trackNumber: 8, discNumber: 0,
+      bitRate: 0,
       sampleRate: 44100,
-      suffix: "mp4a", duration: 200),
+      suffix: "mp4a", duration: 200, mediaFileId: "7"),
   ]
 
   static var album: Album = Album(
