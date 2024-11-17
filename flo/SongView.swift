@@ -34,6 +34,7 @@ struct SongView: View {
             Text(timeString(for: song.duration)).customFont(.caption1)
           }
         }
+        .padding()
         .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
         .listRowSeparator(.hidden)
         .contentShape(Rectangle())
@@ -41,9 +42,31 @@ struct SongView: View {
           playerViewModel.playBySong(
             idx: idx, item: viewModel.album, isFromLocal: viewModel.isDownloaded)
         }
+        .contextMenu {
+          VStack {
+            if !song.fileUrl.isEmpty {
+              Button(role: .destructive) {
+                viewModel.removeDownloadSong(album: viewModel.album, songId: song.id)
+              } label: {
+                HStack {
+                  Text("Remove Download")
+                  Image(systemName: "arrow.down.circle")
+                }
+              }
+            } else {
+              Button {
+                viewModel.downloadSong(viewModel.album, songIdx: idx)
+              } label: {
+                HStack {
+                  Text("Download")
+                  Image(systemName: "arrow.down.circle")
+                }
+              }
+            }
+          }
+        }
       }
-      .environment(\.defaultMinListRowHeight, 60)
-      .listStyle(PlainListStyle()).padding().customFont(.body)
+      .listStyle(PlainListStyle()).customFont(.body)
     }
   }
 }

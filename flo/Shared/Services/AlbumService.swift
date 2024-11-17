@@ -302,4 +302,29 @@ class AlbumService {
       }
     }
   }
+
+  func removeDownloadedSong(songId: String, completion: @escaping (Result<Bool, Error>) -> Void) {
+    let checkExistingSong = CoreDataManager.shared.getRecordByKey(
+      entity: SongEntity.self, key: \SongEntity.id, value: songId, limit: 1)
+
+    if let existingSong = checkExistingSong.first {
+      let localFileExist = LocalFileManager.shared.fileExists(fileName: existingSong.fileURL ?? "")
+
+      if localFileExist {
+        LocalFileManager.shared.deleteFile(fileName: existingSong.fileURL ?? "") { result in
+          switch result {
+          case .success(let success):
+            if success {
+              CoreDataManager.shared.deleteRecordByKey(
+                entity: SongEntity.self, key: \SongEntity.id, value: songId)
+            }
+
+            completion(.success(true))
+          case .failure(let error):
+            completion(.failure(error))
+          }
+        }
+      }
+    }
+  }
 }
