@@ -112,6 +112,35 @@ class CoreDataManager: ObservableObject {
     }
   }
 
+  func deleteRecordByKey<T: NSManagedObject, V>(
+    entity: T.Type,
+    key: KeyPath<T, V>,
+    value: V?
+  ) {
+    let request: NSFetchRequest<T> = NSFetchRequest<T>(entityName: String(describing: T.self))
+    let keyPathString = key._kvcKeyPathString!
+
+    let predicate: NSPredicate
+
+    if let identifier = value as? CVarArg {
+      predicate = NSPredicate(format: "%K == %@", keyPathString, identifier)
+    } else {
+      predicate = NSPredicate(format: "%K == NULL", keyPathString)
+    }
+
+    request.predicate = predicate
+
+    let deleteRequest = NSBatchDeleteRequest(
+      fetchRequest: request as! NSFetchRequest<NSFetchRequestResult>)
+
+    do {
+      try self.viewContext.execute(deleteRequest)
+      try self.viewContext.save()
+    } catch {
+      print("Failed to delete records: \(error.localizedDescription)")
+    }
+  }
+
   func clearEverything() {
     let entities = ["QueueEntity", "SongEntity", "PlaylistEntity"]
 
