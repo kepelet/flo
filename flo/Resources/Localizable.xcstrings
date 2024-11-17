@@ -833,6 +833,17 @@
         }
       }
     },
+    "Play Next" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mainkan selanjutnya"
+          }
+        }
+      }
+    },
     "Player color" : {
       "localizations" : {
         "en" : {
@@ -925,6 +936,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Unduh ulang"
+          }
+        }
+      }
+    },
+    "Remove Download" : {
+      "localizations" : {
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hapus unduhan"
           }
         }
       }
