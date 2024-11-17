@@ -35,6 +35,21 @@ class LocalFileManager {
     return self.fileManager.fileExists(atPath: fileURL.path)
   }
 
+  func deleteFile(fileName: String, completion: @escaping (Result<Bool, Error>) -> Void) {
+    guard let fileURL = self.fileURL(for: fileName) else {
+      completion(.success(false))
+
+      return
+    }
+
+    do {
+      try self.fileManager.removeItem(at: fileURL)
+      completion(.success(true))
+    } catch {
+      completion(.failure(error))
+    }
+  }
+
   func saveFile(
     target: URL, fileName: String, content: Data,
     completion: @escaping (Result<URL?, Error>) -> Void
