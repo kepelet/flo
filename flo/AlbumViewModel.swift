@@ -229,6 +229,7 @@ class AlbumViewModel: ObservableObject {
 
         self.fetchSongs(id: self.album.id)
         self.isDownloadingAlbumId = ""
+        self.getAlbumById()
       }
     }
   }
