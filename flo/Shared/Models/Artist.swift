@@ -18,7 +18,7 @@ struct Artist: Codable, Identifiable, Hashable {
 
     self.id = try container.decode(String.self, forKey: .id)
     self.name = try container.decode(String.self, forKey: .name)
-    self.fullText = try container.decode(String.self, forKey: .fullText)
+    self.fullText = try container.decodeIfPresent(String.self, forKey: .fullText) ?? ""
     self.biography = try container.decodeIfPresent(String.self, forKey: .biography) ?? ""
   }
 }
