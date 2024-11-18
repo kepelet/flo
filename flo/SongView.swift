@@ -21,8 +21,16 @@ struct SongView: View {
               .foregroundColor(.gray)
               .padding(.trailing, 5)
 
-            Text(song.title)
-              .fontWeight(.medium)
+            VStack(alignment: .leading) {
+              Text(song.title)
+                .fontWeight(.medium)
+
+              if viewModel.album.albumArtist == "Various Artists" {
+                Text(song.artist).customFont(.caption1)
+              }
+
+              Spacer()
+            }
 
             Spacer()
 
