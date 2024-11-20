@@ -12,7 +12,7 @@ struct Login: View {
   @Binding var showLoginSheet: Bool
 
   var body: some View {
-    VStack {
+    ScrollView {
       VStack {
         Image("logo")
           .resizable()
@@ -20,17 +20,32 @@ struct Login: View {
           .frame(width: 130)
           .padding(.bottom, 20)
 
-        Text("Thanks for choosing flo!")
-          .foregroundColor(.white)
-          .customFont(.title1)
-          .fontWeight(.bold)
-          .multilineTextAlignment(.center)
-          .padding(.bottom, 10)
+        if viewModel.experimentalSaveLoginInfo {
+          Text("Login to your Navidrome server to continue")
+            .foregroundColor(.white)
+            .customFont(.title1)
+            .fontWeight(.bold)
+            .multilineTextAlignment(.center)
+            .padding(.bottom, 10)
 
-        Text("Login to your Navidrome server to continue")
-          .foregroundColor(.white)
-          .customFont(.body)
-          .multilineTextAlignment(.center)
+          Text("The password is stored securely in Keychain")
+            .foregroundColor(.white)
+            .customFont(.body)
+            .multilineTextAlignment(.center)
+
+        } else {
+          Text("Thanks for choosing flo!")
+            .foregroundColor(.white)
+            .customFont(.title1)
+            .fontWeight(.bold)
+            .multilineTextAlignment(.center)
+            .padding(.bottom, 10)
+
+          Text("Login to your Navidrome server to continue")
+            .foregroundColor(.white)
+            .customFont(.body)
+            .multilineTextAlignment(.center)
+        }
       }.padding(.horizontal, 20).padding(.vertical, 50)
 
       VStack {
@@ -39,7 +54,7 @@ struct Login: View {
             .font(.headline)
           TextField("http://localhost:4533", text: $viewModel.serverUrl)
             .padding()
-            .background(.white)
+            .background(Color(.systemBackground))
             .foregroundColor(.accent)
             .keyboardType(.URL)
             .autocapitalization(.none)
@@ -51,7 +66,7 @@ struct Login: View {
             .font(.headline)
           TextField("sigma", text: $viewModel.username)
             .padding()
-            .background(.white)
+            .background(Color(.systemBackground))
             .foregroundColor(.accent)
             .autocapitalization(.none)
             .disableAutocorrection(true)
@@ -63,7 +78,7 @@ struct Login: View {
             .font(.headline)
           SecureField("*************", text: $viewModel.password)
             .padding()
-            .background(.white)
+            .background(Color(.systemBackground))
             .foregroundColor(.accent)
             .cornerRadius(10)
         }.padding(.horizontal, 15).padding(.bottom, 10)
@@ -71,7 +86,7 @@ struct Login: View {
           Button(action: {
             viewModel.login()
           }) {
-            Text("Login")
+            Text(viewModel.experimentalSaveLoginInfo ? "Save" : "Login")
               .foregroundColor(.white)
               .fontWeight(.bold)
               .customFont(.headline)

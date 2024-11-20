@@ -53,15 +53,13 @@ struct HomeView: View {
         }
       }.padding(.vertical)
         .sheet(isPresented: shouldShowLoginSheet()) {
-          ScrollView {
-            Login(viewModel: viewModel, showLoginSheet: $showLoginSheet)
-          }
-          .background(Color(red: 43 / 255, green: 42 / 255, blue: 94 / 255))
-          .onDisappear {
-            if viewModel.isLoggedIn {
-              self.scanStatusViewModel.checkScanStatus()
+          Login(viewModel: viewModel, showLoginSheet: $showLoginSheet)
+            .background(Color(red: 43 / 255, green: 42 / 255, blue: 94 / 255))
+            .onDisappear {
+              if viewModel.isLoggedIn {
+                self.scanStatusViewModel.checkScanStatus()
+              }
             }
-          }
         }
         .padding()
 

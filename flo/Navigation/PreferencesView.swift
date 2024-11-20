@@ -11,6 +11,7 @@ struct PreferencesView: View {
   @ObservedObject var authViewModel: AuthViewModel
   @State private var storeCredsInKeychain = false
   @State private var optimizeLocalStorageAlert = false
+  @State private var showLoginSheet = false
 
   @State private var accentColor = Color(.accent)
   @State private var playerColor = Color(.player)
@@ -20,6 +21,20 @@ struct PreferencesView: View {
   @EnvironmentObject var playerViewModel: PlayerViewModel
 
   let themeColors = ["Blue", "Green", "Red", "Ohio"]
+
+  @State private var experimentalMaxBitrate = UserDefaultsManager.maxBitRate
+  @State private var experimentalPlayerBackground = UserDefaultsManager.playerBackground
+
+  var shouldShowLoginSheet: Binding<Bool> {
+    Binding(
+      get: {
+        return showLoginSheet && authViewModel.experimentalSaveLoginInfo
+      },
+      set: { newValue in
+        showLoginSheet = newValue
+      }
+    )
+  }
 
   func getAppVersion() -> String {
     if let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String {
@@ -51,6 +66,12 @@ struct PreferencesView: View {
             Text("Downloaded Songs")
             Spacer()
             Text(scanStatusViewModel.downloadedSongs.description)
+          }
+
+          HStack {
+            Text("Total usage")
+            Spacer()
+            Text(scanStatusViewModel.localDirectorySize)
           }
 
           Button(action: {
@@ -132,13 +153,56 @@ struct PreferencesView: View {
               }
             ))
 
+          VStack(alignment: .leading) {
+            Picker(selection: $experimentalMaxBitrate, label: Text("Max Bitrate")) {
+              ForEach(TranscodingSettings.availableBitRate, id: \.self) { bitrate in
+                Text(bitrate == "0" ? "Source" : bitrate).tag(bitrate)
+              }
+            }
+            .onChange(of: experimentalMaxBitrate) { value in
+              UserDefaultsManager.maxBitRate = value
+            }
+
+            Text(
+              "Currently the output format is MP3 due to compatibility issues; however, MP3 is less efficient in streaming at lower bitrates compared to modern codecs like Opus."
+            ).font(.caption).foregroundColor(.gray)
+          }
+
+          Toggle(
+            "Use translucent backgrounds",
+            isOn: Binding(
+              get: { UserDefaultsManager.playerBackground == PlayerBackground.translucent },
+              set: {
+                UserDefaultsManager.playerBackground =
+                  $0 ? PlayerBackground.translucent : PlayerBackground.solid
+              }
+            ))
+
+          VStack(alignment: .leading) {
+            Toggle(
+              "Save login info",
+              isOn: Binding(
+                get: { UserDefaultsManager.saveLoginInfo },
+                set: {
+                  if $0 {
+                    authViewModel.experimentalSaveLoginInfo = true
+                    showLoginSheet = true
+                  } else {
+                    authViewModel.destroySavedPassword()
+                  }
+                }
+              ))
+
+            Text(
+              "flo will store your server URL, username, and password in the Keychain with no biometric protection. If you enable this, flo will try to 'refresh' the auth token—by logging you in automatically—every time you open flo so you'll never log out unless you do it explicitly."
+            ).font(.caption).foregroundColor(.gray)
+          }
+          .sheet(isPresented: shouldShowLoginSheet) {
+            Login(viewModel: authViewModel, showLoginSheet: $showLoginSheet)
+              .background(Color(red: 43 / 255, green: 42 / 255, blue: 94 / 255))
+          }
+
           if false {
-            Toggle(isOn: $storeCredsInKeychain) {
-              Text("Store username & password in iCloud Keychain")
-            }.disabled(true)
-            Toggle(isOn: $storeCredsInKeychain) {
-              Text("Cache album covers")
-            }.disabled(true)
             Toggle(isOn: $storeCredsInKeychain) {
               Text("Scrobble to Last.fm")
             }.disabled(true)
@@ -185,10 +249,12 @@ struct PreferencesView: View {
             }
           }
         }
+
+        if playerViewModel.hasNowPlaying() && !playerViewModel.shouldHidePlayer {
+          Color.clear.frame(height: 50).listRowBackground(Color.clear)
+        }
       }.navigationBarTitle("Preferences", displayMode: .inline)
-    }.padding(
-      .bottom, playerViewModel.hasNowPlaying() && !playerViewModel.shouldHidePlayer ? 100 : 0
-    ).onAppear {
+    }.onAppear {
       scanStatusViewModel.getLocalStorageInformation()
 
       if authViewModel.isLoggedIn {

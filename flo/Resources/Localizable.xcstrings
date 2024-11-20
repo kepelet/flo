@@ -241,22 +241,6 @@
         }
       }
     },
-    "Cache album covers" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cache album covers"
-          }
-        },
-        "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cache sampul album"
-          }
-        }
-      }
-    },
     "Cancel" : {
       "localizations" : {
         "en" : {
@@ -301,6 +285,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Lanjutkan"
+          }
+        }
+      }
+    },
+    "Currently the output format is MP3 due to compatibility issues; however, MP3 is less efficient in streaming at lower bitrates compared to modern codecs like Opus." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Currently the output format is MP3 due to compatibility issues; however, MP3 is less efficient in streaming at lower bitrates compared to modern codecs like Opus."
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saat ini format keluarannya adalah MP3 karena masalah kompatibilitas; namun, MP3 kurang efisien dalam streaming pada bitrate yang lebih rendah dibandingkan dengan codec modern seperti Opus."
           }
         }
       }
@@ -461,6 +461,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Eksperimental"
+          }
+        }
+      }
+    },
+    "flo will store your server URL, username, and password in the Keychain with no biometric protection. If you enable this, flo will try to 'refresh' the auth token—by logging you in automatically—every time you open flo so you'll never log out unless you do it explicitly." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "flo will store your server URL, username, and password in the Keychain with no biometric protection. If you enable this, flo will try to 'refresh' the auth token—by logging you in automatically—every time you open flo so you'll never log out unless you do it explicitly."
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "flo akan menyimpan URL server, nama pengguna, dan kata sandi kamu di Keychain tanpa perlindungan biometrik. Jika kamu mengaktifkannya, flo akan mencoba untuk ‘menyegarkan’ token autentikasi—dengan melakukan login secara otomatis—setiap kali kamu membuka flo sehingga kamu tidak akan pernah logout kecuali kamu melakukannya secara eksplisit."
           }
         }
       }
@@ -721,6 +737,22 @@
         }
       }
     },
+    "Max Bitrate" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Max Bitrate"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Max Bitrate"
+          }
+        }
+      }
+    },
     "Navidrome Music Server %@" : {
       "localizations" : {
         "en" : {
@@ -833,17 +865,6 @@
         }
       }
     },
-    "Play Next" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mainkan selanjutnya"
-          }
-        }
-      }
-    },
     "Player color" : {
       "localizations" : {
         "en" : {
@@ -942,10 +963,48 @@
     },
     "Remove Download" : {
       "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove Download"
+          }
+        },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Hapus unduhan"
+          }
+        }
+      }
+    },
+    "Save" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Save"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Simpan"
+          }
+        }
+      }
+    },
+    "Save login info" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Save login info"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Simpan info login"
           }
         }
       }
@@ -1158,22 +1217,6 @@
         }
       }
     },
-    "Store username & password in iCloud Keychain" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Store username & password in iCloud Keychain"
-          }
-        },
-        "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Simpan nama pengguna & kata sandi di iCloud Keychain"
-          }
-        }
-      }
-    },
     "Subsonic Version" : {
       "localizations" : {
         "en" : {
@@ -1202,6 +1245,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Terima kasih telah memilih flo!"
+          }
+        }
+      }
+    },
+    "The password is stored securely in Keychain" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The password is stored securely in Keychain"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kata sandi disimpan dengan aman di Keychain"
           }
         }
       }
@@ -1250,6 +1309,32 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Total Folder yang Dipindai"
+          }
+        }
+      }
+    },
+    "Total usage" : {
+      "localizations" : {
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jumlah penggunaan"
+          }
+        }
+      }
+    },
+    "Use translucent backgrounds" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Use translucent backgrounds"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gunakan translucent background"
           }
         }
       }

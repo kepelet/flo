@@ -46,9 +46,28 @@ enum UserDefaultsKeys {
   static let nowPlayingProgress = "nowPlayingProgress"
   static let playbackMode = "playbackMode"
   static let enableDebug = "enableDebug"
+  static let enableMaxBitRate = "enableMaxBitRate"
+  static let playerBackground = "playerBackground"
+  static let saveLoginInfo = "saveLoginInfo"
 }
 
 enum KeychainKeys {
   static let service = AppMeta.identifier
   static let dataKey = "authCreds"
+  static let serverPassword = "serverPassword"
+}
+
+enum TranscodingSettings {
+  static let availableBitRate = [
+    "0", "32", "48", "64", "80", "96", "112", "128", "160", "192", "224", "256", "320",
+  ]
+  static let sourceBitRate = "0"
+  static let sourceFormat = "raw"
+  static let targetFormat = "mp3"
+}
+
+enum PlayerBackground {
+  static let availablePlayerBackground = ["solid", "translucent"]
+  static let solid = "solid"
+  static let translucent = "translucent"
 }

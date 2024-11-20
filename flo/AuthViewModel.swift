@@ -17,6 +17,7 @@ class AuthViewModel: ObservableObject {
 
   @Published var showAlert: Bool = false
   @Published var alertMessage: String = ""
+  @Published var experimentalSaveLoginInfo: Bool = false
 
   @Published var isLoggedIn: Bool = false
 
@@ -30,10 +31,24 @@ class AuthViewModel: ObservableObject {
       {
         let data: UserAuth = try JSONDecoder().decode(UserAuth.self, from: jsonData)
 
-        self.user = User(
-          id: data.id, username: data.username, name: data.name, isAdmin: data.isAdmin,
-          lastFMApiKey: data.lastFMApiKey)
-        self.isLoggedIn = true
+        self.serverUrl = UserDefaultsManager.serverBaseURL
+        self.username = data.username
+
+        if UserDefaultsManager.saveLoginInfo {
+          do {
+            self.password = try KeychainManager.getAuthPassword() ?? ""
+          } catch {
+            print("Error loading password from Keychain: \(error)")
+          }
+
+          self.login()
+        } else {
+
+          self.user = User(
+            id: data.id, username: data.username, name: data.name, isAdmin: data.isAdmin,
+            lastFMApiKey: data.lastFMApiKey)
+          self.isLoggedIn = true
+        }
       }
     } catch {
       print("Error loading data from Keychain: \(error)")
@@ -46,6 +61,17 @@ class AuthViewModel: ObservableObject {
       switch result {
       case .success(let data):
         self.persistAuthData(data)
+
+        if self.experimentalSaveLoginInfo {
+          do {
+            try KeychainManager.setAuthPassword(newValue: self.password)
+            UserDefaultsManager.saveLoginInfo = true
+
+            self.experimentalSaveLoginInfo = false
+          } catch {
+            print("error saving password to Keychain: \(error)")
+          }
+        }
 
         DispatchQueue.main.async {
           self.isLoggedIn = true
@@ -79,6 +105,16 @@ class AuthViewModel: ObservableObject {
 
       self.user = nil
       self.isLoggedIn = false
+    } catch let error {
+      print("error>>>>> \(error)")
+    }
+  }
+
+  func destroySavedPassword() {
+    do {
+      try KeychainManager.removeAuthPassword()
+
+      UserDefaultsManager.removeObject(key: UserDefaultsKeys.saveLoginInfo)
     } catch let error {
       print("error>>>>> \(error)")
     }

@@ -14,7 +14,7 @@ struct FloatingPlayerView: View {
   var range: ClosedRange<Double> = 0...1
 
   var body: some View {
-    Group {
+    ZStack {
       HStack {
         if viewModel.nowPlaying.isFromLocal {
           if let image = UIImage(contentsOfFile: viewModel.getAlbumCoverArt()) {
@@ -84,7 +84,36 @@ struct FloatingPlayerView: View {
           }
         }.padding()
       }.padding(8).foregroundColor(.white)
-    }.background(Color("PlayerColor")).cornerRadius(10).padding(8).shadow(radius: 5)
+    }.background {
+      if UserDefaultsManager.playerBackground == PlayerBackground.translucent {
+        ZStack {
+          if viewModel.nowPlaying.isFromLocal {
+            if let image = UIImage(contentsOfFile: viewModel.getAlbumCoverArt()) {
+              Image(uiImage: image)
+                .resizable()
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .blur(radius: 50, opaque: true)
+                .edgesIgnoringSafeArea(.all)
+            }
+          } else {
+            LazyImage(url: URL(string: viewModel.getAlbumCoverArt())) { state in
+              if let image = state.image {
+                image
+                  .resizable()
+                  .frame(maxWidth: .infinity, maxHeight: .infinity)
+                  .blur(radius: 50, opaque: true)
+                  .edgesIgnoringSafeArea(.all)
+              }
+            }
+          }
+
+          Rectangle().fill(.thinMaterial).edgesIgnoringSafeArea(.all)
+        }.environment(\.colorScheme, .dark)
+      } else {
+        Rectangle().fill(Color("PlayerColor"))
+      }
+    }
+    .cornerRadius(10).padding(8).shadow(radius: 5)
   }
 }
 
