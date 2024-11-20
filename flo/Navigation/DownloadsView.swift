@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct DownloadsView: View {
+  @State private var searchAlbum = ""
+
   @ObservedObject var viewModel: AlbumViewModel
 
   @EnvironmentObject var playerViewModel: PlayerViewModel
@@ -16,6 +18,16 @@ struct DownloadsView: View {
     GridItem(.flexible()),
     GridItem(.flexible()),
   ]
+
+  var filteredAlbums: [Album] {
+    if searchAlbum.isEmpty {
+      return viewModel.downloadedAlbums
+    } else {
+      return viewModel.downloadedAlbums.filter { album in
+        album.name.localizedCaseInsensitiveContains(searchAlbum)
+      }
+    }
+  }
 
   var body: some View {
     NavigationStack {
@@ -41,7 +53,7 @@ struct DownloadsView: View {
         }
 
         LazyVGrid(columns: columns, spacing: 20) {
-          ForEach(viewModel.downloadedAlbums) { album in
+          ForEach(filteredAlbums) { album in
             NavigationLink {
               AlbumView(viewModel: viewModel, isDownloadScreen: true)
                 .onAppear {
@@ -54,6 +66,11 @@ struct DownloadsView: View {
         }.padding(.top, 10).padding(
           .bottom, playerViewModel.hasNowPlaying() && !playerViewModel.shouldHidePlayer ? 100 : 0
         ).navigationTitle("Downloads")
+          .searchable(
+            text: $searchAlbum,
+            placement: .navigationBarDrawer(displayMode: .always),
+            prompt: "Search"
+          )
       }
     }
   }
