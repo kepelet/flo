@@ -249,10 +249,12 @@ struct PreferencesView: View {
             }
           }
         }
+
+        if playerViewModel.hasNowPlaying() && !playerViewModel.shouldHidePlayer {
+          Color.clear.frame(height: 50).listRowBackground(Color.clear)
+        }
       }.navigationBarTitle("Preferences", displayMode: .inline)
-    }.padding(
-      .bottom, playerViewModel.hasNowPlaying() && !playerViewModel.shouldHidePlayer ? 100 : 0
-    ).onAppear {
+    }.onAppear {
       scanStatusViewModel.getLocalStorageInformation()
 
       if authViewModel.isLoggedIn {
