@@ -21,6 +21,8 @@ struct PreferencesView: View {
 
   let themeColors = ["Blue", "Green", "Red", "Ohio"]
 
+  @State private var experimentalMaxBitrate = UserDefaultsManager.maxBitRate
+
   func getAppVersion() -> String {
     if let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String {
       return appVersion
@@ -131,6 +133,21 @@ struct PreferencesView: View {
                 APIManager.shared.reconfigureSession()
               }
             ))
+
+          VStack(alignment: .leading) {
+            Picker(selection: $experimentalMaxBitrate, label: Text("Max Bitrate")) {
+              ForEach(TranscodingSettings.availableBitRate, id: \.self) { bitrate in
+                Text(bitrate == "0" ? "Source" : bitrate).tag(bitrate)
+              }
+            }
+            .onChange(of: experimentalMaxBitrate) { value in
+              UserDefaultsManager.maxBitRate = value
+            }
+
+            Text(
+              "Currently the output format is MP3 due to compatibility issues; however, MP3 is less efficient in streaming at lower bitrates compared to modern codecs like Opus."
+            ).font(.caption).foregroundColor(.gray)
+          }
 
           if false {
             Toggle(isOn: $storeCredsInKeychain) {

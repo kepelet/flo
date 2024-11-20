@@ -21,8 +21,13 @@ class AlbumService {
 
       return fileUrl.absoluteString
     } else {
+      let maxBitrate = UserDefaultsManager.maxBitRate
+      let format =
+        maxBitrate == TranscodingSettings.sourceBitRate
+        ? TranscodingSettings.sourceFormat : TranscodingSettings.targetFormat
+
       let streamUrl =
-        "\(UserDefaultsManager.serverBaseURL)\(API.SubsonicEndpoint.stream)\(AuthService.shared.getCreds(key: "subsonicToken"))&id=\(id)"
+        "\(UserDefaultsManager.serverBaseURL)\(API.SubsonicEndpoint.stream)\(AuthService.shared.getCreds(key: "subsonicToken"))&id=\(id)&maxBitRate=\(maxBitrate)&format=\(format)"
 
       return streamUrl
     }

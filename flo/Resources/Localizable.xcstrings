@@ -305,6 +305,16 @@
         }
       }
     },
+    "Currently the output format is MP3 due to compatibility issues; however, MP3 is less efficient in streaming at lower bitrates compared to modern codecs like Opus." : {
+      "localizations" : {
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saat ini format keluarannya adalah MP3 karena masalah kompatibilitas; namun, MP3 kurang efisien dalam streaming pada bitrate yang lebih rendah dibandingkan dengan codec modern seperti Opus."
+          }
+        }
+      }
+    },
     "Debug" : {
       "localizations" : {
         "en" : {
@@ -721,6 +731,16 @@
         }
       }
     },
+    "Max Bitrate" : {
+      "localizations" : {
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Max Bitrate"
+          }
+        }
+      }
+    },
     "Navidrome Music Server %@" : {
       "localizations" : {
         "en" : {
@@ -829,17 +849,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Mainkan"
-          }
-        }
-      }
-    },
-    "Play Next" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mainkan selanjutnya"
           }
         }
       }

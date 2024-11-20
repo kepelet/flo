@@ -33,6 +33,9 @@ class PlayerViewModel: ObservableObject {
   @Published var totalTimeString: String = "00:00"
   @Published var shouldHidePlayer: Bool = false
 
+  // FIXME: this make confusion with `isDownloaded` and/or `isPlayingFromLocal`
+  @Published var _playFromLocal: Bool = false
+
   private var isFinished: Bool = false
   private var totalDuration: Double = 0.0
   private var playerItemObservation: AnyCancellable?
@@ -40,6 +43,11 @@ class PlayerViewModel: ObservableObject {
 
   var nowPlaying: QueueEntity {
     return self.queue[self.activeQueueIdx]
+  }
+
+  var isPlayFromSource: Bool {
+    return self._playFromLocal
+      || UserDefaultsManager.maxBitRate == TranscodingSettings.sourceBitRate
   }
 
   init() {
@@ -125,6 +133,8 @@ class PlayerViewModel: ObservableObject {
 
     let audioURL = URL(
       string: AlbumService.shared.getStreamUrl(id: self.nowPlaying.id ?? ""))
+
+    self._playFromLocal = audioURL?.isFileURL == true
 
     self.playerItem = AVPlayerItem(url: audioURL!)
     self.player?.replaceCurrentItem(with: self.playerItem)

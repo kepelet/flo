@@ -222,7 +222,9 @@ struct PlayerView: View {
               Spacer()
 
               Text(
-                "\(viewModel.nowPlaying.suffix ?? "")   \(viewModel.nowPlaying.bitRate.description)"
+                viewModel.isPlayFromSource
+                  ? "\(viewModel.nowPlaying.suffix ?? "")   \(viewModel.nowPlaying.bitRate.description)"
+                  : "\(TranscodingSettings.targetFormat)   \(UserDefaultsManager.maxBitRate)"
               )
               .foregroundColor(.white)
               .customFont(.caption2)
