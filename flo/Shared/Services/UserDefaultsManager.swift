@@ -67,4 +67,14 @@ class UserDefaultsManager {
       UserDefaults.standard.set(newValue, forKey: UserDefaultsKeys.enableMaxBitRate)
     }
   }
+
+  static var playerBackground: String {
+    get {
+      return UserDefaults.standard.string(forKey: UserDefaultsKeys.playerBackground)
+        ?? PlayerBackground.translucent
+    }
+    set {
+      UserDefaults.standard.set(newValue, forKey: UserDefaultsKeys.playerBackground)
+    }
+  }
 }

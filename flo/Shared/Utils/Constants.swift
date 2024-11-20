@@ -47,6 +47,7 @@ enum UserDefaultsKeys {
   static let playbackMode = "playbackMode"
   static let enableDebug = "enableDebug"
   static let enableMaxBitRate = "enableMaxBitRate"
+  static let playerBackground = "playerBackground"
 }
 
 enum KeychainKeys {
@@ -61,4 +62,10 @@ enum TranscodingSettings {
   static let sourceBitRate = "0"
   static let sourceFormat = "raw"
   static let targetFormat = "mp3"
+}
+
+enum PlayerBackground {
+  static let availablePlayerBackground = ["solid", "translucent"]
+  static let solid = "solid"
+  static let translucent = "translucent"
 }
