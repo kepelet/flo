@@ -19,6 +19,11 @@ struct ContentView: View {
   @StateObject private var albumViewModel = AlbumViewModel()
   @StateObject private var scanStatusViewModel = ScanStatusViewModel()
 
+  @State private var floatingPlayerOffsetX: CGFloat = .zero
+  @State private var isSwipping = false
+
+  private var swipeThreshold: CGFloat = 150.0
+
   var body: some View {
     ZStack {
       TabView {
@@ -71,11 +76,35 @@ struct ContentView: View {
             .padding(.bottom, 50)
             .shadow(radius: 10)
             .opacity(playerViewModel.hasNowPlaying() ? 1 : 0)
-            .offset(y: isPlayerExpanded ? UIScreen.main.bounds.height : 0)
+            .offset(
+              x: self.floatingPlayerOffsetX, y: isPlayerExpanded ? UIScreen.main.bounds.height : 0
+            )
             .animation(.spring(duration: 0.2), value: isPlayerExpanded)
             .onTapGesture {
               self.isPlayerExpanded = true
             }
+            .gesture(
+              DragGesture()
+                .onChanged { value in
+                  // only care with swipe left :))
+                  if value.translation.width < .zero {
+                    floatingPlayerOffsetX = value.translation.width
+                  }
+
+                  // debounce thing
+                  if abs(floatingPlayerOffsetX) > swipeThreshold && !isSwipping {
+                    isSwipping = true
+                  }
+                }
+                .onEnded { value in
+                  if abs(floatingPlayerOffsetX) > swipeThreshold && isSwipping {
+                    playerViewModel.destroyPlayerAndQueue()
+                  }
+
+                  self.floatingPlayerOffsetX = .zero
+                  self.isSwipping = false
+                }
+            )
         }
       }
     }
