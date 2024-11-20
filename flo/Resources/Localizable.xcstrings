@@ -1263,6 +1263,16 @@
         }
       }
     },
+    "Use translucent backgrounds" : {
+      "localizations" : {
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gunakan translucent background"
+          }
+        }
+      }
+    },
     "Username" : {
       "localizations" : {
         "en" : {

@@ -22,6 +22,7 @@ struct PreferencesView: View {
   let themeColors = ["Blue", "Green", "Red", "Ohio"]
 
   @State private var experimentalMaxBitrate = UserDefaultsManager.maxBitRate
+  @State private var experimentalPlayerBackground = UserDefaultsManager.playerBackground
 
   func getAppVersion() -> String {
     if let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String {
@@ -148,6 +149,16 @@ struct PreferencesView: View {
               "Currently the output format is MP3 due to compatibility issues; however, MP3 is less efficient in streaming at lower bitrates compared to modern codecs like Opus."
             ).font(.caption).foregroundColor(.gray)
           }
+
+          Toggle(
+            "Use translucent backgrounds",
+            isOn: Binding(
+              get: { UserDefaultsManager.playerBackground == PlayerBackground.translucent },
+              set: {
+                UserDefaultsManager.playerBackground =
+                  $0 ? PlayerBackground.translucent : PlayerBackground.solid
+              }
+            ))
 
           if false {
             Toggle(isOn: $storeCredsInKeychain) {

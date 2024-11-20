@@ -298,28 +298,31 @@ struct PlayerView: View {
       .frame(maxHeight: .infinity)
       .background {
         ZStack {
-          if viewModel.nowPlaying.isFromLocal {
-            if let image = UIImage(contentsOfFile: viewModel.getAlbumCoverArt()) {
-              Image(uiImage: image)
-                .resizable()
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .blur(radius: 50, opaque: true)
-                .edgesIgnoringSafeArea(.all)
-            }
-          } else {
-            LazyImage(url: URL(string: viewModel.getAlbumCoverArt())) { state in
-              if let image = state.image {
-                image
+          if UserDefaultsManager.playerBackground == PlayerBackground.translucent {
+            if viewModel.nowPlaying.isFromLocal {
+              if let image = UIImage(contentsOfFile: viewModel.getAlbumCoverArt()) {
+                Image(uiImage: image)
                   .resizable()
                   .frame(maxWidth: .infinity, maxHeight: .infinity)
                   .blur(radius: 50, opaque: true)
                   .edgesIgnoringSafeArea(.all)
               }
+            } else {
+              LazyImage(url: URL(string: viewModel.getAlbumCoverArt())) { state in
+                if let image = state.image {
+                  image
+                    .resizable()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .blur(radius: 50, opaque: true)
+                    .edgesIgnoringSafeArea(.all)
+                }
+              }
             }
+
+            Rectangle().fill(.thinMaterial).edgesIgnoringSafeArea(.all)
+          } else {
+            Rectangle().fill(Color("PlayerColor")).edgesIgnoringSafeArea(.all)
           }
-
-          Rectangle().fill(.thinMaterial).edgesIgnoringSafeArea(.all)
-
         }
         .environment(\.colorScheme, .dark)
         .clipShape(
