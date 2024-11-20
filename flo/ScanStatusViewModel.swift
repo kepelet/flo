@@ -12,9 +12,23 @@ class ScanStatusViewModel: ObservableObject {
   @Published var downloadedAlbums: Int = 0
   @Published var downloadedSongs: Int = 0
 
+  @Published var localDirectorySize: String = "0 MB"
+
   func getLocalStorageInformation() {
     self.downloadedAlbums = ScanStatusService.shared.getDownloadedAlbumsCount()
     self.downloadedSongs = ScanStatusService.shared.getDownloadedSongsCount()
+
+    Task {
+      do {
+        let calculateDirectorySize = try await LocalFileManager.shared.calculateDirectorySize()
+
+        await MainActor.run {
+          self.localDirectorySize = calculateDirectorySize
+        }
+      } catch {
+        print("Error: \(error)")
+      }
+    }
   }
 
   func optimizeLocalStorage() {

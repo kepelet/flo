@@ -68,6 +68,12 @@ struct PreferencesView: View {
             Text(scanStatusViewModel.downloadedSongs.description)
           }
 
+          HStack {
+            Text("Total usage")
+            Spacer()
+            Text(scanStatusViewModel.localDirectorySize)
+          }
+
           Button(action: {
             self.optimizeLocalStorageAlert.toggle()
           }) {
