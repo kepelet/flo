@@ -57,4 +57,14 @@ class UserDefaultsManager {
       UserDefaults.standard.set(newValue, forKey: UserDefaultsKeys.enableDebug)
     }
   }
+
+  static var maxBitRate: String {
+    get {
+      return UserDefaults.standard.string(forKey: UserDefaultsKeys.enableMaxBitRate)
+        ?? TranscodingSettings.sourceBitRate
+    }
+    set {
+      UserDefaults.standard.set(newValue, forKey: UserDefaultsKeys.enableMaxBitRate)
+    }
+  }
 }
