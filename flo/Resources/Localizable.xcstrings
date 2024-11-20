@@ -1313,6 +1313,16 @@
         }
       }
     },
+    "Total usage" : {
+      "localizations" : {
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jumlah penggunaan"
+          }
+        }
+      }
+    },
     "Use translucent backgrounds" : {
       "localizations" : {
         "en" : {
