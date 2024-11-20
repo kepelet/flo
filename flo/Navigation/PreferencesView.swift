@@ -11,6 +11,7 @@ struct PreferencesView: View {
   @ObservedObject var authViewModel: AuthViewModel
   @State private var storeCredsInKeychain = false
   @State private var optimizeLocalStorageAlert = false
+  @State private var showLoginSheet = false
 
   @State private var accentColor = Color(.accent)
   @State private var playerColor = Color(.player)
@@ -23,6 +24,17 @@ struct PreferencesView: View {
 
   @State private var experimentalMaxBitrate = UserDefaultsManager.maxBitRate
   @State private var experimentalPlayerBackground = UserDefaultsManager.playerBackground
+
+  var shouldShowLoginSheet: Binding<Bool> {
+    Binding(
+      get: {
+        return showLoginSheet && authViewModel.experimentalSaveLoginInfo
+      },
+      set: { newValue in
+        showLoginSheet = newValue
+      }
+    )
+  }
 
   func getAppVersion() -> String {
     if let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String {
@@ -160,13 +172,31 @@ struct PreferencesView: View {
               }
             ))
 
+          VStack(alignment: .leading) {
+            Toggle(
+              "Save login info",
+              isOn: Binding(
+                get: { UserDefaultsManager.saveLoginInfo },
+                set: {
+                  if $0 {
+                    authViewModel.experimentalSaveLoginInfo = true
+                    showLoginSheet = true
+                  } else {
+                    authViewModel.destroySavedPassword()
+                  }
+                }
+              ))
+
+            Text(
+              "flo will store your server URL, username, and password in the Keychain with no biometric protection. If you enable this, flo will try to 'refresh' the auth token—by logging you in automatically—every time you open flo so you'll never log out unless you do it explicitly."
+            ).font(.caption).foregroundColor(.gray)
+          }
+          .sheet(isPresented: shouldShowLoginSheet) {
+            Login(viewModel: authViewModel, showLoginSheet: $showLoginSheet)
+              .background(Color(red: 43 / 255, green: 42 / 255, blue: 94 / 255))
+          }
+
           if false {
-            Toggle(isOn: $storeCredsInKeychain) {
-              Text("Store username & password in iCloud Keychain")
-            }.disabled(true)
-            Toggle(isOn: $storeCredsInKeychain) {
-              Text("Cache album covers")
-            }.disabled(true)
             Toggle(isOn: $storeCredsInKeychain) {
               Text("Scrobble to Last.fm")
             }.disabled(true)

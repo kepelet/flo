@@ -77,4 +77,14 @@ class UserDefaultsManager {
       UserDefaults.standard.set(newValue, forKey: UserDefaultsKeys.playerBackground)
     }
   }
+
+  static var saveLoginInfo: Bool {
+    get {
+      return UserDefaults.standard.bool(forKey: UserDefaultsKeys.saveLoginInfo)
+    }
+
+    set {
+      UserDefaults.standard.set(newValue, forKey: UserDefaultsKeys.saveLoginInfo)
+    }
+  }
 }

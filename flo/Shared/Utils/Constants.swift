@@ -48,11 +48,13 @@ enum UserDefaultsKeys {
   static let enableDebug = "enableDebug"
   static let enableMaxBitRate = "enableMaxBitRate"
   static let playerBackground = "playerBackground"
+  static let saveLoginInfo = "saveLoginInfo"
 }
 
 enum KeychainKeys {
   static let service = AppMeta.identifier
   static let dataKey = "authCreds"
+  static let serverPassword = "serverPassword"
 }
 
 enum TranscodingSettings {
