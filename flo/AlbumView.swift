@@ -66,10 +66,13 @@ struct AlbumView: View {
           .multilineTextAlignment(.center)
           .padding(.bottom, 5)
 
-        Text(viewModel.album.albumArtist)
-          .customFont(.title3)
-          .multilineTextAlignment(.center)
-          .padding(.bottom, 10)
+        Text(
+          viewModel.album.albumArtist == "Various Artists"
+            ? viewModel.album.albumArtist : viewModel.album.artist
+        )
+        .customFont(.title3)
+        .multilineTextAlignment(.center)
+        .padding(.bottom, 10)
 
         Text(
           "\(viewModel.album.genre.isEmpty ? "Unknown genre" : viewModel.album.genre) • \(viewModel.album.minYear == 0 ? "Unknown release year" : viewModel.album.minYear.description)"
