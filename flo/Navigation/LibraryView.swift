@@ -75,7 +75,7 @@ struct LibraryView: View {
 
             Rectangle()
               .frame(height: 0.5)
-              .foregroundColor(.gray.opacity(0.5))
+              .foregroundColor(.gray.opacity(0.3))
 
             NavigationLink {
               PlaylistView()
@@ -101,7 +101,7 @@ struct LibraryView: View {
 
             Rectangle()
               .frame(height: 0.5)
-              .foregroundColor(.gray.opacity(0.5))
+              .foregroundColor(.gray.opacity(0.3))
 
             NavigationLink {
               SongsView()
@@ -127,7 +127,7 @@ struct LibraryView: View {
 
             Rectangle()
               .frame(height: 0.5)
-              .foregroundColor(.gray.opacity(0.5))
+              .foregroundColor(.gray.opacity(0.3))
           }
 
           LazyVGrid(columns: columns) {
