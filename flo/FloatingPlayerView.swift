@@ -37,7 +37,8 @@ struct FloatingPlayerView: View {
                   RoundedRectangle(cornerRadius: 5, style: .continuous)
                 )
             } else {
-              Color("PlayerColor").frame(width: 50, height: 50)
+              Color.gray.opacity(0.3).frame(width: 50, height: 50)
+                .clipShape(RoundedRectangle(cornerRadius: 5, style: .continuous))
             }
           }
         }
