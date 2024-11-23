@@ -59,7 +59,7 @@ struct PlaylistView: View {
 
                 Rectangle()
                   .frame(height: 0.5)
-                  .foregroundColor(.gray.opacity(0.5))
+                  .foregroundColor(.gray.opacity(0.3))
               }
             }
           }
