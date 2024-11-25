@@ -51,6 +51,7 @@ struct FloatingPlayerView: View {
           Text(viewModel.nowPlaying.artistName ?? "")
             .foregroundColor(.white)
             .customFont(.subheadline)
+            .lineLimit(1)
 
           GeometryReader { geometry in
             ZStack(alignment: .leading) {
@@ -114,7 +115,7 @@ struct FloatingPlayerView: View {
         Rectangle().fill(Color("PlayerColor"))
       }
     }
-    .cornerRadius(10).padding(8).shadow(radius: 5)
+    .cornerRadius(10).padding(8)
   }
 }
 
