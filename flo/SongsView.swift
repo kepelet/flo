@@ -65,9 +65,7 @@ struct SongsView: View {
             .padding(.horizontal)
             .background(Color(UIColor.systemBackground))
 
-            Rectangle()
-              .frame(height: 0.5)
-              .foregroundColor(.gray.opacity(0.3))
+            Divider()
           }
           .onTapGesture {
             var playlist = Playlist(name: "\"All Tracks\"")
