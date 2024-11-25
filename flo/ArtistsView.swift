@@ -48,9 +48,7 @@ struct ArtistsView: View {
                 .padding(.horizontal)
                 .padding(.vertical, 5)
 
-                Rectangle()
-                  .frame(height: 0.5)
-                  .foregroundColor(.gray.opacity(0.3))
+                Divider()
               }
             }
           }
