@@ -74,7 +74,6 @@ struct ContentView: View {
         if playerViewModel.hasNowPlaying() && !playerViewModel.shouldHidePlayer {
           FloatingPlayerView(viewModel: playerViewModel)
             .padding(.bottom, 50)
-            .shadow(radius: 10)
             .opacity(playerViewModel.hasNowPlaying() ? 1 : 0)
             .offset(
               x: self.floatingPlayerOffsetX, y: isPlayerExpanded ? UIScreen.main.bounds.height : 0
