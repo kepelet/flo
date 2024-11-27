@@ -17,22 +17,6 @@
         }
       }
     },
-    "*************" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "*************"
-          }
-        },
-        "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "*************"
-          }
-        }
-      }
-    },
     "%@" : {
       "localizations" : {
         "en" : {
@@ -109,6 +93,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%1$@%2$@"
+          }
+        }
+      }
+    },
+    "•" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "•"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "•"
           }
         }
       }
@@ -253,6 +253,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Batal"
+          }
+        }
+      }
+    },
+    "Clear listening history (no alert and irreversible)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clear listening history (no alert and irreversible)"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hapus riwayat mendengarkan (tanpa peringatan dan tidak dapat dibatalkan)"
           }
         }
       }
@@ -545,22 +561,6 @@
         }
       }
     },
-    "Have a nice day, %@!" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Have a nice day, %@!"
-          }
-        },
-        "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Semoga harimu menyenangkan, %@!"
-          }
-        }
-      }
-    },
     "Home" : {
       "localizations" : {
         "en" : {
@@ -573,22 +573,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Beranda"
-          }
-        }
-      }
-    },
-    "http://localhost:4533" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "http://localhost:4533"
-          }
-        },
-        "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "http://localhost:4533"
           }
         }
       }
@@ -621,6 +605,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tautan disalin ke papan klip! (%@)"
+          }
+        }
+      }
+    },
+    "Listening Activity (all time)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Listening Activity (all time)"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Riwayat mendengarkan (sepanjang waktu)"
           }
         }
       }
@@ -753,22 +753,6 @@
         }
       }
     },
-    "Navidrome Music Server %@" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Navidrome Music Server %@"
-          }
-        },
-        "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Navidrome Music Server %@"
-          }
-        }
-      }
-    },
     "Navidrome Version" : {
       "localizations" : {
         "en" : {
@@ -829,22 +813,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Optimalkan penyimpanan lokal"
-          }
-        }
-      }
-    },
-    "Password" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Password"
-          }
-        },
-        "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Kata sandi"
           }
         }
       }
@@ -1169,22 +1137,6 @@
         }
       }
     },
-    "sigma" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "sigma"
-          }
-        },
-        "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "sigma"
-          }
-        }
-      }
-    },
     "Songs" : {
       "localizations" : {
         "en" : {
@@ -1281,6 +1233,22 @@
         }
       }
     },
+    "This stat is generated on-device (once every session) and no data is stored or shared with a third party — #selfhosting, baby!" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This stat is generated on-device (once every session) and no data is stored or shared with a third party — #selfhosting, baby!"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Statistik ini dibuat di perangkat (sekali setiap sesi) dan tidak ada data yang disimpan atau dibagikan ke pihak ketiga — #selfhosting, bos!"
+          }
+        }
+      }
+    },
     "Total Files Scanned" : {
       "localizations" : {
         "en" : {
@@ -1315,6 +1283,12 @@
     },
     "Total usage" : {
       "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Total usage"
+          }
+        },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1335,38 +1309,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Gunakan translucent background"
-          }
-        }
-      }
-    },
-    "Username" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Username"
-          }
-        },
-        "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nama pengguna"
-          }
-        }
-      }
-    },
-    "You're not logged in" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "You're not logged in"
-          }
-        },
-        "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Kamu belum masuk"
           }
         }
       }
