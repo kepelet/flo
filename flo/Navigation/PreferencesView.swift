@@ -199,7 +199,11 @@ struct PreferencesView: View {
           }
           .sheet(isPresented: shouldShowLoginSheet) {
             Login(viewModel: authViewModel, showLoginSheet: $showLoginSheet)
-              .background(Color(red: 43 / 255, green: 42 / 255, blue: 94 / 255))
+              .onDisappear {
+                if !showLoginSheet && authViewModel.experimentalSaveLoginInfo {
+                  authViewModel.experimentalSaveLoginInfo = false
+                }
+              }
           }
 
           if false {
