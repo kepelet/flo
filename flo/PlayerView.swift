@@ -127,16 +127,14 @@ struct PlayerView: View {
 
           Spacer()
 
-          if viewModel.nowPlaying.isFromLocal {
-            if let image = UIImage(contentsOfFile: viewModel.getAlbumCoverArt()) {
-              Image(uiImage: image)
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .frame(width: imageSize, height: imageSize)
-                .clipShape(
-                  RoundedRectangle(cornerRadius: 15, style: .continuous)
-                )
-            }
+          if let image = UIImage(contentsOfFile: viewModel.getAlbumCoverArt()) {
+            Image(uiImage: image)
+              .resizable()
+              .aspectRatio(contentMode: .fit)
+              .frame(width: imageSize, height: imageSize)
+              .clipShape(
+                RoundedRectangle(cornerRadius: 15, style: .continuous)
+              )
           } else {
             LazyImage(url: URL(string: viewModel.getAlbumCoverArt())) { state in
               if let image = state.image {
@@ -296,14 +294,12 @@ struct PlayerView: View {
       .background {
         ZStack {
           if UserDefaultsManager.playerBackground == PlayerBackground.translucent {
-            if viewModel.nowPlaying.isFromLocal {
-              if let image = UIImage(contentsOfFile: viewModel.getAlbumCoverArt()) {
-                Image(uiImage: image)
-                  .resizable()
-                  .frame(maxWidth: .infinity, maxHeight: .infinity)
-                  .blur(radius: 50, opaque: true)
-                  .edgesIgnoringSafeArea(.all)
-              }
+            if let image = UIImage(contentsOfFile: viewModel.getAlbumCoverArt()) {
+              Image(uiImage: image)
+                .resizable()
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .blur(radius: 50, opaque: true)
+                .edgesIgnoringSafeArea(.all)
             } else {
               LazyImage(url: URL(string: viewModel.getAlbumCoverArt())) { state in
                 if let image = state.image {
