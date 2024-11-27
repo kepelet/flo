@@ -14,6 +14,31 @@ class ScanStatusViewModel: ObservableObject {
 
   @Published var localDirectorySize: String = "0 MB"
 
+  @Published var stats: Stats?
+  @Published var totalPlay: Int = 0
+
+  private var isGeneratingStats = false
+
+  // FIXME: i think everything that is related to listening history
+  // and stats should live in FloooViewModel
+  func getListeningHistory() {
+    // TODO: is this ok?
+    Task { @MainActor in
+      let totalListens = await FloooService.shared.getListeningHistory()
+
+      self.totalPlay = totalListens.count
+
+      guard !isGeneratingStats else { return }
+      isGeneratingStats = true
+
+      self.stats = await FloooService.shared.generateStats(totalListens)
+    }
+  }
+
+  func clearListeningHistory() {
+    FloooService.shared.clearListeningHistory()
+  }
+
   func getLocalStorageInformation() {
     self.downloadedAlbums = ScanStatusService.shared.getDownloadedAlbumsCount()
     self.downloadedSongs = ScanStatusService.shared.getDownloadedSongsCount()
