@@ -74,6 +74,15 @@ struct PreferencesView: View {
             Text(scanStatusViewModel.localDirectorySize)
           }
 
+          Button(
+            role: .destructive,
+            action: {
+              scanStatusViewModel.clearListeningHistory()
+            }
+          ) {
+            Text("Clear listening history (no alert and irreversible)")
+          }
+
           Button(action: {
             self.optimizeLocalStorageAlert.toggle()
           }) {
