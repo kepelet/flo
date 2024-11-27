@@ -75,11 +75,21 @@ struct AlbumView: View {
           .multilineTextAlignment(.center)
           .padding(.bottom, 10)
 
-          Text(
-            "\(viewModel.album.genre.isEmpty ? "Unknown genre" : viewModel.album.genre) • \(viewModel.album.minYear == 0 ? "Unknown release year" : viewModel.album.minYear.description)"
-          )
-          .customFont(.subheadline)
-          .fontWeight(.medium)
+          HStack {
+            Text(viewModel.album.genre)
+              .customFont(.subheadline)
+              .fontWeight(.medium)
+
+            if !viewModel.album.genre.isEmpty && viewModel.album.minYear != 0 {
+              Text("•")
+                .customFont(.subheadline)
+                .fontWeight(.medium)
+            }
+
+            Text(viewModel.album.minYear == 0 ? "" : viewModel.album.minYear.description)
+              .customFont(.subheadline)
+              .fontWeight(.medium)
+          }
 
           HStack(spacing: 20) {
             Button(action: {
