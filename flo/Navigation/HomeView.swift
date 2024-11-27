@@ -51,10 +51,9 @@ struct HomeView: View {
           Image(systemName: "person.crop.circle.fill")
             .font(.largeTitle)
         }
-      }.padding(.vertical)
+      }.padding(.top)
         .sheet(isPresented: shouldShowLoginSheet()) {
           Login(viewModel: viewModel, showLoginSheet: $showLoginSheet)
-            .background(Color(red: 43 / 255, green: 42 / 255, blue: 94 / 255))
             .onDisappear {
               if viewModel.isLoggedIn {
                 self.scanStatusViewModel.checkScanStatus()
@@ -63,40 +62,63 @@ struct HomeView: View {
         }
         .padding()
 
-      VStack(alignment: .leading) {
-        Image("Home").resizable().aspectRatio(contentMode: .fit).frame(
-          maxWidth: .infinity, maxHeight: 300
-        ).padding()
+      ScrollView {
+        VStack(alignment: .leading, spacing: 16) {
+          Text("Listening Activity (all time)").customFont(.title2).fontWeight(.bold)
+            .multilineTextAlignment(.leading)
 
-        Group {
-          if viewModel.isLoggedIn {
-            Text("Have a nice day, \(viewModel.user?.name ?? "undefined")!")
-              .customFont(.title1)
-              .fontWeight(.bold)
-              .multilineTextAlignment(.leading)
-
-            Text(
-              "Navidrome Music Server \(scanStatusViewModel.scanStatus?.serverVersion ?? "undefined")"
+          HStack(alignment: .top, spacing: 16) {
+            StatCard(
+              title: "Total Listens",
+              value: scanStatusViewModel.totalPlay.description,
+              icon: "headphones",
+              color: .purple
             )
-            .customFont(.subheadline)
-          } else {
-            Text("You're not logged in")
-              .customFont(.title1)
-              .fontWeight(.bold)
-              .multilineTextAlignment(.leading)
 
-            Text("Login to start streaming your music by tapping the icon above")
+            StatCard(
+              title: "Top Artist",
+              value: scanStatusViewModel.stats?.topArtist ?? "N/A",
+              icon: "music.mic",
+              color: .blue,
+              showArrow: true
+            )
           }
 
-        }.padding(5)
-      }.foregroundColor(.accent).padding()
+          HStack(alignment: .top, spacing: 16) {
+            StatCard(
+              title: "Top Album",
+              value: scanStatusViewModel.stats?.topAlbum ?? "N/A",
+              subtitle: scanStatusViewModel.stats?.topAlbumArtist ?? "N/A",
+              icon: "record.circle",
+              color: .pink,
+              isWide: true,
+              showArrow: true
+            )
+          }
 
-      Spacer()
-
-    }.onAppear {
-      if viewModel.isLoggedIn {
-        self.scanStatusViewModel.checkScanStatus()
+          HStack(spacing: 16) {
+            StatCard(
+              title: "Experimental",
+              value: "More data is cooking soon",
+              icon: "chart.pie",
+              color: .indigo,
+              isWide: false,
+              showArrow: false
+            )
+          }
+          Text(
+            "This stat is generated on-device (once every session) and no data is stored or shared with a third party — #selfhosting, baby!"
+          )
+          .multilineTextAlignment(.center)
+          .customFont(.caption1)
+          .lineSpacing(2)
+        }
+        .padding(.bottom, 100)
+        .padding(.horizontal)
       }
+    }
+    .onAppear {
+      self.scanStatusViewModel.getListeningHistory()
     }
   }
 }
