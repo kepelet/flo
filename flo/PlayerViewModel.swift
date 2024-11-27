@@ -36,10 +36,13 @@ class PlayerViewModel: ObservableObject {
   // FIXME: this make confusion with `isDownloaded` and/or `isPlayingFromLocal`
   @Published var _playFromLocal: Bool = false
 
+  private var isLocallySaved: Bool = false
   private var isFinished: Bool = false
   private var totalDuration: Double = 0.0
   private var playerItemObservation: AnyCancellable?
   private var interruptionObservation = Set<AnyCancellable>()
+
+  private var scrobbleThreshold = 0.5
 
   var nowPlaying: QueueEntity {
     return self.queue[self.activeQueueIdx]
@@ -62,6 +65,11 @@ class PlayerViewModel: ObservableObject {
       self.playbackMode = UserDefaultsManager.playbackMode
       self.addToQueue(
         idx: UserDefaultsManager.queueActiveIdx, item: lastPlayData, playAudio: false)
+
+      // if users played more than half of the song then it's considered as saved
+      if self.progress > scrobbleThreshold {
+        self.isLocallySaved = true
+      }
     } else {
       UserDefaultsManager.removeObject(key: UserDefaultsKeys.queueActiveIdx)
       UserDefaultsManager.removeObject(key: UserDefaultsKeys.nowPlayingProgress)
@@ -126,6 +134,7 @@ class PlayerViewModel: ObservableObject {
 
   func setNowPlaying(playAudio: Bool = true) {
     self.shouldHidePlayer = false
+    self.isLocallySaved = false
 
     if let timeObserverToken = timeObserverToken {
       player?.removeTimeObserver(timeObserverToken)
@@ -197,6 +206,14 @@ class PlayerViewModel: ObservableObject {
       self.currentTimeString = timeString(for: currentTime)
 
       UserDefaultsManager.nowPlayingProgress = self.progress
+
+      if !self.isLocallySaved && self.progress >= 0.5 {
+        Task {
+          FloooService.shared.saveListeningHistory(payload: self.nowPlaying)
+
+          self.isLocallySaved = true
+        }
+      }
 
       if round(currentTime) >= roundedTotalDuration {
         self.nextSong()
@@ -450,6 +467,7 @@ class PlayerViewModel: ObservableObject {
     self.stop()
     self.progress = 0.0
 
+    self.isLocallySaved = false
     self.shouldHidePlayer = true
 
     PlaybackService.shared.clearQueue()
