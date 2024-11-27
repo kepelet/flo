@@ -16,16 +16,14 @@ struct FloatingPlayerView: View {
   var body: some View {
     ZStack {
       HStack {
-        if viewModel.nowPlaying.isFromLocal {
-          if let image = UIImage(contentsOfFile: viewModel.getAlbumCoverArt()) {
-            Image(uiImage: image)
-              .resizable()
-              .aspectRatio(contentMode: .fit)
-              .frame(width: 50, height: 50)
-              .clipShape(
-                RoundedRectangle(cornerRadius: 10, style: .continuous)
-              )
-          }
+        if let image = UIImage(contentsOfFile: viewModel.getAlbumCoverArt()) {
+          Image(uiImage: image)
+            .resizable()
+            .aspectRatio(contentMode: .fit)
+            .frame(width: 50, height: 50)
+            .clipShape(
+              RoundedRectangle(cornerRadius: 10, style: .continuous)
+            )
         } else {
           LazyImage(url: URL(string: viewModel.getAlbumCoverArt())) { state in
             if let image = state.image {
@@ -89,14 +87,12 @@ struct FloatingPlayerView: View {
     }.background {
       if UserDefaultsManager.playerBackground == PlayerBackground.translucent {
         ZStack {
-          if viewModel.nowPlaying.isFromLocal {
-            if let image = UIImage(contentsOfFile: viewModel.getAlbumCoverArt()) {
-              Image(uiImage: image)
-                .resizable()
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .blur(radius: 50, opaque: true)
-                .edgesIgnoringSafeArea(.all)
-            }
+          if let image = UIImage(contentsOfFile: viewModel.getAlbumCoverArt()) {
+            Image(uiImage: image)
+              .resizable()
+              .frame(maxWidth: .infinity, maxHeight: .infinity)
+              .blur(radius: 50, opaque: true)
+              .edgesIgnoringSafeArea(.all)
           } else {
             LazyImage(url: URL(string: viewModel.getAlbumCoverArt())) { state in
               if let image = state.image {
