@@ -63,6 +63,20 @@ struct HomeView: View {
         .padding()
 
       ScrollView {
+        if !viewModel.isLoggedIn {
+          VStack {
+            Text("Login to start streaming your music by tapping the icon above")
+              .customFont(.body)
+              .multilineTextAlignment(.center)
+          }
+          .padding()
+          .overlay(
+            RoundedRectangle(cornerRadius: 8).stroke(Color("PlayerColor"), lineWidth: 0.8)
+          )
+          .padding(.top, 10)
+          .padding(.bottom)
+        }
+
         VStack(alignment: .leading, spacing: 16) {
           Text("Listening Activity (all time)").customFont(.title2).fontWeight(.bold)
             .multilineTextAlignment(.leading)
