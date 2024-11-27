@@ -30,7 +30,6 @@ struct PlayerView: View {
           .clipShape(
             RoundedRectangle(cornerRadius: 15, style: .continuous)
           )
-          .shadow(radius: 5)
         VStack(alignment: .leading) {
           HStack {
             Text("Queue")
@@ -165,14 +164,12 @@ struct PlayerView: View {
               .foregroundColor(.white)
               .customFont(.title1)
               .fontWeight(.bold)
-              .shadow(radius: 2)
               .multilineTextAlignment(.center)
               .lineLimit(3)
 
             Text(viewModel.nowPlaying.artistName ?? "")
               .foregroundColor(.white.opacity(0.8))
               .customFont(.title3)
-              .shadow(radius: 2)
               .multilineTextAlignment(.center)
               .lineLimit(2)
           }
