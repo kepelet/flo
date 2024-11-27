@@ -9,7 +9,7 @@ import Foundation
 import KeychainAccess
 
 class AuthViewModel: ObservableObject {
-  @Published var user: User?
+  @Published var user: UserAuth?
 
   @Published var serverUrl: String = ""
   @Published var username: String = ""
@@ -44,7 +44,7 @@ class AuthViewModel: ObservableObject {
           self.login()
         } else {
 
-          self.user = User(
+          self.user = UserAuth(
             id: data.id, username: data.username, name: data.name, isAdmin: data.isAdmin,
             lastFMApiKey: data.lastFMApiKey)
           self.isLoggedIn = true
@@ -130,7 +130,7 @@ class AuthViewModel: ObservableObject {
       AuthService.shared.setCreds(data)
       UserDefaultsManager.serverBaseURL = self.serverUrl
 
-      self.user = User(
+      self.user = UserAuth(
         id: data.id, username: data.username, name: data.name, isAdmin: data.isAdmin,
         lastFMApiKey: data.lastFMApiKey)
     } catch {
