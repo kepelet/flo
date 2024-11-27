@@ -17,22 +17,6 @@
         }
       }
     },
-    "*************" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "*************"
-          }
-        },
-        "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "*************"
-          }
-        }
-      }
-    },
     "%@" : {
       "localizations" : {
         "en" : {
@@ -109,6 +93,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%1$@%2$@"
+          }
+        }
+      }
+    },
+    "•" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "•"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "•"
           }
         }
       }
@@ -241,22 +241,6 @@
         }
       }
     },
-    "Cache album covers" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cache album covers"
-          }
-        },
-        "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cache sampul album"
-          }
-        }
-      }
-    },
     "Cancel" : {
       "localizations" : {
         "en" : {
@@ -269,6 +253,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Batal"
+          }
+        }
+      }
+    },
+    "Clear listening history (no alert and irreversible)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clear listening history (no alert and irreversible)"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hapus riwayat mendengarkan (tanpa peringatan dan tidak dapat dibatalkan)"
           }
         }
       }
@@ -301,6 +301,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Lanjutkan"
+          }
+        }
+      }
+    },
+    "Currently the output format is MP3 due to compatibility issues; however, MP3 is less efficient in streaming at lower bitrates compared to modern codecs like Opus." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Currently the output format is MP3 due to compatibility issues; however, MP3 is less efficient in streaming at lower bitrates compared to modern codecs like Opus."
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saat ini format keluarannya adalah MP3 karena masalah kompatibilitas; namun, MP3 kurang efisien dalam streaming pada bitrate yang lebih rendah dibandingkan dengan codec modern seperti Opus."
           }
         }
       }
@@ -465,6 +481,22 @@
         }
       }
     },
+    "flo will store your server URL, username, and password in the Keychain with no biometric protection. If you enable this, flo will try to 'refresh' the auth token—by logging you in automatically—every time you open flo so you'll never log out unless you do it explicitly." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "flo will store your server URL, username, and password in the Keychain with no biometric protection. If you enable this, flo will try to 'refresh' the auth token—by logging you in automatically—every time you open flo so you'll never log out unless you do it explicitly."
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "flo akan menyimpan URL server, nama pengguna, dan kata sandi kamu di Keychain tanpa perlindungan biometrik. Jika kamu mengaktifkannya, flo akan mencoba untuk ‘menyegarkan’ token autentikasi—dengan melakukan login secara otomatis—setiap kali kamu membuka flo sehingga kamu tidak akan pernah logout kecuali kamu melakukannya secara eksplisit."
+          }
+        }
+      }
+    },
     "Font Family" : {
       "localizations" : {
         "en" : {
@@ -529,22 +561,6 @@
         }
       }
     },
-    "Have a nice day, %@!" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Have a nice day, %@!"
-          }
-        },
-        "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Semoga harimu menyenangkan, %@!"
-          }
-        }
-      }
-    },
     "Home" : {
       "localizations" : {
         "en" : {
@@ -557,22 +573,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Beranda"
-          }
-        }
-      }
-    },
-    "http://localhost:4533" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "http://localhost:4533"
-          }
-        },
-        "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "http://localhost:4533"
           }
         }
       }
@@ -605,6 +605,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tautan disalin ke papan klip! (%@)"
+          }
+        }
+      }
+    },
+    "Listening Activity (all time)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Listening Activity (all time)"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Riwayat mendengarkan (sepanjang waktu)"
           }
         }
       }
@@ -721,18 +737,18 @@
         }
       }
     },
-    "Navidrome Music Server %@" : {
+    "Max Bitrate" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Navidrome Music Server %@"
+            "value" : "Max Bitrate"
           }
         },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Navidrome Music Server %@"
+            "value" : "Max Bitrate"
           }
         }
       }
@@ -801,22 +817,6 @@
         }
       }
     },
-    "Password" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Password"
-          }
-        },
-        "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Kata sandi"
-          }
-        }
-      }
-    },
     "Play" : {
       "localizations" : {
         "en" : {
@@ -829,17 +829,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Mainkan"
-          }
-        }
-      }
-    },
-    "Play Next" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mainkan selanjutnya"
           }
         }
       }
@@ -942,10 +931,48 @@
     },
     "Remove Download" : {
       "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove Download"
+          }
+        },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Hapus unduhan"
+          }
+        }
+      }
+    },
+    "Save" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Save"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Simpan"
+          }
+        }
+      }
+    },
+    "Save login info" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Save login info"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Simpan info login"
           }
         }
       }
@@ -1110,22 +1137,6 @@
         }
       }
     },
-    "sigma" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "sigma"
-          }
-        },
-        "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "sigma"
-          }
-        }
-      }
-    },
     "Songs" : {
       "localizations" : {
         "en" : {
@@ -1154,22 +1165,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sumber kode"
-          }
-        }
-      }
-    },
-    "Store username & password in iCloud Keychain" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Store username & password in iCloud Keychain"
-          }
-        },
-        "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Simpan nama pengguna & kata sandi di iCloud Keychain"
           }
         }
       }
@@ -1206,6 +1201,22 @@
         }
       }
     },
+    "The password is stored securely in Keychain" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The password is stored securely in Keychain"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kata sandi disimpan dengan aman di Keychain"
+          }
+        }
+      }
+    },
     "The quickest action you can take is to log back in — for now." : {
       "localizations" : {
         "en" : {
@@ -1218,6 +1229,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tindakan tercepat yang dapat kamu lakukan adalah Login kembali — untuk saat ini."
+          }
+        }
+      }
+    },
+    "This stat is generated on-device (once every session) and no data is stored or shared with a third party — #selfhosting, baby!" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This stat is generated on-device (once every session) and no data is stored or shared with a third party — #selfhosting, baby!"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Statistik ini dibuat di perangkat (sekali setiap sesi) dan tidak ada data yang disimpan atau dibagikan ke pihak ketiga — #selfhosting, bos!"
           }
         }
       }
@@ -1254,34 +1281,34 @@
         }
       }
     },
-    "Username" : {
+    "Total usage" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Username"
+            "value" : "Total usage"
           }
         },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nama pengguna"
+            "value" : "Jumlah penggunaan"
           }
         }
       }
     },
-    "You're not logged in" : {
+    "Use translucent backgrounds" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "You're not logged in"
+            "value" : "Use translucent backgrounds"
           }
         },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Kamu belum masuk"
+            "value" : "Gunakan translucent background"
           }
         }
       }

@@ -43,6 +43,30 @@ class CoreDataManager: ObservableObject {
     }
   }
 
+  func getRecordsByEntityBatched<T: NSManagedObject>(
+    entity: T.Type, sortDescriptors: [NSSortDescriptor]? = nil,
+    batchSize: Int = 100
+  ) async -> [T] {
+    let request: NSFetchRequest<T> = NSFetchRequest<T>(entityName: String(describing: T.self))
+
+    request.sortDescriptors = sortDescriptors
+    request.fetchBatchSize = batchSize
+
+    return await withCheckedContinuation { continuation in
+      viewContext.perform {
+        do {
+          let results = try self.viewContext.fetch(request)
+
+          continuation.resume(returning: results)
+        } catch {
+          print("Fetch error: \(error)")
+
+          continuation.resume(returning: [])
+        }
+      }
+    }
+  }
+
   func getRecordByKey<T: NSManagedObject, V>(
     entity: T.Type,
     key: KeyPath<T, V>,
@@ -142,7 +166,7 @@ class CoreDataManager: ObservableObject {
   }
 
   func clearEverything() {
-    let entities = ["QueueEntity", "SongEntity", "PlaylistEntity"]
+    let entities = ["QueueEntity", "SongEntity", "PlaylistEntity", "HistoryEntity"]
 
     for entity in entities {
       let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: entity)

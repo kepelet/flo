@@ -55,7 +55,8 @@ class AuthService {
     serverUrl: String, username: String, password: String,
     completion: @escaping (AuthResult<UserAuth>) -> Void
   ) {
-    let url = "\(serverUrl)\(API.NDEndpoint.login)"
+    let isServerBaseURLExist = UserDefaultsManager.serverBaseURL != ""
+    let url = "\(isServerBaseURLExist ? "" : serverUrl)\(API.NDEndpoint.login)"
     let parameters: [String: Any] = ["username": username, "password": password]
 
     APIManager.shared.NDEndpointRequest(
@@ -68,7 +69,7 @@ class AuthService {
         ErrorHandler.handleFailure(afError, response: response) { result in
           // FIXME: temporary solution
           let debugResponse = response.debugDescription.replacingOccurrences(
-            of: #""password"\s*:\s*"[^"]*""#,
+            of: #"(?s)"password"\s*:\s*"([^"\\]*(?:\\.[^"\\]*)*)""#,
             with: #""password":"[REDACTED]""#,
             options: .regularExpression
           )

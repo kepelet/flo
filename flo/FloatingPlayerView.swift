@@ -14,18 +14,16 @@ struct FloatingPlayerView: View {
   var range: ClosedRange<Double> = 0...1
 
   var body: some View {
-    Group {
+    ZStack {
       HStack {
-        if viewModel.nowPlaying.isFromLocal {
-          if let image = UIImage(contentsOfFile: viewModel.getAlbumCoverArt()) {
-            Image(uiImage: image)
-              .resizable()
-              .aspectRatio(contentMode: .fit)
-              .frame(width: 50, height: 50)
-              .clipShape(
-                RoundedRectangle(cornerRadius: 10, style: .continuous)
-              )
-          }
+        if let image = UIImage(contentsOfFile: viewModel.getAlbumCoverArt()) {
+          Image(uiImage: image)
+            .resizable()
+            .aspectRatio(contentMode: .fit)
+            .frame(width: 50, height: 50)
+            .clipShape(
+              RoundedRectangle(cornerRadius: 10, style: .continuous)
+            )
         } else {
           LazyImage(url: URL(string: viewModel.getAlbumCoverArt())) { state in
             if let image = state.image {
@@ -37,7 +35,8 @@ struct FloatingPlayerView: View {
                   RoundedRectangle(cornerRadius: 5, style: .continuous)
                 )
             } else {
-              Color("PlayerColor").frame(width: 50, height: 50)
+              Color.gray.opacity(0.3).frame(width: 50, height: 50)
+                .clipShape(RoundedRectangle(cornerRadius: 5, style: .continuous))
             }
           }
         }
@@ -50,6 +49,7 @@ struct FloatingPlayerView: View {
           Text(viewModel.nowPlaying.artistName ?? "")
             .foregroundColor(.white)
             .customFont(.subheadline)
+            .lineLimit(1)
 
           GeometryReader { geometry in
             ZStack(alignment: .leading) {
@@ -84,7 +84,34 @@ struct FloatingPlayerView: View {
           }
         }.padding()
       }.padding(8).foregroundColor(.white)
-    }.background(Color("PlayerColor")).cornerRadius(10).padding(8).shadow(radius: 5)
+    }.background {
+      if UserDefaultsManager.playerBackground == PlayerBackground.translucent {
+        ZStack {
+          if let image = UIImage(contentsOfFile: viewModel.getAlbumCoverArt()) {
+            Image(uiImage: image)
+              .resizable()
+              .frame(maxWidth: .infinity, maxHeight: .infinity)
+              .blur(radius: 50, opaque: true)
+              .edgesIgnoringSafeArea(.all)
+          } else {
+            LazyImage(url: URL(string: viewModel.getAlbumCoverArt())) { state in
+              if let image = state.image {
+                image
+                  .resizable()
+                  .frame(maxWidth: .infinity, maxHeight: .infinity)
+                  .blur(radius: 50, opaque: true)
+                  .edgesIgnoringSafeArea(.all)
+              }
+            }
+          }
+
+          Rectangle().fill(.thinMaterial).edgesIgnoringSafeArea(.all)
+        }.environment(\.colorScheme, .dark)
+      } else {
+        Rectangle().fill(Color("PlayerColor"))
+      }
+    }
+    .cornerRadius(10).padding(8)
   }
 }
 

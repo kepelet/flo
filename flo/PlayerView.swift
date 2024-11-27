@@ -30,7 +30,6 @@ struct PlayerView: View {
           .clipShape(
             RoundedRectangle(cornerRadius: 15, style: .continuous)
           )
-          .shadow(radius: 5)
         VStack(alignment: .leading) {
           HStack {
             Text("Queue")
@@ -128,16 +127,14 @@ struct PlayerView: View {
 
           Spacer()
 
-          if viewModel.nowPlaying.isFromLocal {
-            if let image = UIImage(contentsOfFile: viewModel.getAlbumCoverArt()) {
-              Image(uiImage: image)
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .frame(width: imageSize, height: imageSize)
-                .clipShape(
-                  RoundedRectangle(cornerRadius: 15, style: .continuous)
-                )
-            }
+          if let image = UIImage(contentsOfFile: viewModel.getAlbumCoverArt()) {
+            Image(uiImage: image)
+              .resizable()
+              .aspectRatio(contentMode: .fit)
+              .frame(width: imageSize, height: imageSize)
+              .clipShape(
+                RoundedRectangle(cornerRadius: 15, style: .continuous)
+              )
           } else {
             LazyImage(url: URL(string: viewModel.getAlbumCoverArt())) { state in
               if let image = state.image {
@@ -165,14 +162,12 @@ struct PlayerView: View {
               .foregroundColor(.white)
               .customFont(.title1)
               .fontWeight(.bold)
-              .shadow(radius: 2)
               .multilineTextAlignment(.center)
               .lineLimit(3)
 
             Text(viewModel.nowPlaying.artistName ?? "")
               .foregroundColor(.white.opacity(0.8))
               .customFont(.title3)
-              .shadow(radius: 2)
               .multilineTextAlignment(.center)
               .lineLimit(2)
           }
@@ -222,7 +217,9 @@ struct PlayerView: View {
               Spacer()
 
               Text(
-                "\(viewModel.nowPlaying.suffix ?? "")   \(viewModel.nowPlaying.bitRate.description)"
+                viewModel.isPlayFromSource
+                  ? "\(viewModel.nowPlaying.suffix ?? "")   \(viewModel.nowPlaying.bitRate.description)"
+                  : "\(TranscodingSettings.targetFormat)   \(UserDefaultsManager.maxBitRate)"
               )
               .foregroundColor(.white)
               .customFont(.caption2)
@@ -296,28 +293,29 @@ struct PlayerView: View {
       .frame(maxHeight: .infinity)
       .background {
         ZStack {
-          if viewModel.nowPlaying.isFromLocal {
+          if UserDefaultsManager.playerBackground == PlayerBackground.translucent {
             if let image = UIImage(contentsOfFile: viewModel.getAlbumCoverArt()) {
               Image(uiImage: image)
                 .resizable()
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .blur(radius: 50, opaque: true)
                 .edgesIgnoringSafeArea(.all)
-            }
-          } else {
-            LazyImage(url: URL(string: viewModel.getAlbumCoverArt())) { state in
-              if let image = state.image {
-                image
-                  .resizable()
-                  .frame(maxWidth: .infinity, maxHeight: .infinity)
-                  .blur(radius: 50, opaque: true)
-                  .edgesIgnoringSafeArea(.all)
+            } else {
+              LazyImage(url: URL(string: viewModel.getAlbumCoverArt())) { state in
+                if let image = state.image {
+                  image
+                    .resizable()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .blur(radius: 50, opaque: true)
+                    .edgesIgnoringSafeArea(.all)
+                }
               }
             }
+
+            Rectangle().fill(.thinMaterial).edgesIgnoringSafeArea(.all)
+          } else {
+            Rectangle().fill(Color("PlayerColor")).edgesIgnoringSafeArea(.all)
           }
-
-          Rectangle().fill(.thinMaterial).edgesIgnoringSafeArea(.all)
-
         }
         .environment(\.colorScheme, .dark)
         .clipShape(
