@@ -69,7 +69,7 @@ class AuthService {
         ErrorHandler.handleFailure(afError, response: response) { result in
           // FIXME: temporary solution
           let debugResponse = response.debugDescription.replacingOccurrences(
-            of: #""password"\s*:\s*"[^"]*""#,
+            of: #"(?s)"password"\s*:\s*"([^"\\]*(?:\\.[^"\\]*)*)""#,
             with: #""password":"[REDACTED]""#,
             options: .regularExpression
           )
