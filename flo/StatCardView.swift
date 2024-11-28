@@ -42,6 +42,7 @@ struct StatCard: View {
         Text(title)
           .foregroundColor(.secondary)
           .customFont(.body)
+
         Spacer()
 
         if showArrow {
@@ -57,12 +58,14 @@ struct StatCard: View {
           .customFont(.title2)
           .lineSpacing(2)
           .fontWeight(.bold)
+          .lineLimit(2)
 
         if let subtitle = subtitle {
           Text(subtitle)
             .foregroundColor(.secondary)
             .customFont(.subheadline)
             .lineSpacing(2)
+            .lineLimit(2)
         }
       }
     }
