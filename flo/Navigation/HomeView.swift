@@ -123,6 +123,7 @@ struct HomeView: View {
           Text(
             "This stat is generated on-device (once every session) and no data is stored or shared with a third party — #selfhosting, baby!"
           )
+          .frame(maxWidth: .infinity)
           .multilineTextAlignment(.center)
           .customFont(.caption1)
           .lineSpacing(2)
