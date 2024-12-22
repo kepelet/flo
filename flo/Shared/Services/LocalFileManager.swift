@@ -63,10 +63,12 @@ class LocalFileManager {
   }
 
   func calculateDirectorySize() async throws -> String {
+    let calculateDirSize = self._calculateDirectorySize
+
     return try await withCheckedThrowingContinuation { continuation in
       DispatchQueue.global(qos: .userInitiated).async {
         do {
-          let result = try self._calculateDirectorySize()
+          let result = try calculateDirSize()
 
           continuation.resume(returning: result)
         } catch {
