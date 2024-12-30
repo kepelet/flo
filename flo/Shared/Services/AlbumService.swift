@@ -223,15 +223,15 @@ class AlbumService {
       endpoint: API.SubsonicEndpoint.coverArt, parameters: params
     ) { result in
       switch result {
-      case .success(let data):
+      case .success(let tempFile):
         guard
           let target = LocalFileManager.shared.documentsDirectory?.appendingPathComponent("Media")
             .appendingPathComponent(artistName).appendingPathComponent(albumName)
+            .appendingPathComponent("cover.png")
         else {
           return
         }
-        LocalFileManager.shared.saveFile(
-          target: target, fileName: "cover.png", content: data, completion: completion)
+        LocalFileManager.shared.moveFile(source: tempFile, target: target, completion: completion)
       case .failure(let error):
         completion(.failure(error))
       }
@@ -291,17 +291,16 @@ class AlbumService {
       endpoint: API.SubsonicEndpoint.download, parameters: params
     ) { result in
       switch result {
-      case .success(let data):
+      case .success(let tempFile):
         guard
           let target = LocalFileManager.shared.documentsDirectory?.appendingPathComponent("Media")
             .appendingPathComponent(artistName).appendingPathComponent(albumName)
+            .appendingPathComponent("\(trackNumber) \(title).\(suffix)")
         else {
           return
         }
 
-        LocalFileManager.shared.saveFile(
-          target: target, fileName: "\(trackNumber) \(title).\(suffix)", content: data,
-          completion: completion)
+        LocalFileManager.shared.moveFile(source: tempFile, target: target, completion: completion)
       case .failure(let error):
         completion(.failure(error))
       }
