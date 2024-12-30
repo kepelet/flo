@@ -101,6 +101,26 @@ class LocalFileManager {
     }
   }
 
+  func moveFile(source: URL, target: URL, completion: @escaping (Result<URL?, Error>) -> Void) {
+    do {
+      let parentDirectory = target.deletingLastPathComponent()
+
+      if !self.fileManager.fileExists(atPath: parentDirectory.path) {
+        try self.fileManager.createDirectory(
+          at: parentDirectory, withIntermediateDirectories: true, attributes: nil)
+      }
+
+      if fileManager.fileExists(atPath: target.path) {
+        try self.fileManager.removeItem(at: target)
+      }
+
+      try self.fileManager.moveItem(at: source, to: target)
+      completion(.success(target))
+    } catch {
+      completion(.failure(error))
+    }
+  }
+
   func saveFile(
     target: URL, fileName: String, content: Data,
     completion: @escaping (Result<URL?, Error>) -> Void
