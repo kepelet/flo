@@ -154,6 +154,13 @@ class AlbumViewModel: ObservableObject {
 
   //FIXME: this function is mess. refactor later
   func downloadAlbum(_ albumToDownload: Album) {
+    // TODO: make this configurable and refactor stuffs here later
+    let maxConcurrentDownloads = ProcessInfo.processInfo.activeProcessorCount / 2
+
+    let downloadQueue = DispatchQueue(
+      label: "\(AppMeta.identifier).downloads", qos: .background, attributes: .concurrent)
+    let downloadSemaphore = DispatchSemaphore(value: maxConcurrentDownloads)
+
     self.isDownloadingAlbumId = albumToDownload.id
 
     let dispatchGroup = DispatchGroup()
@@ -199,28 +206,35 @@ class AlbumViewModel: ObservableObject {
       for song in albumToDownload.songs {
         songDispatchGroup.enter()
 
-        AlbumService.shared.download(
-          artistName: albumToDownload.artist, albumName: albumToDownload.name, id: song.id,
-          trackNumber: song.trackNumber.description, title: song.title, suffix: song.suffix
-        ) { [weak self] result in
-          guard let self = self else { return }
+        downloadQueue.async {
+          downloadSemaphore.wait()
 
-          switch result {
-          case .success(let fileURL):
-            DispatchQueue.main.async {
-              if fileURL != nil {
-                AlbumService.shared.saveDownload(
-                  albumId: albumToDownload.id, albumName: albumToDownload.name, song: song,
-                  status: "Downloaded"
-                )
-              }
+          AlbumService.shared.download(
+            artistName: albumToDownload.artist, albumName: albumToDownload.name, id: song.id,
+            trackNumber: song.trackNumber.description, title: song.title, suffix: song.suffix
+          ) { [weak self] result in
+            guard let self = self else { return }
+
+            defer {
+              downloadSemaphore.signal()
+              songDispatchGroup.leave()
             }
-          case .failure(let error):
-            print(error)
-            self.isDownloadingAlbumId = ""
-          }
 
-          songDispatchGroup.leave()
+            switch result {
+            case .success(let fileURL):
+              DispatchQueue.main.async {
+                if fileURL != nil {
+                  AlbumService.shared.saveDownload(
+                    albumId: albumToDownload.id, albumName: albumToDownload.name, song: song,
+                    status: "Downloaded"
+                  )
+                }
+              }
+            case .failure(let error):
+              print(error)
+              self.isDownloadingAlbumId = ""
+            }
+          }
         }
       }
 
