@@ -63,10 +63,10 @@ struct ContentView: View {
       ZStack {
         if playerViewModel.hasNowPlaying() && !playerViewModel.shouldHidePlayer {
           PlayerView(isExpanded: $isPlayerExpanded, viewModel: playerViewModel)
+            .offset(y: isPlayerExpanded ? 0 : UIScreen.main.bounds.height)
+            .animation(.spring(duration: 0.2), value: isPlayerExpanded)
         }
       }
-      .offset(y: isPlayerExpanded ? 0 : UIScreen.main.bounds.height)
-      .animation(.spring(duration: 0.2), value: isPlayerExpanded)
 
       VStack {
         Spacer()
