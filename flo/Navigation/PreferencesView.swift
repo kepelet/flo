@@ -152,15 +152,21 @@ struct PreferencesView: View {
 
         // TODO: finish this later
         Section(header: Text("Experimental")) {
-          Toggle(
-            "Enable Request Log",
-            isOn: Binding(
-              get: { UserDefaultsManager.enableDebug },
-              set: { value in
-                UserDefaultsManager.enableDebug = value
-                APIManager.shared.reconfigureSession()
-              }
-            ))
+          VStack(alignment: .leading) {
+            Toggle(
+              "Enable Debug",
+              isOn: Binding(
+                get: { UserDefaultsManager.enableDebug },
+                set: { value in
+                  UserDefaultsManager.enableDebug = value
+                  APIManager.shared.reconfigureSession()
+                }
+              ))
+
+            Text(
+              "Enabling this option may affect the experience."
+            ).font(.caption).foregroundColor(.gray)
+          }
 
           VStack(alignment: .leading) {
             Picker(selection: $experimentalMaxBitrate, label: Text("Max Bitrate")) {
@@ -198,33 +204,52 @@ struct PreferencesView: View {
                     showLoginSheet = true
                   } else {
                     authViewModel.destroySavedPassword()
+
+                    if UserDefaultsManager.enableDebug {
+                      scanStatusViewModel.getUserDefaults()
+                    }
                   }
                 }
               ))
 
             Text(
-              "flo will store your server URL, username, and password in the Keychain with no biometric protection. If you enable this, flo will try to 'refresh' the auth token—by logging you in automatically—every time you open flo so you'll never log out unless you do it explicitly."
+              "flo will store your server URL, username, and password in the Keychain with no biometric protection. If you enable this, flo will try to 'refresh' the auth token—by logging you in automatically—every time you open flo so you'll never log out unless you do it explicitly (it will also reset this option)"
             ).font(.caption).foregroundColor(.gray)
           }
           .sheet(isPresented: shouldShowLoginSheet) {
             Login(viewModel: authViewModel, showLoginSheet: $showLoginSheet)
               .onDisappear {
+                if authViewModel.isLoggedIn {
+                  self.scanStatusViewModel.checkScanStatus()
+                  self.scanStatusViewModel.checkAccountLinkStatus()
+                }
+
+                if UserDefaultsManager.enableDebug {
+                  scanStatusViewModel.getUserDefaults()
+                }
+
                 if !showLoginSheet && authViewModel.experimentalSaveLoginInfo {
                   authViewModel.experimentalSaveLoginInfo = false
                 }
               }
           }
 
-          if false {
-            Toggle(isOn: $storeCredsInKeychain) {
-              Text("Scrobble to Last.fm")
-            }.disabled(true)
-            Toggle(isOn: $storeCredsInKeychain) {
+          if authViewModel.isLoggedIn {
+            VStack(alignment: .leading) {
+              Toggle(isOn: $scanStatusViewModel.isLastFmLinked) {
+                Text("Scrobble to Last.fm")
+              }.disabled(true)
+
+              Text("To change this, please do so via the Navidrome Web UI").font(.caption)
+                .foregroundColor(.gray)
+            }
+
+            Toggle(isOn: $scanStatusViewModel.isListenBrainzLinked) {
               Text("Scrobble to ListenBrainz")
             }.disabled(true)
-            Toggle(isOn: $storeCredsInKeychain) {
-              Text("Share my listening activity to Discord now playing status")
-            }.disabled(true)
+
+            Text("To change this, please do so via the Navidrome Web UI").font(.caption)
+              .foregroundColor(.gray)
           }
         }
 
@@ -256,9 +281,58 @@ struct PreferencesView: View {
           Section(header: Text("Logged in as \(authViewModel.user?.username ?? "sigma")")) {
             Button(action: {
               authViewModel.logout()
+
+              if UserDefaultsManager.enableDebug {
+                scanStatusViewModel.getUserDefaults()
+              }
             }) {
               Text("Logout")
                 .foregroundColor(.red)
+            }
+          }
+        }
+
+        if UserDefaultsManager.enableDebug {
+          Section(header: Text("Troubleshoot")) {
+            List {
+              ForEach(scanStatusViewModel.userDefaultsItems.keys.sorted(), id: \.self) { key in
+                VStack(alignment: .leading, spacing: 8) {
+                  Text("UserDefaults.\(key)")
+                    .font(.headline)
+                    .foregroundColor(.primary)
+
+                  Text(String(describing: scanStatusViewModel.userDefaultsItems[key]))
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                }
+                .padding(.vertical, 4)
+              }
+
+              ForEach(scanStatusViewModel.keychainItems.keys.sorted(), id: \.self) { key in
+                VStack(alignment: .leading, spacing: 8) {
+                  Text("Keychain.\(key)")
+                    .font(.headline)
+                    .foregroundColor(.primary)
+
+                  Text(String(describing: scanStatusViewModel.keychainItems[key]))
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                }
+                .padding(.vertical, 4)
+              }
+            }
+
+            Button(action: {
+              scanStatusViewModel.getUserDefaults()
+            }) {
+              Text("Refetch UserDefaults & Keychains")
+            }
+
+            Button(action: {
+              authViewModel.logout()
+              scanStatusViewModel.getUserDefaults()
+            }) {
+              Text("Force Logout").foregroundColor(.red)
             }
           }
         }
@@ -272,6 +346,11 @@ struct PreferencesView: View {
 
       if authViewModel.isLoggedIn {
         self.scanStatusViewModel.checkScanStatus()
+        self.scanStatusViewModel.checkAccountLinkStatus()
+      }
+
+      if UserDefaultsManager.enableDebug {
+        scanStatusViewModel.getUserDefaults()
       }
     }
   }

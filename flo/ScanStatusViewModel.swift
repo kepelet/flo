@@ -17,7 +17,18 @@ class ScanStatusViewModel: ObservableObject {
   @Published var stats: Stats?
   @Published var totalPlay: Int = 0
 
+  @Published var isListenBrainzLinked: Bool = false
+  @Published var isLastFmLinked: Bool = false
+
+  @Published var userDefaultsItems: [String: Any] = [:]
+  @Published var keychainItems: [String: Any] = [:]
+
   private var isGeneratingStats = false
+
+  func getUserDefaults() {
+    userDefaultsItems = UserDefaultsManager.getAll()
+    keychainItems = KeychainManager.getAuthCredsAndPasswords()
+  }
 
   // FIXME: i think everything that is related to listening history
   // and stats should live in FloooViewModel
@@ -68,6 +79,19 @@ class ScanStatusViewModel: ObservableObject {
 
       case .failure(let error):
         print("error in optimizeLocalStorage>>>", error)
+      }
+    }
+  }
+
+  func checkAccountLinkStatus() {
+    FloooService.shared.getAccountLinkStatuses { result in
+      switch result {
+      case .success(let status):
+        self.isListenBrainzLinked = status.listenBrainz
+        self.isLastFmLinked = status.lastFM
+
+      case .failure(let error):
+        print("error>>>>", error)
       }
     }
   }

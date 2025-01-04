@@ -101,6 +101,8 @@ class AuthViewModel: ObservableObject {
     do {
       try KeychainManager.removeAuthCreds()
 
+      self.destroySavedPassword()
+
       UserDefaultsManager.removeObject(key: UserDefaultsKeys.serverURL)
 
       self.user = nil
@@ -114,6 +116,7 @@ class AuthViewModel: ObservableObject {
     do {
       try KeychainManager.removeAuthPassword()
 
+      UserDefaultsManager.saveLoginInfo = false
       UserDefaultsManager.removeObject(key: UserDefaultsKeys.saveLoginInfo)
     } catch let error {
       print("error>>>>> \(error)")
