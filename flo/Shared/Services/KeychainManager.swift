@@ -11,6 +11,32 @@ import KeychainAccess
 class KeychainManager {
   private static let keychain = Keychain(service: KeychainKeys.service)
 
+  static func getAuthCredsAndPasswords() -> [String: Any] {
+    var keychainData: [String: Any] = [:]
+
+    do {
+      if let creds = try getAuthCreds() {
+        keychainData["authCreds"] = creds
+      } else {
+        keychainData["authCreds"] = "nil"
+      }
+    } catch {
+      keychainData["authCreds"] = "Error: \(error.localizedDescription)"
+    }
+
+    do {
+      if let password = try getAuthPassword() {
+        keychainData["authPassword"] = password
+      } else {
+        keychainData["authPassword"] = "nil"
+      }
+    } catch {
+      keychainData["authPassword"] = "Error: \(error.localizedDescription)"
+    }
+
+    return keychainData
+  }
+
   static func getAuthCreds() throws -> String? {
     return try keychain.get(KeychainKeys.dataKey)
   }

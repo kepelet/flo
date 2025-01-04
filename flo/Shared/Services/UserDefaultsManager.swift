@@ -8,6 +8,26 @@
 import Foundation
 
 class UserDefaultsManager {
+  static func getAll() -> [String: Any] {
+    var result = [String: Any]()
+
+    // filter only the "important" part because the rest is displayed via the UI
+    let keys = [
+      UserDefaultsKeys.serverURL,
+      UserDefaultsKeys.nowPlayingProgress,
+      UserDefaultsKeys.queueActiveIdx,
+      UserDefaultsKeys.playbackMode,
+    ]
+
+    for key in keys {
+      if let value = UserDefaults.standard.object(forKey: key) {
+        result[key] = value
+      }
+    }
+
+    return result
+  }
+
   static func removeObject(key: String) {
     UserDefaults.standard.removeObject(forKey: key)
   }
