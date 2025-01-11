@@ -190,6 +190,12 @@ class PlayerViewModel: ObservableObject {
       title: self.nowPlaying.songName ?? "",
       artist: self.nowPlaying.artistName ?? "",
       playbackDuration: self.totalDuration)
+
+    FloooService.shared.scrobbleToBuiltInEndpoint(
+      submission: false, songId: self.nowPlaying.id ?? ""
+    ) { result in
+      // TODO: handle when this fail, maybe also move to viewModel? what if user have no account linked
+    }
   }
 
   private func addPeriodicTimeObserver() {
@@ -210,6 +216,12 @@ class PlayerViewModel: ObservableObject {
       if !self.isLocallySaved && self.progress >= 0.5 {
         Task {
           FloooService.shared.saveListeningHistory(payload: self.nowPlaying)
+          // TODO: refactor to group with saveListeningHistory?
+          FloooService.shared.scrobbleToBuiltInEndpoint(
+            submission: true, songId: self.nowPlaying.id ?? ""
+          ) { result in
+            // TODO: handle when this fail, maybe also move to viewModel? what if user have no account linked
+          }
 
           self.isLocallySaved = true
         }
