@@ -136,7 +136,7 @@ class FloooService {
     }
   }
 
-  func scrobbleToBuiltInEndpoint(
+  func scrobbleToBuiltinEndpoint(
     submission: Bool, songId: String,
     completion: @escaping (Result<BasicSubsonicResponse, Error>) -> Void
   ) {
@@ -163,10 +163,5 @@ class FloooService {
 extension FloooService {
   struct AccountStatusResponse: Decodable {
     let status: Bool
-  }
-
-  struct AccountLinkStatus: Decodable {
-    let listenBrainz: Bool
-    let lastFM: Bool
   }
 }
