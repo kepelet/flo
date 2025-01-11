@@ -24,6 +24,9 @@ class FloooViewModel: ObservableObject {
   @Published var keychainItems: [String: Any] = [:]
 
   private var isGeneratingStats = false
+  private var isScrobbleAccountStatusChecked = false
+
+  static let shared = FloooViewModel()
 
   func getUserDefaults() {
     userDefaultsItems = UserDefaultsManager.getAll()
@@ -83,16 +86,26 @@ class FloooViewModel: ObservableObject {
     }
   }
 
-  func checkAccountLinkStatus() {
-    FloooService.shared.getAccountLinkStatuses { result in
+  func fetchAccountLinkStatus(completion: @escaping (AccountLinkStatus) -> Void) {
+    return FloooService.shared.getAccountLinkStatuses { result in
       switch result {
       case .success(let status):
         self.isListenBrainzLinked = status.listenBrainz
         self.isLastFmLinked = status.lastFM
+        self.isScrobbleAccountStatusChecked = true
+
+        completion(status)
 
       case .failure(let error):
         print("error>>>>", error)
       }
+    }
+  }
+
+  func checkAccountLinkStatus() {
+    self.fetchAccountLinkStatus { status in
+      self.isListenBrainzLinked = status.listenBrainz
+      self.isLastFmLinked = status.lastFM
     }
   }
 
@@ -106,6 +119,47 @@ class FloooViewModel: ObservableObject {
           print("error>>>", error)
         }
       }
+    }
+  }
+
+  func saveListeningHistory(nowPlayingData: QueueEntity) {
+    FloooService.shared.saveListeningHistory(payload: nowPlayingData)
+  }
+
+  func setNowPlayingToScrobbleServer(nowPlaying: QueueEntity) {
+    processScrobble(submission: false, nowPlaying: nowPlaying)
+  }
+
+  func scrobble(submission: Bool, nowPlaying: QueueEntity) {
+    FloooService.shared.saveListeningHistory(payload: nowPlaying)
+    processScrobble(submission: submission, nowPlaying: nowPlaying)
+  }
+
+  private func processScrobble(submission: Bool, nowPlaying: QueueEntity) {
+    guard let songId = nowPlaying.id else { return }
+
+    if isScrobbleAccountStatusChecked {
+      let shouldSubmit = isListenBrainzLinked || isLastFmLinked
+
+      if shouldSubmit {
+        sendScrobble(submission: submission, songId: songId)
+      }
+    } else {
+      fetchAccountLinkStatus { status in
+        let shouldSubmit = status.listenBrainz || status.lastFM
+
+        if shouldSubmit {
+          self.sendScrobble(submission: submission, songId: songId)
+        }
+      }
+    }
+  }
+
+  private func sendScrobble(submission: Bool, songId: String) {
+    FloooService.shared.scrobbleToBuiltinEndpoint(submission: submission, songId: songId) {
+      result in
+      // TODO: handle when this fail
+      // TODO: also, add "check offline mode" later
     }
   }
 }

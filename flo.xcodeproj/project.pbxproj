@@ -34,6 +34,7 @@
 		C45F0E332CE5582C00F75C7A /* NukeUI in Frameworks */ = {isa = PBXBuildFile; productRef = C45F0E322CE5582C00F75C7A /* NukeUI */; };
 		C467AD512D3264B400644E68 /* FloooViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C467AD502D3264AE00644E68 /* FloooViewModel.swift */; };
 		C467AD532D3267D000644E68 /* Subsonic.swift in Sources */ = {isa = PBXBuildFile; fileRef = C467AD522D3267CE00644E68 /* Subsonic.swift */; };
+		C467AD552D329C8B00644E68 /* AccountLinkStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = C467AD542D329C8500644E68 /* AccountLinkStatus.swift */; };
 		C46B8DD72CF4B89000B40644 /* Stats.swift in Sources */ = {isa = PBXBuildFile; fileRef = C46B8DD62CF4B88E00B40644 /* Stats.swift */; };
 		C46C85C42C07114200903F54 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C46C85C32C07114200903F54 /* LoginView.swift */; };
 		C47876022C2BF15900184A33 /* AlbumsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C47876012C2BF15900184A33 /* AlbumsView.swift */; };
@@ -90,6 +91,7 @@
 		C446A6B62C08DE8800CC9787 /* UserAuth.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserAuth.swift; sourceTree = "<group>"; };
 		C467AD502D3264AE00644E68 /* FloooViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloooViewModel.swift; sourceTree = "<group>"; };
 		C467AD522D3267CE00644E68 /* Subsonic.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Subsonic.swift; sourceTree = "<group>"; };
+		C467AD542D329C8500644E68 /* AccountLinkStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountLinkStatus.swift; sourceTree = "<group>"; };
 		C46B8DD62CF4B88E00B40644 /* Stats.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Stats.swift; sourceTree = "<group>"; };
 		C46C85C32C07114200903F54 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
 		C47876012C2BF15900184A33 /* AlbumsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlbumsView.swift; sourceTree = "<group>"; };
@@ -155,6 +157,7 @@
 		C4289F4C2C1253BE00C3A4FD /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				C467AD542D329C8500644E68 /* AccountLinkStatus.swift */,
 				C467AD522D3267CE00644E68 /* Subsonic.swift */,
 				C46B8DD62CF4B88E00B40644 /* Stats.swift */,
 				C4824D222CE8C41D003EAB52 /* Playable.swift */,
@@ -381,6 +384,7 @@
 				C4FE524D2C14E71B0053763A /* KeychainManager.swift in Sources */,
 				C4875E022C149DDD00D9BAEB /* AuthService.swift in Sources */,
 				C4EAA4862C297E35007EB2E0 /* NowPlaying.swift in Sources */,
+				C467AD552D329C8B00644E68 /* AccountLinkStatus.swift in Sources */,
 				C4120FDD2C15E1C300E712BE /* Song.swift in Sources */,
 				C467AD532D3267D000644E68 /* Subsonic.swift in Sources */,
 				C47876022C2BF15900184A33 /* AlbumsView.swift in Sources */,
