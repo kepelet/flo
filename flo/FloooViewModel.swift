@@ -1,14 +1,14 @@
 //
-//  ScanStatusViewModel.swift
+//  FloooViewModel.swift
 //  flo
 //
-//  Created by rizaldy on 14/06/24.
+//  Created by rizaldy on 11/01/25.
 //
 
 import SwiftUI
 
-class ScanStatusViewModel: ObservableObject {
-  @Published var scanStatus: ScanStatusService.status = nil
+class FloooViewModel: ObservableObject {
+  @Published var scanStatus: SubsonicResponse<ScanStatus>? = nil
   @Published var downloadedAlbums: Int = 0
   @Published var downloadedSongs: Int = 0
 
@@ -101,7 +101,7 @@ class ScanStatusViewModel: ObservableObject {
       DispatchQueue.main.async {
         switch result {
         case .success(let status):
-          self?.scanStatus = status
+          self?.scanStatus = status.subsonicResponse
         case .failure(let error):
           print("error>>>", error)
         }

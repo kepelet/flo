@@ -17,7 +17,7 @@ struct PreferencesView: View {
   @State private var playerColor = Color(.player)
   @State private var customFontFamily = "Plus Jakarta Sans"
 
-  @EnvironmentObject var scanStatusViewModel: ScanStatusViewModel
+  @EnvironmentObject var floooViewModel: FloooViewModel
   @EnvironmentObject var playerViewModel: PlayerViewModel
 
   let themeColors = ["Blue", "Green", "Red", "Ohio"]
@@ -59,25 +59,25 @@ struct PreferencesView: View {
           HStack {
             Text("Downloaded Albums")
             Spacer()
-            Text(scanStatusViewModel.downloadedAlbums.description)
+            Text(floooViewModel.downloadedAlbums.description)
           }
 
           HStack {
             Text("Downloaded Songs")
             Spacer()
-            Text(scanStatusViewModel.downloadedSongs.description)
+            Text(floooViewModel.downloadedSongs.description)
           }
 
           HStack {
             Text("Total usage")
             Spacer()
-            Text(scanStatusViewModel.localDirectorySize)
+            Text(floooViewModel.localDirectorySize)
           }
 
           Button(
             role: .destructive,
             action: {
-              scanStatusViewModel.clearListeningHistory()
+              floooViewModel.clearListeningHistory()
             }
           ) {
             Text("Clear listening history (no alert and irreversible)")
@@ -93,7 +93,7 @@ struct PreferencesView: View {
               Button(
                 "Continue", role: .destructive,
                 action: {
-                  scanStatusViewModel.optimizeLocalStorage()
+                  floooViewModel.optimizeLocalStorage()
                   playerViewModel.destroyPlayerAndQueue()
                 })
             },
@@ -114,22 +114,22 @@ struct PreferencesView: View {
             HStack {
               Text("Navidrome Version")
               Spacer()
-              Text(scanStatusViewModel.scanStatus?.serverVersion ?? "undefined")
+              Text(floooViewModel.scanStatus?.serverVersion ?? "undefined")
             }
             HStack {
               Text("Subsonic Version")
               Spacer()
-              Text(scanStatusViewModel.scanStatus?.version ?? "undefined")
+              Text(floooViewModel.scanStatus?.version ?? "undefined")
             }
             HStack {
               Text("Total Folders Scanned")
               Spacer()
-              Text(scanStatusViewModel.scanStatus?.scanStatus.folderCount.description ?? "0")
+              Text(floooViewModel.scanStatus?.data?.folderCount.description ?? "0")
             }
             HStack {
               Text("Total Files Scanned")
               Spacer()
-              Text(scanStatusViewModel.scanStatus?.scanStatus.count.description ?? "0")
+              Text(floooViewModel.scanStatus?.data?.count.description ?? "0")
             }
           }
         }
@@ -206,7 +206,7 @@ struct PreferencesView: View {
                     authViewModel.destroySavedPassword()
 
                     if UserDefaultsManager.enableDebug {
-                      scanStatusViewModel.getUserDefaults()
+                      floooViewModel.getUserDefaults()
                     }
                   }
                 }
@@ -220,12 +220,12 @@ struct PreferencesView: View {
             Login(viewModel: authViewModel, showLoginSheet: $showLoginSheet)
               .onDisappear {
                 if authViewModel.isLoggedIn {
-                  self.scanStatusViewModel.checkScanStatus()
-                  self.scanStatusViewModel.checkAccountLinkStatus()
+                  self.floooViewModel.checkScanStatus()
+                  self.floooViewModel.checkAccountLinkStatus()
                 }
 
                 if UserDefaultsManager.enableDebug {
-                  scanStatusViewModel.getUserDefaults()
+                  floooViewModel.getUserDefaults()
                 }
 
                 if !showLoginSheet && authViewModel.experimentalSaveLoginInfo {
@@ -236,7 +236,7 @@ struct PreferencesView: View {
 
           if authViewModel.isLoggedIn {
             VStack(alignment: .leading) {
-              Toggle(isOn: $scanStatusViewModel.isLastFmLinked) {
+              Toggle(isOn: $floooViewModel.isLastFmLinked) {
                 Text("Scrobble to Last.fm")
               }.disabled(true)
 
@@ -244,7 +244,7 @@ struct PreferencesView: View {
                 .foregroundColor(.gray)
             }
 
-            Toggle(isOn: $scanStatusViewModel.isListenBrainzLinked) {
+            Toggle(isOn: $floooViewModel.isListenBrainzLinked) {
               Text("Scrobble to ListenBrainz")
             }.disabled(true)
 
@@ -283,7 +283,7 @@ struct PreferencesView: View {
               authViewModel.logout()
 
               if UserDefaultsManager.enableDebug {
-                scanStatusViewModel.getUserDefaults()
+                floooViewModel.getUserDefaults()
               }
             }) {
               Text("Logout")
@@ -295,26 +295,26 @@ struct PreferencesView: View {
         if UserDefaultsManager.enableDebug {
           Section(header: Text("Troubleshoot")) {
             List {
-              ForEach(scanStatusViewModel.userDefaultsItems.keys.sorted(), id: \.self) { key in
+              ForEach(floooViewModel.userDefaultsItems.keys.sorted(), id: \.self) { key in
                 VStack(alignment: .leading, spacing: 8) {
                   Text("UserDefaults.\(key)")
                     .font(.headline)
                     .foregroundColor(.primary)
 
-                  Text(String(describing: scanStatusViewModel.userDefaultsItems[key]))
+                  Text(String(describing: floooViewModel.userDefaultsItems[key]))
                     .font(.subheadline)
                     .foregroundColor(.secondary)
                 }
                 .padding(.vertical, 4)
               }
 
-              ForEach(scanStatusViewModel.keychainItems.keys.sorted(), id: \.self) { key in
+              ForEach(floooViewModel.keychainItems.keys.sorted(), id: \.self) { key in
                 VStack(alignment: .leading, spacing: 8) {
                   Text("Keychain.\(key)")
                     .font(.headline)
                     .foregroundColor(.primary)
 
-                  Text(String(describing: scanStatusViewModel.keychainItems[key]))
+                  Text(String(describing: floooViewModel.keychainItems[key]))
                     .font(.subheadline)
                     .foregroundColor(.secondary)
                 }
@@ -323,14 +323,14 @@ struct PreferencesView: View {
             }
 
             Button(action: {
-              scanStatusViewModel.getUserDefaults()
+              floooViewModel.getUserDefaults()
             }) {
               Text("Refetch UserDefaults & Keychains")
             }
 
             Button(action: {
               authViewModel.logout()
-              scanStatusViewModel.getUserDefaults()
+              floooViewModel.getUserDefaults()
             }) {
               Text("Force Logout").foregroundColor(.red)
             }
@@ -342,15 +342,15 @@ struct PreferencesView: View {
         }
       }.navigationBarTitle("Preferences", displayMode: .inline)
     }.onAppear {
-      scanStatusViewModel.getLocalStorageInformation()
+      floooViewModel.getLocalStorageInformation()
 
       if authViewModel.isLoggedIn {
-        self.scanStatusViewModel.checkScanStatus()
-        self.scanStatusViewModel.checkAccountLinkStatus()
+        self.floooViewModel.checkScanStatus()
+        self.floooViewModel.checkAccountLinkStatus()
       }
 
       if UserDefaultsManager.enableDebug {
-        scanStatusViewModel.getUserDefaults()
+        floooViewModel.getUserDefaults()
       }
     }
   }
@@ -358,9 +358,9 @@ struct PreferencesView: View {
 
 struct PreferencesView_Previews: PreviewProvider {
   @State static var authViewModel: AuthViewModel = AuthViewModel()
-  @State static var scanStatusViewModel: ScanStatusViewModel = ScanStatusViewModel()
+  @State static var floooViewModel: FloooViewModel = FloooViewModel()
 
   static var previews: some View {
-    PreferencesView(authViewModel: authViewModel).environmentObject(scanStatusViewModel)
+    PreferencesView(authViewModel: authViewModel).environmentObject(floooViewModel)
   }
 }

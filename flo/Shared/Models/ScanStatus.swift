@@ -7,27 +7,21 @@
 
 import Foundation
 
-struct ScanStatusResponse: Codable {
-  struct SubsonicResponse: Codable {
-    struct ScanStatus: Codable {
-      let scanning: Bool
-      let count: Int
-      let folderCount: Int
-      let lastScan: String
-    }
+struct ScanStatus: SubsonicResponseData {
+  let scanning: Bool
+  let count: Int
+  let folderCount: Int
+  let lastScan: String
 
-    let status: String
-    let version: String
-    let type: String
-    let serverVersion: String
-    let openSubsonic: Bool
-    let scanStatus: ScanStatus
+  static var key: String {
+    return "scanStatus"
   }
+}
 
-  let subsonicResponse: SubsonicResponse
+struct ScanStatusResponse: Codable {
+  let subsonicResponse: SubsonicResponse<ScanStatus>
 
-  enum CodingKeys: String, CodingKey {
-    // FIXME: constants?
+  private enum CodingKeys: String, CodingKey {
     case subsonicResponse = "subsonic-response"
   }
 }

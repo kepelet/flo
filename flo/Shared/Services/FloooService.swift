@@ -1,33 +1,12 @@
 import Alamofire
+import Foundation
+
 //
 //  FloooService.swift
 //  flo
 //
 //  Created by rizaldy on 22/11/24.
 //
-import Foundation
-
-struct AccountStatusResponse: Decodable {
-  let status: Bool
-}
-
-struct AccountLinkStatus: Decodable {
-  let listenBrainz: Bool
-  let lastFM: Bool
-}
-
-struct SubsonicResponse: Codable {
-  let status: String
-  let version: String
-  let type: String
-  let serverVersion: String
-  let openSubsonic: Bool
-}
-
-enum CodingKeys: String, CodingKey {
-  // FIXME: constants?
-  case subsonicResponse = "subsonic-response"
-}
 
 class FloooService {
   static let shared: FloooService = FloooService()
@@ -159,7 +138,7 @@ class FloooService {
 
   func scrobbleToBuiltInEndpoint(
     submission: Bool, songId: String,
-    completion: @escaping (Result<SubsonicResponse, Error>) -> Void
+    completion: @escaping (Result<BasicSubsonicResponse, Error>) -> Void
   ) {
     var params: [String: Any] = ["submission": String(submission), "id": songId]
 
@@ -170,7 +149,7 @@ class FloooService {
     APIManager.shared.SubsonicEndpointRequest(
       endpoint: API.SubsonicEndpoint.scrobble, parameters: params
     ) {
-      (response: DataResponse<SubsonicResponse, AFError>) in
+      (response: DataResponse<BasicSubsonicResponse, AFError>) in
       switch response.result {
       case .success(let response):
         completion(.success(response))
@@ -178,5 +157,16 @@ class FloooService {
         completion(.failure(error))
       }
     }
+  }
+}
+
+extension FloooService {
+  struct AccountStatusResponse: Decodable {
+    let status: Bool
+  }
+
+  struct AccountLinkStatus: Decodable {
+    let listenBrainz: Bool
+    let lastFM: Bool
   }
 }

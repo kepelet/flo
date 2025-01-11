@@ -17,7 +17,7 @@ struct ContentView: View {
   @StateObject private var authViewModel = AuthViewModel()
   @StateObject private var playerViewModel = PlayerViewModel()
   @StateObject private var albumViewModel = AlbumViewModel()
-  @StateObject private var scanStatusViewModel = ScanStatusViewModel()
+  @StateObject private var floooViewModel = FloooViewModel()
 
   @State private var floatingPlayerOffsetX: CGFloat = .zero
   @State private var isSwipping = false
@@ -29,7 +29,7 @@ struct ContentView: View {
       TabView {
         HomeView(viewModel: authViewModel).tabItem {
           Label("Home", systemImage: "house")
-        }.environmentObject(scanStatusViewModel)
+        }.environmentObject(floooViewModel)
 
         if authViewModel.isLoggedIn {
           LibraryView(viewModel: albumViewModel).tabItem {
@@ -47,7 +47,7 @@ struct ContentView: View {
 
         PreferencesView(authViewModel: authViewModel).tabItem {
           Label("Preferences", systemImage: "gear")
-        }.environmentObject(scanStatusViewModel).environmentObject(playerViewModel)
+        }.environmentObject(playerViewModel).environmentObject(floooViewModel)
 
         if UserDefaultsManager.enableDebug {
           ConsoleView().tabItem {

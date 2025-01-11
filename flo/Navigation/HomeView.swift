@@ -11,7 +11,7 @@ struct HomeView: View {
   @ObservedObject var viewModel: AuthViewModel
   @State private var showLoginSheet: Bool = false
 
-  @EnvironmentObject var scanStatusViewModel: ScanStatusViewModel
+  @EnvironmentObject var floooViewModel: FloooViewModel
 
   private func shouldShowLoginSheet() -> Binding<Bool> {
     Binding(
@@ -56,7 +56,7 @@ struct HomeView: View {
           Login(viewModel: viewModel, showLoginSheet: $showLoginSheet)
             .onDisappear {
               if viewModel.isLoggedIn {
-                self.scanStatusViewModel.checkScanStatus()
+                self.floooViewModel.checkScanStatus()
               }
             }
         }
@@ -85,14 +85,14 @@ struct HomeView: View {
           HStack(alignment: .top, spacing: 16) {
             StatCard(
               title: "Total Listens",
-              value: scanStatusViewModel.totalPlay.description,
+              value: floooViewModel.totalPlay.description,
               icon: "headphones",
               color: .purple
             )
 
             StatCard(
               title: "Top Artist",
-              value: scanStatusViewModel.stats?.topArtist ?? "N/A",
+              value: floooViewModel.stats?.topArtist ?? "N/A",
               icon: "music.mic",
               color: .blue,
               showArrow: true
@@ -102,8 +102,8 @@ struct HomeView: View {
           HStack(alignment: .top, spacing: 16) {
             StatCard(
               title: "Top Album",
-              value: scanStatusViewModel.stats?.topAlbum ?? "N/A",
-              subtitle: scanStatusViewModel.stats?.topAlbumArtist ?? "N/A",
+              value: floooViewModel.stats?.topAlbum ?? "N/A",
+              subtitle: floooViewModel.stats?.topAlbumArtist ?? "N/A",
               icon: "record.circle",
               color: .pink,
               isWide: true,
@@ -134,16 +134,16 @@ struct HomeView: View {
       }
     }
     .onAppear {
-      self.scanStatusViewModel.getListeningHistory()
+      self.floooViewModel.getListeningHistory()
     }
   }
 }
 
 struct HomeViewPreviews_Previews: PreviewProvider {
   @StateObject static var viewModel: AuthViewModel = AuthViewModel()
-  @StateObject static var scanStatusViewModel: ScanStatusViewModel = ScanStatusViewModel()
+  @StateObject static var floooViewModel: FloooViewModel = FloooViewModel()
 
   static var previews: some View {
-    HomeView(viewModel: viewModel).environmentObject(scanStatusViewModel)
+    HomeView(viewModel: viewModel).environmentObject(floooViewModel)
   }
 }
