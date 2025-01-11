@@ -9,8 +9,6 @@ import Alamofire
 import Foundation
 
 class ScanStatusService {
-  typealias status = ScanStatusResponse.SubsonicResponse?
-
   static let shared = ScanStatusService()
 
   func getDownloadedAlbumsCount() -> Int {
@@ -21,7 +19,7 @@ class ScanStatusService {
     return CoreDataManager.shared.countRecords(entity: SongEntity.self)
   }
 
-  func getScanStatus(completion: @escaping (Result<status, Error>) -> Void) {
+  func getScanStatus(completion: @escaping (Result<ScanStatusResponse, Error>) -> Void) {
     let params: [String: Any] = [:]
 
     APIManager.shared.SubsonicEndpointRequest(
@@ -30,7 +28,7 @@ class ScanStatusService {
       (response: DataResponse<ScanStatusResponse, AFError>) in
       switch response.result {
       case .success(let status):
-        completion(.success(status.subsonicResponse))
+        completion(.success(status))
       case .failure(let error):
         completion(.failure(error))
       }
