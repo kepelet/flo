@@ -17,6 +17,8 @@ struct API {
     static let getPlaylists = "/api/playlist"
     static let getSong = "/api/song"
     static let shareAlbum = "/api/share"
+    static let listenBrainzLink = "/api/listenbrainz/link"
+    static let lastFMLink = "/api/lastfm/link"
   }
 
   struct SubsonicEndpoint {
@@ -25,6 +27,7 @@ struct API {
     static let albuminfo = "/rest/getAlbumInfo"
     static let scanStatus = "/rest/getScanStatus"
     static let download = "/rest/download"
+    static let scrobble = "/rest/scrobble"
   }
 }
 

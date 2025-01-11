@@ -1,3 +1,4 @@
+import Alamofire
 //
 //  FloooService.swift
 //  flo
@@ -5,6 +6,28 @@
 //  Created by rizaldy on 22/11/24.
 //
 import Foundation
+
+struct AccountStatusResponse: Decodable {
+  let status: Bool
+}
+
+struct AccountLinkStatus: Decodable {
+  let listenBrainz: Bool
+  let lastFM: Bool
+}
+
+struct SubsonicResponse: Codable {
+  let status: String
+  let version: String
+  let type: String
+  let serverVersion: String
+  let openSubsonic: Bool
+}
+
+enum CodingKeys: String, CodingKey {
+  // FIXME: constants?
+  case subsonicResponse = "subsonic-response"
+}
 
 class FloooService {
   static let shared: FloooService = FloooService()
@@ -57,5 +80,103 @@ class FloooService {
 
       return stats
     }.value
+  }
+
+  func getAccountLinkStatuses(completion: @escaping (Result<AccountLinkStatus, Error>) -> Void) {
+    let group = DispatchGroup()
+
+    var listenBrainzStatus: Bool?
+    var lastFMStatus: Bool?
+    var error: Error?
+
+    group.enter()
+
+    checkListenBrainzAccountStatus { result in
+      switch result {
+      case .success(let status):
+        listenBrainzStatus = status
+      case .failure(let err):
+        error = err
+      }
+
+      group.leave()
+    }
+
+    group.enter()
+
+    checkLastFMAccountStatus { result in
+      switch result {
+      case .success(let status):
+        lastFMStatus = status
+      case .failure(let err):
+        error = err
+      }
+
+      group.leave()
+    }
+
+    group.notify(queue: .main) {
+      if let error = error {
+        completion(.failure(error))
+
+        return
+      }
+
+      guard let listenBrainz = listenBrainzStatus, let lastFm = lastFMStatus else {
+        completion(.failure(NSError(domain: "", code: -1)))
+
+        return
+      }
+
+      completion(.success(AccountLinkStatus(listenBrainz: listenBrainz, lastFM: lastFm)))
+    }
+  }
+
+  func checkListenBrainzAccountStatus(completion: @escaping (Result<Bool, Error>) -> Void) {
+    APIManager.shared.NDEndpointRequest(endpoint: API.NDEndpoint.listenBrainzLink, parameters: [:])
+    {
+      (response: DataResponse<AccountStatusResponse, AFError>) in
+      switch response.result {
+      case .success(let status):
+        completion(.success(status.status))
+      case .failure(let error):
+        completion(.failure(error))
+      }
+    }
+  }
+
+  func checkLastFMAccountStatus(completion: @escaping (Result<Bool, Error>) -> Void) {
+    APIManager.shared.NDEndpointRequest(endpoint: API.NDEndpoint.lastFMLink, parameters: [:]) {
+      (response: DataResponse<AccountStatusResponse, AFError>) in
+      switch response.result {
+      case .success(let status):
+        completion(.success(status.status))
+      case .failure(let error):
+        completion(.failure(error))
+      }
+    }
+  }
+
+  func scrobbleToBuiltInEndpoint(
+    submission: Bool, songId: String,
+    completion: @escaping (Result<SubsonicResponse, Error>) -> Void
+  ) {
+    var params: [String: Any] = ["submission": String(submission), "id": songId]
+
+    if submission {
+      params["time"] = Int(Date().timeIntervalSince1970 * 1000)
+    }
+
+    APIManager.shared.SubsonicEndpointRequest(
+      endpoint: API.SubsonicEndpoint.scrobble, parameters: params
+    ) {
+      (response: DataResponse<SubsonicResponse, AFError>) in
+      switch response.result {
+      case .success(let response):
+        completion(.success(response))
+      case .failure(let error):
+        completion(.failure(error))
+      }
+    }
   }
 }
