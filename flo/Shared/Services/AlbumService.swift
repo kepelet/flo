@@ -280,6 +280,34 @@ class AlbumService {
     }
   }
 
+  // FIXME: refactor later
+  func downloadNew(
+    artistName: String, albumName: String, id: String, bitrate: Int = 0, trackNumber: String,
+    title: String, suffix: String, progressUpdate: ((Double) -> Void)?,
+    completion: @escaping (Result<URL?, Error>) -> Void
+  ) -> DownloadRequest {
+    let params: [String: Any] = ["id": id, "format": "raw", "bitrate": bitrate]
+
+    return APIManager.shared.SubsonicEndpointDownloadNew(
+      endpoint: API.SubsonicEndpoint.download, parameters: params, progressUpdate: progressUpdate
+    ) { result in
+      switch result {
+      case .success(let tempFile):
+        guard
+          let target = LocalFileManager.shared.documentsDirectory?.appendingPathComponent("Media")
+            .appendingPathComponent(artistName).appendingPathComponent(albumName)
+            .appendingPathComponent("\(trackNumber) \(title).\(suffix)")
+        else {
+          return
+        }
+
+        LocalFileManager.shared.moveFile(source: tempFile, target: target, completion: completion)
+      case .failure(let error):
+        completion(.failure(error))
+      }
+    }
+  }
+
   // FIXME: the parameters are so damn long
   func download(
     artistName: String, albumName: String, id: String, bitrate: Int = 0, trackNumber: String,
@@ -303,6 +331,38 @@ class AlbumService {
         LocalFileManager.shared.moveFile(source: tempFile, target: target, completion: completion)
       case .failure(let error):
         completion(.failure(error))
+      }
+    }
+  }
+
+  func removeDownloadedAlbum(
+    artistName: String, albumId: String, albumName: String,
+    completion: @escaping (Result<Bool, Error>) -> Void
+  ) {
+    let checkExistingAlbum = CoreDataManager.shared.getRecordByKey(
+      entity: PlaylistEntity.self, key: \PlaylistEntity.name, value: albumName, limit: 1)
+
+    if checkExistingAlbum.first != nil {
+      guard
+        let target = LocalFileManager.shared.documentsDirectory?.appendingPathComponent("Media")
+          .appendingPathComponent(artistName).appendingPathComponent(albumName)
+      else { return }
+
+      LocalFileManager.shared.deleteDownloadedAlbum(target: target) { result in
+        switch result {
+        case .success(let success):
+          if success {
+            CoreDataManager.shared.deleteRecordByKey(
+              entity: PlaylistEntity.self, key: \PlaylistEntity.name, value: albumName)
+
+            CoreDataManager.shared.deleteRecordByKey(
+              entity: SongEntity.self, key: \SongEntity.albumId, value: albumId)
+          }
+
+          completion(.success(true))
+        case .failure(let error):
+          completion(.failure(error))
+        }
       }
     }
   }
