@@ -18,6 +18,7 @@ struct ContentView: View {
   @StateObject private var playerViewModel = PlayerViewModel()
   @StateObject private var albumViewModel = AlbumViewModel()
   @StateObject private var floooViewModel = FloooViewModel()
+  @StateObject private var downloadViewModel = DownloadViewModel()
 
   @State private var floatingPlayerOffsetX: CGFloat = .zero
   @State private var isSwipping = false
@@ -34,14 +35,15 @@ struct ContentView: View {
         if authViewModel.isLoggedIn {
           LibraryView(viewModel: albumViewModel).tabItem {
             Label("Library", systemImage: "square.grid.2x2")
-          }.environmentObject(playerViewModel).onAppear {
-            albumViewModel.fetchAlbums()
-          }
+          }.environmentObject(playerViewModel).environmentObject(downloadViewModel)
+            .onAppear {
+              albumViewModel.fetchAlbums()
+            }
         }
 
         DownloadsView(viewModel: albumViewModel).tabItem {
           Label("Downloads", systemImage: "arrow.down.circle")
-        }.environmentObject(playerViewModel).onAppear {
+        }.environmentObject(playerViewModel).environmentObject(downloadViewModel).onAppear {
           albumViewModel.fetchDownloadedAlbums()
         }
 
