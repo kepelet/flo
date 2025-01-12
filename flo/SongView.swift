@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct SongView: View {
+  @EnvironmentObject var downloadViewModel: DownloadViewModel
+
   @ObservedObject var viewModel: AlbumViewModel
   var playerViewModel: PlayerViewModel
 
@@ -63,7 +65,9 @@ struct SongView: View {
               }
             } else {
               Button {
-                viewModel.downloadSong(viewModel.album, songIdx: idx)
+                viewModel.downloadAlbum(viewModel.album)
+                downloadViewModel.addIndividualItem(
+                  album: viewModel.album, song: viewModel.album.songs[idx])
               } label: {
                 HStack {
                   Text("Download")
