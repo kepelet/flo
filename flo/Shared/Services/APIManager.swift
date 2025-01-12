@@ -97,6 +97,36 @@ class APIManager {
     }
   }
 
+  // FIXME: refactor later
+  func SubsonicEndpointDownloadNew(
+    endpoint: String, method: HTTPMethod = .get, parameters: Parameters?,
+    encoding: ParameterEncoding = URLEncoding.queryString,
+    progressUpdate: ((Double) -> Void)?,
+    completion: @escaping (Result<URL, AFError>) -> Void
+  ) -> DownloadRequest {
+
+    // FIXME: refactor getCreds(key: "subsonicToken")
+    let url =
+      "\(UserDefaultsManager.serverBaseURL)\(endpoint)\(AuthService.shared.getCreds(key: "subsonicToken"))"
+
+    return session.download(
+      url, method: method, parameters: parameters, encoding: encoding,
+      requestModifier: { $0.timeoutInterval = 60 }
+    )
+    .downloadProgress { progressValue in
+      progressUpdate?(progressValue.fractionCompleted * 100)
+    }
+    .validate()
+    .responseURL { response in
+      switch response.result {
+      case .success(let fileURL):
+        completion(.success(fileURL))
+      case .failure(let error):
+        completion(.failure(error))
+      }
+    }
+  }
+
   func SubsonicEndpointDownload(
     endpoint: String, method: HTTPMethod = .get, parameters: Parameters?,
     encoding: ParameterEncoding = URLEncoding.queryString,
