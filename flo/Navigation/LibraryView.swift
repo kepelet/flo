@@ -9,10 +9,12 @@ import SwiftUI
 
 struct LibraryView: View {
   @State private var searchAlbum = ""
+  @State private var showDownloadSheet: Bool = false
 
   @ObservedObject var viewModel: AlbumViewModel
 
   @EnvironmentObject var playerViewModel: PlayerViewModel
+  @EnvironmentObject var downloadViewModel: DownloadViewModel
 
   let columns = [
     GridItem(.flexible()),
@@ -128,6 +130,7 @@ struct LibraryView: View {
             ForEach(filteredAlbums) { album in
               NavigationLink {
                 AlbumView(viewModel: viewModel)
+                  .environmentObject(downloadViewModel)
                   .onAppear {
                     viewModel.setActiveAlbum(album: album)
                   }
@@ -145,6 +148,18 @@ struct LibraryView: View {
             placement: .navigationBarDrawer(displayMode: .always),
             prompt: "Search"
           )
+        }
+      }
+      .sheet(isPresented: $showDownloadSheet) {
+        DownloadQueueView().environmentObject(downloadViewModel)
+      }
+      .toolbar {
+        if downloadViewModel.hasDownloadQueue() {
+          Button(action: {
+            showDownloadSheet.toggle()
+          }) {
+            Label("", systemImage: "icloud.and.arrow.down")
+          }
         }
       }
       .navigationTitle("Library")
