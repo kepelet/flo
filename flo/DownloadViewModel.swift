@@ -38,24 +38,25 @@ class DownloadViewModel: ObservableObject {
   @Published private(set) var currentDownloads: Set<String> = []
   @Published var downloadedTrackCount: [DownloadTrackCount] = []
 
+  @Published var downloadWatcher: Bool = true
+
   private var activeDownloads: [String: DownloadRequest] = [:]
+
+  func isDownloading() -> Bool {
+    return downloadItems.filter({ $0.status == .downloading }).count > 0
+  }
 
   func addItem(_ album: Album, forceAll: Bool = false) {
     let songs = forceAll ? album.songs : album.songs.filter { $0.fileUrl.isEmpty }
 
-    if songs.count == 1 {
-      // FIXME: please
-      let bentarIniApaan = DownloadTrackCount(id: album.id, name: album.name, elapsed: 5, total: 1)
-      downloadedTrackCount.append(bentarIniApaan)
-    } else {
-      // FIXME: please
-      let bentarIniApaan = DownloadTrackCount(
-        id: album.id, name: album.name, elapsed: 0, total: songs.count)
-      downloadedTrackCount.append(bentarIniApaan)
-    }
+    let downloadingAlbum = DownloadTrackCount(id: album.id, name: album.name, elapsed: 0, total: 1)
+    downloadedTrackCount.append(downloadingAlbum)
 
     songs.forEach { song in
-      guard !downloadItems.contains(where: { $0.id == song.id }) else { return }
+      guard !downloadItems.contains(where: { $0.id == song.id }) else {
+        retryDownload(song.id)
+        return
+      }
 
       let queue = DownloadItem(
         id: song.id, album: album.name, title: "\(song.artist) - \(song.title)", song: song)
@@ -156,11 +157,24 @@ class DownloadViewModel: ObservableObject {
                 self?.updateItemStatus(itemId: item.id, status: DownloadStatus.completed)
                 self?.currentDownloads.remove(item.id)
                 self?.processQueue()
+                self?.downloadWatcher = true
+
+                if let index = self?.downloadedTrackCount.firstIndex(where: {
+                  $0.name == item.album && $0.total == 1
+                }) {
+                  self?.downloadedTrackCount.remove(at: index)
+                }
               }
 
             case .failure(let error):
               if let afError = error.asAFError, case .explicitlyCancelled = afError {
                 self?.updateItemStatus(itemId: item.id, status: .cancelled)
+
+                if let index = self?.downloadedTrackCount.firstIndex(where: {
+                  $0.name == item.album && $0.total == 1
+                }) {
+                  self?.downloadedTrackCount[index].elapsed = 0
+                }
               } else {
                 print(error)
                 self?.updateItemStatus(itemId: item.id, status: .failed)
@@ -172,6 +186,20 @@ class DownloadViewModel: ObservableObject {
         activeDownloads[item.id] = downloadRequest
       }
     }
+  }
+
+  func clearCurrentAlbumDownload(albumName: String) {
+    let newDownloadItems = downloadItems.filter {
+      $0.album != albumName
+    }
+
+    downloadItems = newDownloadItems
+  }
+
+  func cancelCurrentAlbumDownload(albumName: String) {
+    downloadItems
+      .filter { $0.album == albumName }
+      .forEach { cancelDownload($0.id) }
   }
 
   func cancelDownload(_ itemId: String) {
