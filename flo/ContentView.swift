@@ -45,7 +45,7 @@ struct ContentView: View {
           Label("Downloads", systemImage: "arrow.down.circle")
         }.environmentObject(playerViewModel).environmentObject(downloadViewModel).onAppear {
           albumViewModel.fetchDownloadedAlbums()
-        }
+        }.badge(downloadViewModel.getRemainingDownloadItems())
 
         PreferencesView(authViewModel: authViewModel).tabItem {
           Label("Preferences", systemImage: "gear")

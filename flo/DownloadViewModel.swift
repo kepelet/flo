@@ -46,6 +46,10 @@ class DownloadViewModel: ObservableObject {
     return downloadItems.filter({ $0.status == .downloading }).count > 0
   }
 
+  func getRemainingDownloadItems() -> Int {
+    return downloadItems.count - downloadItems.filter({ $0.status == .completed }).count
+  }
+
   func addItem(_ album: Album, forceAll: Bool = false) {
     let songs = forceAll ? album.songs : album.songs.filter { $0.fileUrl.isEmpty }
 
