@@ -144,6 +144,7 @@ struct AlbumView: View {
     .toolbar {
       if !isDownloadScreen {
         DownloadButton(
+          isDownloading: downloadViewModel.isDownloading(),
           isDownloaded: viewModel.isDownloaded,
           progress: downloadViewModel.getDownloadedTrackProgress(albumName: viewModel.album.name)
             / 100
@@ -151,8 +152,12 @@ struct AlbumView: View {
           if viewModel.isDownloaded {
             showDeleteAlbumAlert.toggle()
           } else {
-            viewModel.downloadAlbum(viewModel.album)
-            downloadViewModel.addItem(viewModel.album)
+            if downloadViewModel.isDownloading() {
+              downloadViewModel.cancelCurrentAlbumDownload(albumName: viewModel.album.name)
+            } else {
+              viewModel.downloadAlbum(viewModel.album)
+              downloadViewModel.addItem(viewModel.album)
+            }
           }
         }
 
@@ -202,10 +207,18 @@ struct AlbumView: View {
       Button("Remove Download", role: .destructive) {
         // FIXME: ini destruction nya kacau. fix sebelum rilis
         viewModel.removeDownloadedAlbum(album: viewModel.album)
+        downloadViewModel.clearCurrentAlbumDownload(albumName: viewModel.album.name)
+
         if isDownloadScreen {
           viewModel.fetchDownloadedAlbums()
           dismiss()
         }
+      }
+    }
+    .onReceive(downloadViewModel.$downloadWatcher) { newValue in
+      if newValue {
+        viewModel.setActiveAlbum(album: viewModel.album)
+        downloadViewModel.downloadWatcher = false  // uh anti pattern
       }
     }
     .alert(
