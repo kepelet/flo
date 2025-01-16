@@ -293,7 +293,13 @@ class AlbumViewModel: ObservableObject {
       DispatchQueue.main.async {
         switch result {
         case .success(let albums):
-          self.downloadedAlbums = albums
+          // TODO: is this expensive?
+          self.downloadedAlbums = albums.filter { album in
+            let songs = AlbumService.shared.getSongsByAlbumId(albumId: album.id)
+
+            return !songs.isEmpty
+          }
+
         case .failure(let error):
           self.error = error
         }
