@@ -144,7 +144,7 @@ struct AlbumView: View {
     .toolbar {
       if !isDownloadScreen {
         DownloadButton(
-          isDownloading: downloadViewModel.isDownloading(),
+          isDownloading: downloadViewModel.isDownloading(viewModel.album.name),
           isDownloaded: viewModel.isDownloaded,
           progress: downloadViewModel.getDownloadedTrackProgress(albumName: viewModel.album.name)
             / 100
@@ -152,7 +152,7 @@ struct AlbumView: View {
           if viewModel.isDownloaded {
             showDeleteAlbumAlert.toggle()
           } else {
-            if downloadViewModel.isDownloading() {
+            if downloadViewModel.isDownloading(viewModel.album.name) {
               downloadViewModel.cancelCurrentAlbumDownload(albumName: viewModel.album.name)
             } else {
               viewModel.downloadAlbum(viewModel.album)
