@@ -36,20 +36,21 @@ struct DownloadButton: View {
           Circle()
             .trim(from: 0, to: 1)
             .stroke(
-              isDownloading ? Color.gray.opacity(0.2) : Color("PlayerColor"),
+              isDownloading ? Color.gray.opacity(0.2) : Color(.accent),
               style: StrokeStyle(lineWidth: 1.5)
             )
             .overlay(
               Circle()
                 .trim(from: 0, to: displayProgress)
-                .stroke(Color("PlayerColor"), style: StrokeStyle(lineWidth: 1.5, lineCap: .round))
+                .stroke(Color(.accent), style: StrokeStyle(lineWidth: 1.5, lineCap: .round))
             )
 
           Image(systemName: isDownloading ? "stop.fill" : "arrow.down")
             .resizable()
             .scaledToFit()
-            .padding(3.5)
+            .padding(4)
             .frame(width: 17, height: 17)
+            .font(.system(size: 17, weight: .bold))
         }
       }
       .frame(width: 21, height: 21)

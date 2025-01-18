@@ -42,8 +42,9 @@ class DownloadViewModel: ObservableObject {
 
   private var activeDownloads: [String: DownloadRequest] = [:]
 
-  func isDownloading() -> Bool {
+  func isDownloading(_ albumName: String) -> Bool {
     return downloadItems.filter({ $0.status == .downloading }).count > 0
+      && downloadItems.filter({ $0.album == albumName }).count > 0
   }
 
   func getRemainingDownloadItems() -> Int {
@@ -107,13 +108,13 @@ class DownloadViewModel: ObservableObject {
   }
 
   private func startDownload(index: Int) {
+    var hasPassedThreshold = false
+
     let item = downloadItems[index]
 
     guard item.status != .downloading && item.status != .completed else { return }
 
     currentDownloads.insert(item.id)
-
-    var hasPassedThreshold = false
 
     let progressUpdate: (Double) -> Void = { progress in
       self.updateItemProgress(itemId: item.id, progress: progress)
@@ -187,7 +188,9 @@ class DownloadViewModel: ObservableObject {
           }
         }
 
-        activeDownloads[item.id] = downloadRequest
+        await MainActor.run {
+          activeDownloads[item.id] = downloadRequest
+        }
       }
     }
   }
