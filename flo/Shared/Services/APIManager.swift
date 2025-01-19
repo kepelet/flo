@@ -152,3 +152,24 @@ class APIManager {
     }
   }
 }
+
+extension APIManager {
+  func login<T: Decodable>(
+    endpoint: String, parameters: Parameters?,
+    completion: @escaping (DataResponse<T, AFError>) -> Void
+  ) {
+    session.request(
+      endpoint,
+      method: .post,
+      parameters: parameters,
+      encoding: JSONEncoding.default,
+      requestModifier: { request in
+        request.timeoutInterval = 10
+      }
+    )
+    .validate(statusCode: 200..<500)
+    .responseDecodable(of: T.self) { response in
+      completion(response)
+    }
+  }
+}
