@@ -47,6 +47,14 @@ class DownloadViewModel: ObservableObject {
       && downloadItems.filter({ $0.album == albumName }).count > 0
   }
 
+  func isDownloaded(_ albumName: String) -> Bool {
+    if let index = downloadedTrackCount.firstIndex(where: { $0.name == albumName }) {
+      return downloadedTrackCount[index].elapsed >= 1.0
+    }
+
+    return false
+  }
+
   func getRemainingDownloadItems() -> Int {
     return downloadItems.count - downloadItems.filter({ $0.status == .completed }).count
   }
@@ -54,7 +62,8 @@ class DownloadViewModel: ObservableObject {
   func addItem(_ album: Album, forceAll: Bool = false) {
     let songs = forceAll ? album.songs : album.songs.filter { $0.fileUrl.isEmpty }
 
-    let downloadingAlbum = DownloadTrackCount(id: album.id, name: album.name, elapsed: 0, total: 1)
+    let downloadingAlbum = DownloadTrackCount(
+      id: album.id, name: album.name, elapsed: 0, total: songs.count)
     downloadedTrackCount.append(downloadingAlbum)
 
     songs.forEach { song in
@@ -101,7 +110,7 @@ class DownloadViewModel: ObservableObject {
 
   func getDownloadedTrackProgress(albumName: String) -> Double {
     if let index = self.downloadedTrackCount.firstIndex(where: { $0.name == albumName }) {
-      return self.downloadedTrackCount[index].elapsed * 10
+      return self.downloadedTrackCount[index].elapsed * 100
     } else {
       return .zero
     }
@@ -120,17 +129,17 @@ class DownloadViewModel: ObservableObject {
       self.updateItemProgress(itemId: item.id, progress: progress)
 
       if let index = self.downloadedTrackCount.firstIndex(where: {
-        $0.name == item.album && $0.total == 1
+        $0.name == item.album
       }) {
-        self.downloadedTrackCount[index].elapsed = progress / 10
-      }
+        let totalTracks = self.downloadedTrackCount[index].total
 
-      if progress >= 80.0 && !hasPassedThreshold {
-        hasPassedThreshold = true
-
-        Task { @MainActor in
-          // TODO: intinya disini klo udah 80%, tambahin si elapsed untuk `item.album`, jadi
-          // klo elapsed 8 dan total 10, berarti 80% (i guess)
+        if totalTracks == 1 {
+          self.downloadedTrackCount[index].elapsed = progress / 100
+        } else {
+          if progress >= 100.0 && !hasPassedThreshold {
+            hasPassedThreshold = true
+            self.downloadedTrackCount[index].elapsed += 1.0 / Double(totalTracks)
+          }
         }
       }
     }
@@ -256,18 +265,6 @@ class DownloadViewModel: ObservableObject {
     }
 
     downloadItems = newDownloadItems
-  }
-
-  func downloadedAlbumProgress(album: String) -> Double {
-    let albumInQueue =
-      downloadItems
-      .enumerated()
-      .filter { $0.element.album == album }
-
-    let downloadedAlbum = albumInQueue.filter { $0.element.status == .completed }
-    let progress = Double(downloadedAlbum.count) / Double(albumInQueue.count)
-
-    return min(max(progress * 100, 0), 100)
   }
 
   private func updateItemProgress(itemId: String, progress: Double) {
