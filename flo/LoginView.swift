@@ -18,6 +18,9 @@ struct Login: View {
 
   var body: some View {
     ScrollView {
+      if !viewModel.extraMessage.isEmpty {
+        extraMessage
+      }
       headerSection
       formSection
     }
@@ -30,6 +33,19 @@ struct Login: View {
     }
     .background(Color(.systemBackground))
     .foregroundColor(.accent)
+  }
+
+  private var extraMessage: some View {
+    VStack {
+      Text(viewModel.extraMessage)
+        .customFont(.caption1)
+        .lineSpacing(2)
+        .multilineTextAlignment(.center)
+        .padding()
+    }
+    .overlay(
+      Rectangle().stroke(.accent, lineWidth: 1)
+    )
   }
 
   private var headerSection: some View {
