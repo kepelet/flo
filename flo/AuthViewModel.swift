@@ -19,6 +19,7 @@ class AuthViewModel: ObservableObject {
   @Published var alertMessage: String = ""
   @Published var experimentalSaveLoginInfo: Bool = false
 
+  @Published var isSubmitting: Bool = false
   @Published var isLoggedIn: Bool = false
 
   static let shared = AuthViewModel()
@@ -56,6 +57,8 @@ class AuthViewModel: ObservableObject {
   }
 
   func login() {
+    isSubmitting = true
+
     AuthService.shared.login(serverUrl: serverUrl, username: username, password: password) {
       result in
       switch result {
@@ -74,6 +77,7 @@ class AuthViewModel: ObservableObject {
         }
 
         DispatchQueue.main.async {
+          self.isSubmitting = false
           self.isLoggedIn = true
           self.username = ""
           self.password = ""
@@ -82,6 +86,8 @@ class AuthViewModel: ObservableObject {
 
       case .failure(let error):
         DispatchQueue.main.async {
+          self.isSubmitting = false
+
           switch error {
           case .server(let message):
             self.alertMessage = message
