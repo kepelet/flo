@@ -15,14 +15,6 @@ struct DownloadButton: View {
 
   let action: () async -> Void
 
-  @State private var fakeProgress = 0.0
-
-  var displayProgress: Double {
-    if !isDownloading { return 0 }
-
-    return progress > 0.02 ? progress : fakeProgress
-  }
-
   var body: some View {
     Button {
       Task {
@@ -41,8 +33,9 @@ struct DownloadButton: View {
             )
             .overlay(
               Circle()
-                .trim(from: 0, to: displayProgress)
+                .trim(from: 0, to: progress)
                 .stroke(Color(.accent), style: StrokeStyle(lineWidth: 1.5, lineCap: .round))
+                .rotationEffect(isDownloading ? .degrees(-90) : .zero)
             )
 
           Image(systemName: isDownloading ? "stop.fill" : "arrow.down")
@@ -56,17 +49,6 @@ struct DownloadButton: View {
       .frame(width: 21, height: 21)
       .animation(.easeInOut, value: isDownloaded)
       .animation(.easeInOut, value: progress)
-      .onChange(of: isDownloading) { newValue in
-        if newValue && progress <= 0.02 {
-          withAnimation(.linear(duration: 0.5).repeatForever(autoreverses: false)) {
-            fakeProgress = 1.0
-          }
-        } else {
-          withAnimation(.easeInOut) {
-            fakeProgress = 0
-          }
-        }
-      }
     }
   }
 }

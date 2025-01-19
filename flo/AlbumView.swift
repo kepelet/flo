@@ -145,7 +145,8 @@ struct AlbumView: View {
       if !isDownloadScreen {
         DownloadButton(
           isDownloading: downloadViewModel.isDownloading(viewModel.album.name),
-          isDownloaded: viewModel.isDownloaded,
+          isDownloaded: downloadViewModel.isDownloading(viewModel.album.name)
+            ? downloadViewModel.isDownloaded(viewModel.album.name) : viewModel.isDownloaded,
           progress: downloadViewModel.getDownloadedTrackProgress(albumName: viewModel.album.name)
             / 100
         ) {
