@@ -55,13 +55,15 @@ class AuthService {
     serverUrl: String, username: String, password: String,
     completion: @escaping (AuthResult<UserAuth>) -> Void
   ) {
-    let isServerBaseURLExist = UserDefaultsManager.serverBaseURL != ""
-    let url = "\(isServerBaseURLExist ? "" : serverUrl)\(API.NDEndpoint.login)"
+    let serverBaseUrl = UserDefaultsManager.serverBaseURL
+    let isServerBaseURLExist = serverBaseUrl != ""
+
+    let url = "\(isServerBaseURLExist ? serverBaseUrl : serverUrl)\(API.NDEndpoint.login)"
+
     let parameters: [String: Any] = ["username": username, "password": password]
 
-    APIManager.shared.NDEndpointRequest(
-      endpoint: url, method: .post, parameters: parameters, encoding: JSONEncoding.default
-    ) { (response: DataResponse<UserAuth, AFError>) in
+    APIManager.shared.login(endpoint: url, parameters: parameters) {
+      (response: DataResponse<UserAuth, AFError>) in
       switch response.result {
       case .success(let authResponse):
         completion(.success(authResponse))
