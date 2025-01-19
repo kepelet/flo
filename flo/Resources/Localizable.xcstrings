@@ -17,6 +17,16 @@
         }
       }
     },
+    "'%@' has been downloaded" : {
+      "localizations" : {
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "'%@' sudah terunduh"
+          }
+        }
+      }
+    },
     "%@" : {
       "localizations" : {
         "en" : {
@@ -93,6 +103,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%1$@%2$@"
+          }
+        }
+      }
+    },
+    "%@%%" : {
+      "localizations" : {
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@%%"
           }
         }
       }
@@ -257,6 +277,16 @@
         }
       }
     },
+    "Clear Downloaded/Canceled Queue" : {
+      "localizations" : {
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hapus antrian unduhan yang sudah selesai/dibatalkan"
+          }
+        }
+      }
+    },
     "Clear listening history (no alert and irreversible)" : {
       "localizations" : {
         "en" : {
@@ -385,6 +415,16 @@
         }
       }
     },
+    "Download Queue" : {
+      "localizations" : {
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Antrian Unduhan"
+          }
+        }
+      }
+    },
     "Downloaded Albums" : {
       "localizations" : {
         "en" : {
@@ -417,22 +457,6 @@
         }
       }
     },
-    "Downloading" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Downloading"
-          }
-        },
-        "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mengunduh"
-          }
-        }
-      }
-    },
     "Downloads" : {
       "localizations" : {
         "en" : {
@@ -449,18 +473,22 @@
         }
       }
     },
-    "Enable Request Log" : {
+    "Enable Debug" : {
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Enable Request Log"
-          }
-        },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Aktifkan Log Permintaan"
+            "value" : "Aktifkan Debug"
+          }
+        }
+      }
+    },
+    "Enabling this option may affect the experience." : {
+      "localizations" : {
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mengaktifkan opsi ini dapat memengaruhi pengalaman."
           }
         }
       }
@@ -481,18 +509,12 @@
         }
       }
     },
-    "flo will store your server URL, username, and password in the Keychain with no biometric protection. If you enable this, flo will try to 'refresh' the auth token—by logging you in automatically—every time you open flo so you'll never log out unless you do it explicitly." : {
+    "flo will store your server URL, username, and password in the Keychain with no biometric protection. If you enable this, flo will try to 'refresh' the auth token—by logging you in automatically—every time you open flo so you'll never log out unless you do it explicitly (it will also reset this option)" : {
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "flo will store your server URL, username, and password in the Keychain with no biometric protection. If you enable this, flo will try to 'refresh' the auth token—by logging you in automatically—every time you open flo so you'll never log out unless you do it explicitly."
-          }
-        },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "flo akan menyimpan URL server, nama pengguna, dan kata sandi kamu di Keychain tanpa perlindungan biometrik. Jika kamu mengaktifkannya, flo akan mencoba untuk ‘menyegarkan’ token autentikasi—dengan melakukan login secara otomatis—setiap kali kamu membuka flo sehingga kamu tidak akan pernah logout kecuali kamu melakukannya secara eksplisit."
+            "value" : "flo akan menyimpan URL server, nama pengguna, dan kata sandi kamu di Keychain tanpa perlindungan biometrik. Jika kamu mengaktifkannya, flo akan mencoba untuk ‘menyegarkan’ token autentikasi—dengan melakukan login secara otomatis—setiap kali kamu membuka flo sehingga kamu tidak akan pernah logout kecuali kamu melakukannya secara eksplisit (dan juga akan me-reset opsi ini)."
           }
         }
       }
@@ -525,6 +547,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Untuk saat ini tindakan ini berarti 'Hapus semua album dan lagu yang diunduh' termasuk kontennya. Lanjutkan?"
+          }
+        }
+      }
+    },
+    "Force Logout" : {
+      "localizations" : {
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Logout paksa"
           }
         }
       }
@@ -573,6 +605,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Beranda"
+          }
+        }
+      }
+    },
+    "Keychain.%@" : {
+      "localizations" : {
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keychain.%@"
           }
         }
       }
@@ -913,18 +955,32 @@
         }
       }
     },
-    "Redownload" : {
+    "Redownload Album" : {
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Redownload"
-          }
-        },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Unduh ulang"
+            "value" : "Unduh ulang album"
+          }
+        }
+      }
+    },
+    "Redownload Album (force)" : {
+      "localizations" : {
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paksa unduh album"
+          }
+        }
+      }
+    },
+    "Refetch UserDefaults & Keychains" : {
+      "localizations" : {
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Refetch UserDefaults & Keychains"
           }
         }
       }
@@ -941,6 +997,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Hapus unduhan"
+          }
+        }
+      }
+    },
+    "Retry all Failed Queue" : {
+      "localizations" : {
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Coba lagi semua antrian download yang gagal"
           }
         }
       }
@@ -1105,22 +1171,6 @@
         }
       }
     },
-    "Share my listening activity to Discord now playing status" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Share my listening activity to Discord now playing status"
-          }
-        },
-        "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bagikan aktivitas mendengarkan saya ke status Discord yang sedang diputar"
-          }
-        }
-      }
-    },
     "Shuffle" : {
       "localizations" : {
         "en" : {
@@ -1249,6 +1299,16 @@
         }
       }
     },
+    "To change this, please do so via the Navidrome Web UI" : {
+      "localizations" : {
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gunakan Navidrome Web UI untuk mengubah ini"
+          }
+        }
+      }
+    },
     "Total Files Scanned" : {
       "localizations" : {
         "en" : {
@@ -1297,6 +1357,16 @@
         }
       }
     },
+    "Troubleshoot" : {
+      "localizations" : {
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Troubleshoot"
+          }
+        }
+      }
+    },
     "Use translucent backgrounds" : {
       "localizations" : {
         "en" : {
@@ -1309,6 +1379,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Gunakan translucent background"
+          }
+        }
+      }
+    },
+    "UserDefaults.%@" : {
+      "localizations" : {
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "UserDefaults.%@"
           }
         }
       }
