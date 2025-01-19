@@ -13,6 +13,7 @@ struct Login: View {
 
   var isSubmitButtonDisabled: Bool {
     viewModel.serverUrl.isEmpty || viewModel.username.isEmpty || viewModel.password.isEmpty
+      || viewModel.isSubmitting
   }
 
   var body: some View {
