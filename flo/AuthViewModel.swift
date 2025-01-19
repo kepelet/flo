@@ -11,18 +11,33 @@ import KeychainAccess
 class AuthViewModel: ObservableObject {
   @Published var user: UserAuth?
 
-  @Published var serverUrl: String = ""
+  @Published var serverUrl: String = "" {
+    didSet {
+      validateURL()
+    }
+  }
+
   @Published var username: String = ""
   @Published var password: String = ""
 
   @Published var showAlert: Bool = false
   @Published var alertMessage: String = ""
+  @Published var extraMessage: String = ""
   @Published var experimentalSaveLoginInfo: Bool = false
 
   @Published var isSubmitting: Bool = false
   @Published var isLoggedIn: Bool = false
 
   static let shared = AuthViewModel()
+
+  private func validateURL() {
+    if serverUrl.lowercased().hasPrefix("http://") {
+      extraMessage =
+        "http:// is only supported within private IP ranges: 192.168.0.0/16, 10.0.0.0/8, and 172.16.0.0/12 — learn more at https://dub.sh/flo-ats"
+    } else {
+      extraMessage = ""
+    }
+  }
 
   init() {
     // TODO: invalidate authz token somewhere here
