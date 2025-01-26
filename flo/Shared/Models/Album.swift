@@ -84,4 +84,15 @@ struct Album: Codable, Identifiable, Playable {
     self.minYear = Int(playlist.minYear)
     self.albumCover = playlist.albumCover ?? ""
   }
+
+  init(from playlist: Playlist) {
+    self.id = playlist.id
+    self.name = playlist.name
+    self.albumArtist = "Various Artists"
+    self.artist = "Various Artists"
+    self.songs = playlist.songs
+    self.genre = "\(playlist.comment) by \(playlist.ownerName)"
+    self.minYear = 0
+    self.albumCover = ""
+  }
 }

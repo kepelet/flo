@@ -58,6 +58,7 @@ class AlbumViewModel: ObservableObject {
 
   func setActivePlaylist(playlist: Playlist) {
     self.playlist = playlist
+    self.isDownloaded = AlbumService.shared.checkIfAlbumDownloaded(albumID: playlist.id)
     self.fetchSongsByPlaylist(id: playlist.id)
   }
 
@@ -163,21 +164,40 @@ class AlbumViewModel: ObservableObject {
       case .success:
         DispatchQueue.main.async {
           if !AlbumService.shared.checkIfAlbumDownloaded(albumID: albumToDownload.id) {
-            let album = PlaylistEntity(context: CoreDataManager.shared.viewContext)
-
-            album.id = albumToDownload.id
-            album.name = albumToDownload.name
-            album.genre = albumToDownload.genre
-            album.minYear = Int64(albumToDownload.minYear)
-            album.artistName = albumToDownload.artist
-
-            CoreDataManager.shared.saveRecord()
+            AlbumService.shared.saveAlbum(albumToDownload)
           }
         }
       case .failure(let error):
         DispatchQueue.main.async {
           self.isDownloadingAlbumId = ""
           print("Failed to save image: \(error.localizedDescription)")
+        }
+      }
+    }
+  }
+
+  func downloadPlaylist(_ playlistToDownload: Playlist, targetIdx: Int = -1) {
+    let maxConcurrentDownloads = ProcessInfo.processInfo.activeProcessorCount / 2
+    let downloadSemaphore = DispatchSemaphore(value: maxConcurrentDownloads)
+    let downloadGroup = DispatchGroup()
+
+    let songs = targetIdx == -1 ? playlistToDownload.songs : [playlistToDownload.songs[targetIdx]]
+
+    Task(priority: .background) {
+      AlbumService.shared.savePlaylist(playlistToDownload)
+
+      songs.forEach { song in
+        downloadGroup.enter()
+
+        DispatchQueue.global(qos: .background).async {
+          downloadSemaphore.wait()
+
+          AlbumService.shared.downloadAlbumCoverForPlaylist(
+            albumId: song.albumId, playlistName: playlistToDownload.name, trackId: song.mediaFileId
+          ) { result in
+            downloadSemaphore.signal()
+            downloadGroup.leave()
+          }
         }
       }
     }
@@ -207,12 +227,32 @@ class AlbumViewModel: ObservableObject {
     }
   }
 
-  func removeDownloadSong(album: Album, songId: String) {
-    AlbumService.shared.removeDownloadedSong(songId: songId) { result in
+  func removeDownloadedPlaylist(playlist: Playlist) {
+    AlbumService.shared.removeDownloadedPlaylist(
+      playlistId: playlist.id,
+      playlistName: playlist.name
+    ) { result in
       DispatchQueue.main.async {
         switch result {
         case .success:
-          self.fetchSongs(id: album.id)
+          self.setActivePlaylist(playlist: playlist)
+        case .failure(let error):
+          print("error >>>", error)
+        }
+      }
+    }
+  }
+
+  func removeDownloadSong(album: Playable, songId: String, isFromPlaylist: Bool = false) {
+    AlbumService.shared.removeDownloadedSong(albumId: album.id, songId: songId) { result in
+      DispatchQueue.main.async {
+        switch result {
+        case .success:
+          if isFromPlaylist {
+            self.fetchSongsByPlaylist(id: album.id)
+          } else {
+            self.fetchSongs(id: album.id)
+          }
         case .failure(let error):
           print("error >>>", error)
         }
@@ -250,11 +290,21 @@ class AlbumViewModel: ObservableObject {
   }
 
   func fetchSongsByPlaylist(id: String) {
+    let checkLocalSongs = AlbumService.shared.getSongsByAlbumId(albumId: id)
+
+    self.playlist.songs = checkLocalSongs
+
     AlbumService.shared.getSongsByPlaylist(id: id) { result in
       DispatchQueue.main.async {
         switch result {
         case .success(let songs):
-          self.playlist.songs = songs
+          let remoteSongs = songs.filter { song in
+            !self.playlist.songs.contains(where: { $0.mediaFileId == song.mediaFileId })
+          }
+
+          self.playlist.songs.append(contentsOf: remoteSongs)
+          self.playlist.songs.sort { $0.trackNumber < $1.trackNumber }
+
         case .failure(let error):
           self.error = error
         }

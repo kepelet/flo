@@ -202,11 +202,16 @@ class AlbumService {
     ).map(Song.init)
   }
 
-  func getAlbumCover(artistName: String, albumName: String, albumId: String = "") -> String {
+  func getAlbumCover(
+    artistName: String, albumName: String, albumId: String = "", trackId: String = ""
+  ) -> String {
     let target = "Media/\(artistName)/\(albumName)/cover.png"
+    let anotherTarget = "Media/Various Artists/\(albumName)/cover/\(trackId).png"
 
     if LocalFileManager.shared.fileExists(fileName: target) {
       return LocalFileManager.shared.fileURL(for: target)?.path ?? ""
+    } else if LocalFileManager.shared.fileExists(fileName: anotherTarget) {
+      return LocalFileManager.shared.fileURL(for: anotherTarget)?.path ?? ""
     } else {
       return
         "\(UserDefaultsManager.serverBaseURL)\(API.SubsonicEndpoint.coverArt)\(AuthService.shared.getCreds(key: "subsonicToken"))&id=al-\(albumId)&size=300"
@@ -238,19 +243,56 @@ class AlbumService {
     }
   }
 
-  func saveDownload(albumId: String?, albumName: String?, song: Song, status: String) {
+  func downloadAlbumCoverForPlaylist(
+    albumId: String,
+    playlistName: String,
+    trackId: String,
+    completion: @escaping (Result<URL?, Error>) -> Void
+  ) {
+    let params: [String: Any] = ["id": "al-\(albumId)", "size": 300]
+
+    APIManager.shared.SubsonicEndpointDownload(
+      endpoint: API.SubsonicEndpoint.coverArt, parameters: params
+    ) { result in
+      switch result {
+      case .success(let tempFile):
+        guard
+          let target = LocalFileManager.shared.documentsDirectory?.appendingPathComponent("Media")
+            .appendingPathComponent("Various Artists").appendingPathComponent(playlistName)
+            .appendingPathComponent("cover")
+            .appendingPathComponent("\(trackId).png")
+        else {
+          return
+        }
+
+        LocalFileManager.shared.moveFile(
+          source: tempFile, target: target, forceOverride: false, completion: completion)
+      case .failure(let error):
+        completion(.failure(error))
+      }
+    }
+  }
+
+  func saveDownload(
+    albumId: String, albumName: String?, song: Song, status: String, isFromPlaylist: Bool = false
+  ) {
+    let songId = isFromPlaylist ? "pl:\(albumId):\(song.mediaFileId)" : song.id
+
     let checkExistingSong = CoreDataManager.shared.getRecordByKey(
-      entity: SongEntity.self, key: \SongEntity.id, value: song.id, limit: 1)
+      entity: SongEntity.self, key: \SongEntity.id, value: songId, limit: 1)
+
+    let fileURL =
+      "Media/\(isFromPlaylist ? "Various Artists" : song.artist)/\(albumName ?? "Unknown Albums")/\(Int16(song.trackNumber)) \(song.title).\(song.suffix)"
 
     if let existingSong = checkExistingSong.first {
       existingSong.fileURL =
-        "Media/\(song.artist)/\(albumName ?? "Unknown Albums")/\(Int16(song.trackNumber)) \(song.title).\(song.suffix)"
+        "Media/\(isFromPlaylist ? "Various Artists" : song.artist)/\(albumName ?? "Unknown Albums")/\(Int16(song.trackNumber)) \(song.title).\(song.suffix)"
       existingSong.status = status
     } else {
       let downloadedSong = SongEntity(context: CoreDataManager.shared.viewContext)
 
       downloadedSong.albumId = albumId
-      downloadedSong.id = song.id
+      downloadedSong.id = songId
       downloadedSong.title = song.title
       downloadedSong.artistName = song.artist
       downloadedSong.bitRate = Int64(song.bitRate)
@@ -259,10 +301,35 @@ class AlbumService {
       downloadedSong.trackNumber = Int16(song.trackNumber)
       downloadedSong.suffix = song.suffix
       downloadedSong.duration = song.duration
-      downloadedSong.fileURL =
-        "Media/\(song.artist)/\(albumName ?? "Unknown Albums")/\(Int16(song.trackNumber)) \(song.title).\(song.suffix)"
+      downloadedSong.fileURL = fileURL
       downloadedSong.status = status
+      downloadedSong.mediaFileId = isFromPlaylist ? song.mediaFileId : song.id
     }
+
+    CoreDataManager.shared.saveRecord()
+  }
+
+  func saveAlbum(_ albumToDownload: Album) {
+    let album = PlaylistEntity(context: CoreDataManager.shared.viewContext)
+
+    album.id = albumToDownload.id
+    album.name = albumToDownload.name
+    album.genre = albumToDownload.genre
+    album.minYear = Int64(albumToDownload.minYear)
+    album.artistName = albumToDownload.artist
+
+    CoreDataManager.shared.saveRecord()
+  }
+
+  func savePlaylist(_ playlistToDownload: Playlist) {
+    let playlist = PlaylistEntity(context: CoreDataManager.shared.viewContext)
+
+    playlist.id = playlistToDownload.id
+    playlist.name = playlistToDownload.name
+    playlist.genre = "\(playlistToDownload.comment) by \(playlistToDownload.ownerName)"
+
+    playlist.albumArtist = "Various Artists"
+    playlist.artistName = "Various Artists"
 
     CoreDataManager.shared.saveRecord()
   }
@@ -367,7 +434,41 @@ class AlbumService {
     }
   }
 
-  func removeDownloadedSong(songId: String, completion: @escaping (Result<Bool, Error>) -> Void) {
+  func removeDownloadedPlaylist(
+    playlistId: String, playlistName: String,
+    completion: @escaping (Result<Bool, Error>) -> Void
+  ) {
+    let checkExistingAlbum = CoreDataManager.shared.getRecordByKey(
+      entity: PlaylistEntity.self, key: \PlaylistEntity.name, value: playlistName, limit: 1)
+
+    if checkExistingAlbum.first != nil {
+      guard
+        let target = LocalFileManager.shared.documentsDirectory?.appendingPathComponent("Media")
+          .appendingPathComponent("Various Artists").appendingPathComponent(playlistName)
+      else { return }
+
+      LocalFileManager.shared.deleteDownloadedAlbum(target: target) { result in
+        switch result {
+        case .success(let success):
+          if success {
+            CoreDataManager.shared.deleteRecordByKey(
+              entity: PlaylistEntity.self, key: \PlaylistEntity.name, value: playlistName)
+
+            CoreDataManager.shared.deleteRecordByKey(
+              entity: SongEntity.self, key: \SongEntity.albumId, value: playlistId)
+          }
+
+          completion(.success(true))
+        case .failure(let error):
+          completion(.failure(error))
+        }
+      }
+    }
+  }
+
+  func removeDownloadedSong(
+    albumId: String, songId: String, completion: @escaping (Result<Bool, Error>) -> Void
+  ) {
     let checkExistingSong = CoreDataManager.shared.getRecordByKey(
       entity: SongEntity.self, key: \SongEntity.id, value: songId, limit: 1)
 

@@ -101,7 +101,10 @@ class LocalFileManager {
     }
   }
 
-  func moveFile(source: URL, target: URL, completion: @escaping (Result<URL?, Error>) -> Void) {
+  func moveFile(
+    source: URL, target: URL, forceOverride: Bool = true,
+    completion: @escaping (Result<URL?, Error>) -> Void
+  ) {
     do {
       let parentDirectory = target.deletingLastPathComponent()
 
@@ -110,8 +113,10 @@ class LocalFileManager {
           at: parentDirectory, withIntermediateDirectories: true, attributes: nil)
       }
 
-      if fileManager.fileExists(atPath: target.path) {
-        try self.fileManager.removeItem(at: target)
+      if forceOverride {
+        if fileManager.fileExists(atPath: target.path) {
+          try self.fileManager.removeItem(at: target)
+        }
       }
 
       try self.fileManager.moveItem(at: source, to: target)

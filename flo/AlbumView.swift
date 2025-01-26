@@ -64,6 +64,18 @@ struct AlbumView: View {
               )
               .shadow(radius: 5)
               .padding(.top, 10)
+          } else {
+            if let image = UIImage(named: "placeholder") {
+              Image(uiImage: image)
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: 300, height: 300)
+                .clipShape(
+                  RoundedRectangle(cornerRadius: 10, style: .continuous)
+                )
+                .shadow(radius: 5)
+                .padding(.top, 10)
+            }
           }
         }
 
@@ -206,13 +218,11 @@ struct AlbumView: View {
         }
       }
       Button("Remove Download", role: .destructive) {
-        // FIXME: ini destruction nya kacau. fix sebelum rilis
         viewModel.removeDownloadedAlbum(album: viewModel.album)
-        downloadViewModel.clearCurrentAlbumDownload(albumName: viewModel.album.name)
-
         if isDownloadScreen {
-          viewModel.fetchDownloadedAlbums()
           dismiss()
+        } else {
+          downloadViewModel.clearCurrentAlbumDownload(albumName: viewModel.album.name)
         }
       }
     }

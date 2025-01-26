@@ -19,7 +19,9 @@ enum DownloadStatus {
 
 struct DownloadItem: Identifiable {
   let id: String
+  let albumId: String
   let album: String
+  let isPlaylist: Bool
   let title: String
   let song: Song
   var progress: Double = 0
@@ -59,7 +61,7 @@ class DownloadViewModel: ObservableObject {
     return downloadItems.count - downloadItems.filter({ $0.status == .completed }).count
   }
 
-  func addItem(_ album: Album, forceAll: Bool = false) {
+  func addItem(_ album: Album, forceAll: Bool = false, isFromPlaylist: Bool = false) {
     let songs = forceAll ? album.songs : album.songs.filter { $0.fileUrl.isEmpty }
 
     let downloadingAlbum = DownloadTrackCount(
@@ -67,24 +69,32 @@ class DownloadViewModel: ObservableObject {
     downloadedTrackCount.append(downloadingAlbum)
 
     songs.forEach { song in
-      guard !downloadItems.contains(where: { $0.id == song.id }) else {
-        retryDownload(song.id)
+      let songId = isFromPlaylist ? song.mediaFileId : song.id
+      let albumId = isFromPlaylist ? album.id : song.albumId
+
+      guard !downloadItems.contains(where: { $0.id == songId }) else {
+        retryDownload(songId)
+
         return
       }
 
       let queue = DownloadItem(
-        id: song.id, album: album.name, title: "\(song.artist) - \(song.title)", song: song)
+        id: songId, albumId: albumId, album: album.name, isPlaylist: isFromPlaylist,
+        title: "\(song.artist) - \(song.title)", song: song)
       downloadItems.append(queue)
     }
 
     processQueue()
   }
 
-  func addIndividualItem(album: Album, song: Song) {
+  func addIndividualItem(album: Album, song: Song, isFromPlaylist: Bool = false) {
     guard !downloadItems.contains(where: { $0.id == song.id }) else { return }
 
+    let albumId = isFromPlaylist ? album.id : song.albumId
+
     let queue = DownloadItem(
-      id: song.id, album: album.name, title: "\(song.artist) - \(song.title)", song: song)
+      id: song.id, albumId: albumId, album: album.name, isPlaylist: isFromPlaylist,
+      title: "\(song.artist) - \(song.title)", song: song)
     downloadItems.append(queue)
 
     processQueue()
@@ -149,7 +159,7 @@ class DownloadViewModel: ObservableObject {
     Task(priority: .background) {
       do {
         let downloadRequest = AlbumService.shared.downloadNew(
-          artistName: item.song.artist,
+          artistName: item.isPlaylist ? "Various Artists" : item.song.artist,
           albumName: item.album,
           id: item.id,
           trackNumber: item.song.trackNumber.description,
@@ -163,10 +173,11 @@ class DownloadViewModel: ObservableObject {
 
               if fileURL != nil {
                 AlbumService.shared.saveDownload(
-                  albumId: item.song.albumId,
+                  albumId: item.albumId,
                   albumName: item.album,
                   song: item.song,
-                  status: "Downloaded"
+                  status: "Downloaded",
+                  isFromPlaylist: item.isPlaylist
                 )
                 self?.updateItemStatus(itemId: item.id, status: DownloadStatus.completed)
                 self?.currentDownloads.remove(item.id)

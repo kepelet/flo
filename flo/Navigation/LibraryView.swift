@@ -81,6 +81,7 @@ struct LibraryView: View {
               PlaylistView()
                 .environmentObject(viewModel)
                 .environmentObject(playerViewModel)
+                .environmentObject(downloadViewModel)
                 .onAppear {
                   viewModel.getPlaylists()
                 }
