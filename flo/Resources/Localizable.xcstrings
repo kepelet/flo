@@ -975,6 +975,26 @@
         }
       }
     },
+    "Redownload Playlist" : {
+      "localizations" : {
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unduh ulang playlist"
+          }
+        }
+      }
+    },
+    "Redownload Playlist (force)" : {
+      "localizations" : {
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paksa unduh playlist"
+          }
+        }
+      }
+    },
     "Refetch UserDefaults & Keychains" : {
       "localizations" : {
         "id" : {
