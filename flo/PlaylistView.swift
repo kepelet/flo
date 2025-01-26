@@ -10,8 +10,10 @@ import SwiftUI
 struct PlaylistView: View {
   @EnvironmentObject private var viewModel: AlbumViewModel
   @EnvironmentObject private var playerViewModel: PlayerViewModel
+  @EnvironmentObject private var downloadViewModel: DownloadViewModel
 
   @State private var searchPlaylist = ""
+  @State private var showDownloadSheet: Bool = false
 
   var filteredPlaylists: [Playlist] {
     if searchPlaylist.isEmpty {
@@ -32,6 +34,7 @@ struct PlaylistView: View {
               PlaylistDetailView()
                 .environmentObject(viewModel)
                 .environmentObject(playerViewModel)
+                .environmentObject(downloadViewModel)
                 .onAppear {
                   viewModel.setActivePlaylist(playlist: playlist)
                 }
@@ -62,6 +65,18 @@ struct PlaylistView: View {
             }
           }
         }.padding(.bottom, 100)
+      }
+      .toolbar {
+        if downloadViewModel.hasDownloadQueue() {
+          Button(action: {
+            showDownloadSheet.toggle()
+          }) {
+            Label("", systemImage: "icloud.and.arrow.down")
+          }
+        }
+      }
+      .sheet(isPresented: $showDownloadSheet) {
+        DownloadQueueView().environmentObject(downloadViewModel)
       }
       .navigationTitle("Playlists")
       .searchable(

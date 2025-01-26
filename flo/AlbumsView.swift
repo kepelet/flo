@@ -29,29 +29,48 @@ struct AlbumsView: View {
               .clipShape(
                 RoundedRectangle(cornerRadius: 5, style: .continuous)
               )
-          }
-        } else {
-          LazyImage(url: URL(string: viewModel.getAlbumCoverArt(id: album.id))) { state in
-            if let image = state.image {
-              image
+          } else {
+            if let image = UIImage(named: "placeholder") {
+              Image(uiImage: image)
                 .resizable()
                 .aspectRatio(contentMode: .fill)
                 .frame(maxWidth: .infinity, maxHeight: 300)
                 .clipShape(
                   RoundedRectangle(cornerRadius: 5, style: .continuous)
                 )
-            } else {
-              ZStack {
-                Color("PlayerColor")
-                  .frame(maxWidth: .infinity, maxHeight: 300)
-                  .clipShape(RoundedRectangle(cornerRadius: 5, style: .continuous))
-                Image(systemName: "photo")
+            }
+          }
+        } else {
+          if let image = UIImage(
+            contentsOfFile: viewModel.getAlbumCoverArt(id: album.id))
+          {
+            Image(uiImage: image)
+              .resizable()
+              .aspectRatio(contentMode: .fill)
+              .frame(maxWidth: .infinity, maxHeight: 300)
+              .clipShape(
+                RoundedRectangle(cornerRadius: 5, style: .continuous)
+              )
+          } else {
+            LazyImage(url: URL(string: viewModel.getAlbumCoverArt(id: album.id))) { state in
+              if let image = state.image {
+                image
                   .resizable()
-                  .aspectRatio(contentMode: .fit)
-                  .padding()
-                  .padding(.top, 10)
-                  .padding(.bottom, 10)
-                  .foregroundColor(Color("PlayerColor"))
+                  .aspectRatio(contentMode: .fill)
+                  .frame(maxWidth: .infinity, maxHeight: 300)
+                  .clipShape(
+                    RoundedRectangle(cornerRadius: 5, style: .continuous)
+                  )
+              } else {
+                if let image = UIImage(named: "placeholder") {
+                  Image(uiImage: image)
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(maxWidth: .infinity, maxHeight: 300)
+                    .clipShape(
+                      RoundedRectangle(cornerRadius: 5, style: .continuous)
+                    )
+                }
               }
             }
           }

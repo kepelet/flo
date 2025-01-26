@@ -83,6 +83,6 @@ struct Song: Codable, Identifiable, Hashable {
     self.suffix = song.suffix ?? "N/A"
     self.duration = song.duration
     self.fileUrl = song.fileURL ?? ""
-    self.mediaFileId = song.id ?? ""
+    self.mediaFileId = song.mediaFileId ?? ""
   }
 }

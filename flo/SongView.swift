@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct SongView: View {
+  @Environment(\.dismiss) private var dismiss
   @EnvironmentObject var downloadViewModel: DownloadViewModel
 
   @ObservedObject var viewModel: AlbumViewModel
@@ -57,6 +58,10 @@ struct SongView: View {
             if !song.fileUrl.isEmpty {
               Button(role: .destructive) {
                 viewModel.removeDownloadSong(album: viewModel.album, songId: song.id)
+                viewModel.setActiveAlbum(album: viewModel.album)
+                if viewModel.album.songs.isEmpty {
+                  dismiss()
+                }
               } label: {
                 HStack {
                   Text("Remove Download")
