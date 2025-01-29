@@ -112,7 +112,7 @@ struct PlaylistDetailView: View {
           .listRowSeparator(.hidden)
           .contentShape(Rectangle())
           .onTapGesture {
-            playerViewModel.playBySong(
+            playerViewModel.playItemFromIdx(
               idx: idx, item: viewModel.playlist, isFromLocal: false)
           }
           .contextMenu {

@@ -50,11 +50,27 @@ struct SongView: View {
         .listRowSeparator(.hidden)
         .contentShape(Rectangle())
         .onTapGesture {
-          playerViewModel.playBySong(
+          playerViewModel.playItemFromIdx(
             idx: idx, item: viewModel.album, isFromLocal: viewModel.isDownloaded)
         }
         .contextMenu {
           VStack {
+              Button {
+                  playerViewModel.queueSongNext(song: song, isFromLocal: viewModel.isDownloaded)
+              } label: {
+                  HStack {
+                    Text("Play Next")
+                    Image(systemName: "text.line.first.and.arrowtriangle.forward")
+                  }
+                }
+              Button {
+                  playerViewModel.queueSongLast(song: song, isFromLocal: viewModel.isDownloaded)
+              } label: {
+                  HStack {
+                    Text("Play Last")
+                    Image(systemName: "text.line.first.and.arrowtriangle.forward")
+                  }
+                }
             if !song.fileUrl.isEmpty {
               Button(role: .destructive) {
                 viewModel.removeDownloadSong(album: viewModel.album, songId: song.id)
@@ -91,42 +107,42 @@ struct SongView: View {
 struct SongView_Previews: PreviewProvider {
   static let songs: [Song] = [
     Song(
-      id: "0", title: "Song 1", albumId: "", artist: "Artist Name", trackNumber: 1, discNumber: 0,
+      id: "0", title: "Song 1", albumId: "", albumName: "Album", artist: "Artist Name", trackNumber: 1, discNumber: 0,
       bitRate: 0,
       sampleRate: 44100,
       suffix: "mp4a", duration: 200, mediaFileId: "0"),
     Song(
-      id: "1", title: "Song 2", albumId: "", artist: "Artist Name", trackNumber: 2, discNumber: 0,
+      id: "1", title: "Song 2", albumId: "", albumName: "Album", artist: "Artist Name", trackNumber: 2, discNumber: 0,
       bitRate: 0,
       sampleRate: 44100,
       suffix: "mp4a", duration: 200, mediaFileId: "1"),
     Song(
-      id: "2", title: "Song 3", albumId: "", artist: "Artist Name", trackNumber: 3, discNumber: 0,
+      id: "2", title: "Song 3", albumId: "", albumName: "Album", artist: "Artist Name", trackNumber: 3, discNumber: 0,
       bitRate: 0,
       sampleRate: 44100,
       suffix: "mp4a", duration: 200, mediaFileId: "2"),
     Song(
-      id: "3", title: "Song 4", albumId: "", artist: "Artist Name", trackNumber: 4, discNumber: 0,
+      id: "3", title: "Song 4", albumId: "", albumName: "Album", artist: "Artist Name", trackNumber: 4, discNumber: 0,
       bitRate: 0,
       sampleRate: 44100,
       suffix: "mp4a", duration: 200, mediaFileId: "3"),
     Song(
-      id: "4", title: "Song 5", albumId: "", artist: "Artist Name", trackNumber: 5, discNumber: 0,
+      id: "4", title: "Song 5", albumId: "", albumName: "Album", artist: "Artist Name", trackNumber: 5, discNumber: 0,
       bitRate: 0,
       sampleRate: 44100,
       suffix: "mp4a", duration: 200, mediaFileId: "4"),
     Song(
-      id: "5", title: "Song 6", albumId: "", artist: "Artist Name", trackNumber: 6, discNumber: 0,
+      id: "5", title: "Song 6", albumId: "", albumName: "Album", artist: "Artist Name", trackNumber: 6, discNumber: 0,
       bitRate: 0,
       sampleRate: 44100,
       suffix: "mp4a", duration: 200, mediaFileId: "5"),
     Song(
-      id: "6", title: "Song 7", albumId: "", artist: "Artist Name", trackNumber: 7, discNumber: 0,
+      id: "6", title: "Song 7", albumId: "", albumName: "Album", artist: "Artist Name", trackNumber: 7, discNumber: 0,
       bitRate: 0,
       sampleRate: 44100,
       suffix: "mp4a", duration: 200, mediaFileId: "6"),
     Song(
-      id: "7", title: "Song 8", albumId: "", artist: "Artist Name", trackNumber: 8, discNumber: 0,
+      id: "7", title: "Song 8", albumId: "", albumName: "Album", artist: "Artist Name", trackNumber: 8, discNumber: 0,
       bitRate: 0,
       sampleRate: 44100,
       suffix: "mp4a", duration: 200, mediaFileId: "7"),

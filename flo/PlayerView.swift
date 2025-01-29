@@ -49,7 +49,7 @@ struct PlayerView: View {
               if viewModel.queue.isEmpty {
                 Text("").customFont(.subheadline)
               } else {
-                Text("From \(viewModel.nowPlaying.albumName ?? "")").customFont(.subheadline)
+                  Text("From \(viewModel.nowPlaying.album)").customFont(.subheadline)
               }
 
               Spacer()
@@ -94,9 +94,9 @@ struct PlayerView: View {
 
           ScrollView {
             VStack(alignment: .leading) {
-              ForEach(viewModel.queue.indices, id: \.self) { idx in
+                ForEach(Array(viewModel.queue.enumerated()), id: \.element) { idx, song in
                 if viewModel.activeQueueIdx < idx {
-                  Text(viewModel.queue[idx].songName ?? "")
+                    Text(song.title)
                     .customFont(.body)
                     .fontWeight(.medium)
                     .padding(.bottom, 20)
@@ -158,14 +158,14 @@ struct PlayerView: View {
           Spacer()
 
           VStack(alignment: .center, spacing: 10) {
-            Text(viewModel.nowPlaying.songName ?? "")
+              Text(viewModel.nowPlaying.title)
               .foregroundColor(.white)
               .customFont(.title1)
               .fontWeight(.bold)
               .multilineTextAlignment(.center)
               .lineLimit(3)
 
-            Text(viewModel.nowPlaying.artistName ?? "")
+            Text(viewModel.nowPlaying.artist)
               .foregroundColor(.white.opacity(0.8))
               .customFont(.title3)
               .multilineTextAlignment(.center)
@@ -218,7 +218,7 @@ struct PlayerView: View {
 
               Text(
                 viewModel.isPlayFromSource
-                  ? "\(viewModel.nowPlaying.suffix ?? "")   \(viewModel.nowPlaying.bitRate.description)"
+                ? "\(viewModel.nowPlaying.suffix)   \(viewModel.nowPlaying.bitRate.description)"
                   : "\(TranscodingSettings.targetFormat)   \(UserDefaultsManager.maxBitRate)"
               )
               .foregroundColor(.white)

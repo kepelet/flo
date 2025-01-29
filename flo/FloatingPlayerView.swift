@@ -42,11 +42,11 @@ struct FloatingPlayerView: View {
         }
 
         VStack(alignment: .leading) {
-          Text(viewModel.nowPlaying.songName ?? "")
+            Text(viewModel.nowPlaying.title)
             .foregroundColor(.white)
             .customFont(.headline)
             .lineLimit(1)
-          Text(viewModel.nowPlaying.artistName ?? "")
+          Text(viewModel.nowPlaying.artist)
             .foregroundColor(.white)
             .customFont(.subheadline)
             .lineLimit(1)

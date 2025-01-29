@@ -122,21 +122,21 @@ class FloooViewModel: ObservableObject {
     }
   }
 
-  func saveListeningHistory(nowPlayingData: QueueEntity) {
+  func saveListeningHistory(nowPlayingData: Song) {
     FloooService.shared.saveListeningHistory(payload: nowPlayingData)
   }
 
-  func setNowPlayingToScrobbleServer(nowPlaying: QueueEntity) {
+  func setNowPlayingToScrobbleServer(nowPlaying: Song) {
     processScrobble(submission: false, nowPlaying: nowPlaying)
   }
 
-  func scrobble(submission: Bool, nowPlaying: QueueEntity) {
+  func scrobble(submission: Bool, nowPlaying: Song) {
     FloooService.shared.saveListeningHistory(payload: nowPlaying)
     processScrobble(submission: submission, nowPlaying: nowPlaying)
   }
 
-  private func processScrobble(submission: Bool, nowPlaying: QueueEntity) {
-    guard let songId = nowPlaying.id else { return }
+  private func processScrobble(submission: Bool, nowPlaying: Song) {
+    let songId = nowPlaying.id
 
     if isScrobbleAccountStatusChecked {
       let shouldSubmit = isListenBrainzLinked || isLastFmLinked

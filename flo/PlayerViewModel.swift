@@ -15,7 +15,7 @@ class PlayerViewModel: ObservableObject {
   private var playerItem: AVPlayerItem?
   private var timeObserverToken: Any?
 
-  @Published var queue: [QueueEntity] = []
+  @Published var queue: [Song] = []
   @Published var playbackMode = PlaybackMode.defaultPlayback
 
   @Published var activeQueueIdx: Int = 0
@@ -44,7 +44,7 @@ class PlayerViewModel: ObservableObject {
 
   private var scrobbleThreshold = 0.5
 
-  var nowPlaying: QueueEntity {
+  var nowPlaying: Song {
     return self.queue[self.activeQueueIdx]
   }
 
@@ -57,13 +57,13 @@ class PlayerViewModel: ObservableObject {
     self.player = AVPlayer()
     self.observeInterruptionNotifications()
 
-    let lastPlayData = PlaybackService.shared.getQueue()
+    let lastPlayData = PlaybackService.shared.getQueueAsSongs()
     let queueActiveIdx = UserDefaultsManager.queueActiveIdx
 
     if !lastPlayData.isEmpty && queueActiveIdx < lastPlayData.count {
       self.progress = UserDefaultsManager.nowPlayingProgress
       self.playbackMode = UserDefaultsManager.playbackMode
-      self.addToQueue(
+      self.setQueueWithIndex(
         idx: UserDefaultsManager.queueActiveIdx, item: lastPlayData, playAudio: false)
 
       // if users played more than half of the song then it's considered as saved
@@ -116,16 +116,20 @@ class PlayerViewModel: ObservableObject {
     }
   }
 
-  func addToQueue(idx: Int, item: [QueueEntity], playAudio: Bool = true) {
+  func setQueueWithIndex(idx: Int, item: [Song], playAudio: Bool = true) {
     self.activeQueueIdx = idx
     self.queue = item
     self.setNowPlaying(playAudio: playAudio)
   }
+    
+//    func addToQueueNext(item: [QueueEntity]) {
+//        self.q
+//    }
 
   func getAlbumCoverArt() -> String {
     return AlbumService.shared.getAlbumCover(
-      artistName: self.nowPlaying.artistName ?? "", albumName: self.nowPlaying.albumName ?? "",
-      albumId: self.nowPlaying.albumId ?? "", trackId: self.nowPlaying.id ?? "")
+        artistName: self.nowPlaying.artist, albumName: self.nowPlaying.album,
+      albumId: self.nowPlaying.albumId, trackId: self.nowPlaying.id)
   }
 
   func hasNowPlaying() -> Bool {
@@ -141,7 +145,7 @@ class PlayerViewModel: ObservableObject {
     }
 
     let audioURL = URL(
-      string: AlbumService.shared.getStreamUrl(id: self.nowPlaying.id ?? ""))
+      string: AlbumService.shared.getStreamUrl(id: self.nowPlaying.id))
 
     self._playFromLocal = audioURL?.isFileURL == true
 
@@ -149,7 +153,7 @@ class PlayerViewModel: ObservableObject {
     self.player?.replaceCurrentItem(with: self.playerItem)
 
     let duration = CMTime(
-      seconds: self.nowPlaying.duration, preferredTimescale: self.nowPlaying.sampleRate)
+        seconds: self.nowPlaying.duration, preferredTimescale: CMTimeScale(self.nowPlaying.sampleRate))
     let playbackDuration = CMTimeGetSeconds(duration)
 
     self.totalDuration = playbackDuration
@@ -187,10 +191,9 @@ class PlayerViewModel: ObservableObject {
 
     self.addPeriodicTimeObserver()
     self.initNowPlayingInfo(
-      title: self.nowPlaying.songName ?? "",
-      artist: self.nowPlaying.artistName ?? "",
-      playbackDuration: self.totalDuration)
-
+        title: self.nowPlaying.title,
+        artist: self.nowPlaying.artist,
+        playbackDuration: self.totalDuration)
     FloooViewModel.shared.setNowPlayingToScrobbleServer(nowPlaying: self.nowPlaying)
   }
 
@@ -368,33 +371,53 @@ class PlayerViewModel: ObservableObject {
     UserDefaultsManager.playbackMode = self.playbackMode
   }
 
-  func playBySong<T: Playable>(idx: Int, item: T, isFromLocal: Bool) {
-    let queue = PlaybackService.shared.addToQueue(item: item, isFromLocal: isFromLocal)
-
-    self.addToQueue(idx: idx, item: queue)
-  }
+    func playItemFromIdx<T: Playable>(idx: Int, item: T, isFromLocal: Bool) {
+        PlaybackService.shared.setQueueSongs(songs: item.songs, isFromLocal: isFromLocal)
+        
+        self.setQueueWithIndex(idx: idx, item: item.songs)
+    }
+    
+    func queueItemNext<T: Playable>(item: T, isFromLocal: Bool) {
+        self.queue.insert(contentsOf: item.songs, at: 0)
+        PlaybackService.shared.setQueueSongs(songs: self.queue, isFromLocal: isFromLocal)
+    }
+    
+    func queueItemLast<T: Playable>(item: T, isFromLocal: Bool) {
+        self.queue.append(contentsOf: item.songs)
+        PlaybackService.shared.setQueueSongs(songs: self.queue, isFromLocal: isFromLocal)
+    }
+    
+    func queueSongNext(song: Song, isFromLocal: Bool) {
+        self.queue.insert(song, at: self.activeQueueIdx + 1)
+        PlaybackService.shared.setQueueSongs(songs: self.queue, isFromLocal: isFromLocal)
+    }
+    
+    func queueSongLast(song: Song, isFromLocal: Bool) {
+        self.queue.append(song)
+        PlaybackService.shared.setQueueSongs(songs: self.queue, isFromLocal: isFromLocal)
+    }
 
   func playItem<T: Playable>(item: T, isFromLocal: Bool) {
-    let queue = PlaybackService.shared.addToQueue(item: item, isFromLocal: isFromLocal)
-
-    self.addToQueue(idx: 0, item: queue)
+      PlaybackService.shared.setQueueSongs(songs: item.songs, isFromLocal: isFromLocal)
+      self.setQueueWithIndex(idx: 0, item: item.songs)
   }
 
-  func shuffleItem<T: Playable>(item: T, isFromLocal: Bool) {
-    var shuffledItem = item
-    shuffledItem.songs.shuffle()
+    func shuffleItem<T: Playable>(item: T, isFromLocal: Bool) {
+    var shuffledItems = item.songs
+    shuffledItems.shuffle()
 
-    let queue = PlaybackService.shared.addToQueue(item: shuffledItem, isFromLocal: isFromLocal)
-    self.addToQueue(idx: 0, item: queue)
+    PlaybackService.shared.setQueueSongs(songs: shuffledItems, isFromLocal: isFromLocal)
+    self.setQueueWithIndex(idx: 0, item: shuffledItems)
   }
 
   func shuffleCurrentQueue() {
     self.isShuffling.toggle()
 
     if self.isShuffling {
-      self.queue = PlaybackService.shared.shuffleQueue(currentIdx: self.activeQueueIdx)
+        self.queue = self.queue.shuffled()
+        PlaybackService.shared.setQueueSongs(songs: self.queue)
     } else {
-      self.queue = PlaybackService.shared.getQueue()
+        self.queue = PlaybackService.shared.getQueueAsSongs()
     }
   }
 

@@ -12,6 +12,7 @@ struct Song: Codable, Identifiable, Hashable {
   let title: String
   let artist: String
   let albumId: String
+  let album: String
   let trackNumber: Int
   let discNumber: Int
   let bitRate: Int
@@ -27,6 +28,7 @@ struct Song: Codable, Identifiable, Hashable {
     case title
     case artist
     case albumId
+    case album
     case trackNumber
     case discNumber
     case bitRate
@@ -43,6 +45,7 @@ struct Song: Codable, Identifiable, Hashable {
     self.title = try container.decode(String.self, forKey: .title)
     self.artist = try container.decode(String.self, forKey: .artist)
     self.albumId = try container.decode(String.self, forKey: .albumId)
+    self.album = try container.decode(String.self, forKey: .album)
     self.trackNumber = try container.decode(Int.self, forKey: .trackNumber)
     self.discNumber = try container.decode(Int.self, forKey: .discNumber)
     self.bitRate = try container.decode(Int.self, forKey: .bitRate)
@@ -53,7 +56,7 @@ struct Song: Codable, Identifiable, Hashable {
   }
 
   init(
-    id: String, title: String, albumId: String, artist: String, trackNumber: Int, discNumber: Int,
+    id: String, title: String, albumId: String, albumName: String, artist: String, trackNumber: Int, discNumber: Int,
     bitRate: Int,
     sampleRate: Int,
     suffix: String, duration: Double, mediaFileId: String
@@ -62,6 +65,7 @@ struct Song: Codable, Identifiable, Hashable {
     self.title = title
     self.artist = artist
     self.albumId = albumId
+    self.album = albumName
     self.trackNumber = Int(trackNumber)
     self.discNumber = Int(discNumber)
     self.bitRate = Int(bitRate)
@@ -76,6 +80,7 @@ struct Song: Codable, Identifiable, Hashable {
     self.title = song.title ?? "N/A"
     self.artist = song.artistName ?? "N/A"
     self.albumId = song.albumId ?? ""
+    self.album = song.album ?? ""
     self.trackNumber = Int(song.trackNumber)
     self.discNumber = Int(song.discNumber)
     self.bitRate = Int(song.bitRate)

@@ -15,14 +15,13 @@ class FloooService {
     return await CoreDataManager.shared.getRecordsByEntityBatched(entity: HistoryEntity.self)
   }
 
-  func saveListeningHistory(payload: QueueEntity) {
+  func saveListeningHistory(payload: Song) {
     let currentSession = HistoryEntity(context: CoreDataManager.shared.viewContext)
 
     currentSession.albumId = payload.albumId
-    currentSession.artistName = payload.artistName
-    currentSession.trackName = payload.songName
-    currentSession.albumName = payload.albumName
-    currentSession.artistName = payload.artistName
+    currentSession.artistName = payload.artist
+    currentSession.trackName = payload.title
+    currentSession.albumName = payload.album
     currentSession.timestamp = Date()
 
     CoreDataManager.shared.saveRecord()

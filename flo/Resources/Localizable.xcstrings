@@ -875,6 +875,12 @@
         }
       }
     },
+    "Play Last" : {
+
+    },
+    "Play Next" : {
+
+    },
     "Player color" : {
       "localizations" : {
         "en" : {

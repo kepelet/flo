@@ -27,7 +27,7 @@ struct SongsView: View {
   var body: some View {
     ScrollView {
       LazyVStack {
-        ForEach(Array(filteredSongs.enumerated()), id: \.element) { idx, song in
+          ForEach(Array(filteredSongs.enumerated()), id: \.offset) { idx, song in
           VStack {
             HStack {
               LazyImage(url: URL(string: viewModel.getAlbumCoverArt(id: song.albumId))) { state in
@@ -73,7 +73,7 @@ struct SongsView: View {
 
             playlist.songs = Array(songs)
 
-            playerViewModel.playBySong(
+            playerViewModel.playItemFromIdx(
               idx: 0, item: playlist, isFromLocal: false)
           }
           .frame(maxWidth: .infinity, alignment: .leading)
