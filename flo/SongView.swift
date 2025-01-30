@@ -68,7 +68,7 @@ struct SongView: View {
               } label: {
                   HStack {
                     Text("Play Last")
-                    Image(systemName: "text.line.first.and.arrowtriangle.forward")
+                    Image(systemName: "text.line.last.and.arrowtriangle.forward")
                   }
                 }
             if !song.fileUrl.isEmpty {
