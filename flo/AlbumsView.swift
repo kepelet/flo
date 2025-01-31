@@ -86,7 +86,7 @@ struct AlbumsView: View {
           .multilineTextAlignment(.leading)
           .frame(maxWidth: .infinity, alignment: .leading)
 
-        Text(album.albumArtist == "Various Artists" ? album.albumArtist : album.artist)
+        Text(album.albumArtist)
           .customFont(.caption2)
           .foregroundColor(.gray)
           .truncationMode(.tail)
