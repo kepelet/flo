@@ -13,6 +13,7 @@ struct SongView: View {
 
   @ObservedObject var viewModel: AlbumViewModel
   var playerViewModel: PlayerViewModel
+  var isDownloadScreen: Bool = false
 
   var body: some View {
     VStack {
@@ -28,8 +29,8 @@ struct SongView: View {
               Text(song.title)
                 .fontWeight(.medium)
 
-              if viewModel.album.albumArtist == "Various Artists" {
-                Text(song.artist).customFont(.caption1)
+              if !isDownloadScreen && viewModel.album.albumArtist != viewModel.album.artist {
+                Text(song.artist).customFont(.caption1).offset(y: 5)
               }
 
               Spacer()

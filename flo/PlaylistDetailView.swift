@@ -92,7 +92,7 @@ struct PlaylistDetailView: View {
                 Text(song.title)
                   .fontWeight(.medium)
 
-                Text(song.artist).customFont(.caption1)
+                Text(song.artist).customFont(.caption1).offset(y: 5)
 
                 Spacer()
               }
