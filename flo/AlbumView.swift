@@ -86,10 +86,10 @@ struct AlbumView: View {
             .multilineTextAlignment(.center)
             .padding(.bottom, 5)
 
-          Text(viewModel.album.albumArtist)
-          .customFont(.title3)
-          .multilineTextAlignment(.center)
-          .padding(.bottom, 10)
+          Text(viewModel.isDownloaded ? viewModel.album.artist : viewModel.album.albumArtist)
+            .customFont(.title3)
+            .multilineTextAlignment(.center)
+            .padding(.bottom, 10)
 
           HStack {
             Text(viewModel.album.genre)
@@ -143,7 +143,7 @@ struct AlbumView: View {
         }
 
         SongView(
-          viewModel: viewModel, playerViewModel: playerViewModel
+          viewModel: viewModel, playerViewModel: playerViewModel, isDownloadScreen: isDownloadScreen
         )
         .environmentObject(downloadViewModel)
 

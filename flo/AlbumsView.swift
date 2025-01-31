@@ -86,7 +86,7 @@ struct AlbumsView: View {
           .multilineTextAlignment(.leading)
           .frame(maxWidth: .infinity, alignment: .leading)
 
-        Text(album.albumArtist)
+        Text(self.isDownloadScreen ? album.artist : album.albumArtist)
           .customFont(.caption2)
           .foregroundColor(.gray)
           .truncationMode(.tail)
