@@ -36,6 +36,7 @@
         <attribute name="suffix" optional="YES" attributeType="String"/>
     </entity>
     <entity name="SongEntity" representedClassName="SongEntity" syncable="YES" codeGenerationType="class">
+        <attribute name="albumArtistName" optional="YES" attributeType="String"/>
         <attribute name="albumId" attributeType="String"/>
         <attribute name="artistName" optional="YES" attributeType="String"/>
         <attribute name="bitRate" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
