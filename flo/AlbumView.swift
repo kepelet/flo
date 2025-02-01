@@ -218,6 +218,7 @@ struct AlbumView: View {
         viewModel.removeDownloadedAlbum(album: viewModel.album)
         if isDownloadScreen {
           dismiss()
+          viewModel.fetchDownloadedAlbums()
         } else {
           downloadViewModel.clearCurrentAlbumDownload(albumName: viewModel.album.name)
         }
