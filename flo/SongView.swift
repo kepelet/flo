@@ -60,8 +60,9 @@ struct SongView: View {
               Button(role: .destructive) {
                 viewModel.removeDownloadSong(album: viewModel.album, songId: song.id)
                 viewModel.setActiveAlbum(album: viewModel.album)
-                if viewModel.album.songs.isEmpty {
+                if isDownloadScreen {
                   dismiss()
+                  viewModel.fetchDownloadedAlbums()
                 }
               } label: {
                 HStack {
