@@ -317,6 +317,7 @@ class AlbumService {
     album.genre = albumToDownload.genre
     album.minYear = Int64(albumToDownload.minYear)
     album.artistName = albumToDownload.artist
+    album.albumArtist = albumToDownload.albumArtist
 
     CoreDataManager.shared.saveRecord()
   }

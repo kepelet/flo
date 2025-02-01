@@ -86,7 +86,7 @@ struct AlbumView: View {
             .multilineTextAlignment(.center)
             .padding(.bottom, 5)
 
-          Text(viewModel.isDownloaded ? viewModel.album.artist : viewModel.album.albumArtist)
+          Text(viewModel.album.albumArtist)
             .customFont(.title3)
             .multilineTextAlignment(.center)
             .padding(.bottom, 10)
