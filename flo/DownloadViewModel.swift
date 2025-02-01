@@ -102,6 +102,11 @@ class DownloadViewModel: ObservableObject {
 
   func processQueue() {
     let maxConcurrentDownloads = ProcessInfo.processInfo.activeProcessorCount / 2
+    let downloadedTracks = downloadItems.filter { $0.status == .completed }
+
+    if downloadedTracks.count >= maxConcurrentDownloads * 2 {
+      clearCompletedQueue()
+    }
 
     guard currentDownloads.count < maxConcurrentDownloads else { return }
 
