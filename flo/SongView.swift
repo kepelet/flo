@@ -29,8 +29,14 @@ struct SongView: View {
               Text(song.title)
                 .fontWeight(.medium)
 
-              if !isDownloadScreen && viewModel.album.albumArtist != viewModel.album.artist {
+              if song.id.hasPrefix("pl:") {
                 Text(song.artist).customFont(.caption1).offset(y: 5)
+              } else {
+                if !isDownloadScreen {
+                  if viewModel.album.albumArtist != viewModel.album.artist {
+                    Text(song.artist).customFont(.caption1).offset(y: 5)
+                  }
+                }
               }
 
               Spacer()
