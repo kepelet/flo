@@ -78,7 +78,7 @@ struct Album: Codable, Identifiable, Playable {
   init(from playlist: PlaylistEntity) {
     self.id = playlist.id ?? UUID().uuidString
     self.name = playlist.name ?? "Unknown Album"
-    self.albumArtist = playlist.albumArtist ?? "Unknown Artist"
+    self.albumArtist = playlist.albumArtist ?? playlist.artistName ?? "Unknown Artist"
     self.artist = playlist.artistName ?? "Unknown Artist"
     self.genre = playlist.genre ?? "Unknown Genre"
     self.minYear = Int(playlist.minYear)
