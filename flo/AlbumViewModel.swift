@@ -79,7 +79,10 @@ class AlbumViewModel: ObservableObject {
             !self.album.songs.contains(where: { $0.id == song.id })
           }
 
-          self.album.songs.append(contentsOf: remoteSongs)
+          if id == self.album.id {
+            self.album.songs.append(contentsOf: remoteSongs)
+          }
+
           self.album.songs.sort { $0.trackNumber < $1.trackNumber }
 
         case .failure(let error):
