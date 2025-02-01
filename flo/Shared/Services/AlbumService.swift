@@ -13,7 +13,7 @@ class AlbumService {
 
   func getStreamUrl(id: String) -> String {
     if let localStream = CoreDataManager.shared.getRecordByKey(
-      entity: SongEntity.self, key: \SongEntity.id, value: id
+      entity: SongEntity.self, key: \SongEntity.mediaFileId, value: id
     ).first {
       guard let fileUrl = LocalFileManager.shared.fileURL(for: localStream.fileURL ?? "") else {
         return ""
