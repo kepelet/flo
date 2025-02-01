@@ -90,10 +90,11 @@ class DownloadViewModel: ObservableObject {
   func addIndividualItem(album: Album, song: Song, isFromPlaylist: Bool = false) {
     guard !downloadItems.contains(where: { $0.id == song.id }) else { return }
 
+    let songId = isFromPlaylist ? song.mediaFileId : song.id
     let albumId = isFromPlaylist ? album.id : song.albumId
 
     let queue = DownloadItem(
-      id: song.id, albumId: albumId, album: album.name, isPlaylist: isFromPlaylist,
+      id: songId, albumId: albumId, album: album.name, isPlaylist: isFromPlaylist,
       title: "\(song.artist) - \(song.title)", song: song)
     downloadItems.append(queue)
 
