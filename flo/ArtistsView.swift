@@ -38,6 +38,7 @@ struct ArtistsView: View {
                 HStack {
                   Text(artist.name)
                     .customFont(.headline)
+                    .multilineTextAlignment(.leading)
 
                   Spacer()
 

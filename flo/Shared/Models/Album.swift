@@ -55,7 +55,15 @@ struct Album: Codable, Identifiable, Playable {
     self.id = try container.decode(String.self, forKey: .id)
     self.name = try container.decode(String.self, forKey: .name)
     self.albumArtist = try container.decode(String.self, forKey: .albumArtist)
-    self.artist = try container.decode(String.self, forKey: .artist)
+
+    // pre BFR compatibility
+    // FIXME(@faultables): fix this in 2.x
+    if let artist = try? container.decode(String.self, forKey: .artist) {
+      self.artist = artist
+    } else {
+      self.artist = self.albumArtist
+    }
+
     self.genre = try container.decode(String.self, forKey: .genre)
     self.minYear = try container.decode(Int.self, forKey: .minYear)
     self.songs = try container.decodeIfPresent([Song].self, forKey: .songs) ?? []
