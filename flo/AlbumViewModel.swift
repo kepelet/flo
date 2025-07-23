@@ -306,7 +306,6 @@ class AlbumViewModel: ObservableObject {
           }
 
           self.playlist.songs.append(contentsOf: remoteSongs)
-          self.playlist.songs.sort { $0.trackNumber < $1.trackNumber }
 
         case .failure(let error):
           self.error = error
