@@ -117,6 +117,16 @@
         }
       }
     },
+    "%lld" : {
+      "localizations" : {
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld"
+          }
+        }
+      }
+    },
     "•" : {
       "localizations" : {
         "en" : {
@@ -303,22 +313,6 @@
         }
       }
     },
-    "Close" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Close"
-          }
-        },
-        "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tutup"
-          }
-        }
-      }
-    },
     "Continue" : {
       "localizations" : {
         "en" : {
@@ -388,7 +382,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Description"
+            "value" : "Development"
           }
         },
         "id" : {
@@ -935,22 +929,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Preferensi"
-          }
-        }
-      }
-    },
-    "Queue" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Queue"
-          }
-        },
-        "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Antrian"
           }
         }
       }
