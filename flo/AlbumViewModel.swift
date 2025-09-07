@@ -85,7 +85,7 @@ class AlbumViewModel: ObservableObject {
 
           self.album.songs.sort { (lhs, rhs) in
             if lhs.discNumber == rhs.discNumber {
-              return lhs.trackNumber < lhs.trackNumber
+              return lhs.trackNumber < rhs.trackNumber
             }
             return lhs.discNumber < rhs.discNumber
           }
