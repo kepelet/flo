@@ -18,6 +18,8 @@ struct PlayerView: View {
 
   @State private var showQueue = false
 
+  @GestureState private var queueDragOffset: CGSize = .zero
+
   var body: some View {
     GeometryReader {
       let size = $0.size
@@ -32,16 +34,16 @@ struct PlayerView: View {
           )
         VStack(alignment: .leading) {
           HStack {
-            Text("Queue")
-              .customFont(.title2)
-              .fontWeight(.bold)
             Spacer()
-            Button {
-              self.showQueue = false
-            } label: {
-              Text("Close").customFont(.callout).fontWeight(.medium)
-            }
-          }.padding()
+
+            Rectangle()
+              .foregroundColor(Color.gray.opacity(0.3))
+              .frame(width: 50, height: 5)
+              .cornerRadius(30)
+              .padding(.top)
+
+            Spacer()
+          }
           VStack(alignment: .leading, spacing: 3) {
             Text("Playing Next").customFont(.headline)
 
@@ -90,30 +92,65 @@ struct PlayerView: View {
                   .cornerRadius(5)
               }
             }
-          }.padding()
+          }
+          .padding(.horizontal)
+          .padding(.bottom, 5)
 
           ScrollView {
             VStack(alignment: .leading) {
               ForEach(viewModel.queue.indices, id: \.self) { idx in
-                if viewModel.activeQueueIdx < idx {
-                  Text(viewModel.queue[idx].songName ?? "")
-                    .customFont(.body)
-                    .fontWeight(.medium)
-                    .padding(.bottom, 20)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .onTapGesture {
-                      viewModel.playFromQueue(idx: idx)
-                    }
+                HStack(alignment: .top) {
+                  VStack(alignment: .leading) {
+                    Text(viewModel.queue[idx].songName ?? "")
+                      .customFont(.callout)
+                      .fontWeight(.medium)
+                      .padding(.bottom, 3)
+
+                    Text(viewModel.queue[idx].artistName ?? "")
+                      .customFont(.caption1)
+                  }
+                  .frame(maxWidth: .infinity, alignment: .leading)
+
+                  Spacer()
+
+                  Text(timeString(for: viewModel.queue[idx].duration)).customFont(.caption1)
+                    .padding(.top, 4)
+                }
+                .padding(.vertical, 5)
+                .padding(.horizontal)
+                .background(
+                  viewModel.activeQueueIdx == idx
+                    ? Color.gray.opacity(0.1) : Color(.systemBackground)
+                )
+                .onTapGesture {
+                  viewModel.playFromQueue(idx: idx)
                 }
               }
-            }.padding()
+            }
           }.padding(.bottom, 60)
         }
       }
+      .gesture(
+        DragGesture()
+          .updating($queueDragOffset) { value, state, _ in
+            if value.translation.height > 0 {
+              state = value.translation
+            }
+          }
+          .onEnded { value in
+            if value.translation.height > 100 {
+              self.showQueue = false
+            }
+          }
+      )
+      .animation(.spring(duration: 0.4), value: queueDragOffset.height)
       .foregroundColor(.primary)
       .zIndex(1)
-      .offset(y: showQueue ? UIScreen.main.bounds.height - 666 : UIScreen.main.bounds.height)
-      .frame(height: 666)
+      .offset(
+        y: showQueue
+          ? UIScreen.main.bounds.height - 500 + queueDragOffset.height : UIScreen.main.bounds.height
+      )
+      .frame(height: 500)
       .animation(.spring(duration: 0.2), value: showQueue)
 
       ZStack {
@@ -160,7 +197,7 @@ struct PlayerView: View {
           VStack(alignment: .center, spacing: 10) {
             Text(viewModel.nowPlaying.songName ?? "")
               .foregroundColor(.white)
-              .customFont(.title1)
+              .customFont(.title2)
               .fontWeight(.bold)
               .multilineTextAlignment(.center)
               .lineLimit(3)
