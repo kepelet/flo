@@ -27,7 +27,7 @@ struct SongsView: View {
   var body: some View {
     ScrollView {
       LazyVStack {
-        ForEach(Array(filteredSongs.enumerated()), id: \.element) { idx, song in
+        ForEach(filteredSongs, id: \.id) { song in
           VStack {
             HStack {
               LazyImage(url: URL(string: viewModel.getAlbumCoverArt(id: song.albumId))) { state in
@@ -68,13 +68,17 @@ struct SongsView: View {
             Divider()
           }
           .onTapGesture {
-            var playlist = Playlist(name: "\"All Tracks\"")
-            let songs = filteredSongs.dropFirst(idx)
+            guard let selectedSongIdx = viewModel.songs.firstIndex(where: { $0.id == song.id })
+            else {
+              return
+            }
 
-            playlist.songs = Array(songs)
+            var playlist = Playlist(name: "\"All Tracks\"")
+            playlist.songs = viewModel.songs
 
             playerViewModel.playBySong(
-              idx: 0, item: playlist, isFromLocal: false)
+              idx: selectedSongIdx, item: playlist, isFromLocal: false
+            )
           }
           .frame(maxWidth: .infinity, alignment: .leading)
         }
@@ -83,7 +87,10 @@ struct SongsView: View {
       .padding(.bottom, 100)
       .navigationTitle("Songs")
       .searchable(
-        text: $searchSong, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search")
+        text: $searchSong,
+        placement: .navigationBarDrawer(displayMode: .always),
+        prompt: "Search"
+      )
     }
   }
 }
