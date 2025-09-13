@@ -97,7 +97,7 @@ struct PlayerView: View {
           .padding(.bottom, 5)
 
           ScrollView {
-            VStack(alignment: .leading) {
+            LazyVStack(alignment: .leading) {
               ForEach(viewModel.queue.indices, id: \.self) { idx in
                 HStack(alignment: .top) {
                   VStack(alignment: .leading) {
