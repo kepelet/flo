@@ -31,22 +31,23 @@ class PlaybackService {
   func addToQueue<T: Playable>(item: T, isFromLocal: Bool = false) -> [QueueEntity] {
     self.clearQueue()
 
-    for song in item.songs {
-      let queue = QueueEntity(context: CoreDataManager.shared.viewContext)
-
-      queue.id = song.mediaFileId == "" ? song.id : song.mediaFileId
-      queue.albumId = song.albumId
-      queue.albumName = item.name
-      queue.artistName = song.artist
-      queue.bitRate = Int16(song.bitRate)
-      queue.sampleRate = Int32(song.sampleRate)
-      queue.songName = song.title
-      queue.suffix = song.suffix
-      queue.isFromLocal = isFromLocal
-      queue.duration = song.duration
-
-      CoreDataManager.shared.saveRecord()
+    let objects = item.songs.map { song in
+        return [
+            "id": song.mediaFileId == "" ? song.id : song.mediaFileId,
+            "albumId": song.albumId,
+            "albumName": item.name,
+            "artistName": song.artist,
+            "bitRate": song.bitRate,
+            "sampleRate": song.sampleRate,
+            "songName": song.title,
+            "suffix": song.suffix,
+            "isFromLocal": isFromLocal,
+            "duration": song.duration
+        ] as [String : Any]
     }
+
+    let request = NSBatchInsertRequest(entity: QueueEntity.entity(), objects: objects)
+    _ = try? CoreDataManager.shared.viewContext.execute(request)
 
     return self.getQueue()
   }
