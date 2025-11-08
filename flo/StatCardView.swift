@@ -35,46 +35,86 @@ struct StatCard: View {
   }
 
   var body: some View {
-    VStack(alignment: .leading, spacing: 12) {
-      HStack {
-        Image(systemName: icon)
-          .foregroundColor(color)
-        Text(title)
-          .foregroundColor(.secondary)
-          .customFont(.body)
-
-        Spacer()
-
-        if showArrow {
-          Image(systemName: "chevron.right")
+    if #available(iOS 26.0, *) {
+      VStack(alignment: .leading, spacing: 12) {
+        HStack {
+          Image(systemName: icon)
+            .foregroundColor(color)
+          Text(title)
             .foregroundColor(.secondary)
-            .font(.system(size: 14))
+            .customFont(.body)
+
+          Spacer()
+
+          if showArrow {
+            Image(systemName: "chevron.right")
+              .foregroundColor(.secondary)
+              .font(.system(size: 14))
+          }
         }
-      }
-      .customFont(.subheadline)
+        .customFont(.subheadline)
 
-      VStack(alignment: .leading, spacing: 4) {
-        Text(value)
-          .customFont(.title2)
-          .lineSpacing(2)
-          .fontWeight(.bold)
-          .lineLimit(2)
-
-        if let subtitle = subtitle {
-          Text(subtitle)
-            .foregroundColor(.secondary)
-            .customFont(.subheadline)
+        VStack(alignment: .leading, spacing: 4) {
+          Text(value)
+            .customFont(.title2)
             .lineSpacing(2)
+            .fontWeight(.bold)
             .lineLimit(2)
+
+          if let subtitle = subtitle {
+            Text(subtitle)
+              .foregroundColor(.secondary)
+              .customFont(.subheadline)
+              .lineSpacing(2)
+              .lineLimit(2)
+          }
         }
       }
+      .padding()
+      .glassEffect(in: .rect(cornerRadius: 16))
+      .frame(maxWidth: isWide ? .infinity : nil)
+    } else {
+      VStack(alignment: .leading, spacing: 12) {
+        HStack {
+          Image(systemName: icon)
+            .foregroundColor(color)
+          Text(title)
+            .foregroundColor(.secondary)
+            .customFont(.body)
+
+          Spacer()
+
+          if showArrow {
+            Image(systemName: "chevron.right")
+              .foregroundColor(.secondary)
+              .font(.system(size: 14))
+          }
+        }
+        .customFont(.subheadline)
+
+        VStack(alignment: .leading, spacing: 4) {
+          Text(value)
+            .customFont(.title2)
+            .lineSpacing(2)
+            .fontWeight(.bold)
+            .lineLimit(2)
+
+          if let subtitle = subtitle {
+            Text(subtitle)
+              .foregroundColor(.secondary)
+              .customFont(.subheadline)
+              .lineSpacing(2)
+              .lineLimit(2)
+          }
+        }
+      }
+      .padding()
+      .frame(maxWidth: isWide ? .infinity : nil)
+      .background(Color(UIColor.systemBackground))
+      .overlay(
+        RoundedRectangle(cornerRadius: 16)
+          .stroke(Color(UIColor.separator), lineWidth: 0.8)
+      )
     }
-    .padding()
-    .frame(maxWidth: isWide ? .infinity : nil)
-    .background(Color(UIColor.systemBackground))
-    .overlay(
-      RoundedRectangle(cornerRadius: 16)
-        .stroke(Color(UIColor.separator), lineWidth: 0.8)
-    )
   }
 }
