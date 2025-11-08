@@ -5,7 +5,7 @@
 //  Created by rizaldy on 29/06/24.
 //
 
-import CoreData
+@preconcurrency import CoreData
 import Foundation
 
 class CoreDataManager: ObservableObject {
@@ -52,10 +52,12 @@ class CoreDataManager: ObservableObject {
     request.sortDescriptors = sortDescriptors
     request.fetchBatchSize = batchSize
 
+    let context = self.viewContext
+
     return await withCheckedContinuation { continuation in
-      viewContext.perform {
+      context.perform {
         do {
-          let results = try self.viewContext.fetch(request)
+          let results = try context.fetch(request)
 
           continuation.resume(returning: results)
         } catch {
