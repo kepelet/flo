@@ -6,24 +6,22 @@
 
 # flo
 
-As mentioned many times, flo is an open source Navidrome client written in Swift. It has modern yet familiar user interfaces
-built on top of Apple's latest UI framework: SwiftUI. While Navidrome supports Subsonic APIs, flo was purposely designed for Navidrome servers.
+flo is an open-source Navidrome client for iOS built in Swift, using SwiftUI. It has a modern yet familiar user interface. 
+While Navidrome supports Subsonic APIs, flo was purposely designed for Navidrome servers.
 
-However, flo is still under heavy development. Bugs and regular updates are expected to improve flo over time. It's worth noting that flo at
-this stage is unlikely to harm your iPhone or your beloved Navidrome server.
+It must be noted, flo is still under heavy development. Bugs and regular updates are expected to improve flo over time, though flo is unlikely to harm your iPhone or your beloved Navidrome server.
 
 ## Features
 
-Everything you can expect from a music player: it plays music. However, here are some features you may enjoy:
-
+Everything you can expect from a music player: it plays music. 
+However, here are some features you may enjoy:
 - Online streaming (save your storage)
-- Offline streaming (save your bandwidth)
+- Offline downloads (save your bandwidth)
 - Play by album (shuffle for surprises)
 - Background playback (just don't close the app)
-- Control playback via the "command center" (something in your "notification")
+- A 'now playing' widget (control outside of the app)
 
-flo may have opt-in "social" features in the future to make the listening experience more fun and extroverted. But for now, flo is intended to become one of the best
-Navidrome clients in the Apple ecosystem!
+flo may have optional social features in the future, like sharing your listening with friends. For now, we are focused on core-functionality so flo can become the best Navidrome clients on the iPhone!
 
 To learn more about flo, visit flo's [landing page.](https://client.flooo.club)
 
@@ -74,8 +72,8 @@ Unfortunately, we don't use third-party apps/services to manage localizations in
 
 ## Support
 
-Bug reports, typos, errors and feedback are welcome! Please use GitHub Issues for reports and GitHub Discussions for... discussion. For anything private,
-you can reach me via email at oss [at] rizaldy.club. I don't check email often but I have  push notifications turned on!
+Bug reports, typos, errors, and feedback are all welcome! 
+Please use GitHub Issues for reports and GitHub Discussions for ideas. For anything private, you can reach me via email at oss [at] rizaldy.club. I don’t check email often, but I do have push notifications enabled!
 
 ## License
 
