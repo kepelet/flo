@@ -11,17 +11,15 @@ struct ArtistsView: View {
   @EnvironmentObject private var viewModel: AlbumViewModel
 
   @State private var searchArtist = ""
+  @State private var filterAlbumArtistOnly: Bool = true
 
   let artists: [Artist]
 
   var filteredArtists: [Artist] {
-    if searchArtist.isEmpty {
-      return artists
-    } else {
-      return artists.filter { artist in
-        artist.name.localizedCaseInsensitiveContains(searchArtist)
-          || artist.fullText.localizedCaseInsensitiveContains(searchArtist)
-      }
+    artists.filter { artist in
+      let matchesAlbumArtist = !filterAlbumArtistOnly || artist.stats.albumartist != nil
+      let matchesSearch = searchArtist.isEmpty || artist.name.localizedCaseInsensitiveContains(searchArtist)
+      return matchesAlbumArtist && matchesSearch
     }
   }
 
@@ -39,16 +37,16 @@ struct ArtistsView: View {
                   Text(artist.name)
                     .customFont(.headline)
                     .multilineTextAlignment(.leading)
-
+                  
                   Spacer()
-
+                  
                   Image(systemName: "chevron.right")
                     .foregroundColor(.gray)
                     .font(.caption)
                 }
                 .padding(.horizontal)
                 .padding(.vertical, 5)
-
+                
                 Divider()
               }
             }
@@ -59,6 +57,17 @@ struct ArtistsView: View {
       .searchable(
         text: $searchArtist, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search"
       )
+      .toolbar {
+        Menu {
+          Button {
+            self.filterAlbumArtistOnly.toggle()
+          } label: {
+            Label("Album Artist Only", systemImage: self.filterAlbumArtistOnly ?  "checkmark.circle" :  "circle")
+          }
+        } label: {
+          Label("", systemImage: "ellipsis.circle")
+        }
+      }
     }
   }
 }
