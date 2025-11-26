@@ -39,7 +39,7 @@ struct ArtistDetailView: View {
           .padding(.bottom, 3)
           .frame(maxWidth: .infinity, alignment: .leading)
 
-        Text(stripBiography(biography: artist.biography))
+        Text(stripBiography(biography: artist.biography ?? ""))
           .customFont(.subheadline)
           .lineSpacing(3)
           .multilineTextAlignment(.leading)
