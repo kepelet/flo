@@ -21,7 +21,7 @@ However, here are some features you may enjoy:
 - Background playback (just don't close the app)
 - A 'now playing' widget (control outside of the app)
 
-flo may have optional social features in the future, like sharing your listening with friends. For now, we are focused on core-functionality so flo can become the best Navidrome clients on the iPhone!
+flo may have optional social features in the future, like sharing your listening with friends. For now, we are focused on core-functionality so flo can become the best Navidrome client on the iPhone!
 
 To learn more about flo, visit flo's [landing page.](https://client.flooo.club)
 
