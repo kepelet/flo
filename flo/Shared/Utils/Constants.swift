@@ -52,6 +52,7 @@ enum UserDefaultsKeys {
   static let enableMaxBitRate = "enableMaxBitRate"
   static let playerBackground = "playerBackground"
   static let saveLoginInfo = "saveLoginInfo"
+  static let LRCLIBServerURL = "LRCLIBServerURL"
 }
 
 enum KeychainKeys {
