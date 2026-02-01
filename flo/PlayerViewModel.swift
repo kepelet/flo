@@ -145,9 +145,7 @@ class PlayerViewModel: ObservableObject {
     self.shouldHidePlayer = false
     self.isLocallySaved = false
 
-    if isLRCLIBEnabled {
-      self.resetLyrics()
-    }
+    self.resetLyrics()
 
     if let timeObserverToken = timeObserverToken {
       player?.removeTimeObserver(timeObserverToken)
@@ -494,9 +492,7 @@ class PlayerViewModel: ObservableObject {
     self.stop()
     self.progress = 0.0
 
-    if isLRCLIBEnabled {
-      self.resetLyrics()
-    }
+    self.resetLyrics()
 
     self.isLocallySaved = false
     self.shouldHidePlayer = true
