@@ -36,7 +36,7 @@ struct HomeView: View {
     case .expired:
       return .orange
     case .freshInstall:
-      return .clear
+      return .red
     }
   }
 
@@ -84,12 +84,10 @@ struct HomeView: View {
               .font(.largeTitle)
               .foregroundColor(.accentColor)
 
-            if connectionState != .freshInstall {
-              Circle()
-                .fill(statusColor)
-                .frame(width: 10, height: 10)
-                .offset(x: 12, y: -12)
-            }
+            Circle()
+              .fill(statusColor)
+              .frame(width: 10, height: 10)
+              .offset(x: 12, y: -12)
           }
         }
       }.padding(.top)
