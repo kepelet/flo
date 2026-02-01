@@ -725,22 +725,6 @@
         }
       }
     },
-    "Login to start streaming your music by tapping the icon above" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Login to start streaming your music by tapping the icon above"
-          }
-        },
-        "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Login untuk mulai streaming musik kamu dengan mengetuk ikon di atas"
-          }
-        }
-      }
-    },
     "Login to your Navidrome server to continue" : {
       "localizations" : {
         "en" : {
