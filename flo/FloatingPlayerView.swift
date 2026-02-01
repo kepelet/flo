@@ -8,110 +8,114 @@
 import NukeUI
 import SwiftUI
 
+extension View {
+  @ViewBuilder
+  func glassedEffect(in shape: some Shape, interactive: Bool = false) -> some View {
+    if #available(iOS 26.0, *) {
+      self.glassEffect(interactive ? .regular.interactive() : .regular, in: shape)
+        .contentShape(shape)
+    } else {
+      self.background {
+        shape.glassed()
+      }
+    }
+  }
+}
+
+extension Shape {
+  func glassed() -> some View {
+    ZStack {
+      Color.clear
+        .background(.ultraThinMaterial)
+
+      LinearGradient(
+        gradient: Gradient(colors: [
+          Color.primary.opacity(0.08),
+          Color.primary.opacity(0.05),
+          Color.primary.opacity(0.01),
+          Color.clear,
+          Color.clear,
+          Color.clear,
+        ]),
+        startPoint: .topLeading,
+        endPoint: .bottomTrailing
+      )
+    }
+    .mask(self)
+    .overlay(
+      self.stroke(Color.primary.opacity(0.2), lineWidth: 0.7)
+    )
+  }
+}
+
 struct FloatingPlayerView: View {
   @ObservedObject var viewModel: PlayerViewModel
 
-  var range: ClosedRange<Double> = 0...1
-
   var body: some View {
     ZStack {
-      HStack {
-        if let image = UIImage(contentsOfFile: viewModel.getAlbumCoverArt()) {
-          Image(uiImage: image)
-            .resizable()
-            .aspectRatio(contentMode: .fit)
-            .frame(width: 50, height: 50)
-            .clipShape(
-              RoundedRectangle(cornerRadius: 10, style: .continuous)
-            )
-        } else {
-          LazyImage(url: URL(string: viewModel.getAlbumCoverArt())) { state in
-            if let image = state.image {
-              image
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .frame(width: 50, height: 50)
-                .clipShape(
-                  RoundedRectangle(cornerRadius: 5, style: .continuous)
-                )
-            } else {
-              Color.gray.opacity(0.3).frame(width: 50, height: 50)
-                .clipShape(RoundedRectangle(cornerRadius: 5, style: .continuous))
+      HStack(spacing: 10) {
+        Group {
+          if let image = UIImage(contentsOfFile: viewModel.getAlbumCoverArt()) {
+            Image(uiImage: image)
+              .resizable()
+              .aspectRatio(contentMode: .fit)
+          } else {
+            LazyImage(url: URL(string: viewModel.getAlbumCoverArt())) { state in
+              if let image = state.image {
+                image.resizable().aspectRatio(contentMode: .fit)
+              } else {
+                Color.gray.opacity(0.3)
+              }
             }
           }
         }
+        .frame(width: 40, height: 40)
+        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+        .shadow(radius: 2)
 
-        VStack(alignment: .leading) {
+        VStack(alignment: .leading, spacing: 1) {
           Text(viewModel.nowPlaying.songName ?? "")
-            .foregroundColor(.white)
-            .customFont(.headline)
+            .foregroundColor(.accent)
+            .customFont(.callout)
+            .fontWeight(.bold)
             .lineLimit(1)
+
           Text(viewModel.nowPlaying.artistName ?? "")
-            .foregroundColor(.white)
-            .customFont(.subheadline)
+            .customFont(.caption1)
             .lineLimit(1)
-
-          GeometryReader { geometry in
-            ZStack(alignment: .leading) {
-              Rectangle()
-                .foregroundColor(Color.gray.opacity(0.3))
-                .frame(height: 3)
-                .cornerRadius(10)
-
-              Rectangle()
-                .foregroundColor(Color.white)
-                .frame(
-                  width: CGFloat(
-                    (viewModel.progress - range.lowerBound) / (range.upperBound - range.lowerBound))
-                    * geometry.size.width, height: 3
-                )
-                .cornerRadius(10).opacity(viewModel.isMediaLoading ? 0 : 1)
-            }.frame(height: 3)
-          }.frame(height: 3)
         }
 
-        HStack(spacing: 20) {
+        Spacer()
+
+        HStack(spacing: 16) {
           if viewModel.isMediaLoading {
-            ProgressView().progressViewStyle(CircularProgressViewStyle(tint: .white))
+            ProgressView()
+              .progressViewStyle(CircularProgressViewStyle())
+              .scaleEffect(0.7)
           } else {
             Button {
               viewModel.isPlaying ? viewModel.pause() : viewModel.play()
             } label: {
               Image(systemName: viewModel.isPlaying ? "pause.fill" : "play.fill")
-                .font(.system(size: 20))
-                .disabled(viewModel.isMediaLoading)
-            }.opacity(viewModel.isMediaFailed ? 0 : 1)
-          }
-        }.padding()
-      }.padding(8).foregroundColor(.white)
-    }.background {
-      if UserDefaultsManager.playerBackground == PlayerBackground.translucent {
-        ZStack {
-          if let image = UIImage(contentsOfFile: viewModel.getAlbumCoverArt()) {
-            Image(uiImage: image)
-              .resizable()
-              .frame(maxWidth: .infinity, maxHeight: .infinity)
-              .blur(radius: 50, opaque: true)
-              .edgesIgnoringSafeArea(.all)
-          } else {
-            LazyImage(url: URL(string: viewModel.getAlbumCoverArt())) { state in
-              if let image = state.image {
-                image
-                  .resizable()
-                  .frame(maxWidth: .infinity, maxHeight: .infinity)
-                  .blur(radius: 50, opaque: true)
-                  .edgesIgnoringSafeArea(.all)
-              }
+                .font(.system(size: 20, weight: .semibold))
+                .symbolRenderingMode(.hierarchical)
             }
+            .buttonStyle(.plain)
+            .opacity(viewModel.isMediaFailed ? 0.3 : 1)
           }
-
-          Rectangle().fill(.thinMaterial).edgesIgnoringSafeArea(.all)
-        }.environment(\.colorScheme, .dark)
-      } else {
-        Rectangle().fill(Color("PlayerColor"))
+        }
+        .padding(.trailing, 8)
       }
+      .padding(.horizontal, 12)
+      .padding(.vertical, 8)
     }
-    .cornerRadius(10).padding(8)
+    .contentShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+    .glassedEffect(in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+    .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+    .shadow(color: .black.opacity(0.15), radius: 16, x: 0, y: 6)
+    .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 2)
+    .padding(.horizontal, 16)
+    .padding(.bottom, 8)
   }
 }
 
