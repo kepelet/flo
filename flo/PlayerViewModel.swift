@@ -27,6 +27,11 @@ class PlayerViewModel: ObservableObject {
   @Published var isSeeking: Bool = false
   @Published var isLyricsMode: Bool = false
 
+  @Published var lyrics: [LyricsLine] = []
+  @Published var currentLyricsLineIndex: Int = 0
+  @Published var isLoadingLyrics: Bool = false
+  @Published var lyricsError: String?
+
   @Published var progress: Double = 0.0
 
   @Published var currentTimeString: String = "00:00"
@@ -51,6 +56,10 @@ class PlayerViewModel: ObservableObject {
   var isPlayFromSource: Bool {
     return self._playFromLocal
       || UserDefaultsManager.maxBitRate == TranscodingSettings.sourceBitRate
+  }
+
+  var isLRCLIBEnabled: Bool {
+    return UserDefaultsManager.LRCLIBServerURL != ""
   }
 
   init() {
@@ -136,6 +145,10 @@ class PlayerViewModel: ObservableObject {
     self.shouldHidePlayer = false
     self.isLocallySaved = false
 
+    if isLRCLIBEnabled {
+      self.resetLyrics()
+    }
+
     if let timeObserverToken = timeObserverToken {
       player?.removeTimeObserver(timeObserverToken)
     }
@@ -192,6 +205,10 @@ class PlayerViewModel: ObservableObject {
       playbackDuration: self.totalDuration)
 
     FloooViewModel.shared.setNowPlayingToScrobbleServer(nowPlaying: self.nowPlaying)
+
+    if isLRCLIBEnabled {
+      self.fetchLyrics()
+    }
   }
 
   private func addPeriodicTimeObserver() {
@@ -208,6 +225,10 @@ class PlayerViewModel: ObservableObject {
       self.currentTimeString = timeString(for: currentTime)
 
       UserDefaultsManager.nowPlayingProgress = self.progress
+
+      if self.isLRCLIBEnabled {
+        self.updateCurrentLyricsLine(currentTime: currentTime)
+      }
 
       if !self.isLocallySaved && self.progress >= 0.5 {
         Task {
@@ -354,6 +375,10 @@ class PlayerViewModel: ObservableObject {
     player?.seek(to: newTime)
 
     self.updateNowPlayingInfo(progress: progress, rate: 1.0)
+
+    if isLRCLIBEnabled {
+      self.updateCurrentLyricsLine(currentTime: progress * totalDuration)
+    }
   }
 
   func setPlaybackMode() {
@@ -469,6 +494,10 @@ class PlayerViewModel: ObservableObject {
     self.stop()
     self.progress = 0.0
 
+    if isLRCLIBEnabled {
+      self.resetLyrics()
+    }
+
     self.isLocallySaved = false
     self.shouldHidePlayer = true
 
@@ -476,6 +505,81 @@ class PlayerViewModel: ObservableObject {
     UserDefaultsManager.removeObject(key: UserDefaultsKeys.nowPlayingProgress)
 
     MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
+  }
+
+  func resetLyrics() {
+    self.lyrics = []
+    self.currentLyricsLineIndex = -1
+    self.lyricsError = nil
+    self.isLyricsMode = false
+  }
+
+  func fetchLyrics() {
+    // just in case
+    guard !(self.nowPlaying.songName?.isEmpty ?? true),
+      !(self.nowPlaying.artistName?.isEmpty ?? true)
+    else {
+      self.lyricsError = "Missing track information"
+
+      return
+    }
+
+    self.isLoadingLyrics = true
+    self.lyricsError = nil
+
+    LRCLIBService.shared.fetchLyrics(
+      trackName: self.nowPlaying.songName ?? "",
+      artistName: self.nowPlaying.artistName ?? "",
+      albumName: self.nowPlaying.albumName,
+      duration: self.nowPlaying.duration
+    ) { [weak self] result in
+      DispatchQueue.main.async {
+        self?.isLoadingLyrics = false
+
+        switch result {
+        case .success(let response):
+          if let syncedLyrics = response.syncedLyrics, !syncedLyrics.isEmpty {
+            self?.lyrics = LRCParser.parse(syncedLyrics)
+          } else if let plainLyrics = response.plainLyrics, !plainLyrics.isEmpty {
+            self?.lyrics = [LyricsLine(timestamp: 1, text: plainLyrics)]
+          } else {
+            self?.lyricsError = "No lyrics available"
+          }
+
+        case .failure:
+          self?.lyricsError = "Failed to load lyrics"
+        }
+      }
+    }
+  }
+
+  func updateCurrentLyricsLine(currentTime: TimeInterval) {
+    guard !lyrics.isEmpty else { return }
+
+    let lookahead: TimeInterval = 0.5
+    let adjustedTime = currentTime + lookahead
+
+    var newIndex = -1
+
+    for (index, line) in lyrics.enumerated() {
+      if adjustedTime >= line.timestamp {
+        newIndex = index
+      } else {
+        break
+      }
+    }
+
+    if newIndex != currentLyricsLineIndex {
+      withAnimation(.easeInOut(duration: 0.1)) {
+        currentLyricsLineIndex = newIndex
+      }
+    }
+  }
+
+  func toggleLyricsMode() {
+    withAnimation(.spring(duration: 0.3)) {
+      isLyricsMode.toggle()
+    }
   }
 
   deinit {
