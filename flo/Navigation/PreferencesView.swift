@@ -228,16 +228,6 @@ struct PreferencesView: View {
             ).font(.caption).foregroundColor(.gray)
           }
 
-          Toggle(
-            "Use translucent backgrounds",
-            isOn: Binding(
-              get: { UserDefaultsManager.playerBackground == PlayerBackground.translucent },
-              set: {
-                UserDefaultsManager.playerBackground =
-                  $0 ? PlayerBackground.translucent : PlayerBackground.solid
-              }
-            ))
-
           VStack(alignment: .leading) {
             Toggle(
               "Save login info",
