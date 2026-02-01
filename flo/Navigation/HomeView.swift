@@ -13,6 +13,37 @@ struct HomeView: View {
 
   @EnvironmentObject var floooViewModel: FloooViewModel
 
+  private enum ConnectionState {
+    case online
+    case expired
+    case freshInstall
+  }
+
+  private var connectionState: ConnectionState {
+    if viewModel.isLoggedIn {
+      return .online
+    } else if hasConfiguredServer() {
+      return .expired
+    } else {
+      return .freshInstall
+    }
+  }
+
+  private var statusColor: Color {
+    switch connectionState {
+    case .online:
+      return .green
+    case .expired:
+      return .orange
+    case .freshInstall:
+      return .clear
+    }
+  }
+
+  private func hasConfiguredServer() -> Bool {
+    UserDefaults.standard.string(forKey: "serverURL") != nil
+  }
+
   private func shouldShowLoginSheet() -> Binding<Bool> {
     Binding(
       get: {
@@ -48,8 +79,18 @@ struct HomeView: View {
             }
           }
         } label: {
-          Image(systemName: "person.crop.circle.fill")
-            .font(.largeTitle)
+          ZStack {
+            Image(systemName: "person.crop.circle.fill")
+              .font(.largeTitle)
+              .foregroundColor(.accentColor)
+
+            if connectionState != .freshInstall {
+              Circle()
+                .fill(statusColor)
+                .frame(width: 10, height: 10)
+                .offset(x: 12, y: -12)
+            }
+          }
         }
       }.padding(.top)
         .sheet(isPresented: shouldShowLoginSheet()) {
@@ -64,21 +105,6 @@ struct HomeView: View {
 
       ScrollView {
         VStack(alignment: .leading, spacing: 16) {
-          if !viewModel.isLoggedIn {
-            VStack {
-              Text("Login to start streaming your music by tapping the icon above")
-                .customFont(.body)
-                .multilineTextAlignment(.center)
-                .frame(maxWidth: .infinity)
-            }
-            .padding()
-            .overlay(
-              RoundedRectangle(cornerRadius: 8).stroke(Color("PlayerColor"), lineWidth: 0.8)
-            )
-            .padding(.top, 10)
-            .padding(.bottom)
-          }
-
           Text("Listening Activity (all time)").customFont(.title2).fontWeight(.bold)
             .multilineTextAlignment(.leading)
 
