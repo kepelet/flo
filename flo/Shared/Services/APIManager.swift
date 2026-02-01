@@ -172,4 +172,21 @@ extension APIManager {
       completion(response)
     }
   }
+
+  func externalRequest<T: Decodable>(
+    url: String,
+    method: HTTPMethod = .get,
+    parameters: Parameters? = nil,
+    encoding: ParameterEncoding = URLEncoding.queryString,
+    headers: HTTPHeaders? = nil,
+    completion: @escaping (DataResponse<T, AFError>) -> Void
+  ) {
+    session.request(
+      url, method: method, parameters: parameters, encoding: encoding, headers: headers
+    )
+    .validate(statusCode: 200..<300)
+    .responseDecodable(of: T.self) { response in
+      completion(response)
+    }
+  }
 }
