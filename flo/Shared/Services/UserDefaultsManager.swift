@@ -107,4 +107,14 @@ class UserDefaultsManager {
       UserDefaults.standard.set(newValue, forKey: UserDefaultsKeys.saveLoginInfo)
     }
   }
+
+  static var LRCLIBServerURL: String {
+    get {
+      return UserDefaults.standard.string(forKey: UserDefaultsKeys.LRCLIBServerURL) ?? ""
+    }
+
+    set {
+      UserDefaults.standard.set(newValue, forKey: UserDefaultsKeys.LRCLIBServerURL)
+    }
+  }
 }

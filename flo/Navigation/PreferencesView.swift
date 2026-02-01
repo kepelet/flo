@@ -12,6 +12,7 @@ struct PreferencesView: View {
   @State private var storeCredsInKeychain = false
   @State private var optimizeLocalStorageAlert = false
   @State private var showLoginSheet = false
+  @State private var showCustomLRCLIBServer = false
 
   @State private var accentColor = Color(.accent)
   @State private var playerColor = Color(.player)
@@ -21,9 +22,15 @@ struct PreferencesView: View {
   @EnvironmentObject var playerViewModel: PlayerViewModel
 
   let themeColors = ["Blue", "Green", "Red", "Ohio"]
+  let presetExperimentalLRCLIBServer: [(label: String, url: String)] = [
+    ("lrclib.net", "https://lrclib.net"),
+    ("lrclib.flooo.club", "https://lrclib.flooo.club"),
+  ]
 
   @State private var experimentalMaxBitrate = UserDefaultsManager.maxBitRate
   @State private var experimentalPlayerBackground = UserDefaultsManager.playerBackground
+  @State private var experimentalLRCLIBIntegration = UserDefaultsManager.LRCLIBServerURL
+  @State private var customLRCLIBServer = ""
 
   var shouldShowLoginSheet: Binding<Bool> {
     Binding(
@@ -34,6 +41,21 @@ struct PreferencesView: View {
         showLoginSheet = newValue
       }
     )
+  }
+
+  var lrclibOptions: [(label: String, url: String)] {
+    let current = UserDefaultsManager.LRCLIBServerURL
+
+    let isCustom =
+      !current.isEmpty && !presetExperimentalLRCLIBServer.contains(where: { $0.url == current })
+
+    var options = presetExperimentalLRCLIBServer
+
+    if isCustom {
+      options.append(("Custom (\(current))", current))
+    }
+
+    return options
   }
 
   func getAppVersion() -> String {
@@ -166,6 +188,29 @@ struct PreferencesView: View {
             Text(
               "Enabling this option may affect the experience."
             ).font(.caption).foregroundColor(.gray)
+          }
+
+          VStack(alignment: .leading) {
+            Picker(selection: $experimentalLRCLIBIntegration, label: Text("LRCLIB")) {
+              Text("Disabled").tag("")
+
+              ForEach(lrclibOptions, id: \.url) { option in
+                Text(option.label).tag(option.url)
+              }
+
+              Text("Add/Change Custom").tag("custom")
+            }
+            .onChange(of: experimentalLRCLIBIntegration) { value in
+              if value != "custom" {
+                UserDefaultsManager.LRCLIBServerURL = value
+                floooViewModel.getUserDefaults()
+              } else {
+                showCustomLRCLIBServer.toggle()
+              }
+            }
+
+            Text("LRCLIB server is required. Learn more at dub.sh/flo-lrclib").font(.caption)
+              .foregroundColor(.gray)
           }
 
           VStack(alignment: .leading) {
@@ -352,6 +397,25 @@ struct PreferencesView: View {
       if UserDefaultsManager.enableDebug {
         floooViewModel.getUserDefaults()
       }
+    }
+    .alert("LRCLIB Server URL", isPresented: $showCustomLRCLIBServer) {
+      Button("Cancel", role: .cancel) {
+        self.showCustomLRCLIBServer.toggle()
+        self.experimentalLRCLIBIntegration = ""
+      }
+
+      Button("Save") {
+        UserDefaultsManager.LRCLIBServerURL = customLRCLIBServer
+        self.experimentalLRCLIBIntegration = customLRCLIBServer
+        floooViewModel.getUserDefaults()
+      }
+
+      TextField("https://lrclib.your-server.net", text: $customLRCLIBServer).keyboardType(.URL)
+        .autocapitalization(.none)
+        .disableAutocorrection(true)
+        .textContentType(.none)
+    } message: {
+      Text("Learn more at https://dub.sh/flo-lrclib")
     }
   }
 }
