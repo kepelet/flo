@@ -289,12 +289,14 @@ struct PreferencesView: View {
                 .foregroundColor(.gray)
             }
 
-            Toggle(isOn: $floooViewModel.isListenBrainzLinked) {
-              Text("Scrobble to ListenBrainz")
-            }.disabled(true)
+            VStack(alignment: .leading) {
+              Toggle(isOn: $floooViewModel.isListenBrainzLinked) {
+                Text("Scrobble to ListenBrainz")
+              }.disabled(true)
 
-            Text("To change this, please do so via the Navidrome Web UI").font(.caption)
-              .foregroundColor(.gray)
+              Text("To change this, please do so via the Navidrome Web UI").font(.caption)
+                .foregroundColor(.gray)
+            }
           }
         }
 
