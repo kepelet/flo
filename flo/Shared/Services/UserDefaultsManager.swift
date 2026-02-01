@@ -90,11 +90,11 @@ class UserDefaultsManager {
 
   static var playerBackground: String {
     get {
-      return UserDefaults.standard.string(forKey: UserDefaultsKeys.playerBackground)
-        ?? PlayerBackground.translucent
+      return PlayerBackground.translucent
     }
     set {
-      UserDefaults.standard.set(newValue, forKey: UserDefaultsKeys.playerBackground)
+      UserDefaults.standard.set(
+        PlayerBackground.translucent, forKey: UserDefaultsKeys.playerBackground)
     }
   }
 
