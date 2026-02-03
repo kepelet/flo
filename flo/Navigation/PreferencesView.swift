@@ -174,7 +174,7 @@ struct PreferencesView: View {
 
         // TODO: finish this later
         Section(header: Text("Experimental")) {
-          VStack(alignment: .leading) {
+          VStack(alignment: .leading, spacing: 4) {
             Toggle(
               "Enable Debug",
               isOn: Binding(
@@ -213,7 +213,7 @@ struct PreferencesView: View {
               .foregroundColor(.gray)
           }
 
-          VStack(alignment: .leading) {
+          VStack(alignment: .leading, spacing: 4) {
             Picker(selection: $experimentalMaxBitrate, label: Text("Max Bitrate")) {
               ForEach(TranscodingSettings.availableBitRate, id: \.self) { bitrate in
                 Text(bitrate == "0" ? "Source" : bitrate).tag(bitrate)
@@ -228,7 +228,7 @@ struct PreferencesView: View {
             ).font(.caption).foregroundColor(.gray)
           }
 
-          VStack(alignment: .leading) {
+          VStack(alignment: .leading, spacing: 8) {
             Toggle(
               "Save login info",
               isOn: Binding(
@@ -270,7 +270,7 @@ struct PreferencesView: View {
           }
 
           if authViewModel.isLoggedIn {
-            VStack(alignment: .leading) {
+            VStack(alignment: .leading, spacing: 6) {
               Toggle(isOn: $floooViewModel.isLastFmLinked) {
                 Text("Scrobble to Last.fm")
               }.disabled(true)
@@ -279,7 +279,7 @@ struct PreferencesView: View {
                 .foregroundColor(.gray)
             }
 
-            VStack(alignment: .leading) {
+            VStack(alignment: .leading, spacing: 6) {
               Toggle(isOn: $floooViewModel.isListenBrainzLinked) {
                 Text("Scrobble to ListenBrainz")
               }.disabled(true)
