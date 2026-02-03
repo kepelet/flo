@@ -191,8 +191,25 @@
         }
       }
     },
+    "Add/Change Custom" : {
+      "localizations" : {
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tambah/Ubah Custom"
+          }
+        }
+      }
+    },
     "Album Artist Only" : {
-
+      "localizations" : {
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hanya Album Artist"
+          }
+        }
+      }
     },
     "Album Info" : {
       "localizations" : {
@@ -392,6 +409,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Pengembangan"
+          }
+        }
+      }
+    },
+    "Disabled" : {
+      "localizations" : {
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disabled"
           }
         }
       }
@@ -606,12 +633,32 @@
         }
       }
     },
+    "https://lrclib.your-server.net" : {
+      "localizations" : {
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "https://lrclib.your-server.net"
+          }
+        }
+      }
+    },
     "Keychain.%@" : {
       "localizations" : {
         "id" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Keychain.%@"
+          }
+        }
+      }
+    },
+    "Learn more at https://dub.sh/flo-lrclib" : {
+      "localizations" : {
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Selengkapnya di https://dub.sh/flo-lrclib"
           }
         }
       }
@@ -760,6 +807,36 @@
         }
       }
     },
+    "LRCLIB" : {
+      "localizations" : {
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "LRCLIB"
+          }
+        }
+      }
+    },
+    "LRCLIB server is required. Learn more at dub.sh/flo-lrclib" : {
+      "localizations" : {
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Server LRCLIB dibutuhkan. Selengkapnya di dub.sh/flo-lrclib"
+          }
+        }
+      }
+    },
+    "LRCLIB Server URL" : {
+      "localizations" : {
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "LRCLIB Server URL"
+          }
+        }
+      }
+    },
     "Max Bitrate" : {
       "localizations" : {
         "en" : {
@@ -788,6 +865,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Versi Navidrome"
+          }
+        }
+      }
+    },
+    "No lyrics available" : {
+      "localizations" : {
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tidak ada lirik ditemukan"
           }
         }
       }
@@ -1348,22 +1435,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Troubleshoot"
-          }
-        }
-      }
-    },
-    "Use translucent backgrounds" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Use translucent backgrounds"
-          }
-        },
-        "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Gunakan translucent background"
           }
         }
       }
