@@ -54,6 +54,19 @@ struct LyricsView: View {
             .lineLimit(1)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+
+        Button {
+          viewModel.toggleLyricsMode()
+        } label: {
+          Image(systemName: "chevron.down")
+            .font(.title3.weight(.semibold))
+            .foregroundColor(.white)
+            .padding(.vertical, 8)
+            .padding(.horizontal, 12)
+            .background(.white.opacity(0.15))
+            .clipShape(Capsule())
+            .shadow(color: .black.opacity(0.25), radius: 6, x: 0, y: 3)
+        }
       }
       .padding(.horizontal, 30)
       .padding(.top, 16)
