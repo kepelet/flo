@@ -118,3 +118,80 @@ struct StatCard: View {
     }
   }
 }
+
+private struct MaxHeightPreferenceKey: PreferenceKey {
+  static var defaultValue: CGFloat = 0
+
+  static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+    value = max(value, nextValue())
+  }
+}
+
+private struct EqualHeightValueKey: EnvironmentKey {
+  static let defaultValue: CGFloat = 0
+}
+
+extension EnvironmentValues {
+  fileprivate var equalHeightValue: CGFloat {
+    get { self[EqualHeightValueKey.self] }
+    set { self[EqualHeightValueKey.self] = newValue }
+  }
+}
+
+struct EqualHeightItem<Content: View>: View {
+  @State private var ownHeight: CGFloat = 0
+  @Environment(\.equalHeightValue) private var equalHeightValue
+  @ViewBuilder let content: () -> Content
+
+  var body: some View {
+    content()
+      .frame(minHeight: shouldExpand ? equalHeightValue : nil, alignment: .top)
+      .background(
+        GeometryReader { proxy in
+          Color.clear
+            .preference(key: MaxHeightPreferenceKey.self, value: proxy.size.height)
+            .onAppear {
+              ownHeight = proxy.size.height
+            }
+            .onChange(of: proxy.size.height) { newValue in
+              ownHeight = newValue
+            }
+        }
+      )
+  }
+
+  private var shouldExpand: Bool {
+    equalHeightValue > 0 && ownHeight > 0 && ownHeight < equalHeightValue
+  }
+}
+
+struct EqualHeightHStack<Content: View>: View {
+  let alignment: VerticalAlignment
+  let spacing: CGFloat?
+
+  @ViewBuilder let content: () -> Content
+  @State private var maxHeight: CGFloat = 0
+
+  init(
+    alignment: VerticalAlignment = .center,
+    spacing: CGFloat? = nil,
+    @ViewBuilder content: @escaping () -> Content
+  ) {
+    self.alignment = alignment
+    self.spacing = spacing
+    self.content = content
+  }
+
+  var body: some View {
+    HStack(alignment: alignment, spacing: spacing) {
+      content()
+    }
+    .frame(height: maxHeight == 0 ? nil : maxHeight, alignment: alignment == .top ? .top : .center)
+    .environment(\.equalHeightValue, maxHeight)
+    .onPreferenceChange(MaxHeightPreferenceKey.self) { newValue in
+      if maxHeight != newValue {
+        maxHeight = newValue
+      }
+    }
+  }
+}
