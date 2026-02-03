@@ -133,8 +133,12 @@ class PlayerViewModel: ObservableObject {
 
   func getAlbumCoverArt() -> String {
     return AlbumService.shared.getAlbumCover(
-      artistName: self.nowPlaying.artistName ?? "", albumName: self.nowPlaying.albumName ?? "",
-      albumId: self.nowPlaying.albumId ?? "", trackId: self.nowPlaying.id ?? "")
+      artistName: self.nowPlaying.artistName ?? "",
+      albumName: self.nowPlaying.albumName ?? "",
+      albumId: self.nowPlaying.albumId ?? "",
+      trackId: self.nowPlaying.id ?? "",
+      contextName: self.nowPlaying.contextName
+    )
   }
 
   func hasNowPlaying() -> Bool {
@@ -523,10 +527,26 @@ class PlayerViewModel: ObservableObject {
     self.isLoadingLyrics = true
     self.lyricsError = nil
 
+    let albumName = self.nowPlaying.albumName?.trimmingCharacters(in: .whitespacesAndNewlines)
+    let contextName = self.nowPlaying.contextName?.trimmingCharacters(in: .whitespacesAndNewlines)
+    let isFromPlaylist = self.nowPlaying.isFromPlaylist
+
+    let albumNameForLyrics: String?
+
+    if isFromPlaylist {
+      if let albumName, !albumName.isEmpty, albumName != contextName {
+        albumNameForLyrics = albumName
+      } else {
+        albumNameForLyrics = nil
+      }
+    } else {
+      albumNameForLyrics = (albumName?.isEmpty == false) ? albumName : nil
+    }
+
     LRCLIBService.shared.fetchLyrics(
       trackName: self.nowPlaying.songName ?? "",
       artistName: self.nowPlaying.artistName ?? "",
-      albumName: self.nowPlaying.albumName,
+      albumName: albumNameForLyrics,
       duration: self.nowPlaying.duration
     ) { [weak self] result in
       DispatchQueue.main.async {

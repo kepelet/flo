@@ -171,8 +171,8 @@ struct LibraryView: View {
 struct LibraryView_Previews: PreviewProvider {
   static private var songs: [Song] = [
     Song(
-      id: "0", title: "Song name", albumId: "", artist: "", trackNumber: 1, discNumber: 0,
-      bitRate: 0,
+      id: "0", title: "Song name", albumId: "", albumName: "Album 1", artist: "",
+      trackNumber: 1, discNumber: 0, bitRate: 0,
       sampleRate: 44100,
       suffix: "m4a", duration: 100, mediaFileId: "0")
   ]

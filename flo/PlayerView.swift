@@ -51,7 +51,9 @@ struct PlayerView: View {
               if viewModel.queue.isEmpty {
                 Text("").customFont(.subheadline)
               } else {
-                Text("From \(viewModel.nowPlaying.albumName ?? "")").customFont(.subheadline)
+                Text(
+                  "From \(viewModel.nowPlaying.contextName ?? viewModel.nowPlaying.albumName ?? "")"
+                ).customFont(.subheadline)
               }
 
               Spacer()
