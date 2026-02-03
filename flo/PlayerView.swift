@@ -352,7 +352,7 @@ struct PlayerView: View {
 
   @ViewBuilder
   private func bottomControlBar(showQueue: Binding<Bool>) -> some View {
-    HStack {
+    HStack(spacing: 0) {
       Button {
         viewModel.toggleLyricsMode()
       } label: {
@@ -362,20 +362,25 @@ struct PlayerView: View {
             viewModel.lyrics.isEmpty && (viewModel.lyricsError != nil)
               ? .white.opacity(0.4) : .white
           )
-          .padding(8)
       }
+      .frame(width: 56, alignment: .leading)
 
-      Spacer()
-
-      Button {
-        // TODO: AirPlay
-      } label: {
-        Image(systemName: "airplayaudio")
-          .font(.title2)
-          .foregroundColor(.gray)
-      }.disabled(true)
-
-      Spacer()
+      AirPlayRoutePicker(tintColor: UIColor.white, activeTintColor: UIColor.white)
+        .frame(width: 36, height: 36, alignment: .center)
+        .frame(maxWidth: .infinity, alignment: .center)
+        .overlay(alignment: .bottom) {
+          if let outputName = viewModel.externalOutputName {
+            Text(outputName)
+              .foregroundColor(.white)
+              .customFont(.caption2)
+              .fontWeight(.bold)
+              .lineLimit(2)
+              .multilineTextAlignment(.center)
+              .frame(maxWidth: 260)
+              .fixedSize(horizontal: false, vertical: true)
+              .offset(y: 13)
+          }
+        }
 
       Button {
         showQueue.wrappedValue.toggle()
@@ -404,6 +409,7 @@ struct PlayerView: View {
             .offset(x: 10, y: -10)
           )
       }
+      .frame(width: 56, alignment: .trailing)
     }
   }
 }
