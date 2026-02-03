@@ -106,21 +106,25 @@ struct HomeView: View {
           Text("Listening Activity (all time)").customFont(.title2).fontWeight(.bold)
             .multilineTextAlignment(.leading)
 
-          HStack(alignment: .top, spacing: 16) {
-            StatCard(
-              title: "Total Listens",
-              value: floooViewModel.totalPlay.description,
-              icon: "headphones",
-              color: .purple
-            )
+          EqualHeightHStack(alignment: .top, spacing: 16) {
+            EqualHeightItem {
+              StatCard(
+                title: "Total Listens",
+                value: floooViewModel.totalPlay.description,
+                icon: "headphones",
+                color: .purple
+              )
+            }
 
-            StatCard(
-              title: "Top Artist",
-              value: floooViewModel.stats?.topArtist ?? "N/A",
-              icon: "music.mic",
-              color: .blue,
-              showArrow: true
-            )
+            EqualHeightItem {
+              StatCard(
+                title: "Top Artist",
+                value: floooViewModel.stats?.topArtist ?? "N/A",
+                icon: "music.mic",
+                color: .blue,
+                showArrow: true
+              )
+            }
           }
 
           HStack(alignment: .top, spacing: 16) {
