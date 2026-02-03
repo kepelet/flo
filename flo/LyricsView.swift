@@ -126,31 +126,32 @@ struct LyricsView: View {
       Spacer()
 
       VStack(spacing: 0) {
-        HStack {
+        HStack(spacing: 0) {
           Button {
             viewModel.toggleLyricsMode()
           } label: {
-            Image(systemName: "quote.bubble")
+            Image(systemName: "quote.bubble.fill")
               .font(.title2)
               .foregroundColor(.white)
-              .padding(8)
-              .background(
-                .white.opacity(0.1)
-              )
-              .clipShape(.capsule)
           }
+          .frame(width: 56, alignment: .leading)
 
-          Spacer()
-
-          Button {
-            // TODO: AirPlay. Also duplicates.
-          } label: {
-            Image(systemName: "airplayaudio")
-              .font(.title2)
-              .foregroundColor(.gray)
-          }.disabled(true)
-
-          Spacer()
+          AirPlayRoutePicker(tintColor: UIColor.white, activeTintColor: UIColor.white)
+            .frame(width: 36, height: 36, alignment: .center)
+            .frame(maxWidth: .infinity, alignment: .center)
+            .overlay(alignment: .bottom) {
+              if let outputName = viewModel.externalOutputName {
+                Text(outputName)
+                  .foregroundColor(.white)
+                  .customFont(.caption2)
+                  .fontWeight(.bold)
+                  .lineLimit(2)
+                  .multilineTextAlignment(.center)
+                  .frame(maxWidth: 260)
+                  .fixedSize(horizontal: false, vertical: true)
+                  .offset(y: 13)
+              }
+            }
 
           Button {
             showQueue.toggle()
@@ -180,6 +181,7 @@ struct LyricsView: View {
                 .offset(x: 10, y: -10)
               )
           }
+          .frame(width: 56, alignment: .trailing)
         }
         .padding(.horizontal, 30)
         .padding(.top, 10)

@@ -37,6 +37,7 @@ class PlayerViewModel: ObservableObject {
   @Published var currentTimeString: String = "00:00"
   @Published var totalTimeString: String = "00:00"
   @Published var shouldHidePlayer: Bool = false
+  @Published var externalOutputName: String?
 
   // FIXME: this make confusion with `isDownloaded` and/or `isPlayingFromLocal`
   @Published var _playFromLocal: Bool = false
@@ -46,6 +47,7 @@ class PlayerViewModel: ObservableObject {
   private var totalDuration: Double = 0.0
   private var playerItemObservation: AnyCancellable?
   private var interruptionObservation = Set<AnyCancellable>()
+  private var routeChangeObservation = Set<AnyCancellable>()
 
   private var scrobbleThreshold = 0.5
 
@@ -65,6 +67,8 @@ class PlayerViewModel: ObservableObject {
   init() {
     self.player = AVPlayer()
     self.observeInterruptionNotifications()
+    self.observeRouteChangeNotifications()
+    self.updateAudioRoute()
 
     let lastPlayData = PlaybackService.shared.getQueue()
     let queueActiveIdx = UserDefaultsManager.queueActiveIdx
@@ -95,6 +99,34 @@ class PlayerViewModel: ObservableObject {
         self.handleInterruptionNotification(notification)
       }
       .store(in: &interruptionObservation)
+  }
+
+  func observeRouteChangeNotifications() {
+    NotificationCenter.default
+      .publisher(for: AVAudioSession.routeChangeNotification)
+      .sink { _ in
+        self.updateAudioRoute()
+      }
+      .store(in: &routeChangeObservation)
+  }
+
+  func updateAudioRoute() {
+    let outputs = AVAudioSession.sharedInstance().currentRoute.outputs
+
+    if let externalOutput = outputs.first(where: { !Self.isInternalAudioOutput($0) }) {
+      self.externalOutputName = externalOutput.portName
+    } else {
+      self.externalOutputName = nil
+    }
+  }
+
+  private static func isInternalAudioOutput(_ output: AVAudioSessionPortDescription) -> Bool {
+    switch output.portType {
+    case .builtInReceiver, .builtInSpeaker, .builtInMic:
+      return true
+    default:
+      return false
+    }
   }
 
   func handleInterruptionNotification(_ notification: Notification) {
