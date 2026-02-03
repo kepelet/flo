@@ -203,13 +203,21 @@ class AlbumService {
   }
 
   func getAlbumCover(
-    artistName: String, albumName: String, albumId: String = "", trackId: String = ""
+    artistName: String,
+    albumName: String,
+    albumId: String = "",
+    trackId: String = "",
+    contextName: String? = nil
   ) -> String {
     let target = "Media/\(artistName)/\(albumName)/cover.png"
     let anotherTarget = "Media/Various Artists/\(albumName)/cover/\(trackId).png"
+    let contextTarget =
+      contextName.map { "Media/Various Artists/\($0)/cover/\(trackId).png" }
 
     if LocalFileManager.shared.fileExists(fileName: target) {
       return LocalFileManager.shared.fileURL(for: target)?.path ?? ""
+    } else if let contextTarget, LocalFileManager.shared.fileExists(fileName: contextTarget) {
+      return LocalFileManager.shared.fileURL(for: contextTarget)?.path ?? ""
     } else if LocalFileManager.shared.fileExists(fileName: anotherTarget) {
       return LocalFileManager.shared.fileURL(for: anotherTarget)?.path ?? ""
     } else {
@@ -284,14 +292,18 @@ class AlbumService {
     let fileURL =
       "Media/\(isFromPlaylist ? "Various Artists" : song.artist)/\(albumName ?? "Unknown Albums")/\(Int16(song.trackNumber)) \(song.title).\(song.suffix)"
 
+    let resolvedAlbumName = !song.albumName.isEmpty ? song.albumName : (albumName ?? "")
+
     if let existingSong = checkExistingSong.first {
       existingSong.fileURL =
         "Media/\(isFromPlaylist ? "Various Artists" : song.artist)/\(albumName ?? "Unknown Albums")/\(Int16(song.trackNumber)) \(song.title).\(song.suffix)"
+      existingSong.albumName = resolvedAlbumName
       existingSong.status = status
     } else {
       let downloadedSong = SongEntity(context: CoreDataManager.shared.viewContext)
 
       downloadedSong.albumId = albumId
+      downloadedSong.albumName = resolvedAlbumName
       downloadedSong.id = songId
       downloadedSong.title = song.title
       downloadedSong.artistName = song.artist

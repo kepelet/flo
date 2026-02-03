@@ -31,19 +31,30 @@ class PlaybackService {
   func addToQueue<T: Playable>(item: T, isFromLocal: Bool = false) -> [QueueEntity] {
     self.clearQueue()
 
+    let isPlaylist = item is Playlist
+    let isPlaylistAlbum =
+      (item as? Album).map { album in
+        album.artist == "Various Artists" && album.albumArtist == "Various Artists"
+          && album.genre.contains(" by ")
+      } ?? false
+
+    let isFromPlaylist = isPlaylist || isPlaylistAlbum
+
     let objects = item.songs.map { song in
-        return [
-            "id": song.mediaFileId == "" ? song.id : song.mediaFileId,
-            "albumId": song.albumId,
-            "albumName": item.name,
-            "artistName": song.artist,
-            "bitRate": song.bitRate,
-            "sampleRate": song.sampleRate,
-            "songName": song.title,
-            "suffix": song.suffix,
-            "isFromLocal": isFromLocal,
-            "duration": song.duration
-        ] as [String : Any]
+      return [
+        "id": song.mediaFileId == "" ? song.id : song.mediaFileId,
+        "albumId": song.albumId,
+        "albumName": song.albumName.isEmpty ? item.name : song.albumName,
+        "contextName": item.name,
+        "artistName": song.artist,
+        "bitRate": song.bitRate,
+        "sampleRate": song.sampleRate,
+        "songName": song.title,
+        "suffix": song.suffix,
+        "isFromPlaylist": isFromPlaylist,
+        "isFromLocal": isFromLocal,
+        "duration": song.duration,
+      ] as [String: Any]
     }
 
     let request = NSBatchInsertRequest(entity: QueueEntity.entity(), objects: objects)
