@@ -70,6 +70,7 @@
 		C4E8D9632B763BAB00C2353E /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C4E8D9622B763BAB00C2353E /* Preview Assets.xcassets */; };
 		C4E958982CA033BC00BBF394 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = C4E958972CA033BC00BBF394 /* Localizable.xcstrings */; };
 		C4EAA4862C297E35007EB2E0 /* NowPlaying.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4EAA4852C297E35007EB2E0 /* NowPlaying.swift */; };
+		C4F0B0A22F3A111100ABC002 /* AirPlayRoutePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4F0B0A12F3A111100ABC002 /* AirPlayRoutePicker.swift */; };
 		C4F870CE2CEFCC5E00312F8A /* FloooService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4F870CD2CEFCC5B00312F8A /* FloooService.swift */; };
 		C4F870D02CEFD25900312F8A /* StatCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4F870CF2CEFD24D00312F8A /* StatCardView.swift */; };
 		C4FE524B2C14E1F70053763A /* UserDefaultsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4FE524A2C14E1F70053763A /* UserDefaultsManager.swift */; };
@@ -137,6 +138,7 @@
 		C4E8D9622B763BAB00C2353E /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		C4E958972CA033BC00BBF394 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		C4EAA4852C297E35007EB2E0 /* NowPlaying.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowPlaying.swift; sourceTree = "<group>"; };
+		C4F0B0A12F3A111100ABC002 /* AirPlayRoutePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AirPlayRoutePicker.swift; sourceTree = "<group>"; };
 		C4F870CD2CEFCC5B00312F8A /* FloooService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloooService.swift; sourceTree = "<group>"; };
 		C4F870CF2CEFD24D00312F8A /* StatCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatCardView.swift; sourceTree = "<group>"; };
 		C4FE524A2C14E1F70053763A /* UserDefaultsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserDefaultsManager.swift; sourceTree = "<group>"; };
@@ -194,6 +196,7 @@
 			isa = PBXGroup;
 			children = (
 				C456D8F92F2FF33B002AAB8B /* LRCParser.swift */,
+				C4F0B0A12F3A111100ABC002 /* AirPlayRoutePicker.swift */,
 				C415F5592C11953000E3E1D2 /* Constants.swift */,
 				C415F5632C11AA8700E3E1D2 /* Fonts.swift */,
 				C49134522C15BE0C00CCF2EB /* Strings.swift */,
@@ -424,6 +427,7 @@
 				C4100A6B2CE78B62001BC9BE /* Playlist.swift in Sources */,
 				C4A4BF332C14437700363290 /* LibraryView.swift in Sources */,
 				C46B8DD72CF4B89000B40644 /* Stats.swift in Sources */,
+				C4F0B0A22F3A111100ABC002 /* AirPlayRoutePicker.swift in Sources */,
 				C415F5642C11AA8700E3E1D2 /* Fonts.swift in Sources */,
 				C456D8FE2F300D3D002AAB8B /* LyricsView.swift in Sources */,
 				C41E15152C0F95AD005BAE63 /* PlayerCustomSlider.swift in Sources */,
@@ -590,7 +594,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 200;
+				CURRENT_PROJECT_VERSION = 202;
 				DEVELOPMENT_ASSET_PATHS = "\"flo/Resources/Preview Content\"";
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 8BJ4LW5J8P;
@@ -630,7 +634,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 200;
+				CURRENT_PROJECT_VERSION = 202;
 				DEVELOPMENT_ASSET_PATHS = "\"flo/Resources/Preview Content\"";
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 8BJ4LW5J8P;
