@@ -5,8 +5,8 @@
 //  Created by rizaldy on 02/02/26.
 //
 
-import SwiftUI
 import NukeUI
+import SwiftUI
 
 struct LyricsView: View {
   @ObservedObject var viewModel: PlayerViewModel
@@ -109,15 +109,17 @@ struct LyricsView: View {
             .padding(.horizontal, 30)
           }
           .onAppear {
-            if !isPlainLyrics {
-              proxy.scrollTo(viewModel.currentLyricsLineIndex, anchor: .center)
-            }
+            guard !isPlainLyrics else { return }
+            guard viewModel.currentLyricsLineIndex >= 0 else { return }
+
+            proxy.scrollTo(viewModel.currentLyricsLineIndex, anchor: .center)
           }
           .onChange(of: viewModel.currentLyricsLineIndex) { newIndex in
+            guard !isPlainLyrics else { return }
+            guard newIndex >= 0 else { return }
+
             withAnimation(.easeInOut(duration: 0.5)) {
-              if !isPlainLyrics {
-                proxy.scrollTo(newIndex, anchor: .center)
-              }
+              proxy.scrollTo(newIndex, anchor: .center)
             }
           }
         }

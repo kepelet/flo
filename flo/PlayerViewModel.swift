@@ -618,9 +618,7 @@ class PlayerViewModel: ObservableObject {
     }
 
     if newIndex != currentLyricsLineIndex {
-      withAnimation(.easeInOut(duration: 0.1)) {
-        currentLyricsLineIndex = newIndex
-      }
+      currentLyricsLineIndex = newIndex
     }
   }
 
