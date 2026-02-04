@@ -234,8 +234,8 @@ struct PlayerView: View {
         .padding(.top, 20)
 
       Spacer()
-
-      if let image = UIImage(contentsOfFile: viewModel.getAlbumCoverArt()) {
+      let coverArtUrl = viewModel.getAlbumCoverArt()
+      if let image = UIImage(contentsOfFile: coverArtUrl) {
         Image(uiImage: image)
           .resizable()
           .aspectRatio(contentMode: .fit)
@@ -244,21 +244,31 @@ struct PlayerView: View {
             RoundedRectangle(cornerRadius: 15, style: .continuous)
           )
       } else {
-        LazyImage(url: URL(string: viewModel.getAlbumCoverArt())) { state in
-          if let image = state.image {
-            image
-              .resizable()
-              .aspectRatio(contentMode: .fit)
-              .frame(width: imageSize, height: imageSize)
-              .clipShape(
-                RoundedRectangle(cornerRadius: 15, style: .continuous)
-              )
-          } else {
+        LazyImage(url: URL(string: coverArtUrl)) { state in
+          if state.isLoading {
             Color.gray.opacity(0.3)
               .frame(width: imageSize, height: imageSize)
               .clipShape(
                 RoundedRectangle(cornerRadius: 15, style: .continuous)
               )
+          } else {
+            if let image = state.image {
+              image
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: imageSize, height: imageSize)
+                .clipShape(
+                  RoundedRectangle(cornerRadius: 15, style: .continuous)
+                )
+            } else if state.error != nil {
+              Image("placeholder")
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: imageSize, height: imageSize)
+                .clipShape(
+                  RoundedRectangle(cornerRadius: 15, style: .continuous)
+                )
+            }
           }
         }
       }
