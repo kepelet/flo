@@ -125,6 +125,26 @@ struct LibraryView: View {
             }
 
             Divider()
+            
+            NavigationLink {
+              RadiosView()
+                .environmentObject(playerViewModel)
+            } label: {
+              HStack {
+                Image(systemName: "radio")
+                  .frame(width: 20, height: 10)
+                  .foregroundColor(.accent)
+                Text("Radios")
+                  .customFont(.headline)
+                  .padding(.leading, 8)
+                Spacer()
+                Image(systemName: "chevron.right")
+                  .foregroundColor(.gray)
+                  .font(.caption)
+              }.padding(.horizontal).padding(.vertical, 5)
+            }
+            
+            Divider()
           }
 
           LazyVGrid(columns: columns) {

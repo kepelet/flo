@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		B0BAAAA62F31F0A0002A5FBB /* RadiosView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0BAAAA52F31F0A0002A5FBB /* RadiosView.swift */; };
+		B0BAAAA92F3213AF002A5FBB /* RadiosViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0BAAAA82F3213AB002A5FBB /* RadiosViewModel.swift */; };
+		B0BAAAAB2F3214F7002A5FBB /* Radio.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0BAAAAA2F3214F7002A5FBB /* Radio.swift */; };
+		B0BAAAAD2F3216A0002A5FBB /* RadioService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0BAAAAC2F321697002A5FBB /* RadioService.swift */; };
 		C401D09A2C5AED9F009F91C7 /* LocalFileManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C401D0992C5AED9F009F91C7 /* LocalFileManager.swift */; };
 		C4051DFF2CD25BBA0039D062 /* ArtistsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4051DFE2CD25BBA0039D062 /* ArtistsView.swift */; };
 		C4100A692CE78B25001BC9BE /* PlaylistView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4100A682CE78B21001BC9BE /* PlaylistView.swift */; };
@@ -78,6 +82,10 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		B0BAAAA52F31F0A0002A5FBB /* RadiosView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RadiosView.swift; sourceTree = "<group>"; };
+		B0BAAAA82F3213AB002A5FBB /* RadiosViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RadiosViewModel.swift; sourceTree = "<group>"; };
+		B0BAAAAA2F3214F7002A5FBB /* Radio.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Radio.swift; sourceTree = "<group>"; };
+		B0BAAAAC2F321697002A5FBB /* RadioService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RadioService.swift; sourceTree = "<group>"; };
 		C401D0992C5AED9F009F91C7 /* LocalFileManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalFileManager.swift; sourceTree = "<group>"; };
 		C4051DFE2CD25BBA0039D062 /* ArtistsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistsView.swift; sourceTree = "<group>"; };
 		C4100A682CE78B21001BC9BE /* PlaylistView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaylistView.swift; sourceTree = "<group>"; };
@@ -162,6 +170,15 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		B0BAAAA72F32139D002A5FBB /* Radios */ = {
+			isa = PBXGroup;
+			children = (
+				B0BAAAA82F3213AB002A5FBB /* RadiosViewModel.swift */,
+				B0BAAAA52F31F0A0002A5FBB /* RadiosView.swift */,
+			);
+			path = Radios;
+			sourceTree = "<group>";
+		};
 		C4289F4B2C1253B800C3A4FD /* Shared */ = {
 			isa = PBXGroup;
 			children = (
@@ -185,6 +202,7 @@
 				C446A6B62C08DE8800CC9787 /* UserAuth.swift */,
 				C4120FDC2C15E1C300E712BE /* Song.swift */,
 				C49495802C1C25E5006B4D1E /* ScanStatus.swift */,
+				B0BAAAAA2F3214F7002A5FBB /* Radio.swift */,
 				C4EAA4852C297E35007EB2E0 /* NowPlaying.swift */,
 				C456D8F52F2FBD61002AAB8B /* LRCLIB.swift */,
 				C456D8FB2F2FF397002AAB8B /* LyricsLine.swift */,
@@ -237,6 +255,7 @@
 				C4DE89172C2FFBC900E078CC /* CoreDataManager.swift */,
 				C401D0992C5AED9F009F91C7 /* LocalFileManager.swift */,
 				C4D7F84E2C7F2C5D00165EFD /* PlaybackService.swift */,
+				B0BAAAAC2F321697002A5FBB /* RadioService.swift */,
 				C456D8F72F2FBD64002AAB8B /* LRCLIBService.swift */,
 			);
 			path = Services;
@@ -287,6 +306,7 @@
 				C415F54D2C11908100E3E1D2 /* AuthViewModel.swift */,
 				C4289F472C12391300C3A4FD /* AlbumViewModel.swift */,
 				C4289F502C139B2E00C3A4FD /* AlbumView.swift */,
+				B0BAAAA72F32139D002A5FBB /* Radios */,
 				C4824D262CE908DA003EAB52 /* SongsView.swift */,
 				C4A4BF3C2C1455A100363290 /* FloatingPlayerView.swift */,
 				C42E7E172CE7EF4D00505B4E /* PlaylistDetailView.swift */,
@@ -408,9 +428,12 @@
 				C4289F4A2C12392B00C3A4FD /* Album.swift in Sources */,
 				C4824D252CE90872003EAB52 /* ArtistDetailView.swift in Sources */,
 				C4E8D95E2B763BA900C2353E /* ContentView.swift in Sources */,
+				B0BAAAAD2F3216A0002A5FBB /* RadioService.swift in Sources */,
 				C4FE524D2C14E71B0053763A /* KeychainManager.swift in Sources */,
+				B0BAAAA62F31F0A0002A5FBB /* RadiosView.swift in Sources */,
 				C4875E022C149DDD00D9BAEB /* AuthService.swift in Sources */,
 				C4EAA4862C297E35007EB2E0 /* NowPlaying.swift in Sources */,
+				B0BAAAAB2F3214F7002A5FBB /* Radio.swift in Sources */,
 				C467AD552D329C8B00644E68 /* AccountLinkStatus.swift in Sources */,
 				C4120FDD2C15E1C300E712BE /* Song.swift in Sources */,
 				C467AD532D3267D000644E68 /* Subsonic.swift in Sources */,
@@ -455,6 +478,7 @@
 				C429DB322D33C707009F2684 /* DownloadButtonView.swift in Sources */,
 				C4824D232CE8C41F003EAB52 /* Playable.swift in Sources */,
 				C41E15132C0F952A005BAE63 /* PlayerViewModel.swift in Sources */,
+				B0BAAAA92F3213AF002A5FBB /* RadiosViewModel.swift in Sources */,
 				C4875E042C149F9A00D9BAEB /* APIManager.swift in Sources */,
 				C4A4BF312C14433D00363290 /* HomeView.swift in Sources */,
 				C4A4BF392C14445000363290 /* PreferencesView.swift in Sources */,
