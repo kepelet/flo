@@ -28,6 +28,7 @@ struct API {
     static let scanStatus = "/rest/getScanStatus"
     static let download = "/rest/download"
     static let scrobble = "/rest/scrobble"
+    static let radios = "/rest/getInternetRadioStations"
   }
 }
 

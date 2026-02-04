@@ -438,6 +438,53 @@ class PlayerViewModel: ObservableObject {
 
     self.addToQueue(idx: 0, item: queue)
   }
+  
+  func playRadioItem(radio: Radio) {
+    let item = radio.toPlayable()
+    let queue = PlaybackService.shared.addToQueue(item: item, isFromLocal: false)
+    
+    self.addToQueue(idx: 0, item: queue)
+    self.shouldHidePlayer = false
+    self.isLocallySaved = false
+    
+    self.resetLyrics()
+    
+    guard let radioUrl = URL(string: radio.streamUrl) else {
+      self.isMediaLoading = false
+      self.isMediaFailed = true
+      return
+    }
+    self.playerItem = AVPlayerItem(url: radioUrl)
+    self.player?.replaceCurrentItem(with: self.playerItem)
+    
+    self.playerItemObservation = self.playerItem?.publisher(for: \.status)
+      .sink { [weak self] status in
+        guard let self = self else { return }
+        switch status {
+        case .readyToPlay:
+          DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+            self.isMediaLoading = false
+            self.isMediaFailed = false
+          }
+        case .failed:
+          self.isMediaLoading = false
+          self.isMediaFailed = true
+        case .unknown:
+          self.isMediaLoading = false
+        @unknown default:
+          self.isMediaLoading = true
+        }
+      }
+    
+    self.play()
+    
+    self.initNowPlayingInfo(
+      title: item.name,
+      artist: item.artist,
+      playbackDuration: 0)
+    PlaybackService.shared.clearQueue()
+    UserDefaultsManager.removeObject(key: UserDefaultsKeys.nowPlayingProgress)
+  }
 
   func shuffleItem<T: Playable>(item: T, isFromLocal: Bool) {
     var shuffledItem = item

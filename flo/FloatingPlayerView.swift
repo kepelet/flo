@@ -61,10 +61,17 @@ struct FloatingPlayerView: View {
               .aspectRatio(contentMode: .fit)
           } else {
             LazyImage(url: URL(string: viewModel.getAlbumCoverArt())) { state in
-              if let image = state.image {
-                image.resizable().aspectRatio(contentMode: .fit)
-              } else {
+              if state.isLoading {
                 Color.gray.opacity(0.3)
+              } else {
+                if let image = state.image {
+                  image.resizable().aspectRatio(contentMode: .fit)
+                } else {
+                  Image("placeholder")
+                    .resizable()
+                    .scaledToFit()
+                    .padding(8)
+                }
               }
             }
           }
