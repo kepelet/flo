@@ -105,8 +105,10 @@ struct HomeView: View {
         VStack(alignment: .leading, spacing: 16) {
           Text("Listening Activity (all time)").customFont(.title2).fontWeight(.bold)
             .multilineTextAlignment(.leading)
-
-          EqualHeightHStack(alignment: .top, spacing: 16) {
+          
+          let statCardSpacing: CGFloat = UIScreen.screenWidth <= 375 ? 8 : 16
+          
+          EqualHeightHStack(alignment: .top, spacing: statCardSpacing) {
             EqualHeightItem {
               StatCard(
                 title: "Total Listens",
