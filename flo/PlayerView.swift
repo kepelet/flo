@@ -297,26 +297,43 @@ struct PlayerView: View {
 
       Spacer()
 
-      HStack(spacing: size.width * 0.15) {
-        Button {
-          viewModel.prevSong()
-        } label: {
-          Image(systemName: "backward.fill").font(.title)
-        }
+      if viewModel.isLiveRadio {
+        HStack {
+          Spacer()
 
-        Button {
-          viewModel.isPlaying ? viewModel.pause() : viewModel.play()
-        } label: {
-          Image(systemName: viewModel.isPlaying ? "pause.fill" : "play.fill")
-            .font(.system(size: 50))
-        }
-        .foregroundColor(viewModel.isMediaLoading ? .gray : .white)
-        .disabled(viewModel.isMediaLoading)
+          Button {
+            viewModel.isPlaying ? viewModel.pause() : viewModel.play()
+          } label: {
+            Image(systemName: viewModel.isPlaying ? "pause.fill" : "play.fill")
+              .font(.system(size: 50))
+          }
+          .foregroundColor(viewModel.isMediaLoading ? .gray : .white)
+          .disabled(viewModel.isMediaLoading)
 
-        Button {
-          viewModel.nextSong()
-        } label: {
-          Image(systemName: "forward.fill").font(.title)
+          Spacer()
+        }
+      } else {
+        HStack(spacing: size.width * 0.15) {
+          Button {
+            viewModel.prevSong()
+          } label: {
+            Image(systemName: "backward.fill").font(.title)
+          }
+
+          Button {
+            viewModel.isPlaying ? viewModel.pause() : viewModel.play()
+          } label: {
+            Image(systemName: viewModel.isPlaying ? "pause.fill" : "play.fill")
+              .font(.system(size: 50))
+          }
+          .foregroundColor(viewModel.isMediaLoading ? .gray : .white)
+          .disabled(viewModel.isMediaLoading)
+
+          Button {
+            viewModel.nextSong()
+          } label: {
+            Image(systemName: "forward.fill").font(.title)
+          }
         }
       }
 
