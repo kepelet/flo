@@ -191,6 +191,16 @@
         }
       }
     },
+    "Add radios in your Navidrome server." : {
+      "localizations" : {
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tambahkan Radio melalui server Navidrome"
+          }
+        }
+      }
+    },
     "Add/Change Custom" : {
       "localizations" : {
         "id" : {
@@ -711,6 +721,16 @@
         }
       }
     },
+    "LIVE" : {
+      "localizations" : {
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "LIVE"
+          }
+        }
+      }
+    },
     "Local Storage" : {
       "localizations" : {
         "en" : {
@@ -879,6 +899,26 @@
         }
       }
     },
+    "No radios available" : {
+      "localizations" : {
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tidak ada radio ditemukan"
+          }
+        }
+      }
+    },
+    "No radios match your search" : {
+      "localizations" : {
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tidak ada radio ditemukan"
+          }
+        }
+      }
+    },
     "OK" : {
       "localizations" : {
         "en" : {
@@ -1008,7 +1048,14 @@
       }
     },
     "Radios" : {
-
+      "localizations" : {
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Radios"
+          }
+        }
+      }
     },
     "Redownload Album" : {
       "localizations" : {
@@ -1438,6 +1485,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Troubleshoot"
+          }
+        }
+      }
+    },
+    "Try a different keyword." : {
+      "localizations" : {
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Coba kata kunci yang lain."
           }
         }
       }
