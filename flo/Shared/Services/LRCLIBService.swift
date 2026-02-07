@@ -27,7 +27,11 @@ class LRCLIBService {
       parameters["album_name"] = albumName
     }
 
-    if let duration = duration {
+    if let duration = duration,
+      duration.isFinite,
+      duration > 0,
+      duration < Double(Int.max)
+    {
       parameters["duration"] = String(Int(duration.rounded()))
     }
 
