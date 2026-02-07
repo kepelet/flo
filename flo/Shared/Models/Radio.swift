@@ -2,6 +2,7 @@
 //  Radio.swift
 //  flo
 //
+//  Created by Francesco (f-longobardi)
 //
 
 import Foundation
@@ -15,7 +16,7 @@ struct RadioList: SubsonicResponseData {
 
 struct RadioListResponse: Codable {
   let subsonicResponse: SubsonicResponse<RadioList>
-  
+
   private enum CodingKeys: String, CodingKey {
     case subsonicResponse = "subsonic-response"
   }
@@ -52,20 +53,49 @@ struct Radio: Codable, Identifiable, Hashable {
     self.name = name
     self.streamUrl = streamUrl
   }
-  
+
   // This function will create a mock 'Playable' entity for the radio station
   func toPlayable() -> RadioEntity {
-    return RadioEntity(id: id, name: name, songs: [Song(id: id, title: name, albumId: "", albumName: "", artist: streamUrl, trackNumber: 1, discNumber: 1, bitRate: .zero, sampleRate: 1, suffix: "", duration: .infinity, mediaFileId: id)], artist: streamUrl)
+    let displayHost = Radio.displayHost(from: streamUrl)
+    return RadioEntity(
+      id: id,
+      name: name,
+      songs: [
+        Song(
+          id: id,
+          title: name,
+          albumId: "",
+          albumName: "",
+          artist: displayHost,
+          trackNumber: 1,
+          discNumber: 1,
+          bitRate: .zero,
+          sampleRate: 1,
+          suffix: "",
+          duration: .infinity,
+          mediaFileId: id
+        )
+      ],
+      artist: displayHost
+    )
   }
-  
+
+  private static func displayHost(from urlString: String) -> String {
+    guard let url = URL(string: urlString),
+      let host = url.host,
+      !host.isEmpty
+    else {
+      return urlString
+    }
+
+    return host
+  }
+
 }
 
 struct RadioEntity: Playable {
   var id: String
-  
   var name: String
-  
   var songs: [Song]
-  
   var artist: String
 }
