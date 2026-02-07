@@ -64,6 +64,12 @@ class PlayerViewModel: ObservableObject {
     return UserDefaultsManager.LRCLIBServerURL != ""
   }
 
+  var isLiveRadio: Bool {
+    guard hasNowPlaying() else { return false }
+
+    return nowPlaying.duration.isInfinite || nowPlaying.duration.isNaN
+  }
+
   init() {
     self.player = AVPlayer()
     self.observeInterruptionNotifications()
@@ -240,7 +246,7 @@ class PlayerViewModel: ObservableObject {
 
     FloooViewModel.shared.setNowPlayingToScrobbleServer(nowPlaying: self.nowPlaying)
 
-    if isLRCLIBEnabled {
+    if isLRCLIBEnabled && !isLiveRadio {
       self.fetchLyrics()
     }
   }
@@ -255,7 +261,12 @@ class PlayerViewModel: ObservableObject {
       let currentTime = CMTimeGetSeconds(time)
       let roundedTotalDuration = floor(self.totalDuration)
 
-      self.progress = currentTime / self.totalDuration
+      if self.totalDuration.isFinite, self.totalDuration > 0 {
+        self.progress = currentTime / self.totalDuration
+      } else {
+        self.progress = 0.0
+      }
+
       self.currentTimeString = timeString(for: currentTime)
 
       UserDefaultsManager.nowPlayingProgress = self.progress
@@ -272,7 +283,10 @@ class PlayerViewModel: ObservableObject {
         }
       }
 
-      if round(currentTime) >= roundedTotalDuration {
+      if self.totalDuration.isFinite,
+        self.totalDuration > 0,
+        round(currentTime) >= roundedTotalDuration
+      {
         self.nextSong()
 
         UserDefaultsManager.removeObject(key: UserDefaultsKeys.nowPlayingProgress)
@@ -362,6 +376,10 @@ class PlayerViewModel: ObservableObject {
 
     commandCenter.changePlaybackPositionCommand.isEnabled = true
     commandCenter.changePlaybackPositionCommand.addTarget { event in
+      if self.isLiveRadio {
+        return .commandFailed
+      }
+
       if let event = event as? MPChangePlaybackPositionCommandEvent {
         let progress = event.positionTime / self.totalDuration
 
@@ -403,6 +421,10 @@ class PlayerViewModel: ObservableObject {
   }
 
   func seek(to progress: Double) {
+    if isLiveRadio {
+      return
+    }
+
     let newTime = CMTime(
       seconds: progress * totalDuration, preferredTimescale: CMTimeScale(NSEC_PER_SEC))
 
@@ -438,25 +460,32 @@ class PlayerViewModel: ObservableObject {
 
     self.addToQueue(idx: 0, item: queue)
   }
-  
+
   func playRadioItem(radio: Radio) {
-    let item = radio.toPlayable()
-    let queue = PlaybackService.shared.addToQueue(item: item, isFromLocal: false)
-    
-    self.addToQueue(idx: 0, item: queue)
-    self.shouldHidePlayer = false
-    self.isLocallySaved = false
-    
-    self.resetLyrics()
-    
-    guard let radioUrl = URL(string: radio.streamUrl) else {
-      self.isMediaLoading = false
-      self.isMediaFailed = true
+    guard let radioUrl = Self.normalizedRadioURL(from: radio.streamUrl) else {
       return
     }
+
+    let item = radio.toPlayable()
+    let queue = PlaybackService.shared.addToQueue(item: item, isFromLocal: false)
+
+    self.activeQueueIdx = 0
+    self.queue = queue
+    self.shouldHidePlayer = false
+    self.isLocallySaved = false
+    self._playFromLocal = false
+
+    self.resetLyrics()
+
+    if let timeObserverToken = timeObserverToken {
+      player?.removeTimeObserver(timeObserverToken)
+
+      self.timeObserverToken = nil
+    }
+
     self.playerItem = AVPlayerItem(url: radioUrl)
     self.player?.replaceCurrentItem(with: self.playerItem)
-    
+
     self.playerItemObservation = self.playerItem?.publisher(for: \.status)
       .sink { [weak self] status in
         guard let self = self else { return }
@@ -475,9 +504,17 @@ class PlayerViewModel: ObservableObject {
           self.isMediaLoading = true
         }
       }
-    
+
+    self.isMediaLoading = true
+    self.isMediaFailed = false
+    self.totalDuration = self.nowPlaying.duration
+    self.progress = 0.0
+    self.currentTimeString = "00:00"
+    self.totalTimeString = "00:00"
+
+    self.addPeriodicTimeObserver()
     self.play()
-    
+
     self.initNowPlayingInfo(
       title: item.name,
       artist: item.artist,
@@ -670,9 +707,45 @@ class PlayerViewModel: ObservableObject {
   }
 
   func toggleLyricsMode() {
+    if isLiveRadio {
+      return
+    }
+
     withAnimation(.spring(duration: 0.3)) {
       isLyricsMode.toggle()
     }
+  }
+
+  private static func normalizedRadioURL(from streamUrl: String) -> URL? {
+    let trimmedUrl = streamUrl.trimmingCharacters(in: .whitespacesAndNewlines)
+
+    guard !trimmedUrl.isEmpty else { return nil }
+
+    if let url = URL(string: trimmedUrl), url.scheme != nil {
+      return url
+    }
+
+    if let encoded = trimmedUrl.addingPercentEncoding(withAllowedCharacters: .urlFragmentAllowed),
+      let url = URL(string: encoded),
+      url.scheme != nil
+    {
+      return url
+    }
+
+    let withScheme = "https://\(trimmedUrl)"
+
+    if let url = URL(string: withScheme), url.host != nil {
+      return url
+    }
+
+    if let encoded = withScheme.addingPercentEncoding(withAllowedCharacters: .urlFragmentAllowed),
+      let url = URL(string: encoded),
+      url.host != nil
+    {
+      return url
+    }
+
+    return nil
   }
 
   deinit {
