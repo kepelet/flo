@@ -169,6 +169,11 @@ struct PlayerView: View {
         }
       }
       .frame(maxHeight: .infinity)
+      .onChange(of: viewModel.isLiveRadio) { isLive in
+        if isLive {
+          showQueue = false
+        }
+      }
       .background {
         ZStack {
           if UserDefaultsManager.playerBackground == PlayerBackground.translucent {
@@ -318,15 +323,19 @@ struct PlayerView: View {
       Spacer()
 
       VStack {
-        PlayerCustomSlider(
-          isMediaLoading: viewModel.isMediaLoading,
-          isSeeking: $viewModel.isSeeking, value: $viewModel.progress, range: 0...1
-        ) { newValue in
-          viewModel.seek(to: newValue)
+        if viewModel.isLiveRadio {
+          liveProgressBar()
+        } else {
+          PlayerCustomSlider(
+            isMediaLoading: viewModel.isMediaLoading,
+            isSeeking: $viewModel.isSeeking, value: $viewModel.progress, range: 0...1
+          ) { newValue in
+            viewModel.seek(to: newValue)
+          }
         }
 
         HStack {
-          Text(viewModel.currentTimeString)
+          Text(viewModel.isLiveRadio ? "" : viewModel.currentTimeString)
             .foregroundColor(.white)
             .customFont(.caption2)
             .frame(width: 60, alignment: .leading)
@@ -334,9 +343,11 @@ struct PlayerView: View {
           Spacer()
 
           Text(
-            viewModel.isPlayFromSource
-              ? "\(viewModel.nowPlaying.suffix ?? "")   \(viewModel.nowPlaying.bitRate.description)"
-              : "\(TranscodingSettings.targetFormat)   \(UserDefaultsManager.maxBitRate)"
+            viewModel.isLiveRadio
+              ? "LIVE"
+              : (viewModel.isPlayFromSource
+                ? "\(viewModel.nowPlaying.suffix ?? "")   \(viewModel.nowPlaying.bitRate.description)"
+                : "\(TranscodingSettings.targetFormat)   \(UserDefaultsManager.maxBitRate)")
           )
           .foregroundColor(.white)
           .customFont(.caption2)
@@ -346,7 +357,7 @@ struct PlayerView: View {
 
           Spacer()
 
-          Text(viewModel.totalTimeString)
+          Text(viewModel.isLiveRadio ? "" : viewModel.totalTimeString)
             .foregroundColor(.white)
             .customFont(.caption2)
             .frame(width: 60, alignment: .trailing)
@@ -362,17 +373,20 @@ struct PlayerView: View {
 
   @ViewBuilder
   private func bottomControlBar(showQueue: Binding<Bool>) -> some View {
+    let isLyricsDisabled =
+      viewModel.isLiveRadio || (viewModel.lyrics.isEmpty && (viewModel.lyricsError != nil))
+
+    let isQueueDisabled = viewModel.isLiveRadio
+
     HStack(spacing: 0) {
       Button {
         viewModel.toggleLyricsMode()
       } label: {
         Image(systemName: "quote.bubble")
           .font(.title2)
-          .foregroundColor(
-            viewModel.lyrics.isEmpty && (viewModel.lyricsError != nil)
-              ? .white.opacity(0.4) : .white
-          )
+          .foregroundColor(isLyricsDisabled ? .white.opacity(0.4) : .white)
       }
+      .disabled(isLyricsDisabled)
       .frame(width: 56, alignment: .leading)
 
       AirPlayRoutePicker(tintColor: UIColor.white, activeTintColor: UIColor.white)
@@ -393,7 +407,9 @@ struct PlayerView: View {
         }
 
       Button {
-        showQueue.wrappedValue.toggle()
+        if !isQueueDisabled {
+          showQueue.wrappedValue.toggle()
+        }
       } label: {
         Image(systemName: "list.bullet")
           .font(.title2)
@@ -419,8 +435,26 @@ struct PlayerView: View {
             .offset(x: 10, y: -10)
           )
       }
+      .disabled(isQueueDisabled)
+      .opacity(isQueueDisabled ? 0.4 : 1)
       .frame(width: 56, alignment: .trailing)
     }
+  }
+
+  @ViewBuilder
+  private func liveProgressBar() -> some View {
+    GeometryReader { geometry in
+      ZStack(alignment: .leading) {
+        Capsule()
+          .fill(Color.gray.opacity(0.8))
+          .frame(height: 5)
+
+        Capsule()
+          .fill(Color.white)
+          .frame(width: geometry.size.width, height: 4)
+      }
+    }
+    .frame(height: 20)
   }
 }
 
