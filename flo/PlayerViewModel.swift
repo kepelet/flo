@@ -297,39 +297,56 @@ class PlayerViewModel: ObservableObject {
   private func initNowPlayingInfo(
     title: String, artist: String, playbackDuration: Double
   ) {
-    var nowPlayingInfo = [String: Any]()
-
     DispatchQueue.global().async {
-      let url: URL
-      let albumCoverArt = self.getAlbumCoverArt()
-
-      if albumCoverArt.hasPrefix("/") {
-        url = URL(fileURLWithPath: albumCoverArt)
-      } else {
-        guard let remoteURL = URL(string: albumCoverArt) else {
-          return
-        }
-
-        url = remoteURL
-      }
-
-      if let data = try? Data(contentsOf: url),
-        let image = UIImage(data: data)
-      {
-        let artwork = MPMediaItemArtwork(boundsSize: image.size) { size in
-          return image
-        }
-
-        nowPlayingInfo[MPMediaItemPropertyArtwork] = artwork
-      }
+      let artwork = self.makeNowPlayingArtwork()
 
       DispatchQueue.main.async {
+        var nowPlayingInfo = [String: Any]()
+
         nowPlayingInfo[MPMediaItemPropertyTitle] = title
         nowPlayingInfo[MPMediaItemPropertyArtist] = artist
         nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] = playbackDuration
 
+        if let artwork = artwork {
+          nowPlayingInfo[MPMediaItemPropertyArtwork] = artwork
+        }
+
         MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
       }
+    }
+  }
+
+  private func makeNowPlayingArtwork() -> MPMediaItemArtwork? {
+    if isLiveRadio {
+      if let image = UIImage(named: "placeholder") {
+        return MPMediaItemArtwork(boundsSize: image.size) { _ in
+          return image
+        }
+      }
+
+      return nil
+    }
+
+    let albumCoverArt = self.getAlbumCoverArt()
+
+    let image: UIImage?
+
+    if albumCoverArt.hasPrefix("/") {
+      image = UIImage(contentsOfFile: albumCoverArt)
+    } else if let remoteURL = URL(string: albumCoverArt),
+      let data = try? Data(contentsOf: remoteURL)
+    {
+      image = UIImage(data: data)
+    } else {
+      image = nil
+    }
+
+    guard let resolvedImage = image else {
+      return nil
+    }
+
+    return MPMediaItemArtwork(boundsSize: resolvedImage.size) { _ in
+      return resolvedImage
     }
   }
 
