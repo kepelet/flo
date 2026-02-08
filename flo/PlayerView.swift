@@ -169,6 +169,11 @@ struct PlayerView: View {
         }
       }
       .frame(maxHeight: .infinity)
+      .onChange(of: viewModel.isLiveRadio) { isLive in
+        if isLive {
+          showQueue = false
+        }
+      }
       .background {
         ZStack {
           if UserDefaultsManager.playerBackground == PlayerBackground.translucent {
@@ -234,8 +239,8 @@ struct PlayerView: View {
         .padding(.top, 20)
 
       Spacer()
-
-      if let image = UIImage(contentsOfFile: viewModel.getAlbumCoverArt()) {
+      let coverArtUrl = viewModel.getAlbumCoverArt()
+      if let image = UIImage(contentsOfFile: coverArtUrl) {
         Image(uiImage: image)
           .resizable()
           .aspectRatio(contentMode: .fit)
@@ -244,21 +249,31 @@ struct PlayerView: View {
             RoundedRectangle(cornerRadius: 15, style: .continuous)
           )
       } else {
-        LazyImage(url: URL(string: viewModel.getAlbumCoverArt())) { state in
-          if let image = state.image {
-            image
-              .resizable()
-              .aspectRatio(contentMode: .fit)
-              .frame(width: imageSize, height: imageSize)
-              .clipShape(
-                RoundedRectangle(cornerRadius: 15, style: .continuous)
-              )
-          } else {
+        LazyImage(url: URL(string: coverArtUrl)) { state in
+          if state.isLoading {
             Color.gray.opacity(0.3)
               .frame(width: imageSize, height: imageSize)
               .clipShape(
                 RoundedRectangle(cornerRadius: 15, style: .continuous)
               )
+          } else {
+            if let image = state.image {
+              image
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: imageSize, height: imageSize)
+                .clipShape(
+                  RoundedRectangle(cornerRadius: 15, style: .continuous)
+                )
+            } else if state.error != nil {
+              Image("placeholder")
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: imageSize, height: imageSize)
+                .clipShape(
+                  RoundedRectangle(cornerRadius: 15, style: .continuous)
+                )
+            }
           }
         }
       }
@@ -282,41 +297,62 @@ struct PlayerView: View {
 
       Spacer()
 
-      HStack(spacing: size.width * 0.15) {
-        Button {
-          viewModel.prevSong()
-        } label: {
-          Image(systemName: "backward.fill").font(.title)
-        }
+      if viewModel.isLiveRadio {
+        HStack {
+          Spacer()
 
-        Button {
-          viewModel.isPlaying ? viewModel.pause() : viewModel.play()
-        } label: {
-          Image(systemName: viewModel.isPlaying ? "pause.fill" : "play.fill")
-            .font(.system(size: 50))
-        }
-        .foregroundColor(viewModel.isMediaLoading ? .gray : .white)
-        .disabled(viewModel.isMediaLoading)
+          Button {
+            viewModel.isPlaying ? viewModel.pause() : viewModel.play()
+          } label: {
+            Image(systemName: viewModel.isPlaying ? "pause.fill" : "play.fill")
+              .font(.system(size: 50))
+          }
+          .foregroundColor(viewModel.isMediaLoading ? .gray : .white)
+          .disabled(viewModel.isMediaLoading)
 
-        Button {
-          viewModel.nextSong()
-        } label: {
-          Image(systemName: "forward.fill").font(.title)
+          Spacer()
+        }
+      } else {
+        HStack(spacing: size.width * 0.15) {
+          Button {
+            viewModel.prevSong()
+          } label: {
+            Image(systemName: "backward.fill").font(.title)
+          }
+
+          Button {
+            viewModel.isPlaying ? viewModel.pause() : viewModel.play()
+          } label: {
+            Image(systemName: viewModel.isPlaying ? "pause.fill" : "play.fill")
+              .font(.system(size: 50))
+          }
+          .foregroundColor(viewModel.isMediaLoading ? .gray : .white)
+          .disabled(viewModel.isMediaLoading)
+
+          Button {
+            viewModel.nextSong()
+          } label: {
+            Image(systemName: "forward.fill").font(.title)
+          }
         }
       }
 
       Spacer()
 
       VStack {
-        PlayerCustomSlider(
-          isMediaLoading: viewModel.isMediaLoading,
-          isSeeking: $viewModel.isSeeking, value: $viewModel.progress, range: 0...1
-        ) { newValue in
-          viewModel.seek(to: newValue)
+        if viewModel.isLiveRadio {
+          liveProgressBar()
+        } else {
+          PlayerCustomSlider(
+            isMediaLoading: viewModel.isMediaLoading,
+            isSeeking: $viewModel.isSeeking, value: $viewModel.progress, range: 0...1
+          ) { newValue in
+            viewModel.seek(to: newValue)
+          }
         }
 
         HStack {
-          Text(viewModel.currentTimeString)
+          Text(viewModel.isLiveRadio ? "" : viewModel.currentTimeString)
             .foregroundColor(.white)
             .customFont(.caption2)
             .frame(width: 60, alignment: .leading)
@@ -324,9 +360,11 @@ struct PlayerView: View {
           Spacer()
 
           Text(
-            viewModel.isPlayFromSource
-              ? "\(viewModel.nowPlaying.suffix ?? "")   \(viewModel.nowPlaying.bitRate.description)"
-              : "\(TranscodingSettings.targetFormat)   \(UserDefaultsManager.maxBitRate)"
+            viewModel.isLiveRadio
+              ? "LIVE"
+              : (viewModel.isPlayFromSource
+                ? "\(viewModel.nowPlaying.suffix ?? "")   \(viewModel.nowPlaying.bitRate.description)"
+                : "\(TranscodingSettings.targetFormat)   \(UserDefaultsManager.maxBitRate)")
           )
           .foregroundColor(.white)
           .customFont(.caption2)
@@ -336,7 +374,7 @@ struct PlayerView: View {
 
           Spacer()
 
-          Text(viewModel.totalTimeString)
+          Text(viewModel.isLiveRadio ? "" : viewModel.totalTimeString)
             .foregroundColor(.white)
             .customFont(.caption2)
             .frame(width: 60, alignment: .trailing)
@@ -352,17 +390,20 @@ struct PlayerView: View {
 
   @ViewBuilder
   private func bottomControlBar(showQueue: Binding<Bool>) -> some View {
+    let isLyricsDisabled =
+      viewModel.isLiveRadio || (viewModel.lyrics.isEmpty && (viewModel.lyricsError != nil))
+
+    let isQueueDisabled = viewModel.isLiveRadio
+
     HStack(spacing: 0) {
       Button {
         viewModel.toggleLyricsMode()
       } label: {
         Image(systemName: "quote.bubble")
           .font(.title2)
-          .foregroundColor(
-            viewModel.lyrics.isEmpty && (viewModel.lyricsError != nil)
-              ? .white.opacity(0.4) : .white
-          )
+          .foregroundColor(isLyricsDisabled ? .white.opacity(0.4) : .white)
       }
+      .disabled(isLyricsDisabled)
       .frame(width: 56, alignment: .leading)
 
       AirPlayRoutePicker(tintColor: UIColor.white, activeTintColor: UIColor.white)
@@ -383,7 +424,9 @@ struct PlayerView: View {
         }
 
       Button {
-        showQueue.wrappedValue.toggle()
+        if !isQueueDisabled {
+          showQueue.wrappedValue.toggle()
+        }
       } label: {
         Image(systemName: "list.bullet")
           .font(.title2)
@@ -409,8 +452,26 @@ struct PlayerView: View {
             .offset(x: 10, y: -10)
           )
       }
+      .disabled(isQueueDisabled)
+      .opacity(isQueueDisabled ? 0.4 : 1)
       .frame(width: 56, alignment: .trailing)
     }
+  }
+
+  @ViewBuilder
+  private func liveProgressBar() -> some View {
+    GeometryReader { geometry in
+      ZStack(alignment: .leading) {
+        Capsule()
+          .fill(Color.gray.opacity(0.8))
+          .frame(height: 5)
+
+        Capsule()
+          .fill(Color.white)
+          .frame(width: geometry.size.width, height: 4)
+      }
+    }
+    .frame(height: 20)
   }
 }
 
