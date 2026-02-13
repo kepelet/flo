@@ -13,14 +13,44 @@ class CoreDataManager: ObservableObject {
 
   private init() {}
 
+  private static func inMemoryContainer() -> NSPersistentContainer {
+    let container = NSPersistentContainer(name: "flo")
+    let description = NSPersistentStoreDescription()
+
+    description.type = NSInMemoryStoreType
+    description.shouldAddStoreAsynchronously = false
+
+    container.persistentStoreDescriptions = [description]
+    container.loadPersistentStores { _, error in
+      if let error {
+        print("Failed to create in-memory store: \(error.localizedDescription)")
+      }
+    }
+
+    container.viewContext.automaticallyMergesChangesFromParent = true
+
+    return container
+  }
+
   lazy var persistentContainer: NSPersistentContainer = {
     let container = NSPersistentContainer(name: "flo")  //FIXME: constants?
+    container.persistentStoreDescriptions.forEach { $0.shouldAddStoreAsynchronously = false }
+
+    var loadError: Error?
 
     container.loadPersistentStores { _, error in
       if let error {
-        fatalError("Failed to load persistent stores: \(error.localizedDescription)")
+        loadError = error
       }
     }
+
+    if let loadError {
+      print("failed to load persistent stores: \(loadError.localizedDescription)")
+
+      return Self.inMemoryContainer()
+    }
+
+    container.viewContext.automaticallyMergesChangesFromParent = true
 
     return container
   }()
@@ -77,7 +107,10 @@ class CoreDataManager: ObservableObject {
     sortDescriptors: [NSSortDescriptor]? = nil
   ) -> [T] {
     let request: NSFetchRequest<T> = NSFetchRequest<T>(entityName: String(describing: T.self))
-    let keyPathString = key._kvcKeyPathString!
+
+    guard let keyPathString = key._kvcKeyPathString else {
+      return []
+    }
 
     let predicate: NSPredicate
 
@@ -143,8 +176,9 @@ class CoreDataManager: ObservableObject {
     key: KeyPath<T, V>,
     value: V?
   ) {
-    let request: NSFetchRequest<T> = NSFetchRequest<T>(entityName: String(describing: T.self))
-    let keyPathString = key._kvcKeyPathString!
+    guard let keyPathString = key._kvcKeyPathString else {
+      return
+    }
 
     let predicate: NSPredicate
 
@@ -154,10 +188,10 @@ class CoreDataManager: ObservableObject {
       predicate = NSPredicate(format: "%K == NULL", keyPathString)
     }
 
-    request.predicate = predicate
+    let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: String(describing: T.self))
+    fetchRequest.predicate = predicate
 
-    let deleteRequest = NSBatchDeleteRequest(
-      fetchRequest: request as! NSFetchRequest<NSFetchRequestResult>)
+    let deleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
 
     do {
       try self.viewContext.execute(deleteRequest)
