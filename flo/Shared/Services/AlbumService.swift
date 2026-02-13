@@ -11,26 +11,30 @@ import Foundation
 class AlbumService {
   static let shared = AlbumService()
 
+  private func buildRemoteStreamUrl(id: String) -> String {
+    let maxBitrate = UserDefaultsManager.maxBitRate
+
+    let format =
+      maxBitrate == TranscodingSettings.sourceBitRate
+      ? TranscodingSettings.sourceFormat : TranscodingSettings.targetFormat
+
+    return
+      "\(UserDefaultsManager.serverBaseURL)\(API.SubsonicEndpoint.stream)\(AuthService.shared.getCreds(key: "subsonicToken"))&id=\(id)&maxBitRate=\(maxBitrate)&format=\(format)"
+  }
+
   func getStreamUrl(id: String) -> String {
     if let localStream = CoreDataManager.shared.getRecordByKey(
       entity: SongEntity.self, key: \SongEntity.mediaFileId, value: id
-    ).first {
-      guard let fileUrl = LocalFileManager.shared.fileURL(for: localStream.fileURL ?? "") else {
-        return ""
-      }
-
+    ).first,
+      let localPath = localStream.fileURL,
+      !localPath.isEmpty,
+      LocalFileManager.shared.fileExists(fileName: localPath),
+      let fileUrl = LocalFileManager.shared.fileURL(for: localPath)
+    {
       return fileUrl.absoluteString
-    } else {
-      let maxBitrate = UserDefaultsManager.maxBitRate
-      let format =
-        maxBitrate == TranscodingSettings.sourceBitRate
-        ? TranscodingSettings.sourceFormat : TranscodingSettings.targetFormat
-
-      let streamUrl =
-        "\(UserDefaultsManager.serverBaseURL)\(API.SubsonicEndpoint.stream)\(AuthService.shared.getCreds(key: "subsonicToken"))&id=\(id)&maxBitRate=\(maxBitrate)&format=\(format)"
-
-      return streamUrl
     }
+
+    return buildRemoteStreamUrl(id: id)
   }
 
   func getSongFromAlbum(id: String, completion: @escaping (Result<[Song], Error>) -> Void) {
