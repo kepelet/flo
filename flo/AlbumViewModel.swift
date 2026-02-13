@@ -121,7 +121,13 @@ class AlbumViewModel: ObservableObject {
         switch result {
         case .success(let response):
           if let albumInfo = response.subsonicResponse.albumInfo.notes {
-            let regex = try! NSRegularExpression(pattern: "<a href=\".*\">.*</a>\\.")
+            guard let regex = try? NSRegularExpression(pattern: "<a href=\".*\">.*</a>\\.")
+
+            else {
+              self.album.info = albumInfo
+
+              return
+            }
             let range = NSRange(location: 0, length: albumInfo.utf16.count)
 
             let stripped = regex.stringByReplacingMatches(
