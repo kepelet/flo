@@ -184,6 +184,13 @@ class PlayerViewModel: ObservableObject {
   }
 
   func setNowPlaying(playAudio: Bool = true) {
+    guard self.queue.indices.contains(self.activeQueueIdx) else {
+      self.isMediaLoading = false
+      self.isMediaFailed = true
+
+      return
+    }
+
     self.shouldHidePlayer = false
     self.isLocallySaved = false
 
@@ -193,12 +200,18 @@ class PlayerViewModel: ObservableObject {
       player?.removeTimeObserver(timeObserverToken)
     }
 
-    let audioURL = URL(
-      string: AlbumService.shared.getStreamUrl(id: self.nowPlaying.id ?? ""))
+    let streamUrl = AlbumService.shared.getStreamUrl(id: self.nowPlaying.id ?? "")
 
-    self._playFromLocal = audioURL?.isFileURL == true
+    guard let audioURL = URL(string: streamUrl), !streamUrl.isEmpty else {
+      self.isMediaLoading = false
+      self.isMediaFailed = true
 
-    self.playerItem = AVPlayerItem(url: audioURL!)
+      return
+    }
+
+    self._playFromLocal = audioURL.isFileURL
+
+    self.playerItem = AVPlayerItem(url: audioURL)
     self.player?.replaceCurrentItem(with: self.playerItem)
 
     let duration = CMTime(
