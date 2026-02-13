@@ -20,7 +20,10 @@ struct ArtistDetailView: View {
   ]
 
   func stripBiography(biography: String) -> String {
-    let regex = try! NSRegularExpression(pattern: "<a[^>]*>.*?</a>")
+    guard let regex = try? NSRegularExpression(pattern: "<a[^>]*>.*?</a>") else {
+      return biography.isEmpty ? "No biography available" : biography
+    }
+
     let range = NSRange(location: 0, length: biography.utf16.count)
 
     let stripped = regex.stringByReplacingMatches(
