@@ -43,7 +43,6 @@ struct StatCard: View {
           Text(title)
             .foregroundColor(.secondary)
             .customFont(.body)
-            .minimumScaleFactor(0.7)
 
           Spacer()
 
@@ -61,7 +60,6 @@ struct StatCard: View {
             .lineSpacing(2)
             .fontWeight(.bold)
             .lineLimit(2)
-            .minimumScaleFactor(0.7)
 
           if let subtitle = subtitle {
             Text(subtitle)
@@ -69,7 +67,6 @@ struct StatCard: View {
               .customFont(.subheadline)
               .lineSpacing(2)
               .lineLimit(2)
-              .minimumScaleFactor(0.7)
           }
         }
       }
@@ -84,7 +81,6 @@ struct StatCard: View {
           Text(title)
             .foregroundColor(.secondary)
             .customFont(.body)
-            .minimumScaleFactor(0.7)
 
           Spacer()
 
@@ -102,7 +98,6 @@ struct StatCard: View {
             .lineSpacing(2)
             .fontWeight(.bold)
             .lineLimit(2)
-            .minimumScaleFactor(0.7)
 
           if let subtitle = subtitle {
             Text(subtitle)
@@ -110,7 +105,6 @@ struct StatCard: View {
               .customFont(.subheadline)
               .lineSpacing(2)
               .lineLimit(2)
-              .minimumScaleFactor(0.7)
           }
         }
       }
