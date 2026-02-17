@@ -44,6 +44,7 @@ struct Album: Codable, Identifiable, Playable {
     case name
     case albumArtist
     case artist
+    case albumCover
     case genre
     case minYear
     case songs
@@ -64,6 +65,7 @@ struct Album: Codable, Identifiable, Playable {
       self.artist = self.albumArtist
     }
 
+    self.albumCover = try container.decodeIfPresent(String.self, forKey: .albumCover) ?? ""
     self.genre = try container.decode(String.self, forKey: .genre)
     self.minYear = try container.decode(Int.self, forKey: .minYear)
     self.songs = try container.decodeIfPresent([Song].self, forKey: .songs) ?? []
@@ -83,15 +85,17 @@ struct Album: Codable, Identifiable, Playable {
     self.minYear = minYear
   }
 
-  init(from playlist: PlaylistEntity) {
-    self.id = playlist.id ?? UUID().uuidString
-    self.name = playlist.name ?? "Unknown Album"
-    self.albumArtist = playlist.albumArtist ?? playlist.artistName ?? "Unknown Artist"
-    self.artist = playlist.artistName ?? "Unknown Artist"
-    self.genre = playlist.genre ?? "Unknown Genre"
-    self.minYear = Int(playlist.minYear)
-    self.albumCover = playlist.albumCover ?? ""
-  }
+  #if os(iOS)
+    init(from playlist: PlaylistEntity) {
+      self.id = playlist.id ?? UUID().uuidString
+      self.name = playlist.name ?? "Unknown Album"
+      self.albumArtist = playlist.albumArtist ?? playlist.artistName ?? "Unknown Artist"
+      self.artist = playlist.artistName ?? "Unknown Artist"
+      self.genre = playlist.genre ?? "Unknown Genre"
+      self.minYear = Int(playlist.minYear)
+      self.albumCover = playlist.albumCover ?? ""
+    }
+  #endif
 
   init(from playlist: Playlist) {
     self.id = playlist.id
