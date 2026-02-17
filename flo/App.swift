@@ -17,6 +17,10 @@ struct FloApp: App {
     } catch {
       print(error)
     }
+
+    #if os(iOS)
+      WatchConnectivityManager.shared.start()
+    #endif
   }
 
   var body: some Scene {

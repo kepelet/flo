@@ -61,9 +61,10 @@ struct Song: Codable, Identifiable, Hashable {
     self.title = try container.decode(String.self, forKey: .title)
     self.artist = try container.decode(String.self, forKey: .artist)
     self.albumId = try container.decode(String.self, forKey: .albumId)
-    self.albumName = try container.decodeIfPresent(String.self, forKey: .album)
-        ?? container.decodeIfPresent(String.self, forKey: .albumName)
-        ?? ""
+    self.albumName =
+      try container.decodeIfPresent(String.self, forKey: .album)
+      ?? container.decodeIfPresent(String.self, forKey: .albumName)
+      ?? ""
 
     self.trackNumber = try container.decode(Int.self, forKey: .trackNumber)
     self.discNumber = try container.decode(Int.self, forKey: .discNumber)
@@ -112,33 +113,35 @@ struct Song: Codable, Identifiable, Hashable {
     self.mediaFileId = mediaFileId
   }
 
-  init(from song: SongEntity) {
-    self.id = song.id ?? ""
-    self.title = song.title ?? "N/A"
-    self.artist = song.artistName ?? "N/A"
-    self.albumId = song.albumId ?? ""
+  #if os(iOS)
+    init(from song: SongEntity) {
+      self.id = song.id ?? ""
+      self.title = song.title ?? "N/A"
+      self.artist = song.artistName ?? "N/A"
+      self.albumId = song.albumId ?? ""
 
-    if let storedAlbumName = song.albumName, !storedAlbumName.isEmpty {
-      self.albumName = storedAlbumName
-    } else if let fileURL = song.fileURL {
-      let parts = fileURL.split(separator: "/")
+      if let storedAlbumName = song.albumName, !storedAlbumName.isEmpty {
+        self.albumName = storedAlbumName
+      } else if let fileURL = song.fileURL {
+        let parts = fileURL.split(separator: "/")
 
-      if parts.count >= 3 {
-        self.albumName = String(parts[2])
+        if parts.count >= 3 {
+          self.albumName = String(parts[2])
+        } else {
+          self.albumName = ""
+        }
       } else {
         self.albumName = ""
       }
-    } else {
-      self.albumName = ""
-    }
 
-    self.trackNumber = Int(song.trackNumber)
-    self.discNumber = Int(song.discNumber)
-    self.bitRate = Int(song.bitRate)
-    self.sampleRate = Int(song.sampleRate)
-    self.suffix = song.suffix ?? "N/A"
-    self.duration = song.duration
-    self.fileUrl = song.fileURL ?? ""
-    self.mediaFileId = song.mediaFileId ?? ""
-  }
+      self.trackNumber = Int(song.trackNumber)
+      self.discNumber = Int(song.discNumber)
+      self.bitRate = Int(song.bitRate)
+      self.sampleRate = Int(song.sampleRate)
+      self.suffix = song.suffix ?? "N/A"
+      self.duration = song.duration
+      self.fileUrl = song.fileURL ?? ""
+      self.mediaFileId = song.mediaFileId ?? ""
+    }
+  #endif
 }

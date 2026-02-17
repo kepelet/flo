@@ -111,6 +111,9 @@ struct ContentView: View {
         }
       }
     }
+    .onAppear {
+      PlaybackCoordinator.shared.attach(playerViewModel: playerViewModel)
+    }
   }
 }
 
