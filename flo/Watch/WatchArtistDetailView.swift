@@ -6,32 +6,27 @@
 //
 
 #if os(watchOS)
-import SwiftUI
+  import SwiftUI
 
-struct WatchArtistDetailView: View {
-  let artist: Artist
-  @ObservedObject var libraryViewModel: WatchLibraryViewModel
-  @ObservedObject var playerViewModel: WatchPlayerViewModel
+  struct WatchArtistDetailView: View {
+    let artist: Artist
 
-  var body: some View {
-    let albums = libraryViewModel.artistAlbums[artist.id] ?? []
+    @ObservedObject var libraryViewModel: WatchLibraryViewModel
+    @ObservedObject var playerViewModel: WatchPlayerViewModel
 
-    List {
-      Section {
-        Text(artist.name)
-          .font(.headline)
-      }
+    var body: some View {
+      let albums = libraryViewModel.artistAlbums[artist.id] ?? []
 
-      if libraryViewModel.isLoading {
-        ProgressView()
-      }
+      List {
+        if libraryViewModel.isLoading {
+          ProgressView()
+        }
 
-      if let errorMessage = libraryViewModel.errorMessage {
-        Text(errorMessage)
-          .foregroundColor(.red)
-      }
+        if let errorMessage = libraryViewModel.errorMessage {
+          Text(errorMessage)
+            .foregroundColor(.red)
+        }
 
-      Section("Albums") {
         ForEach(albums) { album in
           NavigationLink {
             WatchAlbumDetailView(
@@ -40,22 +35,29 @@ struct WatchArtistDetailView: View {
               playerViewModel: playerViewModel
             )
           } label: {
-            VStack(alignment: .leading, spacing: 2) {
-              Text(album.name)
-                .font(.body)
-                .lineLimit(1)
-              Text(album.minYear > 0 ? String(album.minYear) : album.artist)
-                .font(.caption)
-                .foregroundColor(.secondary)
+            HStack(spacing: 10) {
+              WatchCoverArtView(
+                coverArt: album.albumCover,
+                size: 36
+              )
+
+              VStack(alignment: .leading, spacing: 2) {
+                Text(album.name)
+                  .font(.body)
+                  .lineLimit(1)
+
+                Text(album.minYear > 0 ? String(album.minYear) : album.artist)
+                  .font(.caption)
+                  .foregroundColor(.secondary)
+              }
             }
           }
         }
       }
-    }
-    .navigationTitle("Artist")
-    .onAppear {
-      libraryViewModel.loadAlbums(for: artist)
+      .navigationTitle(artist.name)
+      .onAppear {
+        libraryViewModel.loadAlbums(for: artist)
+      }
     }
   }
-}
 #endif

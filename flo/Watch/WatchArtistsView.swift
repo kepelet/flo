@@ -6,48 +6,54 @@
 //
 
 #if os(watchOS)
-import SwiftUI
+  import SwiftUI
 
-struct WatchArtistsView: View {
-  @ObservedObject var libraryViewModel: WatchLibraryViewModel
-  @ObservedObject var playerViewModel: WatchPlayerViewModel
+  struct WatchArtistsView: View {
+    @ObservedObject var libraryViewModel: WatchLibraryViewModel
+    @ObservedObject var playerViewModel: WatchPlayerViewModel
 
-  var body: some View {
-    List {
-      if libraryViewModel.isLoading {
-        ProgressView()
+    private var filteredArtists: [Artist] {
+      libraryViewModel.artists.filter { artist in
+        artist.stats.albumartist != nil
       }
+    }
 
-      if let errorMessage = libraryViewModel.errorMessage {
-        Text(errorMessage)
-          .foregroundColor(.red)
-      }
+    var body: some View {
+      List {
+        if libraryViewModel.isLoading {
+          ProgressView()
+        }
 
-      ForEach(libraryViewModel.artists) { artist in
-        NavigationLink {
-          WatchArtistDetailView(
-            artist: artist,
-            libraryViewModel: libraryViewModel,
-            playerViewModel: playerViewModel
-          )
-        } label: {
-          VStack(alignment: .leading, spacing: 2) {
-            Text(artist.name)
-              .font(.headline)
-              .lineLimit(1)
-            Text("\(artist.albumCount) albums")
-              .font(.caption)
-              .foregroundColor(.secondary)
+        if let errorMessage = libraryViewModel.errorMessage {
+          Text(errorMessage)
+            .foregroundColor(.red)
+        }
+
+        ForEach(filteredArtists) { artist in
+          NavigationLink {
+            WatchArtistDetailView(
+              artist: artist,
+              libraryViewModel: libraryViewModel,
+              playerViewModel: playerViewModel
+            )
+          } label: {
+            VStack(alignment: .leading, spacing: 2) {
+              Text(artist.name)
+                .font(.headline)
+                .lineLimit(1)
+              Text("\(artist.albumCount) albums")
+                .font(.caption)
+                .foregroundColor(.secondary)
+            }
           }
         }
       }
-    }
-    .navigationTitle("Artists")
-    .onAppear {
-      if libraryViewModel.artists.isEmpty {
-        libraryViewModel.loadArtists()
+      .navigationTitle("Artists")
+      .onAppear {
+        if libraryViewModel.artists.isEmpty {
+          libraryViewModel.loadArtists()
+        }
       }
     }
   }
-}
 #endif
