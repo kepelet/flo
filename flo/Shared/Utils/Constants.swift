@@ -29,6 +29,7 @@ struct API {
     static let download = "/rest/download"
     static let scrobble = "/rest/scrobble"
     static let radios = "/rest/getInternetRadioStations"
+    static let similarSongs = "/rest/getSimilarSongs2"
   }
 }
 

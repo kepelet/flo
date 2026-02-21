@@ -99,3 +99,64 @@ struct RadioEntity: Playable {
   var songs: [Song]
   var artist: String
 }
+
+// MARK: - Artist Radio (getSimilarSongs2)
+
+struct SimilarSongsList: SubsonicResponseData {
+  static var key: String { "similarSongs2" }
+  let song: [Song]
+
+  private enum CodingKeys: String, CodingKey {
+    case song
+  }
+
+  private enum SubsonicSongKeys: String, CodingKey {
+    case id, title, artist, albumId, album, track, discNumber, bitRate, samplingRate, suffix,
+      duration, mediaFileId
+  }
+
+  init(from decoder: any Decoder) throws {
+    let container = try decoder.container(keyedBy: CodingKeys.self)
+    var songsContainer = try container.nestedUnkeyedContainer(forKey: .song)
+
+    var songs: [Song] = []
+    while !songsContainer.isAtEnd {
+      let s = try songsContainer.nestedContainer(keyedBy: SubsonicSongKeys.self)
+      songs.append(
+        Song(
+          id: try s.decode(String.self, forKey: .id),
+          title: try s.decode(String.self, forKey: .title),
+          albumId: try s.decodeIfPresent(String.self, forKey: .albumId) ?? "",
+          albumName: try s.decodeIfPresent(String.self, forKey: .album) ?? "",
+          artist: try s.decode(String.self, forKey: .artist),
+          trackNumber: try s.decodeIfPresent(Int.self, forKey: .track) ?? 0,
+          discNumber: try s.decodeIfPresent(Int.self, forKey: .discNumber) ?? 0,
+          bitRate: try s.decodeIfPresent(Int.self, forKey: .bitRate) ?? 0,
+          sampleRate: try s.decodeIfPresent(Int.self, forKey: .samplingRate) ?? 0,
+          suffix: try s.decodeIfPresent(String.self, forKey: .suffix) ?? "",
+          duration: try s.decode(Double.self, forKey: .duration),
+          mediaFileId: try s.decodeIfPresent(String.self, forKey: .mediaFileId) ?? ""
+        ))
+    }
+    self.song = songs
+  }
+}
+
+struct SimilarSongsResponse: Codable {
+  let subsonicResponse: SubsonicResponse<SimilarSongsList>
+
+  private enum CodingKeys: String, CodingKey {
+    case subsonicResponse = "subsonic-response"
+  }
+
+  var songs: [Song] {
+    return subsonicResponse.data?.song ?? []
+  }
+}
+
+struct ArtistRadioPlayable: Playable {
+  var id: String
+  var name: String
+  var songs: [Song]
+  var artist: String
+}

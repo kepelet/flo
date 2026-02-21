@@ -9,8 +9,10 @@ import SwiftUI
 
 struct ArtistDetailView: View {
   @EnvironmentObject var viewModel: AlbumViewModel
+  @EnvironmentObject var playerViewModel: PlayerViewModel
 
   @State private var isExpanded = false
+  @State private var isLoadingRadio = false
 
   var artist: Artist
 
@@ -55,6 +57,50 @@ struct ArtistDetailView: View {
       .onAppear {
         viewModel.fetchAlbumsByArtist(id: artist.id)
       }
+
+      Button(action: {
+        isLoadingRadio = true
+        RadioService.shared.getSimilarSongs(id: artist.id) { result in
+          DispatchQueue.main.async {
+            isLoadingRadio = false
+            switch result {
+            case .success(let songs):
+              print("Artist Radio: got \(songs.count) songs")
+              if !songs.isEmpty {
+                let playable = ArtistRadioPlayable(
+                  id: artist.id,
+                  name: "\(artist.name) Radio",
+                  songs: songs,
+                  artist: artist.name
+                )
+                playerViewModel.playItem(item: playable, isFromLocal: false)
+              }
+            case .failure(let error):
+              print("Artist Radio error: \(error)")
+            }
+          }
+        }
+      }) {
+        HStack {
+          if isLoadingRadio {
+            ProgressView()
+              .tint(.white)
+          } else {
+            Image(systemName: "dot.radiowaves.up.forward")
+          }
+          Text("Artist Radio")
+        }
+        .font(.subheadline)
+        .fontWeight(.semibold)
+        .foregroundColor(.white)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 10)
+        .background(Color.accentColor)
+        .cornerRadius(20)
+      }
+      .disabled(isLoadingRadio)
+      .padding(.horizontal)
+      .padding(.bottom, 8)
 
       LazyVGrid(columns: columns) {
         ForEach(viewModel.artistAlbums) { album in
