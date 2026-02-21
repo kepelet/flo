@@ -117,7 +117,11 @@ struct SimilarSongsList: SubsonicResponseData {
 
   init(from decoder: any Decoder) throws {
     let container = try decoder.container(keyedBy: CodingKeys.self)
-    var songsContainer = try container.nestedUnkeyedContainer(forKey: .song)
+
+    guard var songsContainer = try? container.nestedUnkeyedContainer(forKey: .song) else {
+      self.song = []
+      return
+    }
 
     var songs: [Song] = []
     while !songsContainer.isAtEnd {
@@ -152,11 +156,4 @@ struct SimilarSongsResponse: Codable {
   var songs: [Song] {
     return subsonicResponse.data?.song ?? []
   }
-}
-
-struct ArtistRadioPlayable: Playable {
-  var id: String
-  var name: String
-  var songs: [Song]
-  var artist: String
 }

@@ -13,6 +13,7 @@ struct ArtistDetailView: View {
 
   @State private var isExpanded = false
   @State private var isLoadingRadio = false
+  @State private var radioAlertMessage: String? = nil
 
   var artist: Artist
 
@@ -65,18 +66,19 @@ struct ArtistDetailView: View {
             isLoadingRadio = false
             switch result {
             case .success(let songs):
-              print("Artist Radio: got \(songs.count) songs")
               if !songs.isEmpty {
-                let playable = ArtistRadioPlayable(
+                let playable = RadioEntity(
                   id: artist.id,
                   name: "\(artist.name) Radio",
                   songs: songs,
                   artist: artist.name
                 )
                 playerViewModel.playItem(item: playable, isFromLocal: false)
+              } else {
+                radioAlertMessage = "No similar songs found for this artist."
               }
-            case .failure(let error):
-              print("Artist Radio error: \(error)")
+            case .failure:
+              radioAlertMessage = "Failed to load Artist Radio. Please try again."
             }
           }
         }
@@ -114,6 +116,14 @@ struct ArtistDetailView: View {
           }
         }
       }.padding(.bottom, 100)
+    }
+    .alert("Artist Radio", isPresented: Binding(
+      get: { radioAlertMessage != nil },
+      set: { if !$0 { radioAlertMessage = nil } }
+    )) {
+      Button("OK") { radioAlertMessage = nil }
+    } message: {
+      Text(radioAlertMessage ?? "")
     }
   }
 }
