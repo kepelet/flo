@@ -11,12 +11,26 @@ class RadioService {
   }
 
   func getAllRadios(completion: @escaping (Result<[Radio], Error>) -> Void) {
-    
+
     APIManager.shared.SubsonicEndpointRequest(endpoint: API.SubsonicEndpoint.radios, parameters: nil) {
       (response: DataResponse<RadioListResponse, AFError>) in
       switch response.result {
       case .success(let radios):
         completion(.success(radios.radioStations))
+      case .failure(let error):
+        completion(.failure(error))
+      }
+    }
+  }
+
+  func getSimilarSongs(id: String, count: Int = 50, completion: @escaping (Result<[Song], Error>) -> Void) {
+    let params: [String: Any] = ["id": id, "count": count]
+
+    APIManager.shared.SubsonicEndpointRequest(endpoint: API.SubsonicEndpoint.similarSongs, parameters: params) {
+      (response: DataResponse<SimilarSongsResponse, AFError>) in
+      switch response.result {
+      case .success(let result):
+        completion(.success(result.songs))
       case .failure(let error):
         completion(.failure(error))
       }
