@@ -23,7 +23,7 @@ class RadioService {
     }
   }
 
-  func getSimilarSongs(id: String, count: Int = 50, completion: @escaping (Result<[Song], Error>) -> Void) {
+  func getSimilarSongs(id: String, count: Int = 100, completion: @escaping (Result<[Song], Error>) -> Void) {
     let params: [String: Any] = ["id": id, "count": count]
 
     APIManager.shared.SubsonicEndpointRequest(endpoint: API.SubsonicEndpoint.similarSongs, parameters: params) {
