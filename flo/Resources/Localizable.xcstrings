@@ -253,8 +253,15 @@
         }
       }
     },
-    "Play Artist Radio" : {
-
+    "Artist Radio" : {
+      "localizations" : {
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Artist Radio"
+          }
+        }
+      }
     },
     "Artists" : {
       "localizations" : {
@@ -982,6 +989,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Mainkan"
+          }
+        }
+      }
+    },
+    "Play Artist Radio" : {
+      "localizations" : {
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mainkan Artist Radio"
           }
         }
       }
