@@ -106,19 +106,19 @@ struct HomeView: View {
           Text("Listening Activity (all time)").customFont(.title2).fontWeight(.bold)
             .multilineTextAlignment(.leading)
           
-          let statCardSpacing: CGFloat = UIScreen.screenWidth <= 375 ? 8 : 16
+          let statCardSpacing: CGFloat = UIScreen.screenWidth <= 390 ? 8 : 16
+          let isSmallScreen = UIScreen.screenWidth <= 390
           
-          EqualHeightHStack(alignment: .top, spacing: statCardSpacing) {
-            EqualHeightItem {
+          // Use regular HStack on small screens to avoid geometry calculation issues with minimumScaleFactor
+          if isSmallScreen {
+            HStack(alignment: .top, spacing: statCardSpacing) {
               StatCard(
                 title: "Total Listens",
                 value: floooViewModel.totalPlay.description,
                 icon: "headphones",
                 color: .purple
               )
-            }
-
-            EqualHeightItem {
+              
               StatCard(
                 title: "Top Artist",
                 value: floooViewModel.stats?.topArtist ?? "N/A",
@@ -126,6 +126,27 @@ struct HomeView: View {
                 color: .blue,
                 showArrow: true
               )
+            }
+          } else {
+            EqualHeightHStack(alignment: .top, spacing: statCardSpacing) {
+              EqualHeightItem {
+                StatCard(
+                  title: "Total Listens",
+                  value: floooViewModel.totalPlay.description,
+                  icon: "headphones",
+                  color: .purple
+                )
+              }
+
+              EqualHeightItem {
+                StatCard(
+                  title: "Top Artist",
+                  value: floooViewModel.stats?.topArtist ?? "N/A",
+                  icon: "music.mic",
+                  color: .blue,
+                  showArrow: true
+                )
+              }
             }
           }
 
