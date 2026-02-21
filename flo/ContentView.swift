@@ -74,9 +74,10 @@ struct ContentView: View {
         Spacer()
 
         if playerViewModel.hasNowPlaying() && !playerViewModel.shouldHidePlayer {
-          let bottomPaddingForSmallerScreens: CGFloat = UIScreen.screenWidth <= 375 ? 32 : 0
+          let bottomPaddingForSmallerScreens: CGFloat = UIScreen.screenWidth <= 390 ? 32 : 0
+          
           FloatingPlayerView(viewModel: playerViewModel)
-            .padding(.bottom, 50)
+            .padding(.bottom, 50 + bottomPaddingForSmallerScreens)
             .opacity(playerViewModel.hasNowPlaying() ? 1 : 0)
             .offset(
               x: self.floatingPlayerOffsetX, y: isPlayerExpanded ? UIScreen.main.bounds.height : 0
@@ -107,7 +108,6 @@ struct ContentView: View {
                   self.isSwipping = false
                 }
             )
-            .padding(.bottom, bottomPaddingForSmallerScreens)
         }
       }
     }
