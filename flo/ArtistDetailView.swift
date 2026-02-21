@@ -90,7 +90,7 @@ struct ArtistDetailView: View {
           } else {
             Image(systemName: "dot.radiowaves.up.forward")
           }
-          Text("Artist Radio")
+          Text("Play Artist Radio")
         }
         .font(.subheadline)
         .fontWeight(.semibold)
@@ -101,6 +101,7 @@ struct ArtistDetailView: View {
         .cornerRadius(20)
       }
       .disabled(isLoadingRadio)
+      .frame(maxWidth: .infinity, alignment: .leading)
       .padding(.horizontal)
       .padding(.bottom, 8)
 
