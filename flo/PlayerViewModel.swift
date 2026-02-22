@@ -318,7 +318,7 @@ class PlayerViewModel: ObservableObject {
       let artwork = self.makeNowPlayingArtwork()
 
       DispatchQueue.main.async {
-        var nowPlayingInfo = [String: Any]()
+        var nowPlayingInfo = MPNowPlayingInfoCenter.default().nowPlayingInfo ?? [String: Any]()
 
         nowPlayingInfo[MPMediaItemPropertyTitle] = title
         nowPlayingInfo[MPMediaItemPropertyArtist] = artist
@@ -437,6 +437,7 @@ class PlayerViewModel: ObservableObject {
     self.isFinished = false
     self.isPlaying = true
     self.updateNowPlayingInfo(progress: self.progress, rate: 1.0)
+    MPNowPlayingInfoCenter.default().playbackState = .playing
   }
 
   func pause() {
@@ -444,6 +445,7 @@ class PlayerViewModel: ObservableObject {
 
     self.isPlaying = false
     self.updateNowPlayingInfo(progress: self.progress, rate: 0.0)
+    MPNowPlayingInfoCenter.default().playbackState = .paused
   }
 
   func stop() {
@@ -458,6 +460,8 @@ class PlayerViewModel: ObservableObject {
     if isLiveRadio {
       return
     }
+
+    self.progress = progress
 
     let newTime = CMTime(
       seconds: progress * totalDuration, preferredTimescale: CMTimeScale(NSEC_PER_SEC))
