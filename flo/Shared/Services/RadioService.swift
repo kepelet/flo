@@ -36,4 +36,18 @@ class RadioService {
       }
     }
   }
+  
+  func getTopSongs(artistName: String, count: Int = 20, completion: @escaping (Result<[Song], Error>) -> Void) {
+    let params: [String: Any] = ["artist": artistName, "count": count]
+    
+    APIManager.shared.SubsonicEndpointRequest(endpoint: API.SubsonicEndpoint.topSongs, parameters: params) {
+      (response: DataResponse<TopSongsResponse, AFError>) in
+      switch response.result {
+      case .success(let result):
+        completion(.success(result.songs))
+      case .failure(let error):
+        completion(.failure(error))
+      }
+    }
+  }
 }

@@ -30,6 +30,7 @@ struct API {
     static let scrobble = "/rest/scrobble"
     static let radios = "/rest/getInternetRadioStations"
     static let similarSongs = "/rest/getSimilarSongs2"
+    static let topSongs = "/rest/getTopSongs"
   }
 }
 
