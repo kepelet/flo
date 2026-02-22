@@ -11,6 +11,8 @@ import MediaPlayer
 import SwiftUI
 
 class PlayerViewModel: ObservableObject {
+  static let shared = PlayerViewModel()
+
   private var player: AVPlayer?
   private var playerItem: AVPlayerItem?
   private var timeObserverToken: Any?
@@ -193,6 +195,8 @@ class PlayerViewModel: ObservableObject {
 
     self.shouldHidePlayer = false
     self.isLocallySaved = false
+
+    try? AVAudioSession.sharedInstance().setActive(true)
 
     self.resetLyrics()
 
@@ -651,6 +655,8 @@ class PlayerViewModel: ObservableObject {
     UserDefaultsManager.removeObject(key: UserDefaultsKeys.nowPlayingProgress)
 
     MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
+
+    try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
   }
 
   func resetLyrics() {

@@ -15,7 +15,7 @@ struct ContentView: View {
   @State private var tabViewID = UUID()
 
   @StateObject private var authViewModel = AuthViewModel()
-  @StateObject private var playerViewModel = PlayerViewModel()
+  @StateObject private var playerViewModel = PlayerViewModel.shared
   @StateObject private var albumViewModel = AlbumViewModel()
   @StateObject private var floooViewModel = FloooViewModel()
   @StateObject private var downloadViewModel = DownloadViewModel()
