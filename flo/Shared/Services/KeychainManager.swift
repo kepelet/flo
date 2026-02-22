@@ -10,6 +10,7 @@ import KeychainAccess
 
 class KeychainManager {
   private static let keychain = Keychain(service: KeychainKeys.service)
+    .accessibility(.afterFirstUnlockThisDeviceOnly)
 
   static func getAuthCredsAndPasswords() -> [String: Any] {
     var keychainData: [String: Any] = [:]
