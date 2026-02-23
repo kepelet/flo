@@ -237,6 +237,26 @@
         }
       }
     },
+    "Alternate app icons are not supported on this device." : {
+      "localizations" : {
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ikon alternatif aplikasi tidak didukung di perangkat ini."
+          }
+        }
+      }
+    },
+    "App Icon" : {
+      "localizations" : {
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ikon Aplikasi"
+          }
+        }
+      }
+    },
     "App Version" : {
       "localizations" : {
         "en" : {
@@ -563,6 +583,16 @@
         }
       }
     },
+    "flo+ purchased" : {
+      "localizations" : {
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "flo+ telah terbeli"
+          }
+        }
+      }
+    },
     "Font Family" : {
       "localizations" : {
         "en" : {
@@ -621,6 +651,16 @@
         }
       }
     },
+    "Get a dedicated channel on flo Campfire" : {
+      "localizations" : {
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dapatkan channel khusus di flo Campfire"
+          }
+        }
+      }
+    },
     "Going off the grid?" : {
       "localizations" : {
         "en" : {
@@ -633,6 +673,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Keluar dari jaringan?"
+          }
+        }
+      }
+    },
+    "Help fund flo development" : {
+      "localizations" : {
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bantu danai pengembangan flo"
           }
         }
       }
@@ -1067,6 +1117,26 @@
         }
       }
     },
+    "Purchase flo+" : {
+      "localizations" : {
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Beli flo+"
+          }
+        }
+      }
+    },
+    "Purchase flo+ for %@" : {
+      "localizations" : {
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Beli flo+ seharga %@"
+          }
+        }
+      }
+    },
     "Radios" : {
       "localizations" : {
         "id" : {
@@ -1139,6 +1209,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Hapus unduhan"
+          }
+        }
+      }
+    },
+    "Restore purchases" : {
+      "localizations" : {
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pulihkan pembelian"
           }
         }
       }
@@ -1329,6 +1409,16 @@
         }
       }
     },
+    "Some other things yet to come" : {
+      "localizations" : {
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Beberapa hal lain yang akan datang"
+          }
+        }
+      }
+    },
     "Songs" : {
       "localizations" : {
         "en" : {
@@ -1377,6 +1467,16 @@
         }
       }
     },
+    "Thank you for supporting flo!" : {
+      "localizations" : {
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Terima kasih telah mendukung flo!"
+          }
+        }
+      }
+    },
     "Thanks for choosing flo!" : {
       "localizations" : {
         "en" : {
@@ -1389,6 +1489,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Terima kasih telah memilih flo!"
+          }
+        }
+      }
+    },
+    "The full version of flo is always Free and OSS" : {
+      "localizations" : {
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Versi lengkap flo selalu gratis dan OSS"
           }
         }
       }
@@ -1515,6 +1625,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Coba kata kunci yang lain."
+          }
+        }
+      }
+    },
+    "Unable to Change App Icon" : {
+      "localizations" : {
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gagal mengubah ikon aplikasi"
+          }
+        }
+      }
+    },
+    "Unable to Purchase flo+" : {
+      "localizations" : {
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gagal membeli flo+"
           }
         }
       }
