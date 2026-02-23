@@ -17,6 +17,7 @@ class UserDefaultsManager {
       UserDefaultsKeys.nowPlayingProgress,
       UserDefaultsKeys.queueActiveIdx,
       UserDefaultsKeys.playbackMode,
+      UserDefaultsKeys.floPlus,
     ]
 
     for key in keys {
@@ -115,6 +116,15 @@ class UserDefaultsManager {
 
     set {
       UserDefaults.standard.set(newValue, forKey: UserDefaultsKeys.LRCLIBServerURL)
+    }
+  }
+
+  static var floPlus: Bool {
+    get {
+      return UserDefaults.standard.bool(forKey: UserDefaultsKeys.floPlus)
+    }
+    set {
+      UserDefaults.standard.set(newValue, forKey: UserDefaultsKeys.floPlus)
     }
   }
 }
