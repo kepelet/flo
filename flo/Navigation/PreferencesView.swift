@@ -7,12 +7,84 @@
 
 import SwiftUI
 
+@MainActor
+final class AppIconViewModel: ObservableObject {
+  @Published var selectedIconID = "default"
+  @Published var errorMessage = ""
+  @Published var showError = false
+  @Published var isChangingIcon = false
+
+  func syncCurrentIcon() {
+    selectedIconID = UIApplication.shared.alternateIconName ?? "default"
+  }
+
+  func changeIcon(to iconName: String?) {
+    if isChangingIcon {
+      return
+    }
+
+    if (UIApplication.shared.alternateIconName ?? "default") == (iconName ?? "default") {
+      return
+    }
+
+    isChangingIcon = true
+    applyIcon(iconName, attempt: 1)
+  }
+
+  private func applyIcon(_ iconName: String?, attempt: Int) {
+    UIApplication.shared.setAlternateIconName(iconName) { error in
+      DispatchQueue.main.async {
+        guard let error else {
+          self.isChangingIcon = false
+          self.syncCurrentIcon()
+
+          return
+        }
+
+        let nsError = error as NSError
+        let isTemporaryBusyError = nsError.domain == NSPOSIXErrorDomain && nsError.code == 35
+
+        if isTemporaryBusyError && attempt < 4 {
+          let delay = 0.25 * Double(attempt)
+
+          DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+            self.applyIcon(iconName, attempt: attempt + 1)
+          }
+
+          return
+        }
+
+        self.isChangingIcon = false
+        self.syncCurrentIcon()
+
+        if nsError.domain == "UIApplicationErrorDomain", nsError.code == 4 {
+          return
+        }
+
+        self.errorMessage =
+          "\(error.localizedDescription)\n(\(nsError.domain) code \(nsError.code))"
+
+        self.showError = true
+      }
+    }
+  }
+}
+
 struct PreferencesView: View {
+  struct AppIconOption: Identifiable {
+    let id: String
+    let displayName: String
+    let previewImageName: String
+    let iconName: String?
+  }
+
+  @StateObject private var appIconViewModel = AppIconViewModel()
   @ObservedObject var authViewModel: AuthViewModel
   @State private var storeCredsInKeychain = false
   @State private var optimizeLocalStorageAlert = false
   @State private var showLoginSheet = false
   @State private var showCustomLRCLIBServer = false
+  @State private var showFloPlusSheet = false
 
   @State private var accentColor = Color(.accent)
   @State private var playerColor = Color(.player)
@@ -20,6 +92,7 @@ struct PreferencesView: View {
 
   @EnvironmentObject var floooViewModel: FloooViewModel
   @EnvironmentObject var playerViewModel: PlayerViewModel
+  @EnvironmentObject var inAppPurchaseManager: InAppPurchaseManager
 
   let themeColors = ["Blue", "Green", "Red", "Ohio"]
   let presetExperimentalLRCLIBServer: [(label: String, url: String)] = [
@@ -27,10 +100,29 @@ struct PreferencesView: View {
     ("lrclib.flooo.club", "https://lrclib.flooo.club"),
   ]
 
+  let appIconOptions: [AppIconOption] = [
+    AppIconOption(
+      id: "default", displayName: "flo", previewImageName: "AppIconPreviewDefault", iconName: nil),
+    AppIconOption(
+      id: "AppIconAlt1", displayName: "flo+", previewImageName: "AppIconPreviewAlt1",
+      iconName: "AppIconAlt1"),
+    AppIconOption(
+      id: "AppIconAlt2", displayName: "flo+", previewImageName: "AppIconPreviewAlt2",
+      iconName: "AppIconAlt2"),
+  ]
+
   @State private var experimentalMaxBitrate = UserDefaultsManager.maxBitRate
   @State private var experimentalPlayerBackground = UserDefaultsManager.playerBackground
   @State private var experimentalLRCLIBIntegration = UserDefaultsManager.LRCLIBServerURL
   @State private var customLRCLIBServer = ""
+
+  var floPlusPriceLabel: String {
+    if let price = inAppPurchaseManager.floPlusProduct?.displayPrice {
+      return price
+    }
+
+    return inAppPurchaseManager.isLoadingProduct ? "Loading..." : "Unavailable"
+  }
 
   var shouldShowLoginSheet: Binding<Bool> {
     Binding(
@@ -172,6 +264,43 @@ struct PreferencesView: View {
           }
         }
 
+        Section(header: Text("App Icon")) {
+          if UIApplication.shared.supportsAlternateIcons {
+            ScrollView(.horizontal, showsIndicators: false) {
+              HStack(spacing: 12) {
+                ForEach(appIconOptions) { option in
+                  Button(action: {
+                    appIconViewModel.changeIcon(to: option.iconName)
+                  }) {
+                    VStack(spacing: 8) {
+                      Image(option.previewImageName)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 72, height: 72)
+                        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                        .overlay(
+                          RoundedRectangle(cornerRadius: 16, style: .continuous)
+                            .stroke(
+                              appIconViewModel.selectedIconID == option.id
+                                ? Color.accentColor : Color.secondary.opacity(0.25),
+                              lineWidth: appIconViewModel.selectedIconID == option.id ? 2 : 1
+                            )
+                        )
+                    }
+                    .frame(width: 88)
+                  }
+                }
+                .buttonStyle(.plain)
+                .disabled(appIconViewModel.isChangingIcon)
+              }
+            }
+          } else {
+            Text("Alternate app icons are not supported on this device.")
+              .font(.caption)
+              .foregroundColor(.gray)
+          }
+        }
+
         // TODO: finish this later
         Section(header: Text("Experimental")) {
           VStack(alignment: .leading, spacing: 4) {
@@ -291,6 +420,22 @@ struct PreferencesView: View {
         }
 
         Section(header: Text("Development")) {
+          if !UserDefaultsManager.floPlus {
+            VStack(alignment: .leading, spacing: 6) {
+              Button(action: {
+                showFloPlusSheet = true
+              }) {
+                Text("Purchase flo+")
+              }
+            }
+          } else {
+            VStack(alignment: .leading, spacing: 6) {
+              Text("flo+ purchased")
+              Text("Thank you for supporting flo!").font(.caption)
+                .foregroundColor(.gray)
+            }
+          }
+
           Button(action: {
             if let url = URL(string: "https://client.flooo.club/about") {
               UIApplication.shared.open(url)
@@ -381,6 +526,10 @@ struct PreferencesView: View {
     }.onAppear {
       floooViewModel.getLocalStorageInformation()
 
+      Task {
+        await inAppPurchaseManager.loadFloPlusProduct()
+      }
+
       if authViewModel.isLoggedIn {
         self.floooViewModel.checkScanStatus()
         self.floooViewModel.checkAccountLinkStatus()
@@ -389,6 +538,22 @@ struct PreferencesView: View {
       if UserDefaultsManager.enableDebug {
         floooViewModel.getUserDefaults()
       }
+
+      appIconViewModel.syncCurrentIcon()
+    }
+    .alert("Unable to Change App Icon", isPresented: $appIconViewModel.showError) {
+      Button("OK", role: .cancel) {}
+    } message: {
+      Text(appIconViewModel.errorMessage)
+    }
+    .sheet(isPresented: $showFloPlusSheet) {
+      FloPlusSheet(showSheet: $showFloPlusSheet)
+        .environmentObject(inAppPurchaseManager)
+    }
+    .alert("Unable to Purchase flo+", isPresented: $inAppPurchaseManager.showPurchaseError) {
+      Button("OK", role: .cancel) {}
+    } message: {
+      Text(inAppPurchaseManager.purchaseErrorMessage)
     }
     .alert("LRCLIB Server URL", isPresented: $showCustomLRCLIBServer) {
       Button("Cancel", role: .cancel) {
@@ -412,11 +577,105 @@ struct PreferencesView: View {
   }
 }
 
+struct FloPlusSheet: View {
+  @Binding var showSheet: Bool
+  @EnvironmentObject var inAppPurchaseManager: InAppPurchaseManager
+
+  private var floPlusPriceLabel: String {
+    if let price = inAppPurchaseManager.floPlusProduct?.displayPrice {
+      return price
+    }
+
+    return inAppPurchaseManager.isLoadingProduct ? "Loading..." : "Unavailable"
+  }
+
+  var body: some View {
+    NavigationStack {
+      VStack(alignment: .leading, spacing: 18) {
+        Spacer()
+
+        Image("AppIconPreviewAlt1")
+          .resizable()
+          .scaledToFit()
+          .frame(width: 88, height: 88)
+          .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+          .overlay(
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+              .stroke(Color.secondary.opacity(0.25), lineWidth: 1)
+          )
+
+        Text("Purchase flo+")
+          .font(.title2)
+          .fontWeight(.bold)
+
+        Text("Help fund flo development")
+          .foregroundColor(.secondary)
+
+        VStack(alignment: .leading, spacing: 12) {
+          Label("The full version of flo is always Free and OSS", systemImage: "heart")
+          Label("Get a dedicated channel on flo Campfire", systemImage: "cloud")
+          Label("Some other things yet to come", systemImage: "sparkles")
+        }
+
+        Spacer()
+
+        Button(action: {
+          Task {
+            await inAppPurchaseManager.purchaseFloPlus()
+
+            if UserDefaultsManager.floPlus {
+              showSheet = false
+            }
+          }
+        }) {
+          HStack {
+            Text("Purchase flo+ for \(floPlusPriceLabel)")
+              .fontWeight(.semibold)
+
+            if inAppPurchaseManager.isPurchasing {
+              Spacer()
+              ProgressView().controlSize(.small)
+            }
+          }
+          .frame(maxWidth: .infinity)
+        }
+        .padding()
+        .buttonStyle(.borderedProminent)
+        .disabled(inAppPurchaseManager.isPurchasing)
+
+        Button(action: {
+          Task {
+            await inAppPurchaseManager.restorePurchases()
+          }
+        }) {
+          HStack {
+            Text("Restore purchases")
+
+            if inAppPurchaseManager.isRestoring {
+              Spacer()
+              ProgressView().controlSize(.small)
+            }
+          }
+          .frame(maxWidth: .infinity)
+        }
+        .disabled(inAppPurchaseManager.isRestoring)
+      }
+      .padding(20)
+      .navigationBarTitleDisplayMode(.inline)
+    }
+    .presentationDetents([.medium, .large])
+    .presentationDragIndicator(.visible)
+  }
+}
+
 struct PreferencesView_Previews: PreviewProvider {
   @State static var authViewModel: AuthViewModel = AuthViewModel()
   @State static var floooViewModel: FloooViewModel = FloooViewModel()
+  @State static var inAppPurchaseManager: InAppPurchaseManager = InAppPurchaseManager(
+    startObservingTransactions: false)
 
   static var previews: some View {
     PreferencesView(authViewModel: authViewModel).environmentObject(floooViewModel)
+      .environmentObject(inAppPurchaseManager)
   }
 }
