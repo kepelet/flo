@@ -10,6 +10,8 @@ import SwiftUI
 
 @main
 struct FloApp: App {
+  @StateObject private var inAppPurchaseManager = InAppPurchaseManager()
+
   init() {
     do {
       try AVAudioSession.sharedInstance().setCategory(AVAudioSession.Category.playback)
@@ -26,6 +28,7 @@ struct FloApp: App {
   var body: some Scene {
     WindowGroup {
       ContentView()
+        .environmentObject(inAppPurchaseManager)
     }
   }
 }
