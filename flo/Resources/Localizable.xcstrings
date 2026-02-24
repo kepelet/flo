@@ -584,6 +584,7 @@
       }
     },
     "flo+ purchased" : {
+      "extractionState" : "stale",
       "localizations" : {
         "id" : {
           "stringUnit" : {
@@ -1471,6 +1472,7 @@
       }
     },
     "Thank you for supporting flo!" : {
+      "extractionState" : "stale",
       "localizations" : {
         "id" : {
           "stringUnit" : {
