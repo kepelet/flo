@@ -109,6 +109,9 @@ struct PreferencesView: View {
     AppIconOption(
       id: "AppIconAlt2", displayName: "flo+", previewImageName: "AppIconPreviewAlt2",
       iconName: "AppIconAlt2"),
+    AppIconOption(
+      id: "AppIconAlt3", displayName: "flo_robot", previewImageName: "AppIconPreviewAlt3",
+      iconName: "AppIconAlt3"),
   ]
 
   @State private var experimentalMaxBitrate = UserDefaultsManager.maxBitRate
