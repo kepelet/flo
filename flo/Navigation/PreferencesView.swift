@@ -423,21 +423,23 @@ struct PreferencesView: View {
         }
 
         Section(header: Text("Development")) {
-          if !UserDefaultsManager.floPlus {
-            VStack(alignment: .leading, spacing: 6) {
-              Button(action: {
-                showFloPlusSheet = true
-              }) {
-                Text("Purchase flo+")
-              }
-            }
-          } else {
-            VStack(alignment: .leading, spacing: 6) {
-              Text("flo+ purchased")
-              Text("Thank you for supporting flo!").font(.caption)
-                .foregroundColor(.gray)
-            }
-          }
+
+          // TODO(@fariz): uncomment this on 2.2
+          //          if !UserDefaultsManager.floPlus {
+          //            VStack(alignment: .leading, spacing: 6) {
+          //              Button(action: {
+          //                showFloPlusSheet = true
+          //              }) {
+          //                Text("Purchase flo+")
+          //              }
+          //            }
+          //          } else {
+          //            VStack(alignment: .leading, spacing: 6) {
+          //              Text("flo+ purchased")
+          //              Text("Thank you for supporting flo!").font(.caption)
+          //                .foregroundColor(.gray)
+          //            }
+          //          }
 
           Button(action: {
             if let url = URL(string: "https://client.flooo.club/about") {
