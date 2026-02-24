@@ -12,7 +12,7 @@ struct ArtistDetailView: View {
   @EnvironmentObject var playerViewModel: PlayerViewModel
 
   @StateObject var artistDetailViewModel = ArtistDetailViewModel()
-  
+
   @State private var isExpanded = false
   @State private var displayAlert: Bool = false
 
@@ -60,48 +60,49 @@ struct ArtistDetailView: View {
         viewModel.fetchAlbumsByArtist(id: artist.id)
       }
       HStack {
-        if artistDetailViewModel.isLoading {
-          ProgressView()
-            .tint(Color.accentColor)
-            .background()
-            .frame(maxWidth: .infinity)
-        } else {
-          // MARK: Artist Radio
-          Button(action: {
-            artistDetailViewModel.fetchArtistRadio(artist: artist)
-          }) {
-            HStack {
+        Button(action: {
+          artistDetailViewModel.fetchArtistRadio(artist: artist)
+        }) {
+          HStack {
+            if artistDetailViewModel.isLoadingRadio {
+              ProgressView()
+                .tint(Color(UIColor.systemBackground))
+            } else {
               Image(systemName: "dot.radiowaves.up.forward")
               Text("Play Artist Radio")
             }
-            .font(.subheadline)
-            .fontWeight(.semibold)
-            .padding(.horizontal, 16)
-            .padding(.vertical, 10)
-            .background(Color.accentColor)
-            .cornerRadius(20)
           }
-          .disabled(artistDetailViewModel.isLoading)
-          .frame(maxWidth: .infinity, alignment: .leading)
-          
-          Button(action: {
-            // MARK: Top Songs
-            artistDetailViewModel.fetchTopSongs(artist: artist)
-          }) {
-            HStack {
+          .font(.subheadline)
+          .fontWeight(.semibold)
+          .frame(maxWidth: .infinity)
+          .padding(.horizontal, 16)
+          .padding(.vertical, 10)
+          .background(Color.accentColor)
+          .cornerRadius(20)
+        }
+        .disabled(artistDetailViewModel.isLoadingRadio || artistDetailViewModel.isLoadingTopSongs)
+
+        Button(action: {
+          artistDetailViewModel.fetchTopSongs(artist: artist)
+        }) {
+          HStack {
+            if artistDetailViewModel.isLoadingTopSongs {
+              ProgressView()
+                .tint(Color(UIColor.systemBackground))
+            } else {
               Image(systemName: "dot.radiowaves.up.forward")
               Text("Play Top Songs")
             }
-            .font(.subheadline)
-            .fontWeight(.semibold)
-            .padding(.horizontal, 16)
-            .padding(.vertical, 10)
-            .background(Color.accentColor)
-            .cornerRadius(20)
           }
-          .disabled(artistDetailViewModel.isLoading)
-          .frame(maxWidth: .infinity, alignment: .leading)
+          .font(.subheadline)
+          .fontWeight(.semibold)
+          .frame(maxWidth: .infinity)
+          .padding(.horizontal, 16)
+          .padding(.vertical, 10)
+          .background(Color.accentColor)
+          .cornerRadius(20)
         }
+        .disabled(artistDetailViewModel.isLoadingRadio || artistDetailViewModel.isLoadingTopSongs)
       }
       .foregroundStyle(.background)
       .frame(maxWidth: .infinity, minHeight: 40)
