@@ -254,7 +254,29 @@ class CarPlayCoordinator {
         guard let self = self else { return }
         switch result {
         case .success(let albums):
-          let items = albums.map { album -> CPListItem in
+          let radioItem = CPListItem(
+            text: "Play Artist Radio",
+            detailText: nil,
+            image: UIImage(systemName: "dot.radiowaves.up.forward")
+          )
+          radioItem.handler = { [weak self] _, completion in
+            self?.playArtistRadio(artist: artist)
+            completion()
+          }
+
+          let topSongsItem = CPListItem(
+            text: "Play Top Songs",
+            detailText: nil,
+            image: UIImage(systemName: "star.fill")
+          )
+          topSongsItem.handler = { [weak self] _, completion in
+            self?.playArtistTopSongs(artist: artist)
+            completion()
+          }
+
+          let actionSection = CPListSection(items: [radioItem, topSongsItem])
+
+          let albumItems = albums.map { album -> CPListItem in
             let item = CPListItem(
               text: album.name,
               detailText: album.minYear > 0 ? "\(album.minYear)" : nil
@@ -273,7 +295,13 @@ class CarPlayCoordinator {
             }
             return item
           }
-          loadingTemplate.updateSections([CPListSection(items: items)])
+          let albumSection = CPListSection(
+            items: albumItems,
+            header: "Albums",
+            sectionIndexTitle: nil
+          )
+
+          loadingTemplate.updateSections([actionSection, albumSection])
 
         case .failure:
           loadingTemplate.updateSections([
@@ -281,6 +309,50 @@ class CarPlayCoordinator {
               CPListItem(text: "Failed to load albums", detailText: nil)
             ])
           ])
+        }
+      }
+    }
+  }
+
+  // MARK: - Artist Radio & Top Songs
+
+  private func playArtistRadio(artist: Artist) {
+    RadioService.shared.getSimilarSongs(id: artist.id) { [weak self] result in
+      DispatchQueue.main.async {
+        guard let self = self else { return }
+        switch result {
+        case .success(let songs) where !songs.isEmpty:
+          let playable = RadioEntity(
+            id: artist.id,
+            name: "\(artist.name) Radio",
+            songs: songs,
+            artist: artist.name
+          )
+          self.playerVM.playItem(item: playable, isFromLocal: false)
+          self.showNowPlaying()
+        default:
+          break
+        }
+      }
+    }
+  }
+
+  private func playArtistTopSongs(artist: Artist) {
+    RadioService.shared.getTopSongs(artistName: artist.name, count: 20) { [weak self] result in
+      DispatchQueue.main.async {
+        guard let self = self else { return }
+        switch result {
+        case .success(let songs) where !songs.isEmpty:
+          let playable = RadioEntity(
+            id: artist.id,
+            name: "\(artist.name) Top Songs",
+            songs: songs,
+            artist: artist.name
+          )
+          self.playerVM.playItem(item: playable, isFromLocal: false)
+          self.showNowPlaying()
+        default:
+          break
         }
       }
     }
