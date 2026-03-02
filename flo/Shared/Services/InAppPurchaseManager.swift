@@ -76,12 +76,7 @@ final class InAppPurchaseManager: ObservableObject {
     isLoadingProduct = true
     defer { isLoadingProduct = false }
 
-    do {
-      floPlusProduct = try await fetchFloPlusProduct()
-    } catch {
-      purchaseErrorMessage = error.localizedDescription
-      showPurchaseError = true
-    }
+    floPlusProduct = try? await fetchFloPlusProduct()
   }
 
   func restorePurchases() async {
