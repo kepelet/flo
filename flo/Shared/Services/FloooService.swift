@@ -32,20 +32,23 @@ class FloooService {
     CoreDataManager.shared.deleteRecords(entity: HistoryEntity.self)
   }
 
+  @MainActor
   func generateStats(_ listeningActivity: [HistoryEntity]) async -> Stats? {
-    return await Task.detached(priority: .userInitiated) {
-      let albumCounts = Dictionary(grouping: listeningActivity) { scrobble in
-        let album = scrobble.value(forKey: "albumName") as? String ?? ""
-        let artist = scrobble.value(forKey: "artistName") as? String ?? ""
+    // Extract values on the main thread — NSManagedObjects must not cross thread boundaries
+    let rawEntries: [(albumName: String, artistName: String)] = listeningActivity.map {
+      (albumName: $0.albumName ?? "", artistName: $0.artistName ?? "")
+    }
 
-        return "\(album)|\(artist)"
+    return await Task.detached(priority: .userInitiated) {
+      let albumCounts = Dictionary(grouping: rawEntries) { entry in
+        "\(entry.albumName)|\(entry.artistName)"
       }
       .mapValues { $0.count }
 
       let topAlbum = albumCounts.max(by: { $0.value < $1.value })
 
-      let artistCounts = Dictionary(grouping: listeningActivity) { scrobble in
-        scrobble.value(forKey: "artistName") as? String ?? ""
+      let artistCounts = Dictionary(grouping: rawEntries) { entry in
+        entry.artistName
       }
       .mapValues { $0.count }
 
@@ -55,9 +58,7 @@ class FloooService {
       let album = String(components?[0] ?? "N/A")
       let artist = String(components?[1] ?? "N/A")
 
-      let stats = Stats(topArtist: topArtist?.key ?? "N/A", topAlbum: album, topAlbumArtist: artist)
-
-      return stats
+      return Stats(topArtist: topArtist?.key ?? "N/A", topAlbum: album, topAlbumArtist: artist)
     }.value
   }
 
