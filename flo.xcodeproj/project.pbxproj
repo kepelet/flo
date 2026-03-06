@@ -935,7 +935,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.1;
+				MARKETING_VERSION = 2.2;
 				NEW_SETTING = "";
 				PRODUCT_BUNDLE_IDENTIFIER = com.penerbangwalet.flo;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -978,7 +978,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.1;
+				MARKETING_VERSION = 2.2;
 				"MTL_ENABLE_DEBUG_INFO[arch=*]" = NO;
 				NEW_SETTING = "";
 				PRODUCT_BUNDLE_IDENTIFIER = com.penerbangwalet.flo;
