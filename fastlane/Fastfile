@@ -30,7 +30,7 @@ platform :ios do
 
     latest_build_number = latest_testflight_build_number(
       api_key: api_key,
-      version: get_version_number,
+      version: get_version_number(target: "flo"),
       app_identifier: app_identifier
     )
 
