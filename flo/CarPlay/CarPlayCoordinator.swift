@@ -330,8 +330,10 @@ class CarPlayCoordinator {
           )
           self.playerVM.playItem(item: playable, isFromLocal: false)
           self.showNowPlaying()
-        default:
-          break
+        case .success:
+          self.showErrorTemplate(title: "No Radio Available", message: "No similar songs found for \(artist.name).")
+        case .failure:
+          self.showErrorTemplate(title: "Radio Unavailable", message: "Could not load radio for \(artist.name).")
         }
       }
     }
@@ -351,11 +353,19 @@ class CarPlayCoordinator {
           )
           self.playerVM.playItem(item: playable, isFromLocal: false)
           self.showNowPlaying()
-        default:
-          break
+        case .success:
+          self.showErrorTemplate(title: "No Top Songs", message: "No top songs found for \(artist.name).")
+        case .failure:
+          self.showErrorTemplate(title: "Unavailable", message: "Could not load top songs for \(artist.name).")
         }
       }
     }
+  }
+
+  private func showErrorTemplate(title: String, message: String) {
+    let item = CPListItem(text: title, detailText: message)
+    let template = CPListTemplate(title: title, sections: [CPListSection(items: [item])])
+    interfaceController.pushTemplate(template, animated: true, completion: nil)
   }
 
   // MARK: - Songs

@@ -20,34 +20,39 @@ enum CarPlayImageLoader {
       return
     }
 
-    DispatchQueue.global(qos: .utility).async {
-      let image: UIImage?
-
-      if path.hasPrefix("/") {
-        image = UIImage(contentsOfFile: path)
-      } else if let url = URL(string: path), let data = try? Data(contentsOf: url) {
-        image = UIImage(data: data)
-      } else {
-        image = nil
+    if path.hasPrefix("/") {
+      DispatchQueue.global(qos: .utility).async {
+        let image = UIImage(contentsOfFile: path)
+        let resized = image.flatMap { resize($0, to: targetSize) }
+        if let resized = resized {
+          cache.setObject(resized, forKey: path as NSString)
+        }
+        DispatchQueue.main.async {
+          completion(resized)
+        }
       }
-
-      let resized = image.flatMap { resize($0, to: targetSize) }
-
-      if let resized = resized {
-        cache.setObject(resized, forKey: path as NSString)
+    } else {
+      guard let url = URL(string: path) else {
+        completion(nil)
+        return
       }
-
-      DispatchQueue.main.async {
-        completion(resized)
-      }
+      URLSession.shared.dataTask(with: url) { data, _, _ in
+        let image = data.flatMap { UIImage(data: $0) }
+        let resized = image.flatMap { resize($0, to: targetSize) }
+        if let resized = resized {
+          cache.setObject(resized, forKey: path as NSString)
+        }
+        DispatchQueue.main.async {
+          completion(resized)
+        }
+      }.resume()
     }
   }
 
   private static func resize(_ image: UIImage, to size: CGSize) -> UIImage? {
-    UIGraphicsBeginImageContextWithOptions(size, false, 0.0)
-    image.draw(in: CGRect(origin: .zero, size: size))
-    let resized = UIGraphicsGetImageFromCurrentImageContext()
-    UIGraphicsEndImageContext()
-    return resized
+    let renderer = UIGraphicsImageRenderer(size: size)
+    return renderer.image { _ in
+      image.draw(in: CGRect(origin: .zero, size: size))
+    }
   }
 }
