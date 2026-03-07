@@ -52,6 +52,7 @@ class PlayerViewModel: ObservableObject {
   private var routeChangeObservation = Set<AnyCancellable>()
 
   private var scrobbleThreshold = 0.5
+  private var hasTriggeredCache: Bool = false
 
   var nowPlaying: QueueEntity {
     return self.queue[self.activeQueueIdx]
@@ -196,6 +197,9 @@ class PlayerViewModel: ObservableObject {
 
     self.shouldHidePlayer = false
     self.isLocallySaved = false
+    self.hasTriggeredCache = false
+
+    StreamCacheManager.shared.cancelAllInFlight()
 
     try? AVAudioSession.sharedInstance().setActive(true)
 
@@ -205,7 +209,10 @@ class PlayerViewModel: ObservableObject {
       player?.removeTimeObserver(timeObserverToken)
     }
 
-    let streamUrl = AlbumService.shared.getStreamUrl(id: self.nowPlaying.id ?? "")
+    let songId = self.nowPlaying.id ?? ""
+    StreamCacheManager.shared.setCurrentlyPlaying(mediaFileId: songId)
+
+    let streamUrl = AlbumService.shared.getStreamUrl(id: songId)
 
     guard let audioURL = URL(string: streamUrl), !streamUrl.isEmpty else {
       self.isMediaLoading = false
@@ -298,6 +305,16 @@ class PlayerViewModel: ObservableObject {
           FloooViewModel.shared.scrobble(submission: true, nowPlaying: self.nowPlaying)
 
           self.isLocallySaved = true
+        }
+      }
+
+      if !self.hasTriggeredCache && currentTime >= 10.0 && !self.isLiveRadio {
+        self.hasTriggeredCache = true
+        if let nextIdx = self.nextQueueIdxForPreCache(),
+          let nextId = self.queue[nextIdx].id, !nextId.isEmpty
+        {
+          StreamCacheManager.shared.cacheSong(
+            mediaFileId: nextId, originalSuffix: self.queue[nextIdx].suffix)
         }
       }
 
@@ -645,6 +662,22 @@ class PlayerViewModel: ObservableObject {
     }
 
     UserDefaultsManager.queueActiveIdx = self.activeQueueIdx
+  }
+
+  private func nextQueueIdxForPreCache() -> Int? {
+    if queue.count <= 1 { return nil }
+
+    if playbackMode == PlaybackMode.repeatOnce {
+      return nil
+    }
+
+    if playbackMode == PlaybackMode.repeatAlbum {
+      return activeQueueIdx + 1 >= queue.count ? 0 : activeQueueIdx + 1
+    }
+
+    let nextIdx = activeQueueIdx + 1
+    guard nextIdx < queue.count else { return nil }
+    return nextIdx
   }
 
   func destroyPlayerAndQueue() {

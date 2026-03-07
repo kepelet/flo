@@ -102,6 +102,7 @@
 		C4824D232CE8C41F003EAB52 /* Playable.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4824D222CE8C41D003EAB52 /* Playable.swift */; };
 		C4824D272CE908DC003EAB52 /* SongsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4824D262CE908DA003EAB52 /* SongsView.swift */; };
 		C4875E002C149D9000D9BAEB /* AlbumService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4875DFF2C149D9000D9BAEB /* AlbumService.swift */; };
+		C4CACHE012D7B0000003B9C4F /* StreamCacheManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4CACHE002D7B0000003B9C4F /* StreamCacheManager.swift */; };
 		C4875E022C149DDD00D9BAEB /* AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4875E012C149DDD00D9BAEB /* AuthService.swift */; };
 		C4875E042C149F9A00D9BAEB /* APIManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4875E032C149F9A00D9BAEB /* APIManager.swift */; };
 		C49134532C15BE0C00CCF2EB /* Strings.swift in Sources */ = {isa = PBXBuildFile; fileRef = C49134522C15BE0C00CCF2EB /* Strings.swift */; };
@@ -231,6 +232,7 @@
 		C4824D222CE8C41D003EAB52 /* Playable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Playable.swift; sourceTree = "<group>"; };
 		C4824D262CE908DA003EAB52 /* SongsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SongsView.swift; sourceTree = "<group>"; };
 		C4875DFF2C149D9000D9BAEB /* AlbumService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlbumService.swift; sourceTree = "<group>"; };
+		C4CACHE002D7B0000003B9C4F /* StreamCacheManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreamCacheManager.swift; sourceTree = "<group>"; };
 		C4875E012C149DDD00D9BAEB /* AuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthService.swift; sourceTree = "<group>"; };
 		C4875E032C149F9A00D9BAEB /* APIManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIManager.swift; sourceTree = "<group>"; };
 		C49134522C15BE0C00CCF2EB /* Strings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Strings.swift; sourceTree = "<group>"; };
@@ -424,6 +426,7 @@
 			children = (
 				C4F870CD2CEFCC5B00312F8A /* FloooService.swift */,
 				C4875DFF2C149D9000D9BAEB /* AlbumService.swift */,
+				C4CACHE002D7B0000003B9C4F /* StreamCacheManager.swift */,
 				C4875E012C149DDD00D9BAEB /* AuthService.swift */,
 				C4875E032C149F9A00D9BAEB /* APIManager.swift */,
 				C4FE524A2C14E1F70053763A /* UserDefaultsManager.swift */,
@@ -741,6 +744,7 @@
 				C4D7F84F2C7F2C5D00165EFD /* PlaybackService.swift in Sources */,
 				C49134532C15BE0C00CCF2EB /* Strings.swift in Sources */,
 				C4875E002C149D9000D9BAEB /* AlbumService.swift in Sources */,
+				C4CACHE012D7B0000003B9C4F /* StreamCacheManager.swift in Sources */,
 				C456D8FC2F2FF39B002AAB8B /* LyricsLine.swift in Sources */,
 				C429DB322D33C707009F2684 /* DownloadButtonView.swift in Sources */,
 				C4824D232CE8C41F003EAB52 /* Playable.swift in Sources */,

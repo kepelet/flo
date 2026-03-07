@@ -116,6 +116,8 @@ struct PreferencesView: View {
 
   @State private var experimentalMaxBitrate = UserDefaultsManager.maxBitRate
   @State private var experimentalPlayerBackground = UserDefaultsManager.playerBackground
+  @State private var experimentalStreamCacheSize = UserDefaultsManager.streamCacheMaxSize
+  @State private var clearStreamCacheAlert = false
   @State private var experimentalLRCLIBIntegration = UserDefaultsManager.LRCLIBServerURL
   @State private var customLRCLIBServer = ""
 
@@ -190,6 +192,41 @@ struct PreferencesView: View {
             Spacer()
             Text(floooViewModel.localDirectorySize)
           }
+
+          HStack {
+            Text("Streaming cache")
+            Spacer()
+            Text(floooViewModel.streamCacheSize)
+          }
+
+          Picker("Cache limit", selection: $experimentalStreamCacheSize) {
+            Text("Off").tag(Int64(0))
+            Text("500 MB").tag(Int64(524_288_000))
+            Text("1 GB").tag(Int64(1_073_741_824))
+            Text("2 GB").tag(Int64(2_147_483_648))
+            Text("5 GB").tag(Int64(5_368_709_120))
+          }
+          .onChange(of: experimentalStreamCacheSize) { value in
+            UserDefaultsManager.streamCacheMaxSize = value
+          }
+
+          Button(action: {
+            self.clearStreamCacheAlert.toggle()
+          }) {
+            Text("Clear streaming cache")
+          }.alert(
+            "Clear Streaming Cache", isPresented: $clearStreamCacheAlert,
+            actions: {
+              Button(
+                "Clear", role: .destructive,
+                action: {
+                  StreamCacheManager.shared.clearCache()
+                  floooViewModel.getLocalStorageInformation()
+                })
+            },
+            message: {
+              Text("This will delete all cached streamed songs. Downloads are not affected.")
+            })
 
           Button(
             role: .destructive,

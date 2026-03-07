@@ -37,6 +37,21 @@
         <attribute name="songName" optional="YES" attributeType="String"/>
         <attribute name="suffix" optional="YES" attributeType="String"/>
     </entity>
+    <entity name="CacheEntity" representedClassName="CacheEntity" syncable="YES" codeGenerationType="class">
+        <attribute name="cacheKey" attributeType="String"/>
+        <attribute name="cachedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="fileSize" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="lastAccessedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="mediaFileId" optional="YES" attributeType="String"/>
+        <attribute name="filePath" optional="YES" attributeType="String"/>
+        <attribute name="state" optional="YES" attributeType="String"/>
+        <attribute name="suffix" optional="YES" attributeType="String"/>
+        <uniquenessConstraints>
+            <uniquenessConstraint>
+                <constraint value="cacheKey"/>
+            </uniquenessConstraint>
+        </uniquenessConstraints>
+    </entity>
     <entity name="SongEntity" representedClassName="SongEntity" syncable="YES" codeGenerationType="class">
         <attribute name="albumId" attributeType="String"/>
         <attribute name="albumName" optional="YES" attributeType="String"/>
