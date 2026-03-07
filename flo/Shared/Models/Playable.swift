@@ -11,3 +11,10 @@ protocol Playable {
   var songs: [Song] { get set }
   var artist: String { get }
 }
+
+struct CachedSongsPlayable: Playable {
+  let id: String = "cached-songs"
+  let name: String = "Cached"
+  var songs: [Song]
+  let artist: String = ""
+}

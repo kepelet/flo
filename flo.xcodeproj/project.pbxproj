@@ -110,6 +110,7 @@
 		C49495852C1C26D4006B4D1E /* ScanStatusService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C49495842C1C26D4006B4D1E /* ScanStatusService.swift */; };
 		C4A4BF312C14433D00363290 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4A4BF302C14433D00363290 /* HomeView.swift */; };
 		C4A4BF332C14437700363290 /* LibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4A4BF322C14437700363290 /* LibraryView.swift */; };
+		02E566BC379A4C25B4AB907C /* CachedSongsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8455A32A2A31C3AA7C4DC99 /* CachedSongsView.swift */; };
 		C4A4BF372C14442F00363290 /* DownloadsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4A4BF362C14442F00363290 /* DownloadsView.swift */; };
 		C4A4BF392C14445000363290 /* PreferencesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4A4BF382C14445000363290 /* PreferencesView.swift */; };
 		C4A4BF3D2C1455A100363290 /* FloatingPlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4A4BF3C2C1455A100363290 /* FloatingPlayerView.swift */; };
@@ -241,6 +242,7 @@
 		C49495842C1C26D4006B4D1E /* ScanStatusService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanStatusService.swift; sourceTree = "<group>"; };
 		C4A4BF302C14433D00363290 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
 		C4A4BF322C14437700363290 /* LibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryView.swift; sourceTree = "<group>"; };
+		E8455A32A2A31C3AA7C4DC99 /* CachedSongsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CachedSongsView.swift; sourceTree = "<group>"; };
 		C4A4BF362C14442F00363290 /* DownloadsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadsView.swift; sourceTree = "<group>"; };
 		C4A4BF382C14445000363290 /* PreferencesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesView.swift; sourceTree = "<group>"; };
 		C4A4BF3C2C1455A100363290 /* FloatingPlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloatingPlayerView.swift; sourceTree = "<group>"; };
@@ -450,6 +452,7 @@
 			children = (
 				C4A4BF302C14433D00363290 /* HomeView.swift */,
 				C4A4BF322C14437700363290 /* LibraryView.swift */,
+				E8455A32A2A31C3AA7C4DC99 /* CachedSongsView.swift */,
 				C4A4BF362C14442F00363290 /* DownloadsView.swift */,
 				C4A4BF382C14445000363290 /* PreferencesView.swift */,
 			);
@@ -734,6 +737,7 @@
 				C415F54E2C11908100E3E1D2 /* AuthViewModel.swift in Sources */,
 				C42B25842F44551B00E62008 /* PlaybackCoordinator.swift in Sources */,
 				50C912912F5DD9990087EE61 /* IAPLoginView.swift in Sources */,
+				02E566BC379A4C25B4AB907C /* CachedSongsView.swift in Sources */,
 				C4A4BF372C14442F00363290 /* DownloadsView.swift in Sources */,
 				C4100A692CE78B25001BC9BE /* PlaylistView.swift in Sources */,
 				C440228D2C09BE2E004EE9CD /* PlayerView.swift in Sources */,

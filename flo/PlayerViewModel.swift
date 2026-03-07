@@ -314,7 +314,8 @@ class PlayerViewModel: ObservableObject {
           let nextId = self.queue[nextIdx].id, !nextId.isEmpty
         {
           StreamCacheManager.shared.cacheSong(
-            mediaFileId: nextId, originalSuffix: self.queue[nextIdx].suffix)
+            mediaFileId: nextId, originalSuffix: self.queue[nextIdx].suffix,
+            from: self.queue[nextIdx])
         }
       }
 

@@ -127,6 +127,9 @@
         }
       }
     },
+    "%lld songs" : {
+
+    },
     "•" : {
       "localizations" : {
         "en" : {
@@ -372,6 +375,9 @@
       }
     },
     "Cache limit" : {
+
+    },
+    "Cached" : {
 
     },
     "Cancel" : {
