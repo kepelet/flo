@@ -119,6 +119,16 @@ class UserDefaultsManager {
     }
   }
 
+  static var streamCacheMaxSize: Int64 {
+    get {
+      let stored = UserDefaults.standard.object(forKey: UserDefaultsKeys.streamCacheMaxSize)
+      return (stored as? Int64) ?? 0  // default off
+    }
+    set {
+      UserDefaults.standard.set(newValue, forKey: UserDefaultsKeys.streamCacheMaxSize)
+    }
+  }
+
   static var floPlus: Bool {
     get {
       return UserDefaults.standard.bool(forKey: UserDefaultsKeys.floPlus)

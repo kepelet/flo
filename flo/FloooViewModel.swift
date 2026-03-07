@@ -13,6 +13,7 @@ class FloooViewModel: ObservableObject {
   @Published var downloadedSongs: Int = 0
 
   @Published var localDirectorySize: String = "0 MB"
+  @Published var streamCacheSize: String = "0 MB"
 
   @Published var stats: Stats?
   @Published var totalPlay: Int = 0
@@ -60,9 +61,11 @@ class FloooViewModel: ObservableObject {
     Task {
       do {
         let calculateDirectorySize = try await LocalFileManager.shared.calculateDirectorySize()
+        let cacheSize = await StreamCacheManager.shared.calculateCacheSize()
 
         await MainActor.run {
           self.localDirectorySize = calculateDirectorySize
+          self.streamCacheSize = bytesToMBOrGB(cacheSize)
         }
       } catch {
         print("Error: \(error)")

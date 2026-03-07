@@ -159,6 +159,18 @@
         }
       }
     },
+    "1 GB" : {
+
+    },
+    "2 GB" : {
+
+    },
+    "5 GB" : {
+
+    },
+    "500 MB" : {
+
+    },
     "About flo" : {
       "localizations" : {
         "en" : {
@@ -359,6 +371,9 @@
         }
       }
     },
+    "Cache limit" : {
+
+    },
     "Cancel" : {
       "localizations" : {
         "en" : {
@@ -374,6 +389,9 @@
           }
         }
       }
+    },
+    "Clear" : {
+
     },
     "Clear Downloaded/Canceled Queue" : {
       "localizations" : {
@@ -400,6 +418,12 @@
           }
         }
       }
+    },
+    "Clear streaming cache" : {
+
+    },
+    "Clear Streaming Cache" : {
+
     },
     "Continue" : {
       "localizations" : {
@@ -1024,6 +1048,9 @@
         }
       }
     },
+    "Off" : {
+
+    },
     "OK" : {
       "localizations" : {
         "en" : {
@@ -1507,6 +1534,9 @@
         }
       }
     },
+    "Streaming cache" : {
+
+    },
     "Subsonic Version" : {
       "localizations" : {
         "en" : {
@@ -1622,6 +1652,9 @@
           }
         }
       }
+    },
+    "This will delete all cached streamed songs. Downloads are not affected." : {
+
     },
     "To change this, please do so via the Navidrome Web UI" : {
       "localizations" : {

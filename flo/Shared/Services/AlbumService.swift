@@ -11,7 +11,7 @@ import Foundation
 class AlbumService {
   static let shared = AlbumService()
 
-  private func buildRemoteStreamUrl(id: String) -> String {
+  func buildRemoteStreamUrl(id: String) -> String {
     let maxBitrate = UserDefaultsManager.maxBitRate
 
     let format =
@@ -32,6 +32,10 @@ class AlbumService {
       let fileUrl = LocalFileManager.shared.fileURL(for: localPath)
     {
       return fileUrl.absoluteString
+    }
+
+    if let cachedUrl = StreamCacheManager.shared.cachedFileURL(mediaFileId: id) {
+      return cachedUrl.absoluteString
     }
 
     return buildRemoteStreamUrl(id: id)

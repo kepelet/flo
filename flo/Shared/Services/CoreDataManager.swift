@@ -202,7 +202,7 @@ class CoreDataManager: ObservableObject {
   }
 
   func clearEverything() {
-    let entities = ["QueueEntity", "SongEntity", "PlaylistEntity"]
+    let entities = ["QueueEntity", "SongEntity", "PlaylistEntity", "CacheEntity"]
 
     for entity in entities {
       let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: entity)
