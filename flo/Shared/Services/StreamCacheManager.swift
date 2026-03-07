@@ -56,7 +56,7 @@ class StreamCacheManager {
     return fileURL
   }
 
-  func cacheSong(mediaFileId: String, originalSuffix: String? = nil) {
+  func cacheSong(mediaFileId: String, originalSuffix: String? = nil, from queueItem: QueueEntity? = nil) {
     guard UserDefaultsManager.streamCacheMaxSize > 0 else { return }
     guard !mediaFileId.isEmpty else { return }
 
@@ -94,6 +94,18 @@ class StreamCacheManager {
     entity.cachedAt = Date()
     entity.lastAccessedAt = Date()
     entity.fileSize = 0
+
+    // Store song metadata for offline browsing
+    if let q = queueItem {
+      entity.title = q.songName
+      entity.artistName = q.artistName
+      entity.albumId = q.albumId
+      entity.albumName = q.albumName
+      entity.duration = q.duration
+      entity.bitRate = q.bitRate
+      entity.sampleRate = q.sampleRate
+    }
+
     CoreDataManager.shared.saveRecord()
 
     let params: [String: Any] = [
@@ -156,6 +168,22 @@ class StreamCacheManager {
     }
 
     syncQueue.sync { self.inFlightDownloads[key] = request }
+  }
+
+  func getCachedSongs() -> [Song] {
+    let sortDescriptor = NSSortDescriptor(key: "lastAccessedAt", ascending: false)
+    let records = CoreDataManager.shared.getRecordsByEntity(
+      entity: CacheEntity.self, sortDescriptors: [sortDescriptor])
+
+    // Deduplicate by mediaFileId (keep most recent per song)
+    var seen = Set<String>()
+    return records
+      .filter { $0.state == "ready" && $0.title != nil }
+      .filter { record in
+        guard let id = record.mediaFileId else { return false }
+        return seen.insert(id).inserted
+      }
+      .map { Song(from: $0) }
   }
 
   func setCurrentlyPlaying(mediaFileId: String) {

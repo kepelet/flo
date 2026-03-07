@@ -9,6 +9,7 @@ import SwiftUI
 
 struct DownloadsView: View {
   @State private var searchAlbum = ""
+  @State private var cachedSongs: [Song] = []
 
   @ObservedObject var viewModel: AlbumViewModel
 
@@ -32,7 +33,7 @@ struct DownloadsView: View {
   var body: some View {
     NavigationStack {
       ScrollView {
-        if viewModel.downloadedAlbums.isEmpty {
+        if viewModel.downloadedAlbums.isEmpty && cachedSongs.isEmpty {
           VStack(alignment: .leading) {
             Image("Downloads").resizable().aspectRatio(contentMode: .fit).frame(width: 300)
               .padding()
@@ -50,6 +51,35 @@ struct DownloadsView: View {
 
             }.padding(.horizontal, 20).foregroundColor(.accent)
           }
+        }
+
+        // Cached songs section
+        if !cachedSongs.isEmpty {
+          NavigationLink {
+            CachedSongsView(viewModel: viewModel, songs: cachedSongs)
+          } label: {
+            HStack {
+              Image(systemName: "music.note.list")
+                .font(.title3)
+                .foregroundColor(.accentColor)
+                .frame(width: 40)
+              VStack(alignment: .leading) {
+                Text("Cached")
+                  .customFont(.headline)
+                Text("\(cachedSongs.count) songs")
+                  .customFont(.caption1)
+                  .foregroundColor(.gray)
+              }
+              Spacer()
+              Image(systemName: "chevron.right")
+                .foregroundColor(.gray)
+            }
+            .padding(.horizontal)
+            .padding(.vertical, 8)
+          }
+          .buttonStyle(.plain)
+
+          Divider().padding(.horizontal)
         }
 
         LazyVGrid(columns: columns, spacing: 20) {
@@ -71,6 +101,9 @@ struct DownloadsView: View {
             placement: .navigationBarDrawer(displayMode: .always),
             prompt: "Search"
           )
+      }
+      .onAppear {
+        cachedSongs = StreamCacheManager.shared.getCachedSongs()
       }
     }
   }

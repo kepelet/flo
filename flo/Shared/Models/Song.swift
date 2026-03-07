@@ -113,6 +113,21 @@ struct Song: Codable, Identifiable, Hashable {
     self.mediaFileId = mediaFileId
   }
 
+  init(from cache: CacheEntity) {
+    self.id = cache.mediaFileId ?? ""
+    self.title = cache.title ?? "Unknown"
+    self.artist = cache.artistName ?? "Unknown"
+    self.albumId = cache.albumId ?? ""
+    self.albumName = cache.albumName ?? ""
+    self.trackNumber = 0
+    self.discNumber = 0
+    self.bitRate = Int(cache.bitRate)
+    self.sampleRate = Int(cache.sampleRate)
+    self.suffix = cache.suffix ?? ""
+    self.duration = cache.duration
+    self.mediaFileId = cache.mediaFileId ?? ""
+  }
+
   #if os(iOS)
     init(from song: SongEntity) {
       self.id = song.id ?? ""
