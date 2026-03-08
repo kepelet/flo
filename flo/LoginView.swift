@@ -10,6 +10,8 @@ import SwiftUI
 struct Login: View {
   @ObservedObject var viewModel: AuthViewModel
   @Binding var showLoginSheet: Bool
+  
+  @State private var showIAPLogin = false
 
   var isSubmitButtonDisabled: Bool {
     viewModel.serverUrl.isEmpty || viewModel.username.isEmpty || viewModel.password.isEmpty
@@ -30,6 +32,15 @@ struct Login: View {
         message: Text(viewModel.alertMessage),
         dismissButton: .default(Text("OK"))
       )
+    }
+    .sheet(isPresented: $showIAPLogin) {
+      IAPLoginView(authViewModel: viewModel)
+    }
+    .onChange(of: viewModel.isLoggedIn) { isLoggedIn in
+      if isLoggedIn {
+        showLoginSheet = false
+        showIAPLogin = false
+      }
     }
     .background(Color(.systemBackground))
     .foregroundColor(.accent)
@@ -90,6 +101,7 @@ struct Login: View {
       formField(title: "Username", text: $viewModel.username, placeholder: "sigma")
       secureFormField(title: "Password", text: $viewModel.password, placeholder: "*************")
       submitButton
+      iapLoginButton
     }
     .padding(.bottom, 30)
     .padding(.horizontal, 10)
@@ -152,6 +164,45 @@ struct Login: View {
       .padding(.top, 10)
       .padding()
       .disabled(isSubmitButtonDisabled)
+    }
+  }
+  
+  private var iapLoginButton: some View {
+    VStack(spacing: 12) {
+      HStack {
+        VStack { Divider() }
+        Text("OR")
+          .customFont(.caption1)
+          .foregroundColor(.secondary)
+          .padding(.horizontal, 8)
+        VStack { Divider() }
+      }
+      .padding(.horizontal, 15)
+      .padding(.vertical, 10)
+      
+      Button(action: { showIAPLogin = true }) {
+        HStack {
+          Image(systemName: "lock.shield.fill")
+            .font(.system(size: 16))
+          Text("Login with IAP")
+            .fontWeight(.semibold)
+            .customFont(.headline)
+        }
+        .foregroundColor(Color("PlayerColor"))
+        .padding()
+        .frame(maxWidth: .infinity)
+        .overlay(
+          RoundedRectangle(cornerRadius: 5)
+            .stroke(Color("PlayerColor"), lineWidth: 2)
+        )
+      }
+      .padding(.horizontal, 15)
+      
+      Text("Use this if your server is behind OAuth2-Proxy or Identity-Aware Proxy")
+        .customFont(.caption1)
+        .foregroundColor(.secondary)
+        .multilineTextAlignment(.center)
+        .padding(.horizontal, 20)
     }
   }
 }

@@ -12,6 +12,8 @@
 		6BDAFB58A4C77A82BCCFD0F4 /* CarPlay.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE85DCBEE7ADB56E8BFD6338 /* CarPlay.framework */; };
 		7C09E28C1BFFDB5D5F124EC9 /* CarPlayNowPlayingManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0EEF17030A154EB98122A089 /* CarPlayNowPlayingManager.swift */; };
 		FA138533DE126212552B3A51 /* CarPlayImageLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80C89AD8466BDBA43F95F5DC /* CarPlayImageLoader.swift */; };
+		50C912892F5DD9280087EE61 /* AuthMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50C912872F5DD9280087EE61 /* AuthMode.swift */; };
+		50C912912F5DD9990087EE61 /* IAPLoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50C9128A2F5DD9990087EE61 /* IAPLoginView.swift */; };
 		B02A003F2F36662C0024E8EC /* UIScreen+.swift in Sources */ = {isa = PBXBuildFile; fileRef = B02A003E2F3666240024E8EC /* UIScreen+.swift */; };
 		B0AD2E712F4B037400577062 /* ArtistDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0AD2E6E2F4B037400577062 /* ArtistDetailView.swift */; };
 		B0AD2E722F4B037400577062 /* ArtistsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0AD2E6F2F4B037400577062 /* ArtistsView.swift */; };
@@ -158,6 +160,8 @@
 		7E2C854C4AFDB5F757411C4C /* flo.entitlements */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.entitlements; path = flo.entitlements; sourceTree = "<group>"; };
 		80C89AD8466BDBA43F95F5DC /* CarPlayImageLoader.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CarPlayImageLoader.swift; sourceTree = "<group>"; };
 		CE85DCBEE7ADB56E8BFD6338 /* CarPlay.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = CarPlay.framework; sourceTree = SDKROOT; };
+		50C912872F5DD9280087EE61 /* AuthMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthMode.swift; sourceTree = "<group>"; };
+		50C9128A2F5DD9990087EE61 /* IAPLoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IAPLoginView.swift; sourceTree = "<group>"; };
 		B02A003E2F3666240024E8EC /* UIScreen+.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIScreen+.swift"; sourceTree = "<group>"; };
 		B0AD2E6E2F4B037400577062 /* ArtistDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistDetailView.swift; sourceTree = "<group>"; };
 		B0AD2E6F2F4B037400577062 /* ArtistsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistsView.swift; sourceTree = "<group>"; };
@@ -359,6 +363,7 @@
 				C415F5632C11AA8700E3E1D2 /* Fonts.swift */,
 				C49134522C15BE0C00CCF2EB /* Strings.swift */,
 				C4120FD82C15D58E00E712BE /* Errors.swift */,
+				50C9128A2F5DD9990087EE61 /* IAPLoginView.swift */,
 			);
 			path = Utils;
 			sourceTree = "<group>";
@@ -490,8 +495,9 @@
 				C4DFFA202D32E769003B9C4E /* DownloadViewModel.swift */,
 				C456D8FD2F300D37002AAB8B /* LyricsView.swift */,
 				C42B25662F44533D00E62008 /* Watch */,
-				3187E4E95236423EE8702B86 /* CarPlay */,
+			3187E4E95236423EE8702B86 /* CarPlay */,
 				7E2C854C4AFDB5F757411C4C /* flo.entitlements */,
+				50C912872F5DD9280087EE61 /* AuthMode.swift */,
 			);
 			path = flo;
 			sourceTree = "<group>";
@@ -685,6 +691,7 @@
 				C47876022C2BF15900184A33 /* AlbumsView.swift in Sources */,
 				C4824D272CE908DC003EAB52 /* SongsView.swift in Sources */,
 				C456D8FA2F2FF33E002AAB8B /* LRCParser.swift in Sources */,
+				50C912892F5DD9280087EE61 /* AuthMode.swift in Sources */,
 				C4F870CE2CEFCC5E00312F8A /* FloooService.swift in Sources */,
 				C4DFFA212D32E76E003B9C4E /* DownloadViewModel.swift in Sources */,
 				C4F1A0012F4A000100AAAAAA /* InAppPurchaseManager.swift in Sources */,
@@ -712,6 +719,7 @@
 				C4A4BF3D2C1455A100363290 /* FloatingPlayerView.swift in Sources */,
 				C415F54E2C11908100E3E1D2 /* AuthViewModel.swift in Sources */,
 				C42B25842F44551B00E62008 /* PlaybackCoordinator.swift in Sources */,
+				50C912912F5DD9990087EE61 /* IAPLoginView.swift in Sources */,
 				C4A4BF372C14442F00363290 /* DownloadsView.swift in Sources */,
 				C4100A692CE78B25001BC9BE /* PlaylistView.swift in Sources */,
 				C440228D2C09BE2E004EE9CD /* PlayerView.swift in Sources */,
