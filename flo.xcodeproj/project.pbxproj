@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		50C912892F5DD9280087EE61 /* AuthMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50C912872F5DD9280087EE61 /* AuthMode.swift */; };
 		50C912912F5DD9990087EE61 /* IAPLoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50C9128A2F5DD9990087EE61 /* IAPLoginView.swift */; };
+		50C912A42F648A440087EE61 /* IAPWebAuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50C912A32F648A440087EE61 /* IAPWebAuthView.swift */; };
+		50C912A62F648A490087EE61 /* IAPWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50C912A52F648A490087EE61 /* IAPWebView.swift */; };
 		B02A003F2F36662C0024E8EC /* UIScreen+.swift in Sources */ = {isa = PBXBuildFile; fileRef = B02A003E2F3666240024E8EC /* UIScreen+.swift */; };
 		B0AD2E712F4B037400577062 /* ArtistDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0AD2E6E2F4B037400577062 /* ArtistDetailView.swift */; };
 		B0AD2E722F4B037400577062 /* ArtistsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0AD2E6F2F4B037400577062 /* ArtistsView.swift */; };
@@ -151,6 +153,8 @@
 /* Begin PBXFileReference section */
 		50C912872F5DD9280087EE61 /* AuthMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthMode.swift; sourceTree = "<group>"; };
 		50C9128A2F5DD9990087EE61 /* IAPLoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IAPLoginView.swift; sourceTree = "<group>"; };
+		50C912A32F648A440087EE61 /* IAPWebAuthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IAPWebAuthView.swift; sourceTree = "<group>"; };
+		50C912A52F648A490087EE61 /* IAPWebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IAPWebView.swift; sourceTree = "<group>"; };
 		B02A003E2F3666240024E8EC /* UIScreen+.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIScreen+.swift"; sourceTree = "<group>"; };
 		B0AD2E6E2F4B037400577062 /* ArtistDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistDetailView.swift; sourceTree = "<group>"; };
 		B0AD2E6F2F4B037400577062 /* ArtistsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistsView.swift; sourceTree = "<group>"; };
@@ -324,6 +328,8 @@
 		C4289F4D2C1253EB00C3A4FD /* Utils */ = {
 			isa = PBXGroup;
 			children = (
+				50C912A52F648A490087EE61 /* IAPWebView.swift */,
+				50C912A32F648A440087EE61 /* IAPWebAuthView.swift */,
 				B02A003E2F3666240024E8EC /* UIScreen+.swift */,
 				C456D8F92F2FF33B002AAB8B /* LRCParser.swift */,
 				C4F0B0A12F3A111100ABC002 /* AirPlayRoutePicker.swift */,
@@ -639,6 +645,7 @@
 				C49495812C1C25E5006B4D1E /* ScanStatus.swift in Sources */,
 				C4289F482C12391300C3A4FD /* AlbumViewModel.swift in Sources */,
 				C42B25882F4456BF00E62008 /* WatchLibraryResponder.swift in Sources */,
+				50C912A62F648A490087EE61 /* IAPWebView.swift in Sources */,
 				C49495852C1C26D4006B4D1E /* ScanStatusService.swift in Sources */,
 				C47876042C2BFFF900184A33 /* SongView.swift in Sources */,
 				C446A6B72C08DE8800CC9787 /* UserAuth.swift in Sources */,
@@ -654,6 +661,7 @@
 				C4120FDD2C15E1C300E712BE /* Song.swift in Sources */,
 				C467AD532D3267D000644E68 /* Subsonic.swift in Sources */,
 				C47876022C2BF15900184A33 /* AlbumsView.swift in Sources */,
+				50C912A42F648A440087EE61 /* IAPWebAuthView.swift in Sources */,
 				C4824D272CE908DC003EAB52 /* SongsView.swift in Sources */,
 				C456D8FA2F2FF33E002AAB8B /* LRCParser.swift in Sources */,
 				50C912892F5DD9280087EE61 /* AuthMode.swift in Sources */,
