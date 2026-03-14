@@ -200,6 +200,10 @@ class AuthViewModel: ObservableObject {
         
         self.authMode = .iap
 
+        if UserDefaultsManager.saveLoginInfo {
+          self.destroySavedPassword()
+        }
+
         DispatchQueue.main.async {
           self.isSubmitting = false
           self.isLoggedIn = true

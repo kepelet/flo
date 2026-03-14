@@ -113,6 +113,7 @@ struct IAPWebAuthView: View {
         if httpResponse.statusCode == 200 {
           DispatchQueue.main.async {
             self.authViewModel.persistAuthData(userAuth)
+            self.authViewModel.authMode = .iap
             self.authViewModel.isLoggedIn = true
             self.authViewModel.user = userAuth
             
@@ -126,6 +127,7 @@ struct IAPWebAuthView: View {
         } else {
           DispatchQueue.main.async {
             self.authViewModel.persistAuthData(userAuth)
+            self.authViewModel.authMode = .iap
             self.authViewModel.isLoggedIn = true
             self.authViewModel.user = userAuth
             
