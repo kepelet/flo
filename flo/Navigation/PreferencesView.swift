@@ -378,9 +378,12 @@ struct PreferencesView: View {
                   }
                 }
               ))
+            .disabled(authViewModel.authMode == .iap)
 
             Text(
-              "flo will store your server URL, username, and password in the Keychain with no biometric protection. If you enable this, flo will try to 'refresh' the auth token—by logging you in automatically—every time you open flo so you'll never log out unless you do it explicitly (it will also reset this option)"
+              authViewModel.authMode == .iap
+                ? "This option is not available when using OAuth."
+                : "flo will store your server URL, username, and password in the Keychain with no biometric protection. If you enable this, flo will try to 'refresh' the auth token—by logging you in automatically—every time you open flo so you'll never log out unless you do it explicitly (it will also reset this option). Logging in via OAuth will reset this option."
             ).font(.caption).foregroundColor(.gray)
           }
           .sheet(isPresented: shouldShowLoginSheet) {
