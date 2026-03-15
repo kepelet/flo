@@ -404,7 +404,7 @@ struct PlayerView: View {
           .foregroundColor(isLyricsDisabled ? .white.opacity(0.4) : .white)
       }
       .disabled(isLyricsDisabled)
-      .frame(width: 56, alignment: .leading)
+      .frame(maxWidth: .infinity)
 
       Button {
         viewModel.toggleStar()
@@ -415,10 +415,11 @@ struct PlayerView: View {
       }
       .disabled(viewModel.isLiveRadio)
       .opacity(viewModel.isLiveRadio ? 0.4 : 1)
+      .frame(maxWidth: .infinity)
 
       AirPlayRoutePicker(tintColor: UIColor.white, activeTintColor: UIColor.white)
-        .frame(width: 36, height: 36, alignment: .center)
-        .frame(maxWidth: .infinity, alignment: .center)
+        .frame(width: 36, height: 36)
+        .frame(maxWidth: .infinity)
         .overlay(alignment: .bottom) {
           if let outputName = viewModel.externalOutputName {
             Text(outputName)
@@ -464,7 +465,7 @@ struct PlayerView: View {
       }
       .disabled(isQueueDisabled)
       .opacity(isQueueDisabled ? 0.4 : 1)
-      .frame(width: 56, alignment: .trailing)
+      .frame(maxWidth: .infinity)
     }
   }
 
