@@ -177,7 +177,8 @@ class PlayerViewModel: ObservableObject {
       albumName: self.nowPlaying.albumName ?? "",
       albumId: self.nowPlaying.albumId ?? "",
       trackId: self.nowPlaying.id ?? "",
-      contextName: self.nowPlaying.contextName
+      contextName: self.nowPlaying.contextName,
+      albumCover: self.nowPlaying.albumCover ?? ""
     )
   }
 

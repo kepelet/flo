@@ -48,7 +48,7 @@ class AlbumViewModel: ObservableObject {
 
   func setActiveAlbum(album: Album) {
     self.album = album
-    self.album.albumCover = self.getAlbumCoverArt(id: album.id)
+    self.album.albumCover = self.getAlbumCoverArt(id: album.id, albumCover: album.albumCover)
 
     if !album.id.isEmpty {
       self.getAlbumById()
@@ -145,9 +145,9 @@ class AlbumViewModel: ObservableObject {
     }
   }
 
-  func getAlbumCoverArt(id: String, artistName: String = "", albumName: String = "") -> String {
+  func getAlbumCoverArt(id: String, artistName: String = "", albumName: String = "", albumCover: String = "") -> String {
     return AlbumService.shared.getAlbumCover(
-      artistName: artistName, albumName: albumName, albumId: id)
+      artistName: artistName, albumName: albumName, albumId: id, albumCover: albumCover)
   }
 
   func shareAlbum(description: String, completion: @escaping (String) -> Void) {
