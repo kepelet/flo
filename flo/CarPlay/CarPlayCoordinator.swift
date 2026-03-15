@@ -91,14 +91,14 @@ class CarPlayCoordinator {
           let items = albums.map { album -> CPListItem in
             let item = CPListItem(
               text: album.name,
-              detailText: album.artist
+              detailText: album.albumArtist.isEmpty ? album.artist : album.albumArtist
             )
             item.handler = { [weak self] _, completion in
               self?.showAlbumDetail(album: album, isDownloaded: false)
               completion()
             }
             let coverURL = AlbumService.shared.getAlbumCover(
-              artistName: album.artist,
+              artistName: album.albumArtist.isEmpty ? album.artist : album.albumArtist,
               albumName: album.name,
               albumId: album.id
             )
@@ -286,7 +286,7 @@ class CarPlayCoordinator {
               completion()
             }
             let coverURL = AlbumService.shared.getAlbumCover(
-              artistName: album.artist,
+              artistName: album.albumArtist,
               albumName: album.name,
               albumId: album.id
             )
@@ -602,7 +602,7 @@ class CarPlayCoordinator {
               completion()
             }
             let coverURL = AlbumService.shared.getAlbumCover(
-              artistName: album.artist,
+              artistName: album.albumArtist,
               albumName: album.name,
               albumId: album.id
             )
