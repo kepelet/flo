@@ -210,6 +210,8 @@ class CarPlayCoordinator {
 
   // MARK: - Artists
 
+  private var filterAlbumArtistOnly = true
+
   private func showArtistsList() {
     let loadingTemplate = CPListTemplate(title: "Artists", sections: [])
     interfaceController.pushTemplate(loadingTemplate, animated: true, completion: nil)
@@ -219,7 +221,10 @@ class CarPlayCoordinator {
         guard let self = self else { return }
         switch result {
         case .success(let artists):
-          let items = artists.map { artist -> CPListItem in
+          let filteredArtists = artists.filter { artist in
+            !self.filterAlbumArtistOnly || artist.stats.albumartist != nil
+          }
+          let items = filteredArtists.map { artist -> CPListItem in
             let item = CPListItem(
               text: artist.name,
               detailText: "\(artist.albumCount) albums"
