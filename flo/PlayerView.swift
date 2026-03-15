@@ -406,6 +406,16 @@ struct PlayerView: View {
       .disabled(isLyricsDisabled)
       .frame(width: 56, alignment: .leading)
 
+      Button {
+        viewModel.toggleStar()
+      } label: {
+        Image(systemName: viewModel.isStarred ? "heart.fill" : "heart")
+          .font(.title2)
+          .foregroundColor(viewModel.isStarred ? .red : .white)
+      }
+      .disabled(viewModel.isLiveRadio)
+      .opacity(viewModel.isLiveRadio ? 0.4 : 1)
+
       AirPlayRoutePicker(tintColor: UIColor.white, activeTintColor: UIColor.white)
         .frame(width: 36, height: 36, alignment: .center)
         .frame(maxWidth: .infinity, alignment: .center)

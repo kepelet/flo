@@ -40,6 +40,7 @@ class PlayerViewModel: ObservableObject {
   @Published var totalTimeString: String = "00:00"
   @Published var shouldHidePlayer: Bool = false
   @Published var externalOutputName: String?
+  @Published var isStarred: Bool = false
 
   // FIXME: this make confusion with `isDownloaded` and/or `isPlayingFromLocal`
   @Published var _playFromLocal: Bool = false
@@ -200,6 +201,7 @@ class PlayerViewModel: ObservableObject {
     try? AVAudioSession.sharedInstance().setActive(true)
 
     self.resetLyrics()
+    self.checkStarredStatus()
 
     if let timeObserverToken = timeObserverToken {
       player?.removeTimeObserver(timeObserverToken)
@@ -787,6 +789,35 @@ class PlayerViewModel: ObservableObject {
     }
 
     return nil
+  }
+
+  private func checkStarredStatus() {
+    self.isStarred = false
+    if let songId = self.nowPlaying.id, !songId.isEmpty {
+      AlbumService.shared.isStarred(songId: songId) { [weak self] starred in
+        DispatchQueue.main.async {
+          guard self?.nowPlaying.id == songId else { return }
+          self?.isStarred = starred
+        }
+      }
+    }
+  }
+
+  func toggleStar() {
+    guard let songId = self.nowPlaying.id, !songId.isEmpty else { return }
+
+    let shouldStar = !self.isStarred
+    self.isStarred = shouldStar
+
+    let action = shouldStar ? AlbumService.shared.starSong : AlbumService.shared.unstarSong
+    action(songId) { [weak self] success in
+      if !success {
+        DispatchQueue.main.async {
+          guard self?.nowPlaying.id == songId else { return }
+          self?.isStarred = !shouldStar
+        }
+      }
+    }
   }
 
   deinit {
