@@ -68,5 +68,8 @@ struct LikedSongsView: View {
     .onAppear {
       viewModel.fetchStarredSongs()
     }
+    .onChange(of: playerViewModel.isStarred) { _ in
+      viewModel.fetchStarredSongs()
+    }
   }
 }
