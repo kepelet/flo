@@ -78,6 +78,27 @@ struct LibraryView: View {
             Divider()
 
             NavigationLink {
+              LikedSongsView()
+                .environmentObject(viewModel)
+                .environmentObject(playerViewModel)
+            } label: {
+              HStack {
+                Image(systemName: "heart.fill")
+                  .frame(width: 20, height: 10)
+                  .foregroundColor(.accent)
+                Text("Liked Songs")
+                  .customFont(.headline)
+                  .padding(.leading, 8)
+                Spacer()
+                Image(systemName: "chevron.right")
+                  .foregroundColor(.gray)
+                  .font(.caption)
+              }.padding(.horizontal).padding(.vertical, 5)
+            }
+
+            Divider()
+
+            NavigationLink {
               PlaylistView()
                 .environmentObject(viewModel)
                 .environmentObject(playerViewModel)

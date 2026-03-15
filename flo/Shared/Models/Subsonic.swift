@@ -75,3 +75,45 @@ extension SubsonicResponse {
 }
 
 typealias BasicSubsonicResponse = SubsonicResponse<BasicResponse>
+
+struct Starred2Response: Codable {
+  struct SubsonicResponseBody: Codable {
+    struct Starred2: Codable {
+      let song: [SubsonicSong]?
+    }
+
+    let starred2: Starred2?
+  }
+
+  let subsonicResponse: SubsonicResponseBody
+
+  enum CodingKeys: String, CodingKey {
+    case subsonicResponse = "subsonic-response"
+  }
+
+  var songs: [Song] {
+    return (subsonicResponse.starred2?.song ?? []).map { $0.toSong() }
+  }
+}
+
+struct SubsonicSong: Codable {
+  let id: String
+  let title: String
+  let artist: String?
+  let albumId: String?
+  let album: String?
+  let track: Int?
+  let discNumber: Int?
+  let bitRate: Int?
+  let samplingRate: Int?
+  let suffix: String?
+  let duration: Int?
+
+  func toSong() -> Song {
+    return Song(
+      id: id, title: title, albumId: albumId ?? "", albumName: album ?? "",
+      artist: artist ?? "", trackNumber: track ?? 0, discNumber: discNumber ?? 0,
+      bitRate: bitRate ?? 0, sampleRate: samplingRate ?? 0, suffix: suffix ?? "",
+      duration: Double(duration ?? 0), mediaFileId: id)
+  }
+}

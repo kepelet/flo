@@ -1,0 +1,72 @@
+//
+//  LikedSongsView.swift
+//  flo
+//
+
+import NukeUI
+import SwiftUI
+
+struct LikedSongsView: View {
+  @EnvironmentObject private var viewModel: AlbumViewModel
+  @EnvironmentObject private var playerViewModel: PlayerViewModel
+
+  var body: some View {
+    ScrollView {
+      LazyVStack {
+        ForEach(Array(viewModel.starredSongs.enumerated()), id: \.element.id) { idx, song in
+          VStack {
+            HStack {
+              LazyImage(url: URL(string: viewModel.getAlbumCoverArt(id: song.albumId))) { state in
+                if let image = state.image {
+                  image
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 60, height: 60)
+                    .clipShape(
+                      RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    )
+                } else {
+                  Color("PlayerColor").frame(width: 60, height: 60)
+                    .cornerRadius(5)
+                }
+              }
+
+              VStack(alignment: .leading) {
+                Text(song.title)
+                  .customFont(.headline)
+                  .multilineTextAlignment(.leading)
+                  .lineLimit(2)
+                  .padding(.bottom, 3)
+
+                Text(song.artist)
+                  .customFont(.subheadline)
+                  .foregroundColor(.gray)
+                  .lineLimit(2)
+                  .multilineTextAlignment(.leading)
+              }
+              .padding(.horizontal, 10)
+
+              Spacer()
+            }
+            .padding(.horizontal)
+            .background(Color(UIColor.systemBackground))
+
+            Divider()
+          }
+          .onTapGesture {
+            let liked = SongCollection(
+              id: "starred-songs", name: "Liked Songs", songs: viewModel.starredSongs)
+            playerViewModel.playBySong(idx: idx, item: liked, isFromLocal: false)
+          }
+          .frame(maxWidth: .infinity, alignment: .leading)
+        }
+      }
+      .padding(.top, 10)
+      .padding(.bottom, 100)
+      .navigationTitle("Liked Songs")
+    }
+    .onAppear {
+      viewModel.fetchStarredSongs()
+    }
+  }
+}

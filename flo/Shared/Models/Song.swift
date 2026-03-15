@@ -22,6 +22,7 @@ struct Song: Codable, Identifiable, Hashable {
 
   var mediaFileId: String = ""
   var fileUrl: String = ""
+  var starred: Bool = false
 
   enum DecodeKeys: String, CodingKey {
     case id
@@ -37,6 +38,7 @@ struct Song: Codable, Identifiable, Hashable {
     case suffix
     case duration
     case mediaFileId
+    case starred
   }
 
   enum EncodeKeys: String, CodingKey {
@@ -52,6 +54,7 @@ struct Song: Codable, Identifiable, Hashable {
     case suffix
     case duration
     case mediaFileId
+    case starred
   }
 
   init(from decoder: any Decoder) throws {
@@ -73,6 +76,7 @@ struct Song: Codable, Identifiable, Hashable {
     self.suffix = try container.decode(String.self, forKey: .suffix)
     self.duration = try container.decode(Double.self, forKey: .duration)
     self.mediaFileId = try container.decodeIfPresent(String.self, forKey: .mediaFileId) ?? ""
+    self.starred = try container.decodeIfPresent(Bool.self, forKey: .starred) ?? false
   }
 
   func encode(to encoder: any Encoder) throws {
@@ -90,6 +94,7 @@ struct Song: Codable, Identifiable, Hashable {
     try container.encode(suffix, forKey: .suffix)
     try container.encode(duration, forKey: .duration)
     try container.encode(mediaFileId, forKey: .mediaFileId)
+    try container.encode(starred, forKey: .starred)
   }
 
   init(
