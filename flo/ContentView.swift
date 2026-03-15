@@ -19,6 +19,7 @@ struct ContentView: View {
   @StateObject private var albumViewModel = AlbumViewModel()
   @StateObject private var floooViewModel = FloooViewModel()
   @StateObject private var downloadViewModel = DownloadViewModel()
+  @StateObject private var inAppPurchaseManager = InAppPurchaseManager()
 
   @State private var floatingPlayerOffsetX: CGFloat = .zero
   @State private var isSwipping = false
@@ -49,7 +50,7 @@ struct ContentView: View {
 
         PreferencesView(authViewModel: authViewModel).tabItem {
           Label("Preferences", systemImage: "gear")
-        }.environmentObject(playerViewModel).environmentObject(floooViewModel)
+        }.environmentObject(playerViewModel).environmentObject(floooViewModel).environmentObject(inAppPurchaseManager)
 
         if UserDefaultsManager.enableDebug {
           ConsoleView().tabItem {

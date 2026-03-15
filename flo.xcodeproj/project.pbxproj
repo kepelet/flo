@@ -7,15 +7,15 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		55CFFAB52342C01E366F87B0 /* CarPlayCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2645E70081EEE2C0396E04D8 /* CarPlayCoordinator.swift */; };
-		5E64C3D71B02BE8FEDF5FF3C /* CarPlaySceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 566B2E217C6248B16912297F /* CarPlaySceneDelegate.swift */; };
-		6BDAFB58A4C77A82BCCFD0F4 /* CarPlay.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE85DCBEE7ADB56E8BFD6338 /* CarPlay.framework */; };
-		7C09E28C1BFFDB5D5F124EC9 /* CarPlayNowPlayingManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0EEF17030A154EB98122A089 /* CarPlayNowPlayingManager.swift */; };
-		FA138533DE126212552B3A51 /* CarPlayImageLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80C89AD8466BDBA43F95F5DC /* CarPlayImageLoader.swift */; };
 		50C912892F5DD9280087EE61 /* AuthMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50C912872F5DD9280087EE61 /* AuthMode.swift */; };
 		50C912912F5DD9990087EE61 /* IAPLoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50C9128A2F5DD9990087EE61 /* IAPLoginView.swift */; };
 		50C912A42F648A440087EE61 /* IAPWebAuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50C912A32F648A440087EE61 /* IAPWebAuthView.swift */; };
 		50C912A62F648A490087EE61 /* IAPWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50C912A52F648A490087EE61 /* IAPWebView.swift */; };
+		55CFFAB52342C01E366F87B0 /* CarPlayCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2645E70081EEE2C0396E04D8 /* CarPlayCoordinator.swift */; };
+		587A2E31AB9ADC1C724BE658 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = CFA9D48444F961601BF12316 /* AppDelegate.swift */; };
+		5E64C3D71B02BE8FEDF5FF3C /* CarPlaySceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 566B2E217C6248B16912297F /* CarPlaySceneDelegate.swift */; };
+		6BDAFB58A4C77A82BCCFD0F4 /* CarPlay.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE85DCBEE7ADB56E8BFD6338 /* CarPlay.framework */; };
+		7C09E28C1BFFDB5D5F124EC9 /* CarPlayNowPlayingManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0EEF17030A154EB98122A089 /* CarPlayNowPlayingManager.swift */; };
 		B02A003F2F36662C0024E8EC /* UIScreen+.swift in Sources */ = {isa = PBXBuildFile; fileRef = B02A003E2F3666240024E8EC /* UIScreen+.swift */; };
 		B0AD2E712F4B037400577062 /* ArtistDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0AD2E6E2F4B037400577062 /* ArtistDetailView.swift */; };
 		B0AD2E722F4B037400577062 /* ArtistsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0AD2E6F2F4B037400577062 /* ArtistsView.swift */; };
@@ -26,6 +26,7 @@
 		B0BAAAA92F3213AF002A5FBB /* RadiosViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0BAAAA82F3213AB002A5FBB /* RadiosViewModel.swift */; };
 		B0BAAAAB2F3214F7002A5FBB /* Radio.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0BAAAAA2F3214F7002A5FBB /* Radio.swift */; };
 		B0BAAAAD2F3216A0002A5FBB /* RadioService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0BAAAAC2F321697002A5FBB /* RadioService.swift */; };
+		BC8F89CD0C6562C496EDE0F6 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6CC2B5AA866663E09C3E38A /* SceneDelegate.swift */; };
 		C401D09A2C5AED9F009F91C7 /* LocalFileManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C401D0992C5AED9F009F91C7 /* LocalFileManager.swift */; };
 		C4100A692CE78B25001BC9BE /* PlaylistView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4100A682CE78B21001BC9BE /* PlaylistView.swift */; };
 		C4100A6B2CE78B62001BC9BE /* Playlist.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4100A6A2CE78B5F001BC9BE /* Playlist.swift */; };
@@ -129,6 +130,7 @@
 		C4F870D02CEFD25900312F8A /* StatCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4F870CF2CEFD24D00312F8A /* StatCardView.swift */; };
 		C4FE524B2C14E1F70053763A /* UserDefaultsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4FE524A2C14E1F70053763A /* UserDefaultsManager.swift */; };
 		C4FE524D2C14E71B0053763A /* KeychainManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4FE524C2C14E71B0053763A /* KeychainManager.swift */; };
+		FA138533DE126212552B3A51 /* CarPlayImageLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80C89AD8466BDBA43F95F5DC /* CarPlayImageLoader.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -158,14 +160,13 @@
 /* Begin PBXFileReference section */
 		0EEF17030A154EB98122A089 /* CarPlayNowPlayingManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CarPlayNowPlayingManager.swift; sourceTree = "<group>"; };
 		2645E70081EEE2C0396E04D8 /* CarPlayCoordinator.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CarPlayCoordinator.swift; sourceTree = "<group>"; };
-		566B2E217C6248B16912297F /* CarPlaySceneDelegate.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CarPlaySceneDelegate.swift; sourceTree = "<group>"; };
-		7E2C854C4AFDB5F757411C4C /* flo.entitlements */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.entitlements; path = flo.entitlements; sourceTree = "<group>"; };
-		80C89AD8466BDBA43F95F5DC /* CarPlayImageLoader.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CarPlayImageLoader.swift; sourceTree = "<group>"; };
-		CE85DCBEE7ADB56E8BFD6338 /* CarPlay.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = CarPlay.framework; sourceTree = SDKROOT; };
 		50C912872F5DD9280087EE61 /* AuthMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthMode.swift; sourceTree = "<group>"; };
 		50C9128A2F5DD9990087EE61 /* IAPLoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IAPLoginView.swift; sourceTree = "<group>"; };
 		50C912A32F648A440087EE61 /* IAPWebAuthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IAPWebAuthView.swift; sourceTree = "<group>"; };
 		50C912A52F648A490087EE61 /* IAPWebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IAPWebView.swift; sourceTree = "<group>"; };
+		566B2E217C6248B16912297F /* CarPlaySceneDelegate.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CarPlaySceneDelegate.swift; sourceTree = "<group>"; };
+		7E2C854C4AFDB5F757411C4C /* flo.entitlements */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.entitlements; path = flo.entitlements; sourceTree = "<group>"; };
+		80C89AD8466BDBA43F95F5DC /* CarPlayImageLoader.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CarPlayImageLoader.swift; sourceTree = "<group>"; };
 		B02A003E2F3666240024E8EC /* UIScreen+.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIScreen+.swift"; sourceTree = "<group>"; };
 		B0AD2E6E2F4B037400577062 /* ArtistDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistDetailView.swift; sourceTree = "<group>"; };
 		B0AD2E6F2F4B037400577062 /* ArtistsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistsView.swift; sourceTree = "<group>"; };
@@ -259,6 +260,9 @@
 		C4F870CF2CEFD24D00312F8A /* StatCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatCardView.swift; sourceTree = "<group>"; };
 		C4FE524A2C14E1F70053763A /* UserDefaultsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserDefaultsManager.swift; sourceTree = "<group>"; };
 		C4FE524C2C14E71B0053763A /* KeychainManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainManager.swift; sourceTree = "<group>"; };
+		CE85DCBEE7ADB56E8BFD6338 /* CarPlay.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = CarPlay.framework; sourceTree = SDKROOT; };
+		CFA9D48444F961601BF12316 /* AppDelegate.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		F6CC2B5AA866663E09C3E38A /* SceneDelegate.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SceneDelegate.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -501,9 +505,11 @@
 				C4DFFA202D32E769003B9C4E /* DownloadViewModel.swift */,
 				C456D8FD2F300D37002AAB8B /* LyricsView.swift */,
 				C42B25662F44533D00E62008 /* Watch */,
-			3187E4E95236423EE8702B86 /* CarPlay */,
+				3187E4E95236423EE8702B86 /* CarPlay */,
 				7E2C854C4AFDB5F757411C4C /* flo.entitlements */,
 				50C912872F5DD9280087EE61 /* AuthMode.swift */,
+				CFA9D48444F961601BF12316 /* AppDelegate.swift */,
+				F6CC2B5AA866663E09C3E38A /* SceneDelegate.swift */,
 			);
 			path = flo;
 			sourceTree = "<group>";
@@ -532,8 +538,6 @@
 			dependencies = (
 			);
 			name = "flo Watch Watch App";
-			packageProductDependencies = (
-			);
 			productName = "flo Watch Watch App";
 			productReference = C42B258D2F4458ED00E62008 /* flo Watch Watch App.app */;
 			productType = "com.apple.product-type.application";
@@ -752,6 +756,8 @@
 				55CFFAB52342C01E366F87B0 /* CarPlayCoordinator.swift in Sources */,
 				7C09E28C1BFFDB5D5F124EC9 /* CarPlayNowPlayingManager.swift in Sources */,
 				FA138533DE126212552B3A51 /* CarPlayImageLoader.swift in Sources */,
+				587A2E31AB9ADC1C724BE658 /* AppDelegate.swift in Sources */,
+				BC8F89CD0C6562C496EDE0F6 /* SceneDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -771,6 +777,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = flo/flo.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=watchos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 211;
@@ -808,6 +815,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = flo/flo.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=watchos*]" = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 211;
@@ -970,6 +978,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
+				CODE_SIGN_ENTITLEMENTS = flo/flo.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 211;
@@ -980,7 +989,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = flo/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.music";
-				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = NO;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UIStatusBarStyle = "";
@@ -1013,6 +1022,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
+				CODE_SIGN_ENTITLEMENTS = flo/flo.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 211;
@@ -1023,7 +1033,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = flo/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.music";
-				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = NO;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UIStatusBarStyle = "";
