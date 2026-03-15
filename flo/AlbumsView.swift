@@ -20,7 +20,7 @@ struct AlbumsView: View {
         if self.isDownloadScreen {
           if let image = UIImage(
             contentsOfFile: viewModel.getAlbumCoverArt(
-              id: album.id, artistName: album.artist, albumName: album.name))
+              id: album.id, artistName: album.artist, albumName: album.name, albumCover: album.albumCover))
           {
             Image(uiImage: image)
               .resizable()
@@ -42,7 +42,7 @@ struct AlbumsView: View {
           }
         } else {
           if let image = UIImage(
-            contentsOfFile: viewModel.getAlbumCoverArt(id: album.id))
+            contentsOfFile: viewModel.getAlbumCoverArt(id: album.id, albumCover: album.albumCover))
           {
             Image(uiImage: image)
               .resizable()
@@ -52,7 +52,7 @@ struct AlbumsView: View {
                 RoundedRectangle(cornerRadius: 5, style: .continuous)
               )
           } else {
-            LazyImage(url: URL(string: viewModel.getAlbumCoverArt(id: album.id))) { state in
+            LazyImage(url: URL(string: viewModel.getAlbumCoverArt(id: album.id, albumCover: album.albumCover))) { state in
               if let image = state.image {
                 image
                   .resizable()

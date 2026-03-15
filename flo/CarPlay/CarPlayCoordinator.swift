@@ -100,7 +100,8 @@ class CarPlayCoordinator {
             let coverURL = AlbumService.shared.getAlbumCover(
               artistName: album.albumArtist.isEmpty ? album.artist : album.albumArtist,
               albumName: album.name,
-              albumId: album.id
+              albumId: album.id,
+              albumCover: album.albumCover
             )
             CarPlayImageLoader.loadImage(from: coverURL) { image in
               item.setImage(image)
@@ -293,7 +294,8 @@ class CarPlayCoordinator {
             let coverURL = AlbumService.shared.getAlbumCover(
               artistName: album.albumArtist,
               albumName: album.name,
-              albumId: album.id
+              albumId: album.id,
+              albumCover: album.albumCover
             )
             CarPlayImageLoader.loadImage(from: coverURL) { image in
               item.setImage(image)
@@ -609,7 +611,8 @@ class CarPlayCoordinator {
             let coverURL = AlbumService.shared.getAlbumCover(
               artistName: album.albumArtist,
               albumName: album.name,
-              albumId: album.id
+              albumId: album.id,
+              albumCover: album.albumCover
             )
             CarPlayImageLoader.loadImage(from: coverURL) { image in
               item.setImage(image)
