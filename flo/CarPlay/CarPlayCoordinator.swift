@@ -167,7 +167,7 @@ class CarPlayCoordinator {
     let playAllItem = CPListItem(
       text: "Play All",
       detailText: "\(album.songs.count) tracks",
-      image: UIImage(systemName: "play.fill")
+      image: UIImage(systemName: "play.fill")?.withRenderingMode(.alwaysTemplate)
     )
     playAllItem.handler = { [weak self] _, completion in
       self?.playerVM.playItem(item: album, isFromLocal: isDownloaded)
@@ -178,7 +178,7 @@ class CarPlayCoordinator {
     let shuffleItem = CPListItem(
       text: "Shuffle",
       detailText: nil,
-      image: UIImage(systemName: "shuffle")
+      image: UIImage(systemName: "shuffle")?.withRenderingMode(.alwaysTemplate)
     )
     shuffleItem.handler = { [weak self] _, completion in
       self?.playerVM.shuffleItem(item: album, isFromLocal: isDownloaded)
@@ -418,7 +418,10 @@ class CarPlayCoordinator {
   // MARK: - Playlists Tab
 
   private func makePlaylistsTab() -> CPListTemplate {
-    let template = CPListTemplate(title: "Playlists", sections: [])
+    let loadingItem = CPListItem(text: "Loading playlists…", detailText: nil)
+    loadingItem.isEnabled = false
+    let template = CPListTemplate(
+      title: "Playlists", sections: [CPListSection(items: [loadingItem])])
     template.tabImage = UIImage(systemName: "music.note.list")
 
     AlbumService.shared.getPlaylists { [weak self] result in
@@ -530,7 +533,10 @@ class CarPlayCoordinator {
   // MARK: - Radio Tab
 
   private func makeRadioTab() -> CPListTemplate {
-    let template = CPListTemplate(title: "Radio", sections: [])
+    let loadingItem = CPListItem(text: "Loading stations…", detailText: nil)
+    loadingItem.isEnabled = false
+    let template = CPListTemplate(
+      title: "Radio", sections: [CPListSection(items: [loadingItem])])
     template.tabImage = UIImage(systemName: "radio")
 
     RadioService.shared.getAllRadios { [weak self] result in
@@ -578,7 +584,10 @@ class CarPlayCoordinator {
   // MARK: - Downloads Tab
 
   private func makeDownloadsTab() -> CPListTemplate {
-    let template = CPListTemplate(title: "Downloads", sections: [])
+    let loadingItem = CPListItem(text: "Loading downloads…", detailText: nil)
+    loadingItem.isEnabled = false
+    let template = CPListTemplate(
+      title: "Downloads", sections: [CPListSection(items: [loadingItem])])
     template.tabImage = UIImage(systemName: "arrow.down.circle")
 
     AlbumService.shared.getDownloadedAlbum { [weak self] result in
