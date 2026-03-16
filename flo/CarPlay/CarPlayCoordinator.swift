@@ -48,7 +48,7 @@ class CarPlayCoordinator {
   private func makeLibraryTab() -> CPListTemplate {
     let albumsItem = CPListItem(
       text: "Albums", detailText: nil,
-      image: UIImage(systemName: "square.stack"))
+      image: UIImage(systemName: "square.stack")?.withRenderingMode(.alwaysTemplate))
     albumsItem.handler = { [weak self] _, completion in
       self?.showAlbumsList()
       completion()
@@ -56,7 +56,7 @@ class CarPlayCoordinator {
 
     let artistsItem = CPListItem(
       text: "Artists", detailText: nil,
-      image: UIImage(systemName: "music.mic"))
+      image: UIImage(systemName: "music.mic")?.withRenderingMode(.alwaysTemplate))
     artistsItem.handler = { [weak self] _, completion in
       self?.showArtistsList()
       completion()
@@ -64,7 +64,7 @@ class CarPlayCoordinator {
 
     let songsItem = CPListItem(
       text: "Songs", detailText: nil,
-      image: UIImage(systemName: "music.note"))
+      image: UIImage(systemName: "music.note")?.withRenderingMode(.alwaysTemplate))
     songsItem.handler = { [weak self] _, completion in
       self?.showSongsList()
       completion()
