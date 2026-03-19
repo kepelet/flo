@@ -39,6 +39,13 @@ class CarPlayNowPlayingManager: NSObject {
         self?.updateButtons(on: nowPlaying)
       }
       .store(in: &cancellables)
+
+    playerVM.$isStarred
+      .receive(on: DispatchQueue.main)
+      .sink { [weak self] _ in
+        self?.updateButtons(on: nowPlaying)
+      }
+      .store(in: &cancellables)
   }
 
   func teardown() {
@@ -51,11 +58,21 @@ class CarPlayNowPlayingManager: NSObject {
       self?.playerVM.shuffleCurrentQueue()
     }
 
+    let isLiveRadio = playerVM.isLiveRadio
+    let heartImage = UIImage(
+      systemName: playerVM.isStarred && !isLiveRadio ? "heart.fill" : "heart"
+    )?.withRenderingMode(.alwaysTemplate)
+
+    let heartButton = CPNowPlayingImageButton(image: heartImage ?? UIImage()) { [weak self] _ in
+      guard let self = self, !self.playerVM.isLiveRadio else { return }
+      self.playerVM.toggleStar()
+    }
+
     let repeatButton = CPNowPlayingRepeatButton { [weak self] _ in
       self?.playerVM.setPlaybackMode()
     }
 
-    template.updateNowPlayingButtons([shuffleButton, repeatButton])
+    template.updateNowPlayingButtons([shuffleButton, heartButton, repeatButton])
   }
 }
 
