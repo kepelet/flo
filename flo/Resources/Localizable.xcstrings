@@ -127,6 +127,26 @@
         }
       }
     },
+    "%@ Radio" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@-Radio"
+          }
+        }
+      }
+    },
+    "%@ Top Songs" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ Top-Songs"
+          }
+        }
+      }
+    },
     "%@%@" : {
       "localizations" : {
         "de" : {
@@ -183,6 +203,26 @@
     },
     "%lld songs" : {
 
+    },
+    "%lld albums" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld Alben"
+          }
+        }
+      }
+    },
+    "%lld tracks" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld Titel"
+          }
+        }
+      }
     },
     "•" : {
       "localizations" : {
@@ -362,6 +402,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Info album"
+          }
+        }
+      }
+    },
+    "Albums" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alben"
+          }
+        }
+      }
+    },
+    "All Tracks" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alle Titel"
           }
         }
       }
@@ -670,6 +730,26 @@
         }
       }
     },
+    "Could not load radio for %@." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Radio für %@ konnte nicht geladen werden."
+          }
+        }
+      }
+    },
+    "Could not load top songs for %@." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Top-Songs für %@ konnten nicht geladen werden."
+          }
+        }
+      }
+    },
     "Currently the output format is MP3 due to compatibility issues; however, MP3 is less efficient in streaming at lower bitrates compared to modern codecs like Opus." : {
       "localizations" : {
         "de" : {
@@ -792,6 +872,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Unduh"
+          }
+        }
+      }
+    },
+    "Download music from the app" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lade Musik aus der App herunter"
           }
         }
       }
@@ -962,6 +1052,56 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Eksperimental"
+          }
+        }
+      }
+    },
+    "Failed to load albums" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alben konnten nicht geladen werden"
+          }
+        }
+      }
+    },
+    "Failed to load artists" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Künstler konnten nicht geladen werden"
+          }
+        }
+      }
+    },
+    "Failed to load playlists" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Playlists konnten nicht geladen werden"
+          }
+        }
+      }
+    },
+    "Failed to load radios" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Radios konnten nicht geladen werden"
+          }
+        }
+      }
+    },
+    "Failed to load songs" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Songs konnten nicht geladen werden"
           }
         }
       }
@@ -1290,6 +1430,36 @@
         }
       }
     },
+    "Loading downloads…" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Downloads werden geladen…"
+          }
+        }
+      }
+    },
+    "Loading playlists…" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Playlists werden geladen…"
+          }
+        }
+      }
+    },
+    "Loading stations…" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sender werden geladen…"
+          }
+        }
+      }
+    },
     "Local Storage" : {
       "localizations" : {
         "de" : {
@@ -1525,6 +1695,26 @@
         }
       }
     },
+    "No downloads" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keine Downloads"
+          }
+        }
+      }
+    },
+    "No downloads available" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keine Downloads verfügbar"
+          }
+        }
+      }
+    },
     "No lyrics available" : {
       "localizations" : {
         "de" : {
@@ -1537,6 +1727,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tidak ada lirik ditemukan"
+          }
+        }
+      }
+    },
+    "No Radio Available" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kein Radio verfügbar"
+          }
+        }
+      }
+    },
+    "No radio stations" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keine Radiosender"
           }
         }
       }
@@ -1569,6 +1779,46 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tidak ada radio ditemukan"
+          }
+        }
+      }
+    },
+    "No similar songs found for %@." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keine ähnlichen Songs für %@ gefunden."
+          }
+        }
+      }
+    },
+    "No Top Songs" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keine Top-Songs"
+          }
+        }
+      }
+    },
+    "No top songs found for %@." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keine Top-Songs für %@ gefunden."
+          }
+        }
+      }
+    },
+    "No upcoming tracks" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keine weiteren Titel"
           }
         }
       }
@@ -1672,6 +1922,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Mainkan"
+          }
+        }
+      }
+    },
+    "Play All" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alle abspielen"
           }
         }
       }
@@ -1818,6 +2078,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Beli flo+ seharga %@"
+          }
+        }
+      }
+    },
+    "Radio" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Radio"
+          }
+        }
+      }
+    },
+    "Radio Unavailable" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Radio nicht verfügbar"
           }
         }
       }
@@ -2311,6 +2591,16 @@
         }
       }
     },
+    "Tap to retry" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zum Wiederholen tippen"
+          }
+        }
+      }
+    },
     "Thank you for supporting flo!" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -2563,6 +2853,16 @@
         }
       }
     },
+    "Tracks" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Titel"
+          }
+        }
+      }
+    },
     "Troubleshoot" : {
       "localizations" : {
         "de" : {
@@ -2635,6 +2935,36 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Gagal membeli flo+"
+          }
+        }
+      }
+    },
+    "Unavailable" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nicht verfügbar"
+          }
+        }
+      }
+    },
+    "Unknown" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unbekannt"
+          }
+        }
+      }
+    },
+    "Up Next" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Warteschlange"
           }
         }
       }
