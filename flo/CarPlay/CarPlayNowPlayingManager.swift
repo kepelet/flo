@@ -22,7 +22,7 @@ class CarPlayNowPlayingManager: NSObject {
     nowPlaying.add(self)
 
     nowPlaying.isUpNextButtonEnabled = true
-    nowPlaying.upNextTitle = "Up Next"
+    nowPlaying.upNextTitle = String(localized: "Up Next")
 
     updateButtons(on: nowPlaying)
 
@@ -91,7 +91,7 @@ extension CarPlayNowPlayingManager: CPNowPlayingTemplateObserver {
       guard idx > activeIdx else { return nil }
 
       let item = CPListItem(
-        text: entity.songName ?? "Unknown",
+        text: entity.songName ?? String(localized: "Unknown"),
         detailText: entity.artistName ?? ""
       )
       item.handler = { [weak self] _, completion in
@@ -102,15 +102,15 @@ extension CarPlayNowPlayingManager: CPNowPlayingTemplateObserver {
     }
 
     if upcomingItems.isEmpty {
-      let emptyItem = CPListItem(text: "No upcoming tracks", detailText: nil)
+      let emptyItem = CPListItem(text: String(localized: "No upcoming tracks"), detailText: nil)
       let template = CPListTemplate(
-        title: "Up Next",
+        title: String(localized: "Up Next"),
         sections: [CPListSection(items: [emptyItem])]
       )
       interfaceController.pushTemplate(template, animated: true, completion: nil)
     } else {
       let template = CPListTemplate(
-        title: "Up Next",
+        title: String(localized: "Up Next"),
         sections: [CPListSection(items: upcomingItems)]
       )
       interfaceController.pushTemplate(template, animated: true, completion: nil)

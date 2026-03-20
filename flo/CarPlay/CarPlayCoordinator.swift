@@ -47,7 +47,7 @@ class CarPlayCoordinator {
 
   private func makeLibraryTab() -> CPListTemplate {
     let albumsItem = CPListItem(
-      text: "Albums", detailText: nil,
+      text: String(localized: "Albums"), detailText: nil,
       image: UIImage(systemName: "square.stack")?.withRenderingMode(.alwaysTemplate))
     albumsItem.handler = { [weak self] _, completion in
       self?.showAlbumsList()
@@ -55,7 +55,7 @@ class CarPlayCoordinator {
     }
 
     let artistsItem = CPListItem(
-      text: "Artists", detailText: nil,
+      text: String(localized: "Artists"), detailText: nil,
       image: UIImage(systemName: "music.mic")?.withRenderingMode(.alwaysTemplate))
     artistsItem.handler = { [weak self] _, completion in
       self?.showArtistsList()
@@ -63,7 +63,7 @@ class CarPlayCoordinator {
     }
 
     let songsItem = CPListItem(
-      text: "Songs", detailText: nil,
+      text: String(localized: "Songs"), detailText: nil,
       image: UIImage(systemName: "music.note")?.withRenderingMode(.alwaysTemplate))
     songsItem.handler = { [weak self] _, completion in
       self?.showSongsList()
@@ -71,7 +71,7 @@ class CarPlayCoordinator {
     }
 
     let section = CPListSection(items: [albumsItem, artistsItem, songsItem])
-    let template = CPListTemplate(title: "Library", sections: [section])
+    let template = CPListTemplate(title: String(localized: "Library"), sections: [section])
     template.tabImage = UIImage(systemName: "square.grid.2x2")
 
     return template
@@ -80,7 +80,7 @@ class CarPlayCoordinator {
   // MARK: - Albums
 
   private func showAlbumsList() {
-    let loadingTemplate = CPListTemplate(title: "Albums", sections: [])
+    let loadingTemplate = CPListTemplate(title: String(localized: "Albums"), sections: [])
     interfaceController.pushTemplate(loadingTemplate, animated: true, completion: nil)
 
     AlbumService.shared.getAlbum { [weak self] result in
@@ -111,7 +111,7 @@ class CarPlayCoordinator {
           loadingTemplate.updateSections([CPListSection(items: items)])
 
         case .failure:
-          let errorItem = CPListItem(text: "Failed to load albums", detailText: "Tap to retry")
+          let errorItem = CPListItem(text: String(localized: "Failed to load albums"), detailText: String(localized: "Tap to retry"))
           errorItem.handler = { [weak self] _, completion in
             self?.interfaceController.popTemplate(animated: false, completion: nil)
             self?.showAlbumsList()
@@ -165,8 +165,8 @@ class CarPlayCoordinator {
     template: CPListTemplate, album: Album, isDownloaded: Bool
   ) {
     let playAllItem = CPListItem(
-      text: "Play All",
-      detailText: "\(album.songs.count) tracks",
+      text: String(localized: "Play All"),
+      detailText: String(localized: "\(album.songs.count) tracks"),
       image: UIImage(systemName: "play.fill")?.withRenderingMode(.alwaysTemplate)
     )
     playAllItem.handler = { [weak self] _, completion in
@@ -176,7 +176,7 @@ class CarPlayCoordinator {
     }
 
     let shuffleItem = CPListItem(
-      text: "Shuffle",
+      text: String(localized: "Shuffle"),
       detailText: nil,
       image: UIImage(systemName: "shuffle")?.withRenderingMode(.alwaysTemplate)
     )
@@ -202,7 +202,7 @@ class CarPlayCoordinator {
     }
     let trackSection = CPListSection(
       items: trackItems,
-      header: "Tracks",
+      header: String(localized: "Tracks"),
       sectionIndexTitle: nil
     )
 
@@ -214,7 +214,7 @@ class CarPlayCoordinator {
   private var filterAlbumArtistOnly = true
 
   private func showArtistsList() {
-    let loadingTemplate = CPListTemplate(title: "Artists", sections: [])
+    let loadingTemplate = CPListTemplate(title: String(localized: "Artists"), sections: [])
     interfaceController.pushTemplate(loadingTemplate, animated: true, completion: nil)
 
     AlbumService.shared.getArtists { [weak self] result in
@@ -228,7 +228,7 @@ class CarPlayCoordinator {
           let items = filteredArtists.map { artist -> CPListItem in
             let item = CPListItem(
               text: artist.name,
-              detailText: "\(artist.albumCount) albums"
+              detailText: String(localized: "\(artist.albumCount) albums")
             )
             item.handler = { [weak self] _, completion in
               self?.showArtistAlbums(artist: artist)
@@ -239,7 +239,7 @@ class CarPlayCoordinator {
           loadingTemplate.updateSections([CPListSection(items: items)])
 
         case .failure:
-          let errorItem = CPListItem(text: "Failed to load artists", detailText: "Tap to retry")
+          let errorItem = CPListItem(text: String(localized: "Failed to load artists"), detailText: String(localized: "Tap to retry"))
           errorItem.handler = { [weak self] _, completion in
             self?.interfaceController.popTemplate(animated: false, completion: nil)
             self?.showArtistsList()
@@ -261,7 +261,7 @@ class CarPlayCoordinator {
         switch result {
         case .success(let albums):
           let radioItem = CPListItem(
-            text: "Play Artist Radio",
+            text: String(localized: "Play Artist Radio"),
             detailText: nil,
             image: UIImage(systemName: "dot.radiowaves.up.forward")
           )
@@ -271,7 +271,7 @@ class CarPlayCoordinator {
           }
 
           let topSongsItem = CPListItem(
-            text: "Play Top Songs",
+            text: String(localized: "Play Top Songs"),
             detailText: nil,
             image: UIImage(systemName: "star.fill")
           )
@@ -304,7 +304,7 @@ class CarPlayCoordinator {
           }
           let albumSection = CPListSection(
             items: albumItems,
-            header: "Albums",
+            header: String(localized: "Albums"),
             sectionIndexTitle: nil
           )
 
@@ -313,7 +313,7 @@ class CarPlayCoordinator {
         case .failure:
           loadingTemplate.updateSections([
             CPListSection(items: [
-              CPListItem(text: "Failed to load albums", detailText: nil)
+              CPListItem(text: String(localized: "Failed to load albums"), detailText: nil)
             ])
           ])
         }
@@ -331,16 +331,16 @@ class CarPlayCoordinator {
         case .success(let songs) where !songs.isEmpty:
           let playable = RadioEntity(
             id: artist.id,
-            name: "\(artist.name) Radio",
+            name: String(localized: "\(artist.name) Radio"),
             songs: songs,
             artist: artist.name
           )
           self.playerVM.playItem(item: playable, isFromLocal: false)
           self.showNowPlaying()
         case .success:
-          self.showErrorTemplate(title: "No Radio Available", message: "No similar songs found for \(artist.name).")
+          self.showErrorTemplate(title: String(localized: "No Radio Available"), message: String(localized: "No similar songs found for \(artist.name)."))
         case .failure:
-          self.showErrorTemplate(title: "Radio Unavailable", message: "Could not load radio for \(artist.name).")
+          self.showErrorTemplate(title: String(localized: "Radio Unavailable"), message: String(localized: "Could not load radio for \(artist.name)."))
         }
       }
     }
@@ -354,16 +354,16 @@ class CarPlayCoordinator {
         case .success(let songs) where !songs.isEmpty:
           let playable = RadioEntity(
             id: artist.id,
-            name: "\(artist.name) Top Songs",
+            name: String(localized: "\(artist.name) Top Songs"),
             songs: songs,
             artist: artist.name
           )
           self.playerVM.playItem(item: playable, isFromLocal: false)
           self.showNowPlaying()
         case .success:
-          self.showErrorTemplate(title: "No Top Songs", message: "No top songs found for \(artist.name).")
+          self.showErrorTemplate(title: String(localized: "No Top Songs"), message: String(localized: "No top songs found for \(artist.name)."))
         case .failure:
-          self.showErrorTemplate(title: "Unavailable", message: "Could not load top songs for \(artist.name).")
+          self.showErrorTemplate(title: String(localized: "Unavailable"), message: String(localized: "Could not load top songs for \(artist.name)."))
         }
       }
     }
@@ -378,7 +378,7 @@ class CarPlayCoordinator {
   // MARK: - Songs
 
   private func showSongsList() {
-    let loadingTemplate = CPListTemplate(title: "Songs", sections: [])
+    let loadingTemplate = CPListTemplate(title: String(localized: "Songs"), sections: [])
     interfaceController.pushTemplate(loadingTemplate, animated: true, completion: nil)
 
     AlbumService.shared.getAllSongs { [weak self] result in
@@ -393,7 +393,7 @@ class CarPlayCoordinator {
             )
             item.handler = { [weak self] _, completion in
               guard let self = self else { return }
-              let allTracks = Playlist(name: "All Tracks", songs: songs)
+              let allTracks = Playlist(name: String(localized: "All Tracks"), songs: songs)
               self.playerVM.playBySong(idx: idx, item: allTracks, isFromLocal: false)
               self.showNowPlaying()
               completion()
@@ -403,7 +403,7 @@ class CarPlayCoordinator {
           loadingTemplate.updateSections([CPListSection(items: items)])
 
         case .failure:
-          let errorItem = CPListItem(text: "Failed to load songs", detailText: "Tap to retry")
+          let errorItem = CPListItem(text: String(localized: "Failed to load songs"), detailText: String(localized: "Tap to retry"))
           errorItem.handler = { [weak self] _, completion in
             self?.interfaceController.popTemplate(animated: false, completion: nil)
             self?.showSongsList()
@@ -418,10 +418,10 @@ class CarPlayCoordinator {
   // MARK: - Playlists Tab
 
   private func makePlaylistsTab() -> CPListTemplate {
-    let loadingItem = CPListItem(text: "Loading playlists…", detailText: nil)
+    let loadingItem = CPListItem(text: String(localized: "Loading playlists…"), detailText: nil)
     loadingItem.isEnabled = false
     let template = CPListTemplate(
-      title: "Playlists", sections: [CPListSection(items: [loadingItem])])
+      title: String(localized: "Playlists"), sections: [CPListSection(items: [loadingItem])])
     template.tabImage = UIImage(systemName: "music.note.list")
 
     AlbumService.shared.getPlaylists { [weak self] result in
@@ -445,7 +445,7 @@ class CarPlayCoordinator {
         case .failure:
           template.updateSections([
             CPListSection(items: [
-              CPListItem(text: "Failed to load playlists", detailText: nil)
+              CPListItem(text: String(localized: "Failed to load playlists"), detailText: nil)
             ])
           ])
         }
@@ -486,8 +486,8 @@ class CarPlayCoordinator {
     template: CPListTemplate, playlist: Playlist, isDownloaded: Bool
   ) {
     let playAllItem = CPListItem(
-      text: "Play All",
-      detailText: "\(playlist.songs.count) tracks",
+      text: String(localized: "Play All"),
+      detailText: String(localized: "\(playlist.songs.count) tracks"),
       image: UIImage(systemName: "play.fill")
     )
     playAllItem.handler = { [weak self] _, completion in
@@ -497,7 +497,7 @@ class CarPlayCoordinator {
     }
 
     let shuffleItem = CPListItem(
-      text: "Shuffle",
+      text: String(localized: "Shuffle"),
       detailText: nil,
       image: UIImage(systemName: "shuffle")
     )
@@ -523,7 +523,7 @@ class CarPlayCoordinator {
     }
     let trackSection = CPListSection(
       items: trackItems,
-      header: "Tracks",
+      header: String(localized: "Tracks"),
       sectionIndexTitle: nil
     )
 
@@ -533,10 +533,10 @@ class CarPlayCoordinator {
   // MARK: - Radio Tab
 
   private func makeRadioTab() -> CPListTemplate {
-    let loadingItem = CPListItem(text: "Loading stations…", detailText: nil)
+    let loadingItem = CPListItem(text: String(localized: "Loading stations…"), detailText: nil)
     loadingItem.isEnabled = false
     let template = CPListTemplate(
-      title: "Radio", sections: [CPListSection(items: [loadingItem])])
+      title: String(localized: "Radio"), sections: [CPListSection(items: [loadingItem])])
     template.tabImage = UIImage(systemName: "radio")
 
     RadioService.shared.getAllRadios { [weak self] result in
@@ -547,7 +547,7 @@ class CarPlayCoordinator {
           if radios.isEmpty {
             template.updateSections([
               CPListSection(items: [
-                CPListItem(text: "No radio stations", detailText: nil)
+                CPListItem(text: String(localized: "No radio stations"), detailText: nil)
               ])
             ])
             return
@@ -571,7 +571,7 @@ class CarPlayCoordinator {
         case .failure:
           template.updateSections([
             CPListSection(items: [
-              CPListItem(text: "Failed to load radios", detailText: nil)
+              CPListItem(text: String(localized: "Failed to load radios"), detailText: nil)
             ])
           ])
         }
@@ -584,10 +584,10 @@ class CarPlayCoordinator {
   // MARK: - Downloads Tab
 
   private func makeDownloadsTab() -> CPListTemplate {
-    let loadingItem = CPListItem(text: "Loading downloads…", detailText: nil)
+    let loadingItem = CPListItem(text: String(localized: "Loading downloads…"), detailText: nil)
     loadingItem.isEnabled = false
     let template = CPListTemplate(
-      title: "Downloads", sections: [CPListSection(items: [loadingItem])])
+      title: String(localized: "Downloads"), sections: [CPListSection(items: [loadingItem])])
     template.tabImage = UIImage(systemName: "arrow.down.circle")
 
     AlbumService.shared.getDownloadedAlbum { [weak self] result in
@@ -602,7 +602,7 @@ class CarPlayCoordinator {
           if filtered.isEmpty {
             template.updateSections([
               CPListSection(items: [
-                CPListItem(text: "No downloads", detailText: "Download music from the app")
+                CPListItem(text: String(localized: "No downloads"), detailText: String(localized: "Download music from the app"))
               ])
             ])
             return
@@ -633,7 +633,7 @@ class CarPlayCoordinator {
         case .failure:
           template.updateSections([
             CPListSection(items: [
-              CPListItem(text: "No downloads available", detailText: nil)
+              CPListItem(text: String(localized: "No downloads available"), detailText: nil)
             ])
           ])
         }
