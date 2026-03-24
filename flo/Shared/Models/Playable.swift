@@ -12,9 +12,9 @@ protocol Playable {
   var artist: String { get }
 }
 
-struct CachedSongsPlayable: Playable {
-  let id: String = "cached-songs"
-  let name: String = "Cached"
+struct SongCollection: Playable {
+  let id: String
+  let name: String
   var songs: [Song]
   let artist: String = ""
 }

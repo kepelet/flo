@@ -243,6 +243,8 @@ class AlbumService {
       return LocalFileManager.shared.fileURL(for: contextTarget)?.path ?? ""
     } else if LocalFileManager.shared.fileExists(fileName: anotherTarget) {
       return LocalFileManager.shared.fileURL(for: anotherTarget)?.path ?? ""
+    } else if let cached = CoverArtCacheManager.shared.cachedFilePath(albumId: albumId) {
+      return cached
     } else {
       return
         "\(UserDefaultsManager.serverBaseURL)\(API.SubsonicEndpoint.coverArt)\(AuthService.shared.getCreds(key: "subsonicToken"))&id=al-\(albumId)&size=300"

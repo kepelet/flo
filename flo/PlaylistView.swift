@@ -79,6 +79,9 @@ struct PlaylistView: View {
         DownloadQueueView().environmentObject(downloadViewModel)
       }
       .navigationTitle("Playlists")
+      .refreshable {
+        await viewModel.refreshPlaylists()
+      }
       .searchable(
         text: $searchPlaylist, placement: .navigationBarDrawer(displayMode: .always),
         prompt: "Search")

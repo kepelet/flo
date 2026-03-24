@@ -86,6 +86,9 @@ struct SongsView: View {
       .padding(.top, 10)
       .padding(.bottom, 100)
       .navigationTitle("Songs")
+      .refreshable {
+        await viewModel.refreshAllSongs()
+      }
       .searchable(
         text: $searchSong,
         placement: .navigationBarDrawer(displayMode: .always),

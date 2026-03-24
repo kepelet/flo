@@ -54,6 +54,9 @@ struct ArtistsView: View {
         }.padding(.bottom, 100)
       }
       .navigationTitle("Artists")
+      .refreshable {
+        await viewModel.refreshArtists()
+      }
       .searchable(
         text: $searchArtist, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search"
       )
