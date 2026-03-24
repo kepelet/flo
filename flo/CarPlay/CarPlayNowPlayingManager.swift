@@ -58,21 +58,23 @@ class CarPlayNowPlayingManager: NSObject {
       self?.playerVM.shuffleCurrentQueue()
     }
 
-    let isLiveRadio = playerVM.isLiveRadio
-    let heartImage = UIImage(
-      systemName: playerVM.isStarred && !isLiveRadio ? "heart.fill" : "heart"
-    )?.withRenderingMode(.alwaysTemplate)
-
-    let heartButton = CPNowPlayingImageButton(image: heartImage ?? UIImage()) { [weak self] _ in
-      guard let self = self, !self.playerVM.isLiveRadio else { return }
-      self.playerVM.toggleStar()
-    }
-
     let repeatButton = CPNowPlayingRepeatButton { [weak self] _ in
       self?.playerVM.setPlaybackMode()
     }
 
-    template.updateNowPlayingButtons([shuffleButton, heartButton, repeatButton])
+    if playerVM.isLiveRadio {
+      template.updateNowPlayingButtons([shuffleButton, repeatButton])
+    } else {
+      let heartImage = UIImage(
+        systemName: playerVM.isStarred ? "heart.fill" : "heart"
+      )?.withRenderingMode(.alwaysTemplate)
+
+      let heartButton = CPNowPlayingImageButton(image: heartImage ?? UIImage()) { [weak self] _ in
+        self?.playerVM.toggleStar()
+      }
+
+      template.updateNowPlayingButtons([shuffleButton, heartButton, repeatButton])
+    }
   }
 }
 
