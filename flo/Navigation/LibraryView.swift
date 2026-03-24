@@ -184,6 +184,11 @@ struct LibraryView: View {
         }
       }
       .navigationTitle("Library")
+      .refreshable {
+        await viewModel.refreshAlbums()
+        await viewModel.refreshArtists()
+        await viewModel.refreshPlaylists()
+      }
     }
   }
 }

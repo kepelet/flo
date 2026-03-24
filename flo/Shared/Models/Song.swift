@@ -113,6 +113,7 @@ struct Song: Codable, Identifiable, Hashable {
     self.mediaFileId = mediaFileId
   }
 
+  #if os(iOS)
   init(from cache: CacheEntity) {
     self.id = cache.mediaFileId ?? ""
     self.title = cache.title ?? "Unknown"
@@ -127,6 +128,7 @@ struct Song: Codable, Identifiable, Hashable {
     self.duration = cache.duration
     self.mediaFileId = cache.mediaFileId ?? ""
   }
+  #endif
 
   #if os(iOS)
     init(from song: SongEntity) {
