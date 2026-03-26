@@ -107,47 +107,22 @@ struct HomeView: View {
             .multilineTextAlignment(.leading)
           
           let statCardSpacing: CGFloat = UIScreen.screenWidth <= 390 ? 8 : 16
-          let isSmallScreen = UIScreen.screenWidth <= 390
-          
-          // Use regular HStack on small screens to avoid geometry calculation issues with minimumScaleFactor
-          if isSmallScreen {
-            HStack(alignment: .top, spacing: statCardSpacing) {
-              StatCard(
-                title: "Total Listens",
-                value: floooViewModel.totalPlay.description,
-                icon: "headphones",
-                color: .purple
-              )
-              
-              StatCard(
-                title: "Top Artist",
-                value: floooViewModel.stats?.topArtist ?? "N/A",
-                icon: "music.mic",
-                color: .blue,
-                showArrow: true
-              )
-            }
-          } else {
-            EqualHeightHStack(alignment: .top, spacing: statCardSpacing) {
-              EqualHeightItem {
-                StatCard(
-                  title: "Total Listens",
-                  value: floooViewModel.totalPlay.description,
-                  icon: "headphones",
-                  color: .purple
-                )
-              }
 
-              EqualHeightItem {
-                StatCard(
-                  title: "Top Artist",
-                  value: floooViewModel.stats?.topArtist ?? "N/A",
-                  icon: "music.mic",
-                  color: .blue,
-                  showArrow: true
-                )
-              }
-            }
+          HStack(alignment: .top, spacing: statCardSpacing) {
+            StatCard(
+              title: "Total Listens",
+              value: floooViewModel.totalPlay.description,
+              icon: "headphones",
+              color: .purple
+            )
+
+            StatCard(
+              title: "Top Artist",
+              value: floooViewModel.stats?.topArtist ?? "N/A",
+              icon: "music.mic",
+              color: .blue,
+              showArrow: true
+            )
           }
 
           HStack(alignment: .top, spacing: 16) {

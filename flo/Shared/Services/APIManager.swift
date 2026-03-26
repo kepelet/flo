@@ -172,6 +172,30 @@ extension APIManager {
       completion(response)
     }
   }
+  
+  func loginWithIAP<T: Decodable>(
+    endpoint: String, parameters: Parameters?, jwtAssertion: String,
+    completion: @escaping (DataResponse<T, AFError>) -> Void
+  ) {
+    let headers: HTTPHeaders = [
+      "X-Goog-IAP-JWT-Assertion": jwtAssertion
+    ]
+    
+    session.request(
+      endpoint,
+      method: .post,
+      parameters: parameters,
+      encoding: JSONEncoding.default,
+      headers: headers,
+      requestModifier: { request in
+        request.timeoutInterval = 10
+      }
+    )
+    .validate(statusCode: 200..<500)
+    .responseDecodable(of: T.self) { response in
+      completion(response)
+    }
+  }
 
   func externalRequest<T: Decodable>(
     url: String,

@@ -27,6 +27,10 @@ class AuthViewModel: ObservableObject {
 
   @Published var isSubmitting: Bool = false
   @Published var isLoggedIn: Bool = false
+  
+  @Published var authMode: AuthMode = .standard
+  @Published var iapJwtAssertion: String = ""
+  @Published var useIAPAuth: Bool = false
 
   static let shared = AuthViewModel()
 
@@ -49,6 +53,8 @@ class AuthViewModel: ObservableObject {
 
         self.serverUrl = UserDefaultsManager.serverBaseURL
         self.username = data.username
+        
+        self.authMode = AuthService.shared.getAuthMode()
 
         if UserDefaultsManager.saveLoginInfo {
           do {
@@ -57,7 +63,11 @@ class AuthViewModel: ObservableObject {
             print("Error loading password from Keychain: \(error)")
           }
 
-          self.login()
+          if authMode == .iap, let iapInfo = AuthService.shared.getIAPAuthInfo() {
+            self.loginWithIAP(jwtAssertion: iapInfo.jwtAssertion)
+          } else {
+            self.login()
+          }
         } else {
 
           self.user = UserAuth(
@@ -123,11 +133,18 @@ class AuthViewModel: ObservableObject {
       try KeychainManager.removeAuthCreds()
 
       self.destroySavedPassword()
+      
+      if authMode == .iap {
+        try? KeychainManager.removeIAPAuthInfo()
+        try? KeychainManager.removeAuthMode()
+        AuthService.shared.clearIAPAuthInfo()
+      }
 
       UserDefaultsManager.removeObject(key: UserDefaultsKeys.serverURL)
 
       self.user = nil
       self.isLoggedIn = false
+      self.authMode = .standard
     } catch let error {
       print("error>>>>> \(error)")
     }
@@ -161,4 +178,63 @@ class AuthViewModel: ObservableObject {
       print("Error saving data to Keychain: \(error)")
     }
   }
+  
+  func loginWithIAP(jwtAssertion: String? = nil) {
+    isSubmitting = true
+    
+    let jwt = jwtAssertion ?? self.iapJwtAssertion
+    
+    guard !jwt.isEmpty else {
+      DispatchQueue.main.async {
+        self.isSubmitting = false
+        self.alertMessage = "JWT assertion is required for IAP authentication"
+        self.showAlert = true
+      }
+      return
+    }
+
+    AuthService.shared.loginWithIAP(serverUrl: serverUrl, jwtAssertion: jwt) { result in
+      switch result {
+      case .success(let data):
+        self.persistAuthData(data)
+        
+        self.authMode = .iap
+
+        if UserDefaultsManager.saveLoginInfo {
+          self.destroySavedPassword()
+        }
+
+        DispatchQueue.main.async {
+          self.isSubmitting = false
+          self.isLoggedIn = true
+          self.iapJwtAssertion = ""
+          self.serverUrl = ""
+        }
+
+      case .failure(let error):
+        DispatchQueue.main.async {
+          self.isSubmitting = false
+
+          switch error {
+          case .server(let message):
+            self.alertMessage = message
+
+          case .unknown:
+            self.alertMessage = "Unknown error occurred during IAP authentication"
+          }
+
+          self.showAlert = true
+        }
+      }
+    }
+  }
+  
+  func toggleAuthMode() {
+    useIAPAuth.toggle()
+  }
+  
+  func isUsingIAPAuth() -> Bool {
+    return authMode == .iap
+  }
 }
+

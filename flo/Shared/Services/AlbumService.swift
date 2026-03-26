@@ -211,8 +211,23 @@ class AlbumService {
     albumName: String,
     albumId: String = "",
     trackId: String = "",
-    contextName: String? = nil
+    contextName: String? = nil,
+    albumCover: String = ""
   ) -> String {
+    // If album already has a cover URL/path, use it
+    if !albumCover.isEmpty {
+      if albumCover.hasPrefix("/") {
+        return albumCover
+      } else if albumCover.hasPrefix("http") {
+        return albumCover
+      } else {
+        // Could be a relative path, try to get full path
+        if LocalFileManager.shared.fileExists(fileName: albumCover) {
+          return LocalFileManager.shared.fileURL(for: albumCover)?.path ?? ""
+        }
+      }
+    }
+
     let target = "Media/\(artistName)/\(albumName)/cover.png"
     let anotherTarget = "Media/Various Artists/\(albumName)/cover/\(trackId).png"
     let contextTarget =

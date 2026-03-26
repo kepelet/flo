@@ -120,6 +120,8 @@ class LocalFileManager {
       }
 
       try self.fileManager.moveItem(at: source, to: target)
+      try? self.fileManager.setAttributes(
+        [.protectionKey: FileProtectionType.completeUntilFirstUserAuthentication], ofItemAtPath: target.path)
       completion(.success(target))
     } catch {
       completion(.failure(error))
@@ -139,6 +141,8 @@ class LocalFileManager {
       let fileURL = target.appendingPathComponent(fileName)
 
       try content.write(to: fileURL)
+      try? self.fileManager.setAttributes(
+        [.protectionKey: FileProtectionType.completeUntilFirstUserAuthentication], ofItemAtPath: fileURL.path)
       completion(.success(fileURL))
 
     } catch {
