@@ -14,6 +14,12 @@
             "state" : "translated",
             "value" : " "
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : " "
+          }
         }
       }
     },
@@ -23,6 +29,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "'%@' sudah terunduh"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "'%@' har blitt nedlastet"
           }
         }
       }
@@ -36,6 +48,12 @@
           }
         },
         "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@"
+          }
+        },
+        "nb" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@"
@@ -56,6 +74,12 @@
             "state" : "translated",
             "value" : "%@ %@"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ %@"
+          }
         }
       }
     },
@@ -68,6 +92,12 @@
           }
         },
         "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ (%@)"
+          }
+        },
+        "nb" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@ (%@)"
@@ -88,6 +118,12 @@
             "state" : "translated",
             "value" : "%@ • %@"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ • %@"
+          }
         }
       }
     },
@@ -104,6 +140,12 @@
             "state" : "translated",
             "value" : "%1$@%2$@"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@%2$@"
+          }
         }
       }
     },
@@ -114,12 +156,24 @@
             "state" : "translated",
             "value" : "%@%%"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@%%"
+          }
         }
       }
     },
     "%lld" : {
       "localizations" : {
         "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld"
+          }
+        },
+        "nb" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "%lld"
@@ -140,6 +194,12 @@
             "state" : "translated",
             "value" : "•"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "•"
+          }
         }
       }
     },
@@ -152,6 +212,12 @@
           }
         },
         "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1"
+          }
+        },
+        "nb" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "1"
@@ -172,6 +238,12 @@
             "state" : "translated",
             "value" : "Tentang flo"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Om flo"
+          }
         }
       }
     },
@@ -188,7 +260,14 @@
             "state" : "translated",
             "value" : "Warna aksen"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aksentfarge"
+          }
         }
+
       }
     },
     "Add radios in your Navidrome server." : {
@@ -198,7 +277,14 @@
             "state" : "translated",
             "value" : "Tambahkan Radio melalui server Navidrome"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Legg til radioer på din Navidrome server"
+          }
         }
+
       }
     },
     "Add/Change Custom" : {
@@ -207,6 +293,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tambah/Ubah Custom"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Legg til/Endre Custom"
           }
         }
       }
@@ -217,6 +309,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Hanya Album Artist"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kun Album Artist"
           }
         }
       }
@@ -234,6 +332,12 @@
             "state" : "translated",
             "value" : "Info album"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Album Informasjon"
+          }
         }
       }
     },
@@ -244,6 +348,12 @@
             "state" : "translated",
             "value" : "Ikon alternatif aplikasi tidak didukung di perangkat ini."
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alternative app ikoner er ikke støtte på denne enheten."
+          }
         }
       }
     },
@@ -253,6 +363,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ikon Aplikasi"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App Ikon"
           }
         }
       }
@@ -270,12 +386,24 @@
             "state" : "translated",
             "value" : "Versi aplikasi"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App Versjon"
+          }
         }
       }
     },
     "Artist Radio" : {
       "localizations" : {
         "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Artist Radio"
+          }
+        },
+        "nb" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Artist Radio"
@@ -296,6 +424,12 @@
             "state" : "translated",
             "value" : "Artis"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Artister"
+          }
         }
       }
     },
@@ -311,6 +445,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Bawa musik kamu ke mana saja, bahkan saat kamu sedang offline. Musik yang kamu unduh akan ada di sini."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ta med musikken din hvor som helst, selv når du er frakoblet. Din nedlastede musikk vil være her."
           }
         }
       }
@@ -328,6 +468,12 @@
             "state" : "translated",
             "value" : "oleh %1$@ (%2$@)"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "av %1$@ (%2$@)"
+          }
         }
       }
     },
@@ -344,6 +490,12 @@
             "state" : "translated",
             "value" : "Batal"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Avbryt"
+          }
         }
       }
     },
@@ -353,6 +505,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Hapus antrian unduhan yang sudah selesai/dibatalkan"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tøm Nedlastet/Kansellert Kø"
           }
         }
       }
@@ -370,6 +528,12 @@
             "state" : "translated",
             "value" : "Hapus riwayat mendengarkan (tanpa peringatan dan tidak dapat dibatalkan)"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tøm lyttehistorikk (ingen varsel og irreversibelt)"
+          }
         }
       }
     },
@@ -385,6 +549,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Lanjutkan"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fortsett"
           }
         }
       }
@@ -402,6 +572,12 @@
             "state" : "translated",
             "value" : "Saat ini format keluarannya adalah MP3 karena masalah kompatibilitas; namun, MP3 kurang efisien dalam streaming pada bitrate yang lebih rendah dibandingkan dengan codec modern seperti Opus."
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "For øyeblikket er utgangsformatet MP3 på grunn av kompatibilitets problemer; men, MP3 er mindre effektivt ved strømming på lavere bithastigheter i sammenligning til moderne kodeker som Opus."
+          }
         }
       }
     },
@@ -417,6 +593,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Debug"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Feilsøk"
           }
         }
       }
@@ -434,6 +616,12 @@
             "state" : "translated",
             "value" : "Deskripsi (cth: untuk istri)"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Beskrivelse (i.e: for min kone)"
+          }
         }
       }
     },
@@ -450,6 +638,12 @@
             "state" : "translated",
             "value" : "Pengembangan"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Utvikling"
+          }
         }
       }
     },
@@ -459,6 +653,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Disabled"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deaktivert"
           }
         }
       }
@@ -476,6 +676,12 @@
             "state" : "translated",
             "value" : "Unduh"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nedlast"
+          }
         }
       }
     },
@@ -485,6 +691,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Antrian Unduhan"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nedlastningskø"
           }
         }
       }
@@ -502,6 +714,12 @@
             "state" : "translated",
             "value" : "Album terunduh"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nedlastede Album"
+          }
         }
       }
     },
@@ -517,6 +735,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Lagu terunduh"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nedlastede Sanger"
           }
         }
       }
@@ -534,6 +758,12 @@
             "state" : "translated",
             "value" : "Unduhan"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nedlastninger"
+          }
         }
       }
     },
@@ -544,6 +774,12 @@
             "state" : "translated",
             "value" : "Aktifkan Debug"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aktiver Feilsøking"
+          }
         }
       }
     },
@@ -553,6 +789,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Mengaktifkan opsi ini dapat memengaruhi pengalaman."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aktivering av dette alternative kan påvirke opplevelsen."
           }
         }
       }
@@ -570,6 +812,12 @@
             "state" : "translated",
             "value" : "Eksperimental"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eksperimentel"
+          }
         }
       }
     },
@@ -579,6 +827,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "flo akan menyimpan URL server, nama pengguna, dan kata sandi kamu di Keychain tanpa perlindungan biometrik. Jika kamu mengaktifkannya, flo akan mencoba untuk ‘menyegarkan’ token autentikasi—dengan melakukan login secara otomatis—setiap kali kamu membuka flo sehingga kamu tidak akan pernah logout kecuali kamu melakukannya secara eksplisit (dan juga akan me-reset opsi ini)."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "flo vil lagre din server URL, brukernavn, og passord i Nøkkelringen uten biometrisk beskyttelse. Hvis du aktiverer dette, vil flo prøve å 'oppdatere' auth tokenet-ved å logge deg in automatisk-hver gang du åpner flo så du aldri vil logges ut med mindre du selv gjør det eksplisitt (dette vil også tilbakestille dette alternativet)"
           }
         }
       }
@@ -590,6 +844,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "flo+ telah terbeli"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "flo+ kjøpt"
           }
         }
       }
@@ -607,6 +867,12 @@
             "state" : "translated",
             "value" : "Keluarga font"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fontfamilie"
+          }
         }
       }
     },
@@ -623,6 +889,12 @@
             "state" : "translated",
             "value" : "Untuk saat ini tindakan ini berarti 'Hapus semua album dan lagu yang diunduh' termasuk kontennya. Lanjutkan?"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Foreløpig betyr denne handlingen 'Slett alle nedlastede album og sander' inkludert sitt eget innhold. Fortsett?"
+          }
         }
       }
     },
@@ -632,6 +904,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Logout paksa"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tving utlogging"
           }
         }
       }
@@ -649,6 +927,12 @@
             "state" : "translated",
             "value" : "Dari %@"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fra %@"
+          }
         }
       }
     },
@@ -658,6 +942,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Dapatkan channel khusus di flo Campfire"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Få en dedikert kanal på flo Campfire"
           }
         }
       }
@@ -675,6 +965,12 @@
             "state" : "translated",
             "value" : "Keluar dari jaringan?"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Forsvinne av radaren?"
+          }
         }
       }
     },
@@ -684,6 +980,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Bantu danai pengembangan flo"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hjelp å finansier flo sin utvikling"
           }
         }
       }
@@ -701,12 +1003,24 @@
             "state" : "translated",
             "value" : "Beranda"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hjem"
+          }
         }
       }
     },
     "https://lrclib.your-server.net" : {
       "localizations" : {
         "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "https://lrclib.your-server.net"
+          }
+        },
+        "nb" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "https://lrclib.your-server.net"
@@ -721,6 +1035,12 @@
             "state" : "translated",
             "value" : "Keychain.%@"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nøkkelring.%@"
+          }
         }
       }
     },
@@ -730,6 +1050,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Selengkapnya di https://dub.sh/flo-lrclib"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lær mer på https://dub.sh/flo-lrclib"
           }
         }
       }
@@ -747,6 +1073,12 @@
             "state" : "translated",
             "value" : "Koleksi"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bibliotek"
+          }
         }
       }
     },
@@ -762,6 +1094,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tautan disalin ke papan klip! (%@)"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lenke kopiert til utklippstavle"
           }
         }
       }
@@ -779,12 +1117,24 @@
             "state" : "translated",
             "value" : "Riwayat mendengarkan (sepanjang waktu)"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lytteaktivitet (hele tiden)"
+          }
         }
       }
     },
     "LIVE" : {
       "localizations" : {
         "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "LIVE"
+          }
+        },
+        "nb" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "LIVE"
@@ -805,6 +1155,12 @@
             "state" : "translated",
             "value" : "Penyimpanan lokal"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lokal lagringsplass"
+          }
         }
       }
     },
@@ -820,6 +1176,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Login sebagai %@"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Logget inn som %@"
           }
         }
       }
@@ -837,6 +1199,12 @@
             "state" : "translated",
             "value" : "Login"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Logg inn"
+          }
         }
       }
     },
@@ -852,6 +1220,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Login gagal"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pålogging mislyktes"
           }
         }
       }
@@ -869,6 +1243,12 @@
             "state" : "translated",
             "value" : "Login ke server Navidrome kamu untuk melanjutkan"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Logg på din Navidrome server for å fortsette"
+          }
         }
       }
     },
@@ -885,12 +1265,24 @@
             "state" : "translated",
             "value" : "Logout"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Logg ut"
+          }
         }
       }
     },
     "LRCLIB" : {
       "localizations" : {
         "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "LRCLIB"
+          }
+        },
+        "nb" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "LRCLIB"
@@ -905,12 +1297,24 @@
             "state" : "translated",
             "value" : "Server LRCLIB dibutuhkan. Selengkapnya di dub.sh/flo-lrclib"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "LRCLIB server er påkrevd. Lær mer på dub.sh/flo-lrclib"
+          }
         }
       }
     },
     "LRCLIB Server URL" : {
       "localizations" : {
         "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "LRCLIB Server URL"
+          }
+        },
+        "nb" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "LRCLIB Server URL"
@@ -931,6 +1335,12 @@
             "state" : "translated",
             "value" : "Max Bitrate"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Maks birate"
+          }
         }
       }
     },
@@ -947,6 +1357,12 @@
             "state" : "translated",
             "value" : "Versi Navidrome"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Navidrome Versjon"
+          }
         }
       }
     },
@@ -956,6 +1372,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tidak ada lirik ditemukan"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ingen tekster tilgjengelig"
           }
         }
       }
@@ -967,6 +1389,12 @@
             "state" : "translated",
             "value" : "Tidak ada radio ditemukan"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ingen radioer tilgjengelig"
+          }
         }
       }
     },
@@ -976,6 +1404,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tidak ada radio ditemukan"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ingen radioer matcher søket ditt"
           }
         }
       }
@@ -989,6 +1423,12 @@
           }
         },
         "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OK"
+          }
+        },
+        "nb" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "OK"
@@ -1009,6 +1449,12 @@
             "state" : "translated",
             "value" : "Optimalkan penyimpanan lokal"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Optimaliser lokal lagringsplass"
+          }
         }
       }
     },
@@ -1024,6 +1470,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Optimalkan penyimpanan lokal"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Optimaliser Lokal Lagringsplass"
           }
         }
       }
@@ -1041,6 +1493,12 @@
             "state" : "translated",
             "value" : "Mainkan"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spill"
+          }
         }
       }
     },
@@ -1050,6 +1508,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Mainkan Artist Radio"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spill Artist Radio"
           }
         }
       }
@@ -1070,6 +1534,12 @@
             "state" : "translated",
             "value" : "Warna player"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spiller farge"
+          }
         }
       }
     },
@@ -1085,6 +1555,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Selanjutnya"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spiller Neste"
           }
         }
       }
@@ -1102,6 +1578,12 @@
             "state" : "translated",
             "value" : "Daftar Putar"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spilleliste"
+          }
         }
       }
     },
@@ -1118,6 +1600,12 @@
             "state" : "translated",
             "value" : "Preferensi"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Preferanser"
+          }
         }
       }
     },
@@ -1127,6 +1615,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Beli flo+"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kjøp flo+"
           }
         }
       }
@@ -1138,6 +1632,12 @@
             "state" : "translated",
             "value" : "Beli flo+ seharga %@"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kjøp flo+ for %@"
+          }
         }
       }
     },
@@ -1147,6 +1647,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Radios"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Radioer"
           }
         }
       }
@@ -1158,6 +1664,12 @@
             "state" : "translated",
             "value" : "Unduh ulang album"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nedlast album på nytt"
+          }
         }
       }
     },
@@ -1167,6 +1679,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Paksa unduh album"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tvangsnedlast album på nytt"
           }
         }
       }
@@ -1178,6 +1696,12 @@
             "state" : "translated",
             "value" : "Unduh ulang playlist"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nedlast spilleliste på nytt"
+          }
         }
       }
     },
@@ -1188,6 +1712,12 @@
             "state" : "translated",
             "value" : "Paksa unduh playlist"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tvangsnedlast spilleliste på nytt"
+          }
         }
       }
     },
@@ -1197,6 +1727,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Refetch UserDefaults & Keychains"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hent Brukerstandardinnstillinger & Nøkkelring"
           }
         }
       }
@@ -1214,6 +1750,12 @@
             "state" : "translated",
             "value" : "Hapus unduhan"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fjern nedlastning"
+          }
         }
       }
     },
@@ -1224,6 +1766,12 @@
             "state" : "translated",
             "value" : "Pulihkan pembelian"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gjenopprett kjøp"
+          }
         }
       }
     },
@@ -1233,6 +1781,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Coba lagi semua antrian download yang gagal"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prøv alle mislykkede køer på nytt"
           }
         }
       }
@@ -1250,6 +1804,12 @@
             "state" : "translated",
             "value" : "Simpan"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lagre"
+          }
         }
       }
     },
@@ -1265,6 +1825,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Simpan info login"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lagre innloggingsinformasjon"
           }
         }
       }
@@ -1282,6 +1848,12 @@
             "state" : "translated",
             "value" : "Scrobble ke Last.fm"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scrobble til Last.fm"
+          }
         }
       }
     },
@@ -1297,6 +1869,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Scrobble ke ListenBrainz"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scrobble til ListenBrainz"
           }
         }
       }
@@ -1314,6 +1892,12 @@
             "state" : "translated",
             "value" : "Cari"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Søk"
+          }
         }
       }
     },
@@ -1329,6 +1913,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Informasi server"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Server Informasjon"
           }
         }
       }
@@ -1346,6 +1936,12 @@
             "state" : "translated",
             "value" : "URL server"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Server URL"
+          }
         }
       }
     },
@@ -1361,6 +1957,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Bagikan"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Del"
           }
         }
       }
@@ -1378,6 +1980,12 @@
             "state" : "translated",
             "value" : "Bagikan album ‘%@'"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Del album '%@'"
+          }
         }
       }
     },
@@ -1393,6 +2001,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Fitur berbagi dengan opsi Unduh dinonaktifkan, harap perbarui langsung di UI Navidrome jika diperlukan"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Del egenskaper med Nedlastningsmulighet er deaktivert, vennligst oppdater direkte i Navidrome UI hvis nødvending"
           }
         }
       }
@@ -1410,6 +2024,12 @@
             "state" : "translated",
             "value" : "Acak"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tilfeldig rekkefølge"
+          }
         }
       }
     },
@@ -1419,6 +2039,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Beberapa hal lain yang akan datang"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Noen andre ting som ennå skal komme"
           }
         }
       }
@@ -1436,6 +2062,12 @@
             "state" : "translated",
             "value" : "Lagu"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sanger"
+          }
         }
       }
     },
@@ -1451,6 +2083,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sumber kode"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kildekode"
           }
         }
       }
@@ -1468,6 +2106,12 @@
             "state" : "translated",
             "value" : "Versi Subsonic"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Subsonic Versjon"
+          }
         }
       }
     },
@@ -1478,6 +2122,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Terima kasih telah mendukung flo!"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Takk for at du støtter flo!"
           }
         }
       }
@@ -1495,6 +2145,12 @@
             "state" : "translated",
             "value" : "Terima kasih telah memilih flo!"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Takk for at du valgte flo!"
+          }
         }
       }
     },
@@ -1504,6 +2160,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Versi lengkap flo selalu gratis dan OSS"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Den fullstendige versjonen av flo er alltid Fri og ÅKK"
           }
         }
       }
@@ -1521,6 +2183,12 @@
             "state" : "translated",
             "value" : "Kata sandi disimpan dengan aman di Keychain"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Passordet er lagret sikkert i Nøkkelringen"
+          }
         }
       }
     },
@@ -1536,6 +2204,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tindakan tercepat yang dapat kamu lakukan adalah Login kembali — untuk saat ini."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Det raskeste valget du kan ta er å logge inn igjen - for nå."
           }
         }
       }
@@ -1553,6 +2227,12 @@
             "state" : "translated",
             "value" : "Statistik ini dibuat di perangkat (sekali setiap sesi) dan tidak ada data yang disimpan atau dibagikan ke pihak ketiga — #selfhosting, bos!"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Denne statistikken er generert på enheten (en gang hver økt) og ingen data er lagret eller delt med en tredjepart - #selfhosting, baby!"
+          }
         }
       }
     },
@@ -1562,6 +2242,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Gunakan Navidrome Web UI untuk mengubah ini"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "For å endre dette, vennligst gjør det via Navidrome Web UI'et"
           }
         }
       }
@@ -1579,6 +2265,12 @@
             "state" : "translated",
             "value" : "Total File yang Dipindai"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Totalt Antall Filer Skannet"
+          }
         }
       }
     },
@@ -1594,6 +2286,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Total Folder yang Dipindai"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Totalt Antall Mapper Skannet"
           }
         }
       }
@@ -1611,6 +2309,12 @@
             "state" : "translated",
             "value" : "Jumlah penggunaan"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Totalt brukt"
+          }
         }
       }
     },
@@ -1620,6 +2324,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Troubleshoot"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Feilsøk"
           }
         }
       }
@@ -1631,6 +2341,12 @@
             "state" : "translated",
             "value" : "Coba kata kunci yang lain."
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prøv et annet nøkkelord"
+          }
         }
       }
     },
@@ -1640,6 +2356,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Gagal mengubah ikon aplikasi"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Klarte ikke å endre appikon"
           }
         }
       }
@@ -1651,12 +2373,24 @@
             "state" : "translated",
             "value" : "Gagal membeli flo+"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Klarte ikke å kjøpe flo+"
+          }
         }
       }
     },
     "UserDefaults.%@" : {
       "localizations" : {
         "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "UserDefaults.%@"
+          }
+        },
+        "nb" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "UserDefaults.%@"
@@ -1676,6 +2410,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sesi Navidrome kamu mungkin telah kedaluwarsa"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Din Navidrome økt kan ha utløpt"
           }
         }
       }
