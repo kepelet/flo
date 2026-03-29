@@ -20,10 +20,12 @@ struct PlayerView: View {
 
   @GestureState private var queueDragOffset: CGSize = .zero
 
+  @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+
   var body: some View {
-    GeometryReader {
-      let size = $0.size
-      let imageSize: CGFloat = 300
+    GeometryReader { proxy in
+      let size = proxy.size
+      let imageSize: CGFloat = horizontalSizeClass == .regular ? min(400, size.width * 0.4) : 300
 
       // FIXME: Refactor this?
       ZStack(alignment: .topLeading) {
@@ -150,7 +152,7 @@ struct PlayerView: View {
       .zIndex(1)
       .offset(
         y: showQueue
-          ? UIScreen.main.bounds.height - 500 + queueDragOffset.height : UIScreen.main.bounds.height
+          ? size.height - 500 + queueDragOffset.height : size.height
       )
       .frame(height: 500)
       .animation(.spring(duration: 0.2), value: showQueue)
@@ -182,7 +184,6 @@ struct PlayerView: View {
                 .resizable()
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .blur(radius: 50, opaque: true)
-                .edgesIgnoringSafeArea(.all)
             } else {
               LazyImage(url: URL(string: viewModel.getAlbumCoverArt())) { state in
                 if let image = state.image {
@@ -190,20 +191,17 @@ struct PlayerView: View {
                     .resizable()
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .blur(radius: 50, opaque: true)
-                    .edgesIgnoringSafeArea(.all)
                 }
               }
             }
 
-            Rectangle().fill(.thinMaterial).edgesIgnoringSafeArea(.all)
+            Rectangle().fill(.thinMaterial)
           } else {
-            Rectangle().fill(Color("PlayerColor")).edgesIgnoringSafeArea(.all)
+            Rectangle().fill(Color("PlayerColor"))
           }
         }
         .environment(\.colorScheme, .dark)
-        .clipShape(
-          RoundedRectangle(cornerRadius: 25, style: .continuous)
-        ).edgesIgnoringSafeArea(.all)
+        .ignoresSafeArea()
       }
       .offset(y: offset.height)
       .gesture(
@@ -226,6 +224,7 @@ struct PlayerView: View {
       )
 
     }
+    .background(Color.black.ignoresSafeArea())
     .foregroundColor(.white)
   }
 
@@ -381,11 +380,14 @@ struct PlayerView: View {
         }
       }
 
-      Spacer()
-
       bottomControlBar(showQueue: $showQueue)
+        .padding(.top, 8)
+
+      Spacer()
     }
     .padding(.horizontal, 30)
+    .frame(maxWidth: horizontalSizeClass == .regular ? 500 : .infinity)
+    .frame(maxWidth: .infinity)
   }
 
   @ViewBuilder
@@ -493,4 +495,29 @@ struct PlayerView_previews: PreviewProvider {
   static var previews: some View {
     PlayerView(isExpanded: $isExpanded, viewModel: viewModel)
   }
+}
+
+/// A shape that rounds only the top-left and top-right corners,
+/// leaving the bottom edges straight so the background extends
+/// fully into the bottom safe area.
+struct TopRoundedRectangle: Shape {
+    var cornerRadius: CGFloat
+
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        path.move(to: CGPoint(x: rect.minX, y: rect.maxY))
+        path.addLine(to: CGPoint(x: rect.minX, y: rect.minY + cornerRadius))
+        path.addQuadCurve(
+            to: CGPoint(x: rect.minX + cornerRadius, y: rect.minY),
+            control: CGPoint(x: rect.minX, y: rect.minY)
+        )
+        path.addLine(to: CGPoint(x: rect.maxX - cornerRadius, y: rect.minY))
+        path.addQuadCurve(
+            to: CGPoint(x: rect.maxX, y: rect.minY + cornerRadius),
+            control: CGPoint(x: rect.maxX, y: rect.minY)
+        )
+        path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
+        path.closeSubpath()
+        return path
+    }
 }

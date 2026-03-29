@@ -122,7 +122,6 @@ struct FloatingPlayerView: View {
     .shadow(color: .black.opacity(0.15), radius: 16, x: 0, y: 6)
     .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 2)
     .padding(.horizontal, 16)
-    .padding(.bottom, UIScreen.screenWidth <= 390 ? 8 : 0)
   }
 }
 

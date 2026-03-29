@@ -18,10 +18,15 @@ struct ArtistDetailView: View {
 
   let artist: Artist
 
-  let columns = [
-    GridItem(.flexible()),
-    GridItem(.flexible()),
-  ]
+  @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+
+  private var columns: [GridItem] {
+    if horizontalSizeClass == .regular {
+      return Array(repeating: GridItem(.flexible()), count: 4)
+    } else {
+      return Array(repeating: GridItem(.flexible()), count: 2)
+    }
+  }
 
   func stripBiography(biography: String) -> String {
     guard let regex = try? NSRegularExpression(pattern: "<a[^>]*>.*?</a>") else {
