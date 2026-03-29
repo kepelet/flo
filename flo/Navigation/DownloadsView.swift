@@ -14,10 +14,15 @@ struct DownloadsView: View {
 
   @EnvironmentObject var playerViewModel: PlayerViewModel
 
-  let columns = [
-    GridItem(.flexible()),
-    GridItem(.flexible()),
-  ]
+  @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+
+  private var columns: [GridItem] {
+    if horizontalSizeClass == .regular {
+      return Array(repeating: GridItem(.flexible()), count: 4)
+    } else {
+      return Array(repeating: GridItem(.flexible()), count: 2)
+    }
+  }
 
   var filteredAlbums: [Album] {
     if searchAlbum.isEmpty {

@@ -24,49 +24,47 @@ struct ArtistsView: View {
   }
 
   var body: some View {
-    NavigationStack {
-      ScrollView {
-        LazyVStack {
-          ForEach(filteredArtists) { artist in
-            NavigationLink {
-              ArtistDetailView(artist: artist)
-                .environmentObject(viewModel)
-            } label: {
-              VStack {
-                HStack {
-                  Text(artist.name)
-                    .customFont(.headline)
-                    .multilineTextAlignment(.leading)
-                  
-                  Spacer()
-                  
-                  Image(systemName: "chevron.right")
-                    .foregroundColor(.gray)
-                    .font(.caption)
-                }
-                .padding(.horizontal)
-                .padding(.vertical, 5)
+    ScrollView {
+      LazyVStack {
+        ForEach(filteredArtists) { artist in
+          NavigationLink {
+            ArtistDetailView(artist: artist)
+              .environmentObject(viewModel)
+          } label: {
+            VStack {
+              HStack {
+                Text(artist.name)
+                  .customFont(.headline)
+                  .multilineTextAlignment(.leading)
                 
-                Divider()
+                Spacer()
+                
+                Image(systemName: "chevron.right")
+                  .foregroundColor(.gray)
+                  .font(.caption)
               }
+              .padding(.horizontal)
+              .padding(.vertical, 5)
+              
+              Divider()
             }
           }
-        }.padding(.bottom, 100)
-      }
-      .navigationTitle("Artists")
-      .searchable(
-        text: $searchArtist, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search"
-      )
-      .toolbar {
-        Menu {
-          Button {
-            self.filterAlbumArtistOnly.toggle()
-          } label: {
-            Label("Album Artist Only", systemImage: self.filterAlbumArtistOnly ?  "checkmark.circle" :  "circle")
-          }
-        } label: {
-          Label("", systemImage: "ellipsis.circle")
         }
+      }.padding(.bottom, 100)
+    }
+    .navigationTitle("Artists")
+    .searchable(
+      text: $searchArtist, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search"
+    )
+    .toolbar {
+      Menu {
+        Button {
+          self.filterAlbumArtistOnly.toggle()
+        } label: {
+          Label("Album Artist Only", systemImage: self.filterAlbumArtistOnly ?  "checkmark.circle" :  "circle")
+        }
+      } label: {
+        Label("", systemImage: "ellipsis.circle")
       }
     }
   }

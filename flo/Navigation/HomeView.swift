@@ -101,62 +101,66 @@ struct HomeView: View {
         }
         .padding()
 
-      ScrollView {
-        VStack(alignment: .leading, spacing: 16) {
-          Text("Listening Activity (all time)").customFont(.title2).fontWeight(.bold)
-            .multilineTextAlignment(.leading)
-          
-          let statCardSpacing: CGFloat = UIScreen.screenWidth <= 390 ? 8 : 16
+      GeometryReader { geometry in
+        ScrollView {
+          VStack(alignment: .leading, spacing: 16) {
+            Text("Listening Activity (all time)").customFont(.title2).fontWeight(.bold)
+              .multilineTextAlignment(.leading)
+            
+            let statCardSpacing: CGFloat = geometry.size.width <= 390 ? 8 : 16
 
-          HStack(alignment: .top, spacing: statCardSpacing) {
-            StatCard(
-              title: "Total Listens",
-              value: floooViewModel.totalPlay.description,
-              icon: "headphones",
-              color: .purple
-            )
+            HStack(alignment: .top, spacing: statCardSpacing) {
+              StatCard(
+                title: "Total Listens",
+                value: floooViewModel.totalPlay.description,
+                icon: "headphones",
+                color: .purple
+              )
 
-            StatCard(
-              title: "Top Artist",
-              value: floooViewModel.stats?.topArtist ?? "N/A",
-              icon: "music.mic",
-              color: .blue,
-              showArrow: true
+              StatCard(
+                title: "Top Artist",
+                value: floooViewModel.stats?.topArtist ?? "N/A",
+                icon: "music.mic",
+                color: .blue,
+                showArrow: true
+              )
+            }
+
+            HStack(alignment: .top, spacing: 16) {
+              StatCard(
+                title: "Top Album",
+                value: floooViewModel.stats?.topAlbum ?? "N/A",
+                subtitle: floooViewModel.stats?.topAlbumArtist ?? "N/A",
+                icon: "record.circle",
+                color: .pink,
+                isWide: true,
+                showArrow: true
+              )
+            }
+
+            HStack(spacing: 16) {
+              StatCard(
+                title: "Experimental",
+                value: "More data is cooking soon",
+                icon: "chart.pie",
+                color: .indigo,
+                isWide: false,
+                showArrow: false
+              )
+            }
+            Text(
+              "This stat is generated on-device (once every session) and no data is stored or shared with a third party — #selfhosting, baby!"
             )
+            .frame(maxWidth: .infinity)
+            .multilineTextAlignment(.center)
+            .customFont(.caption1)
+            .lineSpacing(2)
           }
-
-          HStack(alignment: .top, spacing: 16) {
-            StatCard(
-              title: "Top Album",
-              value: floooViewModel.stats?.topAlbum ?? "N/A",
-              subtitle: floooViewModel.stats?.topAlbumArtist ?? "N/A",
-              icon: "record.circle",
-              color: .pink,
-              isWide: true,
-              showArrow: true
-            )
-          }
-
-          HStack(spacing: 16) {
-            StatCard(
-              title: "Experimental",
-              value: "More data is cooking soon",
-              icon: "chart.pie",
-              color: .indigo,
-              isWide: false,
-              showArrow: false
-            )
-          }
-          Text(
-            "This stat is generated on-device (once every session) and no data is stored or shared with a third party — #selfhosting, baby!"
-          )
+          .frame(maxWidth: 700)
           .frame(maxWidth: .infinity)
-          .multilineTextAlignment(.center)
-          .customFont(.caption1)
-          .lineSpacing(2)
+          .padding(.bottom, 100)
+          .padding(.horizontal)
         }
-        .padding(.bottom, 100)
-        .padding(.horizontal)
       }
     }
     .onAppear {

@@ -10,6 +10,7 @@ import SwiftUI
 
 struct ContentView: View {
   @AppStorage(UserDefaultsKeys.enableDebug) private var enableDebug = false
+  @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
   @State private var isPlayerExpanded: Bool = false
   @State private var tabViewID = UUID()
@@ -63,22 +64,23 @@ struct ContentView: View {
         tabViewID = UUID()
       }
 
-      ZStack {
-        if playerViewModel.hasNowPlaying() && !playerViewModel.shouldHidePlayer {
-          PlayerView(isExpanded: $isPlayerExpanded, viewModel: playerViewModel)
-            .offset(y: isPlayerExpanded ? 0 : UIScreen.main.bounds.height)
-            .animation(.spring(duration: 0.2), value: isPlayerExpanded)
-        }
+      if playerViewModel.hasNowPlaying() && !playerViewModel.shouldHidePlayer {
+        PlayerView(isExpanded: $isPlayerExpanded, viewModel: playerViewModel)
+          .ignoresSafeArea()
+          .offset(y: isPlayerExpanded ? 0 : UIScreen.main.bounds.height)
+          .animation(.spring(duration: 0.2), value: isPlayerExpanded)
       }
 
       VStack {
         Spacer()
 
         if playerViewModel.hasNowPlaying() && !playerViewModel.shouldHidePlayer {
-          let bottomPaddingForSmallerScreens: CGFloat = UIScreen.screenWidth <= 390 ? 32 : 0
+          let isSmallScreen = UIScreen.main.bounds.width <= 390
+          let bottomPadding: CGFloat = isSmallScreen ? 32 : 0
 
           FloatingPlayerView(viewModel: playerViewModel)
-            .padding(.bottom, 40 + bottomPaddingForSmallerScreens)
+            .frame(maxWidth: horizontalSizeClass == .regular ? 500 : .infinity)
+            .padding(.bottom, 40 + bottomPadding)
             .opacity(playerViewModel.hasNowPlaying() ? 1 : 0)
             .offset(
               x: self.floatingPlayerOffsetX, y: isPlayerExpanded ? UIScreen.main.bounds.height : 0
@@ -90,12 +92,10 @@ struct ContentView: View {
             .gesture(
               DragGesture()
                 .onChanged { value in
-                  // only care with swipe left :))
                   if value.translation.width < .zero {
                     floatingPlayerOffsetX = value.translation.width
                   }
 
-                  // debounce thing
                   if abs(floatingPlayerOffsetX) > swipeThreshold && !isSwipping {
                     isSwipping = true
                   }
