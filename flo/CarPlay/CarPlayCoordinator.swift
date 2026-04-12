@@ -70,7 +70,15 @@ class CarPlayCoordinator {
       completion()
     }
 
-    let section = CPListSection(items: [albumsItem, artistsItem, songsItem])
+    let likedSongsItem = CPListItem(
+      text: String(localized: "Liked Songs"), detailText: nil,
+      image: UIImage(systemName: "heart.fill")?.withRenderingMode(.alwaysTemplate))
+    likedSongsItem.handler = { [weak self] _, completion in
+      self?.showLikedSongs()
+      completion()
+    }
+
+    let section = CPListSection(items: [albumsItem, artistsItem, songsItem, likedSongsItem])
     let template = CPListTemplate(title: String(localized: "Library"), sections: [section])
     template.tabImage = UIImage(systemName: "square.grid.2x2")
 
@@ -407,6 +415,86 @@ class CarPlayCoordinator {
           errorItem.handler = { [weak self] _, completion in
             self?.interfaceController.popTemplate(animated: false, completion: nil)
             self?.showSongsList()
+            completion()
+          }
+          loadingTemplate.updateSections([CPListSection(items: [errorItem])])
+        }
+      }
+    }
+  }
+
+  // MARK: - Liked Songs
+
+  private func showLikedSongs() {
+    let loadingTemplate = CPListTemplate(title: String(localized: "Liked Songs"), sections: [])
+    interfaceController.pushTemplate(loadingTemplate, animated: true, completion: nil)
+
+    AlbumService.shared.getStarredSongs { [weak self] result in
+      DispatchQueue.main.async {
+        guard let self = self else { return }
+        switch result {
+        case .success(let songs):
+          if songs.isEmpty {
+            loadingTemplate.updateSections([
+              CPListSection(items: [
+                CPListItem(text: String(localized: "No liked songs yet"), detailText: nil)
+              ])
+            ])
+            return
+          }
+
+          let playAllItem = CPListItem(
+            text: String(localized: "Play All"),
+            detailText: String(localized: "\(songs.count) songs"),
+            image: UIImage(systemName: "play.fill")
+          )
+          playAllItem.handler = { [weak self] _, completion in
+            let collection = SongCollection(id: "liked-songs", name: "Liked Songs", songs: songs)
+            self?.playerVM.playItem(item: collection, isFromLocal: false)
+            self?.showNowPlaying()
+            completion()
+          }
+
+          let shuffleItem = CPListItem(
+            text: String(localized: "Shuffle"),
+            detailText: nil,
+            image: UIImage(systemName: "shuffle")
+          )
+          shuffleItem.handler = { [weak self] _, completion in
+            let collection = SongCollection(id: "liked-songs", name: "Liked Songs", songs: songs)
+            self?.playerVM.shuffleItem(item: collection, isFromLocal: false)
+            self?.showNowPlaying()
+            completion()
+          }
+
+          let actionSection = CPListSection(items: [playAllItem, shuffleItem])
+
+          let trackItems = songs.enumerated().map { (idx, song) -> CPListItem in
+            let item = CPListItem(
+              text: song.title,
+              detailText: song.artist
+            )
+            item.handler = { [weak self] _, completion in
+              let collection = SongCollection(id: "liked-songs", name: "Liked Songs", songs: songs)
+              self?.playerVM.playBySong(idx: idx, item: collection, isFromLocal: false)
+              self?.showNowPlaying()
+              completion()
+            }
+            return item
+          }
+          let trackSection = CPListSection(
+            items: trackItems,
+            header: String(localized: "Songs"),
+            sectionIndexTitle: nil
+          )
+
+          loadingTemplate.updateSections([actionSection, trackSection])
+
+        case .failure:
+          let errorItem = CPListItem(text: String(localized: "Failed to load liked songs"), detailText: String(localized: "Tap to retry"))
+          errorItem.handler = { [weak self] _, completion in
+            self?.interfaceController.popTemplate(animated: false, completion: nil)
+            self?.showLikedSongs()
             completion()
           }
           loadingTemplate.updateSections([CPListSection(items: [errorItem])])
