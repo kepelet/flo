@@ -681,13 +681,31 @@ class CarPlayCoordinator {
     AlbumService.shared.getDownloadedAlbum { [weak self] result in
       DispatchQueue.main.async {
         guard let self = self else { return }
+
+        let cachedSongs = StreamCacheManager.shared.getCachedSongs()
+        var sections: [CPListSection] = []
+
+        // Cached songs section
+        if !cachedSongs.isEmpty {
+          let cachedItem = CPListItem(
+            text: String(localized: "Cached"),
+            detailText: String(localized: "\(cachedSongs.count) songs"),
+            image: UIImage(systemName: "music.note.list")?.withRenderingMode(.alwaysTemplate)
+          )
+          cachedItem.handler = { [weak self] _, completion in
+            self?.showCachedSongs(songs: cachedSongs)
+            completion()
+          }
+          sections.append(CPListSection(items: [cachedItem]))
+        }
+
         switch result {
         case .success(let albums):
           let filtered = albums.filter { album in
             !AlbumService.shared.getSongsByAlbumId(albumId: album.id).isEmpty
           }
 
-          if filtered.isEmpty {
+          if filtered.isEmpty && cachedSongs.isEmpty {
             template.updateSections([
               CPListSection(items: [
                 CPListItem(text: String(localized: "No downloads"), detailText: String(localized: "Download music from the app"))
@@ -716,18 +734,81 @@ class CarPlayCoordinator {
             }
             return item
           }
-          template.updateSections([CPListSection(items: items)])
+          if !items.isEmpty {
+            sections.append(CPListSection(
+              items: items,
+              header: String(localized: "Albums"),
+              sectionIndexTitle: nil
+            ))
+          }
+          template.updateSections(sections)
 
         case .failure:
-          template.updateSections([
-            CPListSection(items: [
-              CPListItem(text: String(localized: "No downloads available"), detailText: nil)
+          if cachedSongs.isEmpty {
+            template.updateSections([
+              CPListSection(items: [
+                CPListItem(text: String(localized: "No downloads available"), detailText: nil)
+              ])
             ])
-          ])
+          } else {
+            template.updateSections(sections)
+          }
         }
       }
     }
 
     return template
+  }
+
+  // MARK: - Cached Songs
+
+  private func showCachedSongs(songs: [Song]) {
+    let playAllItem = CPListItem(
+      text: String(localized: "Play All"),
+      detailText: String(localized: "\(songs.count) songs"),
+      image: UIImage(systemName: "play.fill")
+    )
+    playAllItem.handler = { [weak self] _, completion in
+      let collection = SongCollection(id: "cached-songs", name: "Cached", songs: songs)
+      self?.playerVM.playItem(item: collection, isFromLocal: true)
+      self?.showNowPlaying()
+      completion()
+    }
+
+    let shuffleItem = CPListItem(
+      text: String(localized: "Shuffle"),
+      detailText: nil,
+      image: UIImage(systemName: "shuffle")
+    )
+    shuffleItem.handler = { [weak self] _, completion in
+      let collection = SongCollection(id: "cached-songs", name: "Cached", songs: songs)
+      self?.playerVM.shuffleItem(item: collection, isFromLocal: true)
+      self?.showNowPlaying()
+      completion()
+    }
+
+    let actionSection = CPListSection(items: [playAllItem, shuffleItem])
+
+    let trackItems = songs.enumerated().map { (idx, song) -> CPListItem in
+      let item = CPListItem(
+        text: song.title,
+        detailText: song.artist
+      )
+      item.handler = { [weak self] _, completion in
+        let collection = SongCollection(id: "cached-songs", name: "Cached", songs: songs)
+        self?.playerVM.playBySong(idx: idx, item: collection, isFromLocal: true)
+        self?.showNowPlaying()
+        completion()
+      }
+      return item
+    }
+    let trackSection = CPListSection(
+      items: trackItems,
+      header: String(localized: "Tracks"),
+      sectionIndexTitle: nil
+    )
+
+    let template = CPListTemplate(title: String(localized: "Cached"), sections: [actionSection, trackSection])
+    interfaceController.pushTemplate(template, animated: true, completion: nil)
   }
 }
