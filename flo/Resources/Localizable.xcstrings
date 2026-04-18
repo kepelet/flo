@@ -356,7 +356,7 @@
         "nb" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Alternative app ikoner er ikke støtte på denne enheten."
+            "value" : "Alternative appikoner er ikke støttet på denne enheten."
           }
         }
       }
@@ -604,7 +604,7 @@
         "nb" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "For øyeblikket er utgangsformatet MP3 på grunn av kompatibilitets problemer; men, MP3 er mindre effektivt ved strømming på lavere bithastigheter i sammenligning til moderne kodeker som Opus."
+            "value" : "For øyeblikket er utgangsformatet MP3 på grunn av kompatibilitetsproblemer; men, MP3 er mindre effektivt ved strømming på lavere bithastigheter sammenlignet med moderne kodeker som Opus."
           }
         }
       }
@@ -708,7 +708,7 @@
         "nb" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nedlast"
+            "value" : "Last ned"
           }
         }
       }
@@ -933,7 +933,7 @@
         "nb" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Foreløpig betyr denne handlingen 'Slett alle nedlastede album og sander' inkludert sitt eget innhold. Fortsett?"
+            "value" : "Foreløpig betyr denne handlingen 'Slett alle nedlastede album og sanger' inkludert deres innhold. Fortsett?"
           }
         }
       }
@@ -1009,7 +1009,7 @@
         "nb" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Forsvinne av radaren?"
+            "value" : "Skal du være koblet fra nettet?"
           }
         }
       }
