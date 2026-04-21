@@ -39,7 +39,7 @@ struct DownloadsView: View {
     NavigationStack {
       ScrollView {
         if viewModel.downloadedAlbums.isEmpty && cachedSongs.isEmpty {
-          VStack(alignment: .leading) {
+          VStack(alignment: .center) {
             Image("Downloads").resizable().aspectRatio(contentMode: .fit).frame(width: 300)
               .padding()
               .padding(.bottom, 10)
@@ -47,15 +47,17 @@ struct DownloadsView: View {
               Text("Going off the grid?")
                 .customFont(.title1)
                 .fontWeight(.bold)
-                .multilineTextAlignment(.leading)
+                .multilineTextAlignment(.center)
                 .padding(.bottom, 10)
               Text(
                 "Bring your music anywhere, even when you're offline. Your downloaded music will be here."
               )
               .customFont(.subheadline)
+              .multilineTextAlignment(.center)
 
             }.padding(.horizontal, 20).foregroundColor(.accent)
           }
+          .frame(maxWidth: .infinity)
         }
 
         // Cached songs section

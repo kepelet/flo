@@ -255,9 +255,6 @@
         }
       }
     },
-    "%lld songs" : {
-
-    },
     "%lld albums" : {
       "localizations" : {
         "de" : {
@@ -267,6 +264,9 @@
           }
         }
       }
+    },
+    "%lld songs" : {
+
     },
     "%lld tracks" : {
       "localizations" : {
@@ -400,7 +400,6 @@
             "value" : "Aksentfarge"
           }
         }
-
       }
     },
     "Add radios in your Navidrome server." : {
@@ -423,7 +422,6 @@
             "value" : "Legg til radioer på din Navidrome server"
           }
         }
-
       }
     },
     "Add/Change Custom" : {
@@ -1324,6 +1322,9 @@
         }
       }
     },
+    "Failed to load liked songs" : {
+
+    },
     "Failed to load playlists" : {
       "localizations" : {
         "de" : {
@@ -2130,6 +2131,9 @@
           }
         }
       }
+    },
+    "No liked songs yet" : {
+
     },
     "No lyrics available" : {
       "localizations" : {

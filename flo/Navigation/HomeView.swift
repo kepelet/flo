@@ -55,7 +55,7 @@ struct HomeView: View {
     )
   }
 
-  var body: some View {
+  private var mainContent: some View {
     VStack {
       HStack {
         Text("Home").font(.system(size: 32)).foregroundColor(.primary).fontWeight(.bold).padding(
@@ -91,14 +91,6 @@ struct HomeView: View {
           }
         }
       }.padding(.top)
-        .sheet(isPresented: shouldShowLoginSheet()) {
-          Login(viewModel: viewModel, showLoginSheet: $showLoginSheet)
-            .onDisappear {
-              if viewModel.isLoggedIn {
-                self.floooViewModel.checkScanStatus()
-              }
-            }
-        }
         .padding()
 
       GeometryReader { geometry in
@@ -106,7 +98,7 @@ struct HomeView: View {
           VStack(alignment: .leading, spacing: 16) {
             Text("Listening Activity (all time)").customFont(.title2).fontWeight(.bold)
               .multilineTextAlignment(.leading)
-            
+
             let statCardSpacing: CGFloat = geometry.size.width <= 390 ? 8 : 16
 
             HStack(alignment: .top, spacing: statCardSpacing) {
@@ -165,6 +157,29 @@ struct HomeView: View {
     }
     .onAppear {
       self.floooViewModel.getListeningHistory()
+    }
+  }
+
+  private var loginContent: some View {
+    Login(viewModel: viewModel, showLoginSheet: $showLoginSheet)
+      .onDisappear {
+        if viewModel.isLoggedIn {
+          self.floooViewModel.checkScanStatus()
+        }
+      }
+  }
+
+  var body: some View {
+    Group {
+      if UIDevice.current.userInterfaceIdiom == .pad {
+        AnyView(mainContent.fullScreenCover(isPresented: shouldShowLoginSheet()) {
+          loginContent
+        })
+      } else {
+        AnyView(mainContent.sheet(isPresented: shouldShowLoginSheet()) {
+          loginContent
+        })
+      }
     }
   }
 }

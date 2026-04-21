@@ -45,7 +45,7 @@ struct LibraryView: View {
   var libraryContent: some View {
     ScrollView {
       if viewModel.albums.isEmpty && viewModel.error != nil {
-        VStack(alignment: .leading) {
+        VStack(alignment: .center) {
           Image("Home").resizable().aspectRatio(contentMode: .fit).frame(
             maxWidth: .infinity, maxHeight: 300
           ).padding()
@@ -53,15 +53,17 @@ struct LibraryView: View {
             Text("Your Navidrome session may have expired")
               .customFont(.title1)
               .fontWeight(.bold)
-              .multilineTextAlignment(.leading)
+              .multilineTextAlignment(.center)
               .padding(.bottom, 10)
             Text(
               "The quickest action you can take is to log back in — for now."
             )
             .customFont(.subheadline)
+            .multilineTextAlignment(.center)
 
           }.padding(.horizontal, 20).foregroundColor(.accent)
         }
+        .frame(maxWidth: .infinity)
       } else {
         if searchAlbum.isEmpty {
           NavigationLink {
