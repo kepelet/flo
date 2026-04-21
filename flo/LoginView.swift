@@ -26,6 +26,19 @@ struct Login: View {
       headerSection
       formSection
     }
+    .overlay(alignment: .topTrailing) {
+      if UIDevice.current.userInterfaceIdiom == .pad {
+        Button(action: { showLoginSheet = false }) {
+          Image(systemName: "xmark")
+            .font(.system(size: 14, weight: .bold))
+            .foregroundColor(.white)
+            .frame(width: 32, height: 32)
+            .background(Color("PlayerColor"))
+            .clipShape(Circle())
+        }
+        .padding()
+      }
+    }
     .alert(isPresented: $viewModel.showAlert) {
       Alert(
         title: Text("Login Failed"),
@@ -44,6 +57,8 @@ struct Login: View {
     }
     .background(Color(.systemBackground))
     .foregroundColor(.accent)
+    .presentationDetents([.large])
+    .presentationDragIndicator(.visible)
   }
 
   private var extraMessage: some View {

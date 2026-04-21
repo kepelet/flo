@@ -171,7 +171,7 @@ struct PreferencesView: View {
     return "000000"
   }
 
-  var body: some View {
+  private var mainContent: some View {
     NavigationStack {
       Form {
         Section(header: Text("Local Storage")) {
@@ -423,23 +423,6 @@ struct PreferencesView: View {
                 : "flo will store your server URL, username, and password in the Keychain with no biometric protection. If you enable this, flo will try to 'refresh' the auth token—by logging you in automatically—every time you open flo so you'll never log out unless you do it explicitly (it will also reset this option). Logging in via OAuth will reset this option."
             ).font(.caption).foregroundColor(.gray)
           }
-          .sheet(isPresented: shouldShowLoginSheet) {
-            Login(viewModel: authViewModel, showLoginSheet: $showLoginSheet)
-              .onDisappear {
-                if authViewModel.isLoggedIn {
-                  self.floooViewModel.checkScanStatus()
-                  self.floooViewModel.checkAccountLinkStatus()
-                }
-
-                if UserDefaultsManager.enableDebug {
-                  floooViewModel.getUserDefaults()
-                }
-
-                if !showLoginSheet && authViewModel.experimentalSaveLoginInfo {
-                  authViewModel.experimentalSaveLoginInfo = false
-                }
-              }
-          }
 
           if authViewModel.isLoggedIn {
             VStack(alignment: .leading, spacing: 6) {
@@ -618,6 +601,38 @@ struct PreferencesView: View {
         .textContentType(.none)
     } message: {
       Text("Learn more at https://dub.sh/flo-lrclib")
+    }
+  }
+
+  private var loginContent: some View {
+    Login(viewModel: authViewModel, showLoginSheet: $showLoginSheet)
+      .onDisappear {
+        if authViewModel.isLoggedIn {
+          self.floooViewModel.checkScanStatus()
+          self.floooViewModel.checkAccountLinkStatus()
+        }
+
+        if UserDefaultsManager.enableDebug {
+          floooViewModel.getUserDefaults()
+        }
+
+        if !showLoginSheet && authViewModel.experimentalSaveLoginInfo {
+          authViewModel.experimentalSaveLoginInfo = false
+        }
+      }
+  }
+
+  var body: some View {
+    Group {
+      if UIDevice.current.userInterfaceIdiom == .pad {
+        AnyView(mainContent.fullScreenCover(isPresented: shouldShowLoginSheet) {
+          loginContent
+        })
+      } else {
+        AnyView(mainContent.sheet(isPresented: shouldShowLoginSheet) {
+          loginContent
+        })
+      }
     }
   }
 }
