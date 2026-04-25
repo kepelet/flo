@@ -55,51 +55,64 @@ struct HomeView: View {
     )
   }
 
+  private func homeContentWidth(for availableWidth: CGFloat) -> CGFloat {
+    let horizontalPadding: CGFloat = 32
+    let baseWidth = max(availableWidth - horizontalPadding, 0)
+
+    if UIDevice.current.userInterfaceIdiom == .pad {
+      return min(baseWidth, 700)
+    }
+
+    return baseWidth
+  }
+
   private var mainContent: some View {
-    VStack {
-      HStack {
-        Text("Home").font(.system(size: 32)).foregroundColor(.primary).fontWeight(.bold).padding(
-          .vertical)
-        Spacer()
-        Menu {
-          Button(action: {
-            showLoginSheet = true
-          }) {
-            if !viewModel.isLoggedIn {
-              Text("Login")
-            } else {
-              Text("Logged in as \(viewModel.user?.name ?? "")")
-            }
-          }.disabled(viewModel.isLoggedIn)
-          if viewModel.isLoggedIn {
-            Button(action: {
-              viewModel.logout()
-            }) {
-              Text("Logout")
-            }
-          }
-        } label: {
-          ZStack {
-            Image(systemName: "person.crop.circle.fill")
-              .font(.largeTitle)
-              .foregroundColor(.accentColor)
+    GeometryReader { rootGeometry in
+      let contentWidth = homeContentWidth(for: rootGeometry.size.width)
+      let horizontalInset = max((rootGeometry.size.width - contentWidth) / 2, 16)
 
-            Circle()
-              .fill(statusColor)
-              .frame(width: 10, height: 10)
-              .offset(x: 12, y: -12)
-          }
-        }
-      }.padding(.top)
-        .padding()
-
-      GeometryReader { geometry in
+      VStack(spacing: 0) {
         ScrollView {
           VStack(alignment: .leading, spacing: 16) {
+            HStack {
+              Text("Home").font(.system(size: 32)).foregroundColor(.primary).fontWeight(.bold)
+                .padding(.vertical)
+              Spacer()
+              Menu {
+                Button(action: {
+                  showLoginSheet = true
+                }) {
+                  if !viewModel.isLoggedIn {
+                    Text("Login")
+                  } else {
+                    Text("Logged in as \(viewModel.user?.name ?? "")")
+                  }
+                }.disabled(viewModel.isLoggedIn)
+                if viewModel.isLoggedIn {
+                  Button(action: {
+                    viewModel.logout()
+                  }) {
+                    Text("Logout")
+                  }
+                }
+              } label: {
+                ZStack {
+                  Image(systemName: "person.crop.circle.fill")
+                    .font(.largeTitle)
+                    .foregroundColor(.accentColor)
+
+                  Circle()
+                    .fill(statusColor)
+                    .frame(width: 10, height: 10)
+                    .offset(x: 12, y: -12)
+                }
+              }
+            }
+
             Text("Listening Activity (all time)").customFont(.title2).fontWeight(.bold)
               .multilineTextAlignment(.leading)
 
-            let statCardSpacing: CGFloat = geometry.size.width <= 390 ? 8 : 16
+            let statCardSpacing: CGFloat = rootGeometry.size.width <= 390 ? 8 : 16
 
             HStack(alignment: .top, spacing: statCardSpacing) {
               StatCard(
@@ -148,12 +161,12 @@ struct HomeView: View {
             .customFont(.caption1)
             .lineSpacing(2)
           }
-          .frame(maxWidth: 700)
-          .frame(maxWidth: .infinity)
+          .frame(maxWidth: .infinity, alignment: .leading)
+          .padding(.horizontal, horizontalInset)
           .padding(.bottom, 100)
-          .padding(.horizontal)
         }
       }
+      .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
     }
     .onAppear {
       self.floooViewModel.getListeningHistory()
