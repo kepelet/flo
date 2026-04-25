@@ -278,7 +278,7 @@ struct PlayerView: View {
         }
       }
 
-      Spacer()
+      Spacer().frame(height: horizontalSizeClass == .regular ? 28 : 24)
 
       VStack(alignment: .center, spacing: 10) {
         Text(viewModel.nowPlaying.songName ?? "")
@@ -294,6 +294,7 @@ struct PlayerView: View {
           .multilineTextAlignment(.center)
           .lineLimit(2)
       }
+      .padding(.horizontal, 30)
 
       Spacer()
 
@@ -380,14 +381,13 @@ struct PlayerView: View {
             .frame(width: 60, alignment: .trailing)
         }
       }
+      .padding(.horizontal, 30)
 
       bottomControlBar(showQueue: $showQueue)
-        .padding(.top, 8)
+        .padding(.top, 16)
+        .padding(.horizontal, 18)
         .padding(.bottom, max(bottomSafeInset, 12))
-
-      Spacer()
     }
-    .padding(.horizontal, 30)
     .frame(maxWidth: horizontalSizeClass == .regular ? 500 : .infinity)
     .frame(maxWidth: .infinity)
   }
@@ -408,22 +408,26 @@ struct PlayerView: View {
           .foregroundColor(isLyricsDisabled ? .white.opacity(0.4) : .white)
       }
       .disabled(isLyricsDisabled)
-      .frame(maxWidth: .infinity)
+      .frame(width: 44, height: 44)
+
+      Spacer(minLength: 0)
 
       Button {
         viewModel.toggleStar()
       } label: {
         Image(systemName: viewModel.isStarred ? "heart.fill" : "heart")
           .font(.title2)
-          .foregroundColor(viewModel.isStarred ? .red : .white)
+          .foregroundColor(.white)
       }
       .disabled(viewModel.isLiveRadio)
       .opacity(viewModel.isLiveRadio ? 0.4 : 1)
-      .frame(maxWidth: .infinity)
+      .frame(width: 44, height: 44)
+
+      Spacer(minLength: 0)
 
       AirPlayRoutePicker(tintColor: UIColor.white, activeTintColor: UIColor.white)
         .frame(width: 36, height: 36)
-        .frame(maxWidth: .infinity)
+        .frame(width: 44, height: 44)
         .overlay(alignment: .bottom) {
           if let outputName = viewModel.externalOutputName {
             Text(outputName)
@@ -437,6 +441,8 @@ struct PlayerView: View {
               .offset(y: 13)
           }
         }
+
+      Spacer(minLength: 0)
 
       Button {
         if !isQueueDisabled {
@@ -469,8 +475,9 @@ struct PlayerView: View {
       }
       .disabled(isQueueDisabled)
       .opacity(isQueueDisabled ? 0.4 : 1)
-      .frame(maxWidth: .infinity)
+      .frame(width: 44, height: 44)
     }
+    .frame(height: 44)
   }
 
   @ViewBuilder

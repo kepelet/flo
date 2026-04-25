@@ -128,7 +128,7 @@ struct LibraryView: View {
             HStack {
               Image(systemName: "heart.fill")
                 .frame(width: 20, height: 10)
-                .foregroundColor(.accent)
+                .foregroundColor(.white)
               Text("Liked Songs")
                 .customFont(.headline)
                 .padding(.leading, 8)
