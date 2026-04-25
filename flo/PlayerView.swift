@@ -29,6 +29,8 @@ struct PlayerView: View {
       let topSafeInset = max(proxy.safeAreaInsets.top, windowTopSafeInset)
       let bottomSafeInset = proxy.safeAreaInsets.bottom
       let imageSize: CGFloat = horizontalSizeClass == .regular ? min(400, size.width * 0.4) : 300
+      let isIPadPortrait = UIDevice.current.userInterfaceIdiom == .pad && size.height > size.width
+      let queueSheetHeight = isIPadPortrait ? min(700, max(500, size.height * 0.62)) : 500
 
       ZStack {
         playerBackground()
@@ -160,9 +162,9 @@ struct PlayerView: View {
           .zIndex(1)
           .offset(
             y: showQueue
-              ? size.height - 500 + queueDragOffset.height : size.height
+              ? size.height - queueSheetHeight + queueDragOffset.height : size.height
           )
-          .frame(height: 500)
+          .frame(height: queueSheetHeight)
           .animation(.spring(duration: 0.2), value: showQueue)
 
           ZStack {

@@ -30,11 +30,10 @@ struct Login: View {
       if UIDevice.current.userInterfaceIdiom == .pad {
         Button(action: { showLoginSheet = false }) {
           Image(systemName: "xmark")
-            .font(.system(size: 14, weight: .bold))
-            .foregroundColor(.white)
-            .frame(width: 32, height: 32)
-            .background(Color("PlayerColor"))
-            .clipShape(Circle())
+            .font(.system(size: 13, weight: .semibold))
+            .foregroundColor(.primary)
+            .frame(width: 34, height: 34)
+            .glassedEffect(in: Circle(), interactive: true)
         }
         .padding()
       }
