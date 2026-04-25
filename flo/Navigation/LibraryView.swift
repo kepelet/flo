@@ -8,8 +8,10 @@
 import SwiftUI
 
 struct LibraryView: View {
+  let showQuickNavigation: Bool
   @State private var searchAlbum = ""
   @State private var showDownloadSheet: Bool = false
+  @State private var forceShowQuickNavigation: Bool = false
 
   @ObservedObject var viewModel: AlbumViewModel
 
@@ -26,6 +28,12 @@ struct LibraryView: View {
     }
   }
 
+  init(viewModel: AlbumViewModel, showQuickNavigation: Bool = true) {
+    self.viewModel = viewModel
+    self.showQuickNavigation = showQuickNavigation
+    _forceShowQuickNavigation = State(initialValue: !showQuickNavigation)
+  }
+
   var filteredAlbums: [Album] {
     if searchAlbum.isEmpty {
       return viewModel.albums
@@ -34,6 +42,10 @@ struct LibraryView: View {
         album.name.localizedCaseInsensitiveContains(searchAlbum)
       }
     }
+  }
+
+  private var shouldShowQuickNavigation: Bool {
+    showQuickNavigation || forceShowQuickNavigation
   }
 
   var body: some View {
@@ -65,7 +77,26 @@ struct LibraryView: View {
         }
         .frame(maxWidth: .infinity)
       } else {
-        if searchAlbum.isEmpty {
+        if !showQuickNavigation && searchAlbum.isEmpty {
+          Button(action: {
+            forceShowQuickNavigation.toggle()
+          }) {
+            HStack {
+              Image(systemName: forceShowQuickNavigation ? "eye.slash" : "list.bullet")
+              Text(forceShowQuickNavigation ? "Hide quick links" : "Show quick links")
+                .customFont(.headline)
+              Spacer()
+              Image(systemName: "chevron.right")
+                .foregroundColor(.gray)
+                .font(.caption)
+            }
+            .padding(.horizontal)
+            .padding(.vertical, 5)
+          }
+          Divider()
+        }
+
+        if shouldShowQuickNavigation && searchAlbum.isEmpty {
           NavigationLink {
             ArtistsView(artists: viewModel.artists)
               .environmentObject(viewModel)

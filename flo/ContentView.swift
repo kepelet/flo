@@ -27,42 +27,158 @@ struct ContentView: View {
 
   private var swipeThreshold: CGFloat = 150.0
 
-  var body: some View {
-    ZStack {
-      TabView {
-        HomeView(viewModel: authViewModel).tabItem {
-          Label("Home", systemImage: "house")
-        }.environmentObject(floooViewModel)
+  @ViewBuilder
+  private var rootTabView: some View {
+    if UIDevice.current.userInterfaceIdiom == .pad {
+      if #available(iOS 18.0, *) {
+        sidebarTabView
+          .tabViewStyle(.sidebarAdaptable)
+      } else {
+        baseTabView
+      }
+    } else {
+      baseTabView
+    }
+  }
 
-        if authViewModel.isLoggedIn {
-          LibraryView(viewModel: albumViewModel).tabItem {
-            Label("Library", systemImage: "square.grid.2x2")
-          }.environmentObject(playerViewModel).environmentObject(downloadViewModel)
-            .onAppear {
-              albumViewModel.fetchAlbums()
-            }
+  private var baseTabView: some View {
+    TabView {
+      HomeView(viewModel: authViewModel).tabItem {
+        Label("Home", systemImage: "house")
+      }.environmentObject(floooViewModel)
+
+      if authViewModel.isLoggedIn {
+        LibraryView(viewModel: albumViewModel).tabItem {
+          Label("Library", systemImage: "square.grid.2x2")
+        }.environmentObject(playerViewModel).environmentObject(downloadViewModel)
+          .onAppear {
+            albumViewModel.fetchAlbums()
+          }
+      }
+
+      DownloadsView(viewModel: albumViewModel).tabItem {
+        Label("Downloads", systemImage: "arrow.down.circle")
+      }.environmentObject(playerViewModel).environmentObject(downloadViewModel).onAppear {
+        albumViewModel.fetchDownloadedAlbums()
+      }.badge(downloadViewModel.getRemainingDownloadItems())
+
+      PreferencesView(authViewModel: authViewModel).tabItem {
+        Label("Preferences", systemImage: "gear")
+      }.environmentObject(playerViewModel).environmentObject(floooViewModel).environmentObject(inAppPurchaseManager)
+
+      if UserDefaultsManager.enableDebug {
+        ConsoleView().tabItem {
+          Label("Debug", systemImage: "terminal")
         }
+      }
+    }
+    .id(tabViewID)
+    .onChange(of: enableDebug) { _ in
+      tabViewID = UUID()
+    }
+  }
 
-        DownloadsView(viewModel: albumViewModel).tabItem {
-          Label("Downloads", systemImage: "arrow.down.circle")
-        }.environmentObject(playerViewModel).environmentObject(downloadViewModel).onAppear {
-          albumViewModel.fetchDownloadedAlbums()
-        }.badge(downloadViewModel.getRemainingDownloadItems())
+  @available(iOS 18.0, *)
+  private var sidebarTabView: some View {
+    TabView {
+      Tab("Home", systemImage: "house") {
+        HomeView(viewModel: authViewModel)
+          .environmentObject(floooViewModel)
+      }
 
-        PreferencesView(authViewModel: authViewModel).tabItem {
-          Label("Preferences", systemImage: "gear")
-        }.environmentObject(playerViewModel).environmentObject(floooViewModel).environmentObject(inAppPurchaseManager)
+      if authViewModel.isLoggedIn {
+        TabSection("Library") {
+          Tab("Albums", systemImage: "square.grid.2x2") {
+            LibraryView(viewModel: albumViewModel, showQuickNavigation: false)
+              .environmentObject(playerViewModel)
+              .environmentObject(downloadViewModel)
+              .onAppear {
+                albumViewModel.fetchAlbums()
+              }
+          }
 
-        if UserDefaultsManager.enableDebug {
-          ConsoleView().tabItem {
-            Label("Debug", systemImage: "terminal")
+          Tab("Artists", systemImage: "music.mic") {
+            NavigationStack {
+              ArtistsView(artists: albumViewModel.artists)
+                .environmentObject(albumViewModel)
+                .onAppear {
+                  albumViewModel.getArtists()
+                }
+            }
+          }
+
+          Tab("Liked Songs", systemImage: "heart.fill") {
+            NavigationStack {
+              LikedSongsView()
+                .environmentObject(albumViewModel)
+                .environmentObject(playerViewModel)
+            }
+          }
+
+          Tab("Playlists", systemImage: "music.note.list") {
+            NavigationStack {
+              PlaylistView()
+                .environmentObject(albumViewModel)
+                .environmentObject(playerViewModel)
+                .environmentObject(downloadViewModel)
+                .onAppear {
+                  albumViewModel.getPlaylists()
+                }
+            }
+          }
+
+          Tab("Songs", systemImage: "music.note") {
+            NavigationStack {
+              SongsView()
+                .environmentObject(albumViewModel)
+                .environmentObject(playerViewModel)
+                .onAppear {
+                  albumViewModel.fetchAllSongs()
+                }
+            }
+          }
+
+          Tab("Radios", systemImage: "radio") {
+            NavigationStack {
+              RadiosView()
+                .environmentObject(playerViewModel)
+            }
           }
         }
       }
-      .id(tabViewID)
-      .onChange(of: enableDebug) { _ in
-        tabViewID = UUID()
+
+      Tab("Downloads", systemImage: "arrow.down.circle") {
+        DownloadsView(viewModel: albumViewModel)
+          .environmentObject(playerViewModel)
+          .environmentObject(downloadViewModel)
+          .onAppear {
+            albumViewModel.fetchDownloadedAlbums()
+          }
       }
+      .badge(downloadViewModel.getRemainingDownloadItems())
+
+      Tab("Preferences", systemImage: "gear") {
+        PreferencesView(authViewModel: authViewModel)
+          .environmentObject(playerViewModel)
+          .environmentObject(floooViewModel)
+          .environmentObject(inAppPurchaseManager)
+      }
+
+      if UserDefaultsManager.enableDebug {
+        Tab("Debug", systemImage: "terminal") {
+          ConsoleView()
+        }
+      }
+    }
+    .id(tabViewID)
+    .onChange(of: enableDebug) { _ in
+      tabViewID = UUID()
+    }
+  }
+
+  var body: some View {
+    ZStack {
+      rootTabView
 
       if playerViewModel.hasNowPlaying() && !playerViewModel.shouldHidePlayer {
         PlayerView(isExpanded: $isPlayerExpanded, viewModel: playerViewModel)
