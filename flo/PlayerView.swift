@@ -7,6 +7,7 @@
 
 import NukeUI
 import SwiftUI
+import UIKit
 
 struct PlayerView: View {
   @Binding var isExpanded: Bool
@@ -25,217 +26,217 @@ struct PlayerView: View {
   var body: some View {
     GeometryReader { proxy in
       let size = proxy.size
+      let topSafeInset = max(proxy.safeAreaInsets.top, windowTopSafeInset)
+      let bottomSafeInset = proxy.safeAreaInsets.bottom
       let imageSize: CGFloat = horizontalSizeClass == .regular ? min(400, size.width * 0.4) : 300
 
-      // FIXME: Refactor this?
-      ZStack(alignment: .topLeading) {
-        Color(.systemBackground)
-          .ignoresSafeArea()
-          .clipShape(
-            RoundedRectangle(cornerRadius: 15, style: .continuous)
-          )
-        VStack(alignment: .leading) {
-          HStack {
-            Spacer()
+      ZStack {
+        playerBackground()
+          .offset(y: offset.height)
 
-            Rectangle()
-              .foregroundColor(Color.gray.opacity(0.3))
-              .frame(width: 50, height: 5)
-              .cornerRadius(30)
-              .padding(.top)
+        ZStack {
+          // Keep interactive content draggable while preserving full-bleed background.
+          ZStack(alignment: .topLeading) {
+            Color(.systemBackground)
+              .ignoresSafeArea()
+              .clipShape(
+                RoundedRectangle(cornerRadius: 15, style: .continuous)
+              )
+            VStack(alignment: .leading) {
+              HStack {
+                Spacer()
 
-            Spacer()
-          }
-          VStack(alignment: .leading, spacing: 3) {
-            Text("Playing Next").customFont(.headline)
+                Rectangle()
+                  .foregroundColor(Color.gray.opacity(0.3))
+                  .frame(width: 50, height: 5)
+                  .cornerRadius(30)
+                  .padding(.top)
 
-            HStack(alignment: .bottom, spacing: 10) {
-              if viewModel.queue.isEmpty {
-                Text("").customFont(.subheadline)
-              } else {
-                Text(
-                  "From \(viewModel.nowPlaying.contextName ?? viewModel.nowPlaying.albumName ?? "")"
-                ).customFont(.subheadline)
+                Spacer()
               }
+              VStack(alignment: .leading, spacing: 3) {
+                Text("Playing Next").customFont(.headline)
 
-              Spacer()
-
-              Button {
-                viewModel.shuffleCurrentQueue()
-              } label: {
-                Image(systemName: "shuffle")
-                  .foregroundColor(Color.accentColor)
-                  .fontWeight(.bold)
-                  .padding(5)
-                  .background(
-                    viewModel.isShuffling ? Color.gray.opacity(0.2) : Color(.systemBackground)
-                  )
-                  .cornerRadius(5)
-              }
-
-              Button {
-                viewModel.setPlaybackMode()
-              } label: {
-                Image(systemName: "repeat")
-                  .foregroundColor(Color.accentColor)
-                  .fontWeight(.bold)
-                  .overlay(
-                    Group {
-                      Text("1")
-                        .font(.caption)
-                        .clipShape(Circle())
-                        .offset(x: 10, y: -5)
-                        .fontWeight(.bold)
-                    }.opacity(viewModel.playbackMode == PlaybackMode.repeatOnce ? 1 : 0)
-                  )
-                  .padding(5)
-                  .background(
-                    viewModel.playbackMode == PlaybackMode.defaultPlayback
-                      ? Color(.systemBackground) : Color.gray.opacity(0.2)
-                  )
-                  .cornerRadius(5)
-              }
-            }
-          }
-          .padding(.horizontal)
-          .padding(.bottom, 5)
-
-          ScrollView {
-            LazyVStack(alignment: .leading) {
-              ForEach(viewModel.queue.indices, id: \.self) { idx in
-                HStack(alignment: .top) {
-                  VStack(alignment: .leading) {
-                    Text(viewModel.queue[idx].songName ?? "")
-                      .customFont(.callout)
-                      .fontWeight(.medium)
-                      .padding(.bottom, 3)
-
-                    Text(viewModel.queue[idx].artistName ?? "")
-                      .customFont(.caption1)
+                HStack(alignment: .bottom, spacing: 10) {
+                  if viewModel.queue.isEmpty {
+                    Text("").customFont(.subheadline)
+                  } else {
+                    Text(
+                      "From \(viewModel.nowPlaying.contextName ?? viewModel.nowPlaying.albumName ?? "")"
+                    ).customFont(.subheadline)
                   }
-                  .frame(maxWidth: .infinity, alignment: .leading)
 
                   Spacer()
 
-                  Text(timeString(for: viewModel.queue[idx].duration)).customFont(.caption1)
-                    .padding(.top, 4)
-                }
-                .padding(.vertical, 5)
-                .padding(.horizontal)
-                .background(
-                  viewModel.activeQueueIdx == idx
-                    ? Color.gray.opacity(0.1) : Color(.systemBackground)
-                )
-                .onTapGesture {
-                  viewModel.playFromQueue(idx: idx)
-                }
-              }
-            }
-          }.padding(.bottom, 60)
-        }
-      }
-      .gesture(
-        DragGesture()
-          .updating($queueDragOffset) { value, state, _ in
-            if value.translation.height > 0 {
-              state = value.translation
-            }
-          }
-          .onEnded { value in
-            if value.translation.height > 100 {
-              self.showQueue = false
-            }
-          }
-      )
-      .animation(.spring(duration: 0.4), value: queueDragOffset.height)
-      .foregroundColor(.primary)
-      .zIndex(1)
-      .offset(
-        y: showQueue
-          ? size.height - 500 + queueDragOffset.height : size.height
-      )
-      .frame(height: 500)
-      .animation(.spring(duration: 0.2), value: showQueue)
+                  Button {
+                    viewModel.shuffleCurrentQueue()
+                  } label: {
+                    Image(systemName: "shuffle")
+                      .foregroundColor(Color.accentColor)
+                      .fontWeight(.bold)
+                      .padding(5)
+                      .background(
+                        viewModel.isShuffling ? Color.gray.opacity(0.2) : Color(.systemBackground)
+                      )
+                      .cornerRadius(5)
+                  }
 
-      ZStack {
-        if viewModel.isLyricsMode {
-          LyricsView(
-            viewModel: viewModel,
-            showQueue: $showQueue,
-            imageSize: imageSize
-          ).transition(.opacity.combined(with: .move(edge: .bottom)))
-        }
-
-        if !viewModel.isLyricsMode {
-          mainPlayerView(size: size, imageSize: imageSize).transition(.opacity)
-        }
-      }
-      .frame(maxHeight: .infinity)
-      .onChange(of: viewModel.isLiveRadio) { isLive in
-        if isLive {
-          showQueue = false
-        }
-      }
-      .background {
-        ZStack {
-          if UserDefaultsManager.playerBackground == PlayerBackground.translucent {
-            if let image = UIImage(contentsOfFile: viewModel.getAlbumCoverArt()) {
-              Image(uiImage: image)
-                .resizable()
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .blur(radius: 50, opaque: true)
-            } else {
-              LazyImage(url: URL(string: viewModel.getAlbumCoverArt())) { state in
-                if let image = state.image {
-                  image
-                    .resizable()
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .blur(radius: 50, opaque: true)
+                  Button {
+                    viewModel.setPlaybackMode()
+                  } label: {
+                    Image(systemName: "repeat")
+                      .foregroundColor(Color.accentColor)
+                      .fontWeight(.bold)
+                      .overlay(
+                        Group {
+                          Text("1")
+                            .font(.caption)
+                            .clipShape(Circle())
+                            .offset(x: 10, y: -5)
+                            .fontWeight(.bold)
+                        }.opacity(viewModel.playbackMode == PlaybackMode.repeatOnce ? 1 : 0)
+                      )
+                      .padding(5)
+                      .background(
+                        viewModel.playbackMode == PlaybackMode.defaultPlayback
+                          ? Color(.systemBackground) : Color.gray.opacity(0.2)
+                      )
+                      .cornerRadius(5)
+                  }
                 }
               }
+              .padding(.horizontal)
+              .padding(.bottom, 5)
+
+              ScrollView {
+                LazyVStack(alignment: .leading) {
+                  ForEach(viewModel.queue.indices, id: \.self) { idx in
+                    HStack(alignment: .top) {
+                      VStack(alignment: .leading) {
+                        Text(viewModel.queue[idx].songName ?? "")
+                          .customFont(.callout)
+                          .fontWeight(.medium)
+                          .padding(.bottom, 3)
+
+                        Text(viewModel.queue[idx].artistName ?? "")
+                          .customFont(.caption1)
+                      }
+                      .frame(maxWidth: .infinity, alignment: .leading)
+
+                      Spacer()
+
+                      Text(timeString(for: viewModel.queue[idx].duration)).customFont(.caption1)
+                        .padding(.top, 4)
+                    }
+                    .padding(.vertical, 5)
+                    .padding(.horizontal)
+                    .background(
+                      viewModel.activeQueueIdx == idx
+                        ? Color.gray.opacity(0.1) : Color(.systemBackground)
+                    )
+                    .onTapGesture {
+                      viewModel.playFromQueue(idx: idx)
+                    }
+                  }
+                }
+              }.padding(.bottom, 60)
+            }
+          }
+          .gesture(
+            DragGesture()
+              .updating($queueDragOffset) { value, state, _ in
+                if value.translation.height > 0 {
+                  state = value.translation
+                }
+              }
+              .onEnded { value in
+                if value.translation.height > 100 {
+                  self.showQueue = false
+                }
+              }
+          )
+          .animation(.spring(duration: 0.4), value: queueDragOffset.height)
+          .foregroundColor(.primary)
+          .zIndex(1)
+          .offset(
+            y: showQueue
+              ? size.height - 500 + queueDragOffset.height : size.height
+          )
+          .frame(height: 500)
+          .animation(.spring(duration: 0.2), value: showQueue)
+
+          ZStack {
+            if viewModel.isLyricsMode {
+              LyricsView(
+                viewModel: viewModel,
+                showQueue: $showQueue,
+                imageSize: imageSize,
+                topSafeInset: topSafeInset,
+                bottomSafeInset: bottomSafeInset
+              ).transition(.opacity.combined(with: .move(edge: .bottom)))
             }
 
-            Rectangle().fill(.thinMaterial)
-          } else {
-            Rectangle().fill(Color("PlayerColor"))
-          }
-        }
-        .environment(\.colorScheme, .dark)
-        .ignoresSafeArea()
-      }
-      .offset(y: offset.height)
-      .gesture(
-        DragGesture()
-          .onChanged { gesture in
             if !viewModel.isLyricsMode {
-              if gesture.translation.height > 0 {
-                offset = gesture.translation
-                isDragging = true
+              mainPlayerView(
+                size: size,
+                imageSize: imageSize,
+                topSafeInset: topSafeInset,
+                bottomSafeInset: bottomSafeInset
+              ).transition(.opacity)
+            }
+          }
+          .frame(maxHeight: .infinity)
+          .onChange(of: viewModel.isLiveRadio) { isLive in
+            if isLive {
+              showQueue = false
+            }
+          }
+        }
+        .offset(y: offset.height)
+        .gesture(
+          DragGesture()
+            .onChanged { gesture in
+              if !viewModel.isLyricsMode {
+                if gesture.translation.height > 0 {
+                  offset = gesture.translation
+                  isDragging = true
+                }
               }
             }
-          }
-          .onEnded { _ in
-            if offset.height > size.height / 3 {
-              isExpanded = false
+            .onEnded { _ in
+              if offset.height > size.height / 3 {
+                isExpanded = false
+              }
+              offset = .zero
+              isDragging = false
             }
-            offset = .zero
-            isDragging = false
-          }
-      )
-
+        )
+      }
     }
-    .background(Color.black.ignoresSafeArea())
     .foregroundColor(.white)
   }
 
+  private var windowTopSafeInset: CGFloat {
+    UIApplication.shared.connectedScenes
+      .compactMap { $0 as? UIWindowScene }
+      .flatMap(\.windows)
+      .first(where: \.isKeyWindow)?
+      .safeAreaInsets.top ?? 0
+  }
+
   @ViewBuilder
-  private func mainPlayerView(size: CGSize, imageSize: CGFloat) -> some View {
+  private func mainPlayerView(
+    size: CGSize,
+    imageSize: CGFloat,
+    topSafeInset: CGFloat,
+    bottomSafeInset: CGFloat
+  ) -> some View {
     VStack {
       Rectangle()
         .foregroundColor(Color.gray.opacity(0.8))
         .frame(width: 50, height: 5)
         .cornerRadius(30)
-        .padding(.top, 20)
+        .padding(.top, topSafeInset + 8)
 
       Spacer()
       let coverArtUrl = viewModel.getAlbumCoverArt()
@@ -382,6 +383,7 @@ struct PlayerView: View {
 
       bottomControlBar(showQueue: $showQueue)
         .padding(.top, 8)
+        .padding(.bottom, max(bottomSafeInset, 12))
 
       Spacer()
     }
@@ -469,6 +471,35 @@ struct PlayerView: View {
       .opacity(isQueueDisabled ? 0.4 : 1)
       .frame(maxWidth: .infinity)
     }
+  }
+
+  @ViewBuilder
+  private func playerBackground() -> some View {
+    ZStack {
+      if UserDefaultsManager.playerBackground == PlayerBackground.translucent {
+        if let image = UIImage(contentsOfFile: viewModel.getAlbumCoverArt()) {
+          Image(uiImage: image)
+            .resizable()
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .blur(radius: 50, opaque: true)
+        } else {
+          LazyImage(url: URL(string: viewModel.getAlbumCoverArt())) { state in
+            if let image = state.image {
+              image
+                .resizable()
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .blur(radius: 50, opaque: true)
+            }
+          }
+        }
+
+        Rectangle().fill(.thinMaterial)
+      } else {
+        Rectangle().fill(Color("PlayerColor"))
+      }
+    }
+    .environment(\.colorScheme, .dark)
+    .ignoresSafeArea()
   }
 
   @ViewBuilder

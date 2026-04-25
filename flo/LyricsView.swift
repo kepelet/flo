@@ -13,6 +13,8 @@ struct LyricsView: View {
   @Binding var showQueue: Bool
 
   let imageSize: CGFloat
+  let topSafeInset: CGFloat
+  let bottomSafeInset: CGFloat
 
   private var isPlainLyrics: Bool {
     return viewModel.lyrics.count == 1
@@ -69,7 +71,7 @@ struct LyricsView: View {
         }
       }
       .padding(.horizontal, 30)
-      .padding(.top, 16)
+      .padding(.top, topSafeInset + 8)
       .padding(.bottom, 16)
       .onTapGesture {
         viewModel.toggleLyricsMode()
@@ -200,6 +202,7 @@ struct LyricsView: View {
         }
         .padding(.horizontal, 30)
         .padding(.top, 10)
+        .padding(.bottom, max(bottomSafeInset, 12))
       }
     }
   }
