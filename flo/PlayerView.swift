@@ -278,7 +278,7 @@ struct PlayerView: View {
         }
       }
 
-      Spacer().frame(height: horizontalSizeClass == .regular ? 28 : 24)
+      Spacer().frame(height: horizontalSizeClass == .regular ? 44 : 36)
 
       VStack(alignment: .center, spacing: 10) {
         Text(viewModel.nowPlaying.songName ?? "")

@@ -75,7 +75,10 @@ struct HomeView: View {
         ScrollView {
           VStack(alignment: .leading, spacing: 16) {
             HStack {
-              Text("Home").font(.system(size: 32)).foregroundColor(.primary).fontWeight(.bold)
+              Text("")
+                .font(.system(size: 32))
+                .foregroundColor(.primary)
+                .fontWeight(.bold)
                 .padding(.vertical)
               Spacer()
               Menu {
