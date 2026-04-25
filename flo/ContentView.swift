@@ -177,54 +177,63 @@ struct ContentView: View {
   }
 
   var body: some View {
-    ZStack {
-      rootTabView
-
-      if playerViewModel.hasNowPlaying() && !playerViewModel.shouldHidePlayer {
-        PlayerView(isExpanded: $isPlayerExpanded, viewModel: playerViewModel)
-          .ignoresSafeArea()
-          .offset(y: isPlayerExpanded ? 0 : UIScreen.main.bounds.height)
-          .animation(.spring(duration: 0.2), value: isPlayerExpanded)
-      }
-
-      VStack {
-        Spacer()
+    GeometryReader { geometry in
+      ZStack {
+        rootTabView
 
         if playerViewModel.hasNowPlaying() && !playerViewModel.shouldHidePlayer {
-          let isSmallScreen = UIScreen.main.bounds.width <= 390
-          let bottomPadding: CGFloat = isSmallScreen ? 32 : 0
-
-          FloatingPlayerView(viewModel: playerViewModel)
-            .frame(maxWidth: horizontalSizeClass == .regular ? 500 : .infinity)
-            .padding(.bottom, 40 + bottomPadding)
-            .opacity(playerViewModel.hasNowPlaying() ? 1 : 0)
-            .offset(
-              x: self.floatingPlayerOffsetX, y: isPlayerExpanded ? UIScreen.main.bounds.height : 0
-            )
+          PlayerView(isExpanded: $isPlayerExpanded, viewModel: playerViewModel)
+            .ignoresSafeArea()
+            .offset(y: isPlayerExpanded ? 0 : UIScreen.main.bounds.height)
             .animation(.spring(duration: 0.2), value: isPlayerExpanded)
-            .onTapGesture {
-              self.isPlayerExpanded = true
-            }
-            .gesture(
-              DragGesture()
-                .onChanged { value in
-                  if value.translation.width < .zero {
-                    floatingPlayerOffsetX = value.translation.width
-                  }
+        }
 
-                  if abs(floatingPlayerOffsetX) > swipeThreshold && !isSwipping {
-                    isSwipping = true
-                  }
-                }
-                .onEnded { value in
-                  if abs(floatingPlayerOffsetX) > swipeThreshold && isSwipping {
-                    playerViewModel.destroyPlayerAndQueue()
-                  }
+        VStack {
+          Spacer()
 
-                  self.floatingPlayerOffsetX = .zero
-                  self.isSwipping = false
-                }
-            )
+          if playerViewModel.hasNowPlaying() && !playerViewModel.shouldHidePlayer {
+            let isSmallScreen = UIScreen.main.bounds.width <= 390
+            let isPad = UIDevice.current.userInterfaceIdiom == .pad
+            let bottomPadding: CGFloat = isSmallScreen ? 32 : 0
+            let playerWidth: CGFloat? = isPad
+              ? 720
+              : (horizontalSizeClass == .regular ? 500 : nil)
+            let playerBottomPadding: CGFloat = isPad
+              ? 0
+              : (40 + bottomPadding)
+
+            FloatingPlayerView(viewModel: playerViewModel)
+              .frame(maxWidth: playerWidth ?? .infinity)
+              .padding(.bottom, playerBottomPadding)
+              .opacity(playerViewModel.hasNowPlaying() ? 1 : 0)
+              .offset(
+                x: self.floatingPlayerOffsetX, y: isPlayerExpanded ? UIScreen.main.bounds.height : 0
+              )
+              .animation(.spring(duration: 0.2), value: isPlayerExpanded)
+              .onTapGesture {
+                self.isPlayerExpanded = true
+              }
+              .gesture(
+                DragGesture()
+                  .onChanged { value in
+                    if value.translation.width < .zero {
+                      floatingPlayerOffsetX = value.translation.width
+                    }
+
+                    if abs(floatingPlayerOffsetX) > swipeThreshold && !isSwipping {
+                      isSwipping = true
+                    }
+                  }
+                  .onEnded { value in
+                    if abs(floatingPlayerOffsetX) > swipeThreshold && isSwipping {
+                      playerViewModel.destroyPlayerAndQueue()
+                    }
+
+                    self.floatingPlayerOffsetX = .zero
+                    self.isSwipping = false
+                  }
+              )
+          }
         }
       }
     }
