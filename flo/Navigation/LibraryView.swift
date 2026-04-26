@@ -100,6 +100,8 @@ struct LibraryView: View {
           NavigationLink {
             ArtistsView(artists: viewModel.artists)
               .environmentObject(viewModel)
+              .environmentObject(playerViewModel)
+              .environmentObject(downloadViewModel)
               .onAppear {
                 viewModel.getArtists()
               }
@@ -257,23 +259,24 @@ struct LibraryView: View {
 }
 
 struct LibraryView_Previews: PreviewProvider {
-  static private var songs: [Song] = [
+  private static var songs: [Song] = [
     Song(
       id: "0", title: "Song name", albumId: "", albumName: "Album 1", artist: "",
       trackNumber: 1, discNumber: 0, bitRate: 0,
       sampleRate: 44100,
-      suffix: "m4a", duration: 100, mediaFileId: "0")
+      suffix: "m4a", duration: 100, mediaFileId: "0"
+    )
   ]
 
-  static private var albums: [Album] = [
+  private static var albums: [Album] = [
     Album(
       name: "Album 1",
       artist: "Artist 1",
       songs: songs
     )
   ]
-  @StateObject static private var playerViewModel: PlayerViewModel = PlayerViewModel()
-  @StateObject static private var viewModel: AlbumViewModel = AlbumViewModel(albums: albums)
+  @StateObject private static var playerViewModel: PlayerViewModel = .init()
+  @StateObject private static var viewModel: AlbumViewModel = .init(albums: albums)
 
   static var previews: some View {
     LibraryView(viewModel: viewModel).environmentObject(playerViewModel)

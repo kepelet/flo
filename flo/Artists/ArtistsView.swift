@@ -9,6 +9,8 @@ import SwiftUI
 
 struct ArtistsView: View {
   @EnvironmentObject private var viewModel: AlbumViewModel
+  @EnvironmentObject private var playerViewModel: PlayerViewModel
+  @EnvironmentObject private var downloadViewModel: DownloadViewModel
 
   @State private var searchArtist = ""
   @State private var filterAlbumArtistOnly: Bool = true
@@ -18,7 +20,8 @@ struct ArtistsView: View {
   var filteredArtists: [Artist] {
     artists.filter { artist in
       let matchesAlbumArtist = !filterAlbumArtistOnly || artist.stats.albumartist != nil
-      let matchesSearch = searchArtist.isEmpty || artist.name.localizedCaseInsensitiveContains(searchArtist)
+      let matchesSearch =
+        searchArtist.isEmpty || artist.name.localizedCaseInsensitiveContains(searchArtist)
       return matchesAlbumArtist && matchesSearch
     }
   }
@@ -30,6 +33,8 @@ struct ArtistsView: View {
           NavigationLink {
             ArtistDetailView(artist: artist)
               .environmentObject(viewModel)
+              .environmentObject(playerViewModel)
+              .environmentObject(downloadViewModel)
           } label: {
             VStack {
               HStack {
@@ -64,7 +69,9 @@ struct ArtistsView: View {
         Button {
           self.filterAlbumArtistOnly.toggle()
         } label: {
-          Label("Album Artist Only", systemImage: self.filterAlbumArtistOnly ?  "checkmark.circle" :  "circle")
+          Label(
+            "Album Artist Only",
+            systemImage: self.filterAlbumArtistOnly ? "checkmark.circle" : "circle")
         }
       } label: {
         Label("", systemImage: "ellipsis.circle")
