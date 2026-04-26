@@ -1,4 +1,4 @@
-fastlane_version "2.225.0"
+fastlane_version "2.233.0"
 default_platform(:ios)
 
 groups = ["Kepelet"]
@@ -44,7 +44,7 @@ platform :ios do
     sync_certs
     fetch_and_increment_build_number
 
-    build_app(configuration: configuration, xcodebuild_formatter: "cat")
+    build_app(configuration: configuration)
   end
 
   desc "push a new build to TestFlight"
