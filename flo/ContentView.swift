@@ -27,6 +27,43 @@ struct ContentView: View {
 
   private var swipeThreshold: CGFloat = 150.0
 
+  private func estimatedSidebarWidth(for totalWidth: CGFloat) -> CGFloat {
+    #if targetEnvironment(macCatalyst)
+      return min(max(totalWidth * 0.22, 220), 320)
+    #else
+      if UIDevice.current.userInterfaceIdiom == .pad {
+        return min(max(totalWidth * 0.28, 220), 320)
+      }
+      return 0
+    #endif
+  }
+
+  private func floatingPlayerContentCenterOffsetX(totalWidth: CGFloat) -> CGFloat {
+    #if targetEnvironment(macCatalyst)
+      return estimatedSidebarWidth(for: totalWidth) / 2
+    #else
+      // `.sidebarAdaptable` only renders an actual leading sidebar when the
+      // window is wide enough; in narrower iPad layouts (e.g. portrait, split
+      // view) it falls back to a top tab bar, so the offset must be skipped to
+      // avoid pushing the floating player off-screen.
+      guard UIDevice.current.userInterfaceIdiom == .pad,
+        horizontalSizeClass == .regular,
+        totalWidth >= 1000
+      else { return 0 }
+      return estimatedSidebarWidth(for: totalWidth) / 2
+    #endif
+  }
+
+  @ViewBuilder
+  private var baseBackgroundView: some View {
+    #if targetEnvironment(macCatalyst)
+      Color(.systemBackground)
+        .ignoresSafeArea()
+    #else
+      EmptyView()
+    #endif
+  }
+
   @ViewBuilder
   private var rootTabView: some View {
     if UIDevice.current.userInterfaceIdiom == .pad {
@@ -64,7 +101,8 @@ struct ContentView: View {
 
       PreferencesView(authViewModel: authViewModel).tabItem {
         Label("Preferences", systemImage: "gear")
-      }.environmentObject(playerViewModel).environmentObject(floooViewModel).environmentObject(inAppPurchaseManager)
+      }.environmentObject(playerViewModel).environmentObject(floooViewModel).environmentObject(
+        inAppPurchaseManager)
 
       if UserDefaultsManager.enableDebug {
         ConsoleView().tabItem {
@@ -100,11 +138,13 @@ struct ContentView: View {
           Tab("Artists", systemImage: "music.mic") {
             NavigationStack {
               ArtistsView(artists: albumViewModel.artists)
-                .environmentObject(albumViewModel)
                 .onAppear {
                   albumViewModel.getArtists()
                 }
             }
+            .environmentObject(albumViewModel)
+            .environmentObject(playerViewModel)
+            .environmentObject(downloadViewModel)
           }
 
           Tab("Liked Songs", systemImage: "heart.fill") {
@@ -179,12 +219,14 @@ struct ContentView: View {
   var body: some View {
     GeometryReader { geometry in
       ZStack {
+        baseBackgroundView
+
         rootTabView
 
         if playerViewModel.hasNowPlaying() && !playerViewModel.shouldHidePlayer {
           PlayerView(isExpanded: $isPlayerExpanded, viewModel: playerViewModel)
             .ignoresSafeArea()
-            .offset(y: isPlayerExpanded ? 0 : UIScreen.main.bounds.height)
+            .offset(y: isPlayerExpanded ? 0 : geometry.size.height)
             .animation(.spring(duration: 0.2), value: isPlayerExpanded)
         }
 
@@ -195,19 +237,28 @@ struct ContentView: View {
             let isSmallScreen = UIScreen.main.bounds.width <= 390
             let isPad = UIDevice.current.userInterfaceIdiom == .pad
             let bottomPadding: CGFloat = isSmallScreen ? 32 : 0
-            let playerWidth: CGFloat? = isPad
+            let playerWidth: CGFloat? =
+              isPad
               ? 720
               : (horizontalSizeClass == .regular ? 500 : nil)
-            let playerBottomPadding: CGFloat = isPad
-              ? 0
-              : (40 + bottomPadding)
+            let playerCenterOffsetX = floatingPlayerContentCenterOffsetX(
+              totalWidth: geometry.size.width
+            )
+            let playerBottomPadding: CGFloat = {
+              #if targetEnvironment(macCatalyst)
+                10
+              #else
+                isPad ? 0 : (40 + bottomPadding)
+              #endif
+            }()
 
             FloatingPlayerView(viewModel: playerViewModel)
               .frame(maxWidth: playerWidth ?? .infinity)
               .padding(.bottom, playerBottomPadding)
               .opacity(playerViewModel.hasNowPlaying() ? 1 : 0)
               .offset(
-                x: self.floatingPlayerOffsetX, y: isPlayerExpanded ? UIScreen.main.bounds.height : 0
+                x: playerCenterOffsetX + self.floatingPlayerOffsetX,
+                y: isPlayerExpanded ? geometry.size.height : 0
               )
               .animation(.spring(duration: 0.2), value: isPlayerExpanded)
               .onTapGesture {
@@ -220,12 +271,12 @@ struct ContentView: View {
                       floatingPlayerOffsetX = value.translation.width
                     }
 
-                    if abs(floatingPlayerOffsetX) > swipeThreshold && !isSwipping {
+                    if abs(floatingPlayerOffsetX) > swipeThreshold, !isSwipping {
                       isSwipping = true
                     }
                   }
-                  .onEnded { value in
-                    if abs(floatingPlayerOffsetX) > swipeThreshold && isSwipping {
+                  .onEnded { _ in
+                    if abs(floatingPlayerOffsetX) > swipeThreshold, isSwipping {
                       playerViewModel.destroyPlayerAndQueue()
                     }
 
