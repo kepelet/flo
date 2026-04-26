@@ -218,6 +218,14 @@ struct ContentView: View {
 
   var body: some View {
     GeometryReader { geometry in
+      let offScreenY: CGFloat = {
+        #if targetEnvironment(macCatalyst)
+          geometry.size.height
+        #else
+          UIScreen.main.bounds.height
+        #endif
+      }()
+
       ZStack {
         baseBackgroundView
 
@@ -226,7 +234,7 @@ struct ContentView: View {
         if playerViewModel.hasNowPlaying() && !playerViewModel.shouldHidePlayer {
           PlayerView(isExpanded: $isPlayerExpanded, viewModel: playerViewModel)
             .ignoresSafeArea()
-            .offset(y: isPlayerExpanded ? 0 : geometry.size.height)
+            .offset(y: isPlayerExpanded ? 0 : offScreenY)
             .animation(.spring(duration: 0.2), value: isPlayerExpanded)
         }
 
@@ -258,7 +266,7 @@ struct ContentView: View {
               .opacity(playerViewModel.hasNowPlaying() ? 1 : 0)
               .offset(
                 x: playerCenterOffsetX + self.floatingPlayerOffsetX,
-                y: isPlayerExpanded ? geometry.size.height : 0
+                y: isPlayerExpanded ? offScreenY : 0
               )
               .animation(.spring(duration: 0.2), value: isPlayerExpanded)
               .onTapGesture {
