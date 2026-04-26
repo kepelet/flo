@@ -10,6 +10,7 @@ import SwiftUI
 struct ArtistDetailView: View {
   @EnvironmentObject var viewModel: AlbumViewModel
   @EnvironmentObject var playerViewModel: PlayerViewModel
+  @EnvironmentObject var downloadViewModel: DownloadViewModel
 
   @StateObject var artistDetailViewModel = ArtistDetailViewModel()
 
@@ -36,7 +37,8 @@ struct ArtistDetailView: View {
     let range = NSRange(location: 0, length: biography.utf16.count)
 
     let stripped = regex.stringByReplacingMatches(
-      in: biography, range: range, withTemplate: "")
+      in: biography, range: range, withTemplate: ""
+    )
 
     return stripped == "" ? "No biography available" : stripped
   }
@@ -118,6 +120,8 @@ struct ArtistDetailView: View {
         ForEach(viewModel.artistAlbums) { album in
           NavigationLink {
             AlbumView(viewModel: viewModel)
+              .environmentObject(playerViewModel)
+              .environmentObject(downloadViewModel)
               .onAppear {
                 viewModel.setActiveAlbum(album: album)
               }
