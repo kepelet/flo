@@ -1578,6 +1578,9 @@
         }
       }
     },
+    "Hide quick links" : {
+
+    },
     "Home" : {
       "localizations" : {
         "de" : {
@@ -3089,6 +3092,9 @@
           }
         }
       }
+    },
+    "Show quick links" : {
+
     },
     "Shuffle" : {
       "localizations" : {
