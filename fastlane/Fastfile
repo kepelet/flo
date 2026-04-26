@@ -21,7 +21,7 @@ platform :ios do
     api_key = lane_context[SharedValues::APP_STORE_CONNECT_API_KEY]
 
     match({readonly: true, type: "appstore", api_key: api_key})
-    match({readonly: true, type: "appstore", platform: "catalyst", api_key: api_key})
+    match({readonly: true, type: "appstore", platform: "catalyst", app_identifier: "com.penerbangwalet.flo", api_key: api_key})
   end
 
   desc "bump build number based on latest TestFlight build number"
