@@ -7,10 +7,10 @@
 
 import Foundation
 
-struct API {
+enum API {
   static let NDAuthHeader = "X-ND-Authorization"
 
-  struct NDEndpoint {
+  enum NDEndpoint {
     static let login = "/auth/login"
     static let loginIAP: String? = "/auth/iap"
     static let getAlbum = "/api/album"
@@ -22,7 +22,7 @@ struct API {
     static let lastFMLink = "/api/lastfm/link"
   }
 
-  struct SubsonicEndpoint {
+  enum SubsonicEndpoint {
     static let stream = "/rest/stream"
     static let coverArt = "/rest/getCoverArt"
     static let albuminfo = "/rest/getAlbumInfo"
@@ -65,7 +65,14 @@ enum UserDefaultsKeys {
 }
 
 enum KeychainKeys {
-  static let service = AppMeta.identifier
+  // On iOS the app has historically shipped with this fixed service name; keep it
+  // to avoid logging existing users out on upgrade. On Mac Catalyst the keychain
+  // is namespaced by app bundle id, so use that to ensure writes succeed.
+  #if targetEnvironment(macCatalyst)
+    static let service = Bundle.main.bundleIdentifier ?? AppMeta.identifier
+  #else
+    static let service = AppMeta.identifier
+  #endif
   static let dataKey = "authCreds"
   static let serverPassword = "serverPassword"
 }

@@ -27,7 +27,7 @@ class AuthViewModel: ObservableObject {
 
   @Published var isSubmitting: Bool = false
   @Published var isLoggedIn: Bool = false
-  
+
   @Published var authMode: AuthMode = .standard
   @Published var iapJwtAssertion: String = ""
   @Published var useIAPAuth: Bool = false
@@ -51,29 +51,29 @@ class AuthViewModel: ObservableObject {
       {
         let data: UserAuth = try JSONDecoder().decode(UserAuth.self, from: jsonData)
 
-        self.serverUrl = UserDefaultsManager.serverBaseURL
-        self.username = data.username
-        
-        self.authMode = AuthService.shared.getAuthMode()
+        serverUrl = UserDefaultsManager.serverBaseURL
+        username = data.username
+
+        authMode = AuthService.shared.getAuthMode()
 
         if UserDefaultsManager.saveLoginInfo {
           do {
-            self.password = try KeychainManager.getAuthPassword() ?? ""
+            password = try KeychainManager.getAuthPassword() ?? ""
           } catch {
             print("Error loading password from Keychain: \(error)")
           }
 
           if authMode == .iap, let iapInfo = AuthService.shared.getIAPAuthInfo() {
-            self.loginWithIAP(jwtAssertion: iapInfo.jwtAssertion)
+            loginWithIAP(jwtAssertion: iapInfo.jwtAssertion)
           } else {
-            self.login()
+            login()
           }
         } else {
-
-          self.user = UserAuth(
+          user = UserAuth(
             id: data.id, username: data.username, name: data.name, isAdmin: data.isAdmin,
-            lastFMApiKey: data.lastFMApiKey)
-          self.isLoggedIn = true
+            lastFMApiKey: data.lastFMApiKey
+          )
+          isLoggedIn = true
         }
       }
     } catch {
@@ -132,8 +132,8 @@ class AuthViewModel: ObservableObject {
     do {
       try KeychainManager.removeAuthCreds()
 
-      self.destroySavedPassword()
-      
+      destroySavedPassword()
+
       if authMode == .iap {
         try? KeychainManager.removeIAPAuthInfo()
         try? KeychainManager.removeAuthMode()
@@ -142,10 +142,10 @@ class AuthViewModel: ObservableObject {
 
       UserDefaultsManager.removeObject(key: UserDefaultsKeys.serverURL)
 
-      self.user = nil
-      self.isLoggedIn = false
-      self.authMode = .standard
-    } catch let error {
+      user = nil
+      isLoggedIn = false
+      authMode = .standard
+    } catch {
       print("error>>>>> \(error)")
     }
   }
@@ -156,7 +156,7 @@ class AuthViewModel: ObservableObject {
 
       UserDefaultsManager.saveLoginInfo = false
       UserDefaultsManager.removeObject(key: UserDefaultsKeys.saveLoginInfo)
-    } catch let error {
+    } catch {
       print("error>>>>> \(error)")
     }
   }
@@ -166,24 +166,29 @@ class AuthViewModel: ObservableObject {
       let jsonData = try JSONEncoder().encode(data)
       let jsonString = String(data: jsonData, encoding: .utf8)!
 
-      try KeychainManager.setAuthCreds(newValue: jsonString)
+      do {
+        try KeychainManager.setAuthCreds(newValue: jsonString)
+      } catch {
+        print("Error saving auth creds to Keychain: \(error)")
+      }
 
       AuthService.shared.setCreds(data)
-      UserDefaultsManager.serverBaseURL = self.serverUrl
+      UserDefaultsManager.serverBaseURL = serverUrl
 
-      self.user = UserAuth(
+      user = UserAuth(
         id: data.id, username: data.username, name: data.name, isAdmin: data.isAdmin,
-        lastFMApiKey: data.lastFMApiKey)
+        lastFMApiKey: data.lastFMApiKey
+      )
     } catch {
-      print("Error saving data to Keychain: \(error)")
+      print("Error encoding auth data: \(error)")
     }
   }
-  
+
   func loginWithIAP(jwtAssertion: String? = nil) {
     isSubmitting = true
-    
-    let jwt = jwtAssertion ?? self.iapJwtAssertion
-    
+
+    let jwt = jwtAssertion ?? iapJwtAssertion
+
     guard !jwt.isEmpty else {
       DispatchQueue.main.async {
         self.isSubmitting = false
@@ -197,7 +202,7 @@ class AuthViewModel: ObservableObject {
       switch result {
       case .success(let data):
         self.persistAuthData(data)
-        
+
         self.authMode = .iap
 
         if UserDefaultsManager.saveLoginInfo {
@@ -228,13 +233,12 @@ class AuthViewModel: ObservableObject {
       }
     }
   }
-  
+
   func toggleAuthMode() {
     useIAPAuth.toggle()
   }
-  
+
   func isUsingIAPAuth() -> Bool {
     return authMode == .iap
   }
 }
-

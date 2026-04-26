@@ -3,25 +3,28 @@
 //  flo
 //
 
-import CarPlay
 import UIKit
 
-class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
-  private var coordinator: CarPlayCoordinator?
+#if canImport(CarPlay)
+  import CarPlay
 
-  func templateApplicationScene(
-    _ templateApplicationScene: CPTemplateApplicationScene,
-    didConnect interfaceController: CPInterfaceController
-  ) {
-    coordinator = CarPlayCoordinator(interfaceController: interfaceController)
-    coordinator?.start()
-  }
+  class CarPlaySceneDelegate: UIResponder, CPTemplateApplicationSceneDelegate {
+    private var coordinator: CarPlayCoordinator?
 
-  func templateApplicationScene(
-    _ templateApplicationScene: CPTemplateApplicationScene,
-    didDisconnectInterfaceController interfaceController: CPInterfaceController
-  ) {
-    coordinator?.stop()
-    coordinator = nil
+    func templateApplicationScene(
+      _: CPTemplateApplicationScene,
+      didConnect interfaceController: CPInterfaceController
+    ) {
+      coordinator = CarPlayCoordinator(interfaceController: interfaceController)
+      coordinator?.start()
+    }
+
+    func templateApplicationScene(
+      _: CPTemplateApplicationScene,
+      didDisconnectInterfaceController _: CPInterfaceController
+    ) {
+      coordinator?.stop()
+      coordinator = nil
+    }
   }
-}
+#endif
