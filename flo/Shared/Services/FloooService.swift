@@ -75,8 +75,8 @@ class FloooService {
       switch result {
       case .success(let status):
         listenBrainzStatus = status
-      case .failure(let err):
-        error = err
+      case .failure:
+        listenBrainzStatus = false
       }
 
       group.leave()
@@ -88,27 +88,19 @@ class FloooService {
       switch result {
       case .success(let status):
         lastFMStatus = status
-      case .failure(let err):
-        error = err
+      case .failure:
+        lastFMStatus = false
       }
 
       group.leave()
     }
 
     group.notify(queue: .main) {
-      if let error = error {
-        completion(.failure(error))
-
-        return
-      }
-
-      guard let listenBrainz = listenBrainzStatus, let lastFm = lastFMStatus else {
-        completion(.failure(NSError(domain: "", code: -1)))
-
-        return
-      }
-
-      completion(.success(AccountLinkStatus(listenBrainz: listenBrainz, lastFM: lastFm)))
+      completion(
+        .success(
+          AccountLinkStatus(
+            listenBrainz: listenBrainzStatus ?? false,
+            lastFM: lastFMStatus ?? false)))
     }
   }
 

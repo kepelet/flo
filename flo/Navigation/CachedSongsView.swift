@@ -1,33 +1,21 @@
 //
-//  SongsView.swift
+//  CachedSongsView.swift
 //  flo
-//
-//  Created by rizaldy on 17/11/24.
 //
 
 import NukeUI
 import SwiftUI
 
-struct SongsView: View {
-  @EnvironmentObject private var viewModel: AlbumViewModel
+struct CachedSongsView: View {
+  @ObservedObject var viewModel: AlbumViewModel
   @EnvironmentObject private var playerViewModel: PlayerViewModel
 
-  @State private var searchSong = ""
-
-  var filteredSongs: [Song] {
-    if searchSong.isEmpty {
-      return viewModel.songs
-    } else {
-      return viewModel.songs.filter { song in
-        song.title.localizedCaseInsensitiveContains(searchSong)
-      }
-    }
-  }
+  let songs: [Song]
 
   var body: some View {
     ScrollView {
       LazyVStack {
-        ForEach(filteredSongs, id: \.id) { song in
+        ForEach(Array(songs.enumerated()), id: \.element.id) { idx, song in
           VStack {
             HStack {
               LazyImage(url: URL(string: viewModel.getAlbumCoverArt(id: song.albumId))) { state in
@@ -61,6 +49,8 @@ struct SongsView: View {
               .padding(.horizontal, 10)
 
               Spacer()
+
+              Text(timeString(for: song.duration)).customFont(.caption1)
             }
             .padding(.horizontal)
             .background(Color(UIColor.systemBackground))
@@ -68,32 +58,16 @@ struct SongsView: View {
             Divider()
           }
           .onTapGesture {
-            guard let selectedSongIdx = viewModel.songs.firstIndex(where: { $0.id == song.id })
-            else {
-              return
-            }
-
-            var playlist = Playlist(name: "\"All Tracks\"")
-            playlist.songs = viewModel.songs
-
-            playerViewModel.playBySong(
-              idx: selectedSongIdx, item: playlist, isFromLocal: false
-            )
+            let cached = SongCollection(id: "cached-songs", name: "Cached", songs: songs)
+            playerViewModel.playBySong(idx: idx, item: cached, isFromLocal: true)
           }
           .frame(maxWidth: .infinity, alignment: .leading)
         }
       }
       .padding(.top, 10)
-      .padding(.bottom, 100)
-      .navigationTitle("Songs")
-      .refreshable {
-        await viewModel.refreshAllSongs()
-      }
-      .searchable(
-        text: $searchSong,
-        placement: .navigationBarDrawer(displayMode: .always),
-        prompt: "Search"
-      )
+      .padding(
+        .bottom, playerViewModel.hasNowPlaying() && !playerViewModel.shouldHidePlayer ? 100 : 0)
     }
+    .navigationTitle("Cached")
   }
 }

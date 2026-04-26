@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		02E566BC379A4C25B4AB907C /* CachedSongsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8455A32A2A31C3AA7C4DC99 /* CachedSongsView.swift */; };
+		0C1A2B3C4D5E6F7A8B9C0D1E /* LibraryCacheManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C2A3B4C5D6E7F8A9B0C1D2E /* LibraryCacheManager.swift */; };
+		0D1A2B3C4D5E6F7A8B9C0D1E /* CoverArtCacheManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D2A3B4C5D6E7F8A9B0C1D2E /* CoverArtCacheManager.swift */; };
+		0E1A2B3C4D5E6F7A8B9C0D1E /* LikedSongsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E2A3B4C5D6E7F8A9B0C1D2E /* LikedSongsView.swift */; };
 		50C912892F5DD9280087EE61 /* AuthMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50C912872F5DD9280087EE61 /* AuthMode.swift */; };
 		50C912912F5DD9990087EE61 /* IAPLoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50C9128A2F5DD9990087EE61 /* IAPLoginView.swift */; };
 		50C912A42F648A440087EE61 /* IAPWebAuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50C912A32F648A440087EE61 /* IAPWebAuthView.swift */; };
@@ -14,7 +18,7 @@
 		55CFFAB52342C01E366F87B0 /* CarPlayCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2645E70081EEE2C0396E04D8 /* CarPlayCoordinator.swift */; };
 		587A2E31AB9ADC1C724BE658 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = CFA9D48444F961601BF12316 /* AppDelegate.swift */; };
 		5E64C3D71B02BE8FEDF5FF3C /* CarPlaySceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 566B2E217C6248B16912297F /* CarPlaySceneDelegate.swift */; };
-		6BDAFB58A4C77A82BCCFD0F4 /* CarPlay.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE85DCBEE7ADB56E8BFD6338 /* CarPlay.framework */; };
+		6BDAFB58A4C77A82BCCFD0F4 /* CarPlay.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE85DCBEE7ADB56E8BFD6338 /* CarPlay.framework */; platformFilter = ios; };
 		7C09E28C1BFFDB5D5F124EC9 /* CarPlayNowPlayingManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0EEF17030A154EB98122A089 /* CarPlayNowPlayingManager.swift */; };
 		B02A003F2F36662C0024E8EC /* UIScreen+.swift in Sources */ = {isa = PBXBuildFile; fileRef = B02A003E2F3666240024E8EC /* UIScreen+.swift */; };
 		B0AD2E712F4B037400577062 /* ArtistDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0AD2E6E2F4B037400577062 /* ArtistDetailView.swift */; };
@@ -49,7 +53,7 @@
 		C42B25842F44551B00E62008 /* PlaybackCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = C42B25832F44551B00E62008 /* PlaybackCoordinator.swift */; };
 		C42B25862F44551B00E62008 /* WatchConnectivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C42B25852F44551B00E62008 /* WatchConnectivityManager.swift */; };
 		C42B25882F4456BF00E62008 /* WatchLibraryResponder.swift in Sources */ = {isa = PBXBuildFile; fileRef = C42B25872F4456BF00E62008 /* WatchLibraryResponder.swift */; };
-		C42B25972F4458EF00E62008 /* flo Watch Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = C42B258D2F4458ED00E62008 /* flo Watch Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		C42B25972F4458EF00E62008 /* flo Watch Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = C42B258D2F4458ED00E62008 /* flo Watch Watch App.app */; platformFilter = ios; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		C42B259C2F445B7000E62008 /* WatchArtistsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C42B25792F4453B600E62008 /* WatchArtistsView.swift */; };
 		C42B259D2F445B7000E62008 /* WatchHomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C42B256D2F44536D00E62008 /* WatchHomeView.swift */; };
 		C42B259E2F445B7000E62008 /* WatchPlaylistDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C42B257F2F4453CE00E62008 /* WatchPlaylistDetailView.swift */; };
@@ -114,6 +118,7 @@
 		C4A4BF3D2C1455A100363290 /* FloatingPlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4A4BF3C2C1455A100363290 /* FloatingPlayerView.swift */; };
 		C4B232EF2F44809F006A5044 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C4E8D95F2B763BAB00C2353E /* Assets.xcassets */; };
 		C4B7E6A42F3C1001001D9A01 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = C4B7E6A32F3C0FFF001D9A01 /* PrivacyInfo.xcprivacy */; };
+		C4CACHE012D7B0000003B9C4F /* StreamCacheManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4CACHE002D7B0000003B9C4F /* StreamCacheManager.swift */; };
 		C4D7F84D2C7F2AE900165EFD /* flo.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = C4D7F84B2C7F2AE900165EFD /* flo.xcdatamodeld */; };
 		C4D7F84F2C7F2C5D00165EFD /* PlaybackService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4D7F84E2C7F2C5D00165EFD /* PlaybackService.swift */; };
 		C4DE89182C2FFBC900E078CC /* CoreDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4DE89172C2FFBC900E078CC /* CoreDataManager.swift */; };
@@ -158,6 +163,9 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		0C2A3B4C5D6E7F8A9B0C1D2E /* LibraryCacheManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryCacheManager.swift; sourceTree = "<group>"; };
+		0D2A3B4C5D6E7F8A9B0C1D2E /* CoverArtCacheManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoverArtCacheManager.swift; sourceTree = "<group>"; };
+		0E2A3B4C5D6E7F8A9B0C1D2E /* LikedSongsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LikedSongsView.swift; sourceTree = "<group>"; };
 		0EEF17030A154EB98122A089 /* CarPlayNowPlayingManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CarPlayNowPlayingManager.swift; sourceTree = "<group>"; };
 		2645E70081EEE2C0396E04D8 /* CarPlayCoordinator.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CarPlayCoordinator.swift; sourceTree = "<group>"; };
 		50C912872F5DD9280087EE61 /* AuthMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthMode.swift; sourceTree = "<group>"; };
@@ -243,6 +251,7 @@
 		C4A4BF382C14445000363290 /* PreferencesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesView.swift; sourceTree = "<group>"; };
 		C4A4BF3C2C1455A100363290 /* FloatingPlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloatingPlayerView.swift; sourceTree = "<group>"; };
 		C4B7E6A32F3C0FFF001D9A01 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		C4CACHE002D7B0000003B9C4F /* StreamCacheManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreamCacheManager.swift; sourceTree = "<group>"; };
 		C4D7F84C2C7F2AE900165EFD /* flo.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = flo.xcdatamodel; sourceTree = "<group>"; };
 		C4D7F84E2C7F2C5D00165EFD /* PlaybackService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaybackService.swift; sourceTree = "<group>"; };
 		C4DE89172C2FFBC900E078CC /* CoreDataManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreDataManager.swift; sourceTree = "<group>"; };
@@ -262,6 +271,7 @@
 		C4FE524C2C14E71B0053763A /* KeychainManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainManager.swift; sourceTree = "<group>"; };
 		CE85DCBEE7ADB56E8BFD6338 /* CarPlay.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = CarPlay.framework; sourceTree = SDKROOT; };
 		CFA9D48444F961601BF12316 /* AppDelegate.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		E8455A32A2A31C3AA7C4DC99 /* CachedSongsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CachedSongsView.swift; sourceTree = "<group>"; };
 		F6CC2B5AA866663E09C3E38A /* SceneDelegate.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -424,6 +434,9 @@
 			children = (
 				C4F870CD2CEFCC5B00312F8A /* FloooService.swift */,
 				C4875DFF2C149D9000D9BAEB /* AlbumService.swift */,
+				C4CACHE002D7B0000003B9C4F /* StreamCacheManager.swift */,
+				0C2A3B4C5D6E7F8A9B0C1D2E /* LibraryCacheManager.swift */,
+				0D2A3B4C5D6E7F8A9B0C1D2E /* CoverArtCacheManager.swift */,
 				C4875E012C149DDD00D9BAEB /* AuthService.swift */,
 				C4875E032C149F9A00D9BAEB /* APIManager.swift */,
 				C4FE524A2C14E1F70053763A /* UserDefaultsManager.swift */,
@@ -447,8 +460,10 @@
 			children = (
 				C4A4BF302C14433D00363290 /* HomeView.swift */,
 				C4A4BF322C14437700363290 /* LibraryView.swift */,
+				E8455A32A2A31C3AA7C4DC99 /* CachedSongsView.swift */,
 				C4A4BF362C14442F00363290 /* DownloadsView.swift */,
 				C4A4BF382C14445000363290 /* PreferencesView.swift */,
+				0E2A3B4C5D6E7F8A9B0C1D2E /* LikedSongsView.swift */,
 			);
 			path = Navigation;
 			sourceTree = "<group>";
@@ -701,6 +716,7 @@
 				C47876022C2BF15900184A33 /* AlbumsView.swift in Sources */,
 				50C912A42F648A440087EE61 /* IAPWebAuthView.swift in Sources */,
 				C4824D272CE908DC003EAB52 /* SongsView.swift in Sources */,
+				0E1A2B3C4D5E6F7A8B9C0D1E /* LikedSongsView.swift in Sources */,
 				C456D8FA2F2FF33E002AAB8B /* LRCParser.swift in Sources */,
 				50C912892F5DD9280087EE61 /* AuthMode.swift in Sources */,
 				C4F870CE2CEFCC5E00312F8A /* FloooService.swift in Sources */,
@@ -731,6 +747,7 @@
 				C415F54E2C11908100E3E1D2 /* AuthViewModel.swift in Sources */,
 				C42B25842F44551B00E62008 /* PlaybackCoordinator.swift in Sources */,
 				50C912912F5DD9990087EE61 /* IAPLoginView.swift in Sources */,
+				02E566BC379A4C25B4AB907C /* CachedSongsView.swift in Sources */,
 				C4A4BF372C14442F00363290 /* DownloadsView.swift in Sources */,
 				C4100A692CE78B25001BC9BE /* PlaylistView.swift in Sources */,
 				C440228D2C09BE2E004EE9CD /* PlayerView.swift in Sources */,
@@ -741,6 +758,9 @@
 				C4D7F84F2C7F2C5D00165EFD /* PlaybackService.swift in Sources */,
 				C49134532C15BE0C00CCF2EB /* Strings.swift in Sources */,
 				C4875E002C149D9000D9BAEB /* AlbumService.swift in Sources */,
+				C4CACHE012D7B0000003B9C4F /* StreamCacheManager.swift in Sources */,
+				0C1A2B3C4D5E6F7A8B9C0D1E /* LibraryCacheManager.swift in Sources */,
+				0D1A2B3C4D5E6F7A8B9C0D1E /* CoverArtCacheManager.swift in Sources */,
 				C456D8FC2F2FF39B002AAB8B /* LyricsLine.swift in Sources */,
 				C429DB322D33C707009F2684 /* DownloadButtonView.swift in Sources */,
 				C4824D232CE8C41F003EAB52 /* Playable.swift in Sources */,
@@ -765,6 +785,7 @@
 /* Begin PBXTargetDependency section */
 		C42B25962F4458EF00E62008 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
+			platformFilter = ios;
 			target = C42B258C2F4458ED00E62008 /* flo Watch Watch App */;
 			targetProxy = C42B25952F4458EF00E62008 /* PBXContainerItemProxy */;
 		};
@@ -977,40 +998,55 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
-				CODE_SIGN_ENTITLEMENTS = flo/flo.entitlements;
+				"CODE_SIGN_ENTITLEMENTS[sdk=iphoneos*]" = flo/flo.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 211;
+				CURRENT_PROJECT_VERSION = 212;
 				DEVELOPMENT_ASSET_PATHS = "\"flo/Resources/Preview Content\"";
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 8BJ4LW5J8P;
+				"DEVELOPMENT_TEAM[sdk=macosx*]" = 8BJ4LW5J8P;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_INCOMING_NETWORK_CONNECTIONS = NO;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
 				ENABLE_PREVIEWS = YES;
+				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = NO;
+				ENABLE_RESOURCE_ACCESS_BLUETOOTH = NO;
+				ENABLE_RESOURCE_ACCESS_CALENDARS = NO;
+				ENABLE_RESOURCE_ACCESS_CAMERA = NO;
+				ENABLE_RESOURCE_ACCESS_CONTACTS = NO;
+				ENABLE_RESOURCE_ACCESS_LOCATION = NO;
+				ENABLE_RESOURCE_ACCESS_PRINTING = NO;
+				ENABLE_RESOURCE_ACCESS_USB = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = flo/Info.plist;
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.music";
-				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = NO;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UIStatusBarStyle = "";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.2;
+				MARKETING_VERSION = 2.3;
 				NEW_SETTING = "";
 				PRODUCT_BUNDLE_IDENTIFIER = com.penerbangwalet.flo;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "match Development com.penerbangwalet.flo";
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
-				SUPPORTS_MACCATALYST = NO;
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "match Development com.penerbangwalet.flo catalyst";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SUPPORTS_MACCATALYST = YES;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 1;
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
 		};
@@ -1021,41 +1057,56 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
-				CODE_SIGN_ENTITLEMENTS = flo/flo.entitlements;
+				"CODE_SIGN_ENTITLEMENTS[sdk=iphoneos*]" = flo/flo.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Distribution";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 211;
+				CURRENT_PROJECT_VERSION = 212;
 				DEVELOPMENT_ASSET_PATHS = "\"flo/Resources/Preview Content\"";
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 8BJ4LW5J8P;
+				"DEVELOPMENT_TEAM[sdk=macosx*]" = 8BJ4LW5J8P;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_INCOMING_NETWORK_CONNECTIONS = NO;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
 				ENABLE_PREVIEWS = YES;
+				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = NO;
+				ENABLE_RESOURCE_ACCESS_BLUETOOTH = NO;
+				ENABLE_RESOURCE_ACCESS_CALENDARS = NO;
+				ENABLE_RESOURCE_ACCESS_CAMERA = NO;
+				ENABLE_RESOURCE_ACCESS_CONTACTS = NO;
+				ENABLE_RESOURCE_ACCESS_LOCATION = NO;
+				ENABLE_RESOURCE_ACCESS_PRINTING = NO;
+				ENABLE_RESOURCE_ACCESS_USB = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = flo/Info.plist;
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.music";
-				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = NO;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UIStatusBarStyle = "";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.2;
+				MARKETING_VERSION = 2.3;
 				"MTL_ENABLE_DEBUG_INFO[arch=*]" = NO;
 				NEW_SETTING = "";
 				PRODUCT_BUNDLE_IDENTIFIER = com.penerbangwalet.flo;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "match AppStore com.penerbangwalet.flo 1773593177";
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
-				SUPPORTS_MACCATALYST = NO;
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "match AppStore com.penerbangwalet.flo catalyst";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SUPPORTS_MACCATALYST = YES;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 1;
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
 		};

@@ -13,6 +13,10 @@ import UIKit
 struct FloApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
 
+    init() {
+        StreamCacheManager.shared.reconcile()
+    }
+
     var body: some Scene {
         WindowGroup {
             ContentView()

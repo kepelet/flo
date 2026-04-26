@@ -36,6 +36,8 @@ struct IAPLoginView: View {
     }
     .background(Color(.systemBackground))
     .foregroundColor(.accent)
+    .presentationDetents([.large])
+    .presentationDragIndicator(.visible)
     .alert(isPresented: Binding<Bool>(
       get: { errorMessage != nil },
       set: { if !$0 { errorMessage = nil } }

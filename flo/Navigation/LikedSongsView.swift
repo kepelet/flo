@@ -1,33 +1,19 @@
 //
-//  SongsView.swift
+//  LikedSongsView.swift
 //  flo
-//
-//  Created by rizaldy on 17/11/24.
 //
 
 import NukeUI
 import SwiftUI
 
-struct SongsView: View {
+struct LikedSongsView: View {
   @EnvironmentObject private var viewModel: AlbumViewModel
   @EnvironmentObject private var playerViewModel: PlayerViewModel
-
-  @State private var searchSong = ""
-
-  var filteredSongs: [Song] {
-    if searchSong.isEmpty {
-      return viewModel.songs
-    } else {
-      return viewModel.songs.filter { song in
-        song.title.localizedCaseInsensitiveContains(searchSong)
-      }
-    }
-  }
 
   var body: some View {
     ScrollView {
       LazyVStack {
-        ForEach(filteredSongs, id: \.id) { song in
+        ForEach(Array(viewModel.starredSongs.enumerated()), id: \.element.id) { idx, song in
           VStack {
             HStack {
               LazyImage(url: URL(string: viewModel.getAlbumCoverArt(id: song.albumId))) { state in
@@ -68,32 +54,22 @@ struct SongsView: View {
             Divider()
           }
           .onTapGesture {
-            guard let selectedSongIdx = viewModel.songs.firstIndex(where: { $0.id == song.id })
-            else {
-              return
-            }
-
-            var playlist = Playlist(name: "\"All Tracks\"")
-            playlist.songs = viewModel.songs
-
-            playerViewModel.playBySong(
-              idx: selectedSongIdx, item: playlist, isFromLocal: false
-            )
+            let liked = SongCollection(
+              id: "starred-songs", name: "Liked Songs", songs: viewModel.starredSongs)
+            playerViewModel.playBySong(idx: idx, item: liked, isFromLocal: false)
           }
           .frame(maxWidth: .infinity, alignment: .leading)
         }
       }
       .padding(.top, 10)
       .padding(.bottom, 100)
-      .navigationTitle("Songs")
-      .refreshable {
-        await viewModel.refreshAllSongs()
-      }
-      .searchable(
-        text: $searchSong,
-        placement: .navigationBarDrawer(displayMode: .always),
-        prompt: "Search"
-      )
+      .navigationTitle("Liked Songs")
+    }
+    .onAppear {
+      viewModel.fetchStarredSongs()
+    }
+    .onChange(of: playerViewModel.isStarred) { _ in
+      viewModel.fetchStarredSongs()
     }
   }
 }

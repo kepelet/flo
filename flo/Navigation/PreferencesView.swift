@@ -116,6 +116,8 @@ struct PreferencesView: View {
 
   @State private var experimentalMaxBitrate = UserDefaultsManager.maxBitRate
   @State private var experimentalPlayerBackground = UserDefaultsManager.playerBackground
+  @State private var experimentalStreamCacheSize = UserDefaultsManager.streamCacheMaxSize
+  @State private var clearStreamCacheAlert = false
   @State private var experimentalLRCLIBIntegration = UserDefaultsManager.LRCLIBServerURL
   @State private var customLRCLIBServer = ""
 
@@ -169,7 +171,7 @@ struct PreferencesView: View {
     return "000000"
   }
 
-  var body: some View {
+  private var mainContent: some View {
     NavigationStack {
       Form {
         Section(header: Text("Local Storage")) {
@@ -190,6 +192,41 @@ struct PreferencesView: View {
             Spacer()
             Text(floooViewModel.localDirectorySize)
           }
+
+          HStack {
+            Text("Streaming cache")
+            Spacer()
+            Text(floooViewModel.streamCacheSize)
+          }
+
+          Picker("Cache limit", selection: $experimentalStreamCacheSize) {
+            Text("Off").tag(Int64(0))
+            Text("500 MB").tag(Int64(524_288_000))
+            Text("1 GB").tag(Int64(1_073_741_824))
+            Text("2 GB").tag(Int64(2_147_483_648))
+            Text("5 GB").tag(Int64(5_368_709_120))
+          }
+          .onChange(of: experimentalStreamCacheSize) { value in
+            UserDefaultsManager.streamCacheMaxSize = value
+          }
+
+          Button(action: {
+            self.clearStreamCacheAlert.toggle()
+          }) {
+            Text("Clear streaming cache")
+          }.alert(
+            "Clear Streaming Cache", isPresented: $clearStreamCacheAlert,
+            actions: {
+              Button(
+                "Clear", role: .destructive,
+                action: {
+                  StreamCacheManager.shared.clearCache()
+                  floooViewModel.getLocalStorageInformation()
+                })
+            },
+            message: {
+              Text("This will delete all cached streamed songs. Downloads are not affected.")
+            })
 
           Button(
             role: .destructive,
@@ -386,23 +423,6 @@ struct PreferencesView: View {
                 : "flo will store your server URL, username, and password in the Keychain with no biometric protection. If you enable this, flo will try to 'refresh' the auth token—by logging you in automatically—every time you open flo so you'll never log out unless you do it explicitly (it will also reset this option). Logging in via OAuth will reset this option."
             ).font(.caption).foregroundColor(.gray)
           }
-          .sheet(isPresented: shouldShowLoginSheet) {
-            Login(viewModel: authViewModel, showLoginSheet: $showLoginSheet)
-              .onDisappear {
-                if authViewModel.isLoggedIn {
-                  self.floooViewModel.checkScanStatus()
-                  self.floooViewModel.checkAccountLinkStatus()
-                }
-
-                if UserDefaultsManager.enableDebug {
-                  floooViewModel.getUserDefaults()
-                }
-
-                if !showLoginSheet && authViewModel.experimentalSaveLoginInfo {
-                  authViewModel.experimentalSaveLoginInfo = false
-                }
-              }
-          }
 
           if authViewModel.isLoggedIn {
             VStack(alignment: .leading, spacing: 6) {
@@ -581,6 +601,38 @@ struct PreferencesView: View {
         .textContentType(.none)
     } message: {
       Text("Learn more at https://dub.sh/flo-lrclib")
+    }
+  }
+
+  private var loginContent: some View {
+    Login(viewModel: authViewModel, showLoginSheet: $showLoginSheet)
+      .onDisappear {
+        if authViewModel.isLoggedIn {
+          self.floooViewModel.checkScanStatus()
+          self.floooViewModel.checkAccountLinkStatus()
+        }
+
+        if UserDefaultsManager.enableDebug {
+          floooViewModel.getUserDefaults()
+        }
+
+        if !showLoginSheet && authViewModel.experimentalSaveLoginInfo {
+          authViewModel.experimentalSaveLoginInfo = false
+        }
+      }
+  }
+
+  var body: some View {
+    Group {
+      if UIDevice.current.userInterfaceIdiom == .pad {
+        AnyView(mainContent.fullScreenCover(isPresented: shouldShowLoginSheet) {
+          loginContent
+        })
+      } else {
+        AnyView(mainContent.sheet(isPresented: shouldShowLoginSheet) {
+          loginContent
+        })
+      }
     }
   }
 }

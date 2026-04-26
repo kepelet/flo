@@ -3,6 +3,12 @@
   "strings" : {
     "" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : " "
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -10,6 +16,12 @@
           }
         },
         "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : " "
+          }
+        },
+        "nb" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : " "
@@ -19,16 +31,34 @@
     },
     "'%@' has been downloaded" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "'%@' wurde heruntergeladen"
+          }
+        },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "'%@' sudah terunduh"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "'%@' har blitt nedlastet"
           }
         }
       }
     },
     "%@" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -40,11 +70,23 @@
             "state" : "translated",
             "value" : "%@"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@"
+          }
         }
       }
     },
     "%@   %@" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@   %2$@"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "new",
@@ -56,11 +98,23 @@
             "state" : "translated",
             "value" : "%@ %@"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ %@"
+          }
         }
       }
     },
     "%@ (%@)" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ (%2$@)"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "new",
@@ -72,11 +126,23 @@
             "state" : "translated",
             "value" : "%@ (%@)"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ (%@)"
+          }
         }
       }
     },
     "%@ • %@" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ • %2$@"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "new",
@@ -88,11 +154,43 @@
             "state" : "translated",
             "value" : "%@ • %@"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ • %@"
+          }
+        }
+      }
+    },
+    "%@ Radio" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@-Radio"
+          }
+        }
+      }
+    },
+    "%@ Top Songs" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ Top-Songs"
+          }
         }
       }
     },
     "%@%@" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@%2$@"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "new",
@@ -104,12 +202,30 @@
             "state" : "translated",
             "value" : "%1$@%2$@"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@%2$@"
+          }
         }
       }
     },
     "%@%%" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@%%"
+          }
+        },
         "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@%%"
+          }
+        },
+        "nb" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@%%"
@@ -119,7 +235,19 @@
     },
     "%lld" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld"
+          }
+        },
         "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld"
+          }
+        },
+        "nb" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "%lld"
@@ -127,8 +255,37 @@
         }
       }
     },
+    "%lld albums" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld Alben"
+          }
+        }
+      }
+    },
+    "%lld songs" : {
+
+    },
+    "%lld tracks" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld Titel"
+          }
+        }
+      }
+    },
     "•" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "•"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -136,6 +293,12 @@
           }
         },
         "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "•"
+          }
+        },
+        "nb" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "•"
@@ -145,6 +308,12 @@
     },
     "1" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -156,11 +325,35 @@
             "state" : "translated",
             "value" : "1"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1"
+          }
         }
       }
     },
+    "1 GB" : {
+
+    },
+    "2 GB" : {
+
+    },
+    "5 GB" : {
+
+    },
+    "500 MB" : {
+
+    },
     "About flo" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Über flo"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -172,11 +365,23 @@
             "state" : "translated",
             "value" : "Tentang flo"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Om flo"
+          }
         }
       }
     },
     "Accent color" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Akzentfarbe"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -188,45 +393,101 @@
             "state" : "translated",
             "value" : "Warna aksen"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aksentfarge"
+          }
         }
       }
     },
     "Add radios in your Navidrome server." : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Füge Radios auf deinem Navidrome-Server hinzu."
+          }
+        },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tambahkan Radio melalui server Navidrome"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Legg til radioer på din Navidrome server"
           }
         }
       }
     },
     "Add/Change Custom" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eigene hinzufügen/ändern"
+          }
+        },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tambah/Ubah Custom"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Legg til/Endre Custom"
           }
         }
       }
     },
     "Advanced Settings" : {
       "comment" : "A toggle label for advanced settings in the IAP login view.",
-      "isCommentAutoGenerated" : true
+      "isCommentAutoGenerated" : true,
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erweiterte Einstellungen"
+          }
+        }
+      }
     },
     "Album Artist Only" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nur Album-Künstler"
+          }
+        },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Hanya Album Artist"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kun Album Artist"
           }
         }
       }
     },
     "Album Info" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Albuminfo"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -238,31 +499,87 @@
             "state" : "translated",
             "value" : "Info album"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Album Informasjon"
+          }
+        }
+      }
+    },
+    "Albums" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alben"
+          }
+        }
+      }
+    },
+    "All Tracks" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alle Titel"
+          }
         }
       }
     },
     "Alternate app icons are not supported on this device." : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alternative App-Icons werden auf diesem Gerät nicht unterstützt."
+          }
+        },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ikon alternatif aplikasi tidak didukung di perangkat ini."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alternative appikoner er ikke støttet på denne enheten."
           }
         }
       }
     },
     "App Icon" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App-Icon"
+          }
+        },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ikon Aplikasi"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App Ikon"
           }
         }
       }
     },
     "App Version" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App-Version"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -274,12 +591,30 @@
             "state" : "translated",
             "value" : "Versi aplikasi"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App Versjon"
+          }
         }
       }
     },
     "Artist Radio" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Künstler-Radio"
+          }
+        },
         "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Artist Radio"
+          }
+        },
+        "nb" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Artist Radio"
@@ -289,6 +624,12 @@
     },
     "Artists" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Künstler"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -300,35 +641,94 @@
             "state" : "translated",
             "value" : "Artis"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Artister"
+          }
         }
       }
     },
     "Authenticate" : {
-      "comment" : "The text of the button that allows a user to authenticate with their in-app purchases.",
-      "isCommentAutoGenerated" : true
+      "comment" : "The text of the button that allows a user to authenticate with their IAP",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Authentifizieren"
+          }
+        }
+      }
     },
     "Authenticate using OAuth2-Proxy or Identity-Aware Proxy" : {
       "comment" : "A description below the IAP login form, explaining how to authenticate using an IAP server.",
-      "isCommentAutoGenerated" : true
+      "isCommentAutoGenerated" : true,
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Authentifizierung über OAuth2-Proxy oder Identity-Aware Proxy"
+          }
+        }
+      }
     },
     "Authenticating..." : {
       "comment" : "A label displayed while waiting for the IAP authentication to complete.",
-      "isCommentAutoGenerated" : true
+      "isCommentAutoGenerated" : true,
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Authentifizierung läuft..."
+          }
+        }
+      }
     },
     "Authentication Failed" : {
       "comment" : "A title that appears when IAP authentication fails.",
-      "isCommentAutoGenerated" : true
+      "isCommentAutoGenerated" : true,
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Authentifizierung fehlgeschlagen"
+          }
+        }
+      }
     },
     "Authentication Token Cookie Name" : {
       "comment" : "A description of the authentication token cookie name setting.",
-      "isCommentAutoGenerated" : true
+      "isCommentAutoGenerated" : true,
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Name des Authentifizierungstoken-Cookies"
+          }
+        }
+      }
     },
     "Authentication Token Header Name" : {
       "comment" : "A label displayed above a text field that lets the user specify the name of the HTTP header containing their JWT token.",
-      "isCommentAutoGenerated" : true
+      "isCommentAutoGenerated" : true,
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Name des Authentifizierungstoken-Headers"
+          }
+        }
+      }
     },
     "Bring your music anywhere, even when you're offline. Your downloaded music will be here." : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nimm deine Musik überall hin mit, auch wenn du offline bist. Deine heruntergeladene Musik findest du hier."
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -340,11 +740,23 @@
             "state" : "translated",
             "value" : "Bawa musik kamu ke mana saja, bahkan saat kamu sedang offline. Musik yang kamu unduh akan ada di sini."
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ta med musikken din hvor som helst, selv når du er frakoblet. Din nedlastede musikk vil være her."
+          }
         }
       }
     },
     "by %@ (%@)" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "von %1$@ (%2$@)"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "new",
@@ -356,11 +768,29 @@
             "state" : "translated",
             "value" : "oleh %1$@ (%2$@)"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "av %1$@ (%2$@)"
+          }
         }
       }
     },
+    "Cache limit" : {
+
+    },
+    "Cached" : {
+
+    },
     "Cancel" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abbrechen"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -372,21 +802,48 @@
             "state" : "translated",
             "value" : "Batal"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Avbryt"
+          }
         }
       }
     },
+    "Clear" : {
+
+    },
     "Clear Downloaded/Canceled Queue" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Heruntergeladene/Abgebrochene Warteschlange leeren"
+          }
+        },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Hapus antrian unduhan yang sudah selesai/dibatalkan"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tøm Nedlastet/Kansellert Kø"
           }
         }
       }
     },
     "Clear listening history (no alert and irreversible)" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hörverlauf löschen (ohne Warnung und unwiderruflich)"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -398,11 +855,29 @@
             "state" : "translated",
             "value" : "Hapus riwayat mendengarkan (tanpa peringatan dan tidak dapat dibatalkan)"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tøm lyttehistorikk (ingen varsel og irreversibelt)"
+          }
         }
       }
     },
+    "Clear streaming cache" : {
+
+    },
+    "Clear Streaming Cache" : {
+
+    },
     "Continue" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fortsetzen"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -414,11 +889,43 @@
             "state" : "translated",
             "value" : "Lanjutkan"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fortsett"
+          }
+        }
+      }
+    },
+    "Could not load radio for %@." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Radio für %@ konnte nicht geladen werden."
+          }
+        }
+      }
+    },
+    "Could not load top songs for %@." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Top-Songs für %@ konnten nicht geladen werden."
+          }
         }
       }
     },
     "Currently the output format is MP3 due to compatibility issues; however, MP3 is less efficient in streaming at lower bitrates compared to modern codecs like Opus." : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Derzeit ist das Ausgabeformat MP3 aufgrund von Kompatibilitätsproblemen; MP3 ist jedoch beim Streaming mit niedrigen Bitraten weniger effizient als moderne Codecs wie Opus."
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -430,11 +937,23 @@
             "state" : "translated",
             "value" : "Saat ini format keluarannya adalah MP3 karena masalah kompatibilitas; namun, MP3 kurang efisien dalam streaming pada bitrate yang lebih rendah dibandingkan dengan codec modern seperti Opus."
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "For øyeblikket er utgangsformatet MP3 på grunn av kompatibilitetsproblemer; men, MP3 er mindre effektivt ved strømming på lavere bithastigheter sammenlignet med moderne kodeker som Opus."
+          }
         }
       }
     },
     "Debug" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Debug"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -446,11 +965,23 @@
             "state" : "translated",
             "value" : "Debug"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Feilsøk"
+          }
         }
       }
     },
     "Description (i.e: for my wife)" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Beschreibung (z.B.: für meine Frau)"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -462,11 +993,23 @@
             "state" : "translated",
             "value" : "Deskripsi (cth: untuk istri)"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Beskrivelse (i.e: for min kone)"
+          }
         }
       }
     },
     "Development" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entwicklung"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -478,21 +1021,45 @@
             "state" : "translated",
             "value" : "Pengembangan"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Utvikling"
+          }
         }
       }
     },
     "Disabled" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deaktiviert"
+          }
+        },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Disabled"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deaktivert"
           }
         }
       }
     },
     "Download" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Herunterladen"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -504,21 +1071,55 @@
             "state" : "translated",
             "value" : "Unduh"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Last ned"
+          }
+        }
+      }
+    },
+    "Download music from the app" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lade Musik aus der App herunter"
+          }
         }
       }
     },
     "Download Queue" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Download-Warteschlange"
+          }
+        },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Antrian Unduhan"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nedlastningskø"
           }
         }
       }
     },
     "Downloaded Albums" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Heruntergeladene Alben"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -530,11 +1131,23 @@
             "state" : "translated",
             "value" : "Album terunduh"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nedlastede Album"
+          }
         }
       }
     },
     "Downloaded Songs" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Heruntergeladene Songs"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -546,11 +1159,23 @@
             "state" : "translated",
             "value" : "Lagu terunduh"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nedlastede Sanger"
+          }
         }
       }
     },
     "Downloads" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Downloads"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -562,43 +1187,101 @@
             "state" : "translated",
             "value" : "Unduhan"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nedlastninger"
+          }
         }
       }
     },
     "e.g., _oauth2_proxy, KEYCLOAK_IDENTITY" : {
       "comment" : "A placeholder text for the \"Authentication Token Cookie Name\" field in the IAP login view.",
-      "isCommentAutoGenerated" : true
+      "isCommentAutoGenerated" : true,
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "z.B. _oauth2_proxy, KEYCLOAK_IDENTITY"
+          }
+        }
+      }
     },
     "e.g., username, user, preferred_username" : {
-      "comment" : "A placeholder text for the \"Username Cookie Name\" field in the advanced settings of the in-app purchase login view.",
-      "isCommentAutoGenerated" : true
+      "comment" : "A placeholder text for the \"Username Cookie Name\" field in the advanced settings of the IAP login view.",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "z.B. username, user, preferred_username"
+          }
+        }
+      }
     },
     "e.g., x-auth-request-access-token" : {
-      "comment" : "A placeholder text for the authentication token header name field in the advanced settings of the in-app purchase login view.",
-      "isCommentAutoGenerated" : true
+      "comment" : "A placeholder text for the authentication token header name field in the advanced settings of the IAP login view.",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "z.B. x-auth-request-access-token"
+          }
+        }
+      }
     },
     "Enable Debug" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Debug-Modus aktivieren"
+          }
+        },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Aktifkan Debug"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aktiver Feilsøking"
           }
         }
       }
     },
     "Enabling this option may affect the experience." : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das Aktivieren dieser Option kann die Nutzung beeinträchtigen."
+          }
+        },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Mengaktifkan opsi ini dapat memengaruhi pengalaman."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aktivering av dette alternative kan påvirke opplevelsen."
           }
         }
       }
     },
     "Experimental" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Experimentell"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -610,15 +1293,86 @@
             "state" : "translated",
             "value" : "Eksperimental"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eksperimentel"
+          }
+        }
+      }
+    },
+    "Failed to load albums" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alben konnten nicht geladen werden"
+          }
+        }
+      }
+    },
+    "Failed to load artists" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Künstler konnten nicht geladen werden"
+          }
+        }
+      }
+    },
+    "Failed to load liked songs" : {
+
+    },
+    "Failed to load playlists" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Playlists konnten nicht geladen werden"
+          }
+        }
+      }
+    },
+    "Failed to load radios" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Radios konnten nicht geladen werden"
+          }
+        }
+      }
+    },
+    "Failed to load songs" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Songs konnten nicht geladen werden"
+          }
         }
       }
     },
     "flo will store your server URL, username, and password in the Keychain with no biometric protection. If you enable this, flo will try to 'refresh' the auth token—by logging you in automatically—every time you open flo so you'll never log out unless you do it explicitly (it will also reset this option). Logging in via OAuth will reset this option." : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "flo speichert deine Server-URL, deinen Benutzernamen und dein Passwort ohne biometrischen Schutz im Schlüsselbund. Wenn du dies aktivierst, versucht flo bei jedem Öffnen das Authentifizierungstoken zu erneuern — indem du automatisch angemeldet wirst — sodass du nie abgemeldet wirst, es sei denn, du tust es ausdrücklich (dies setzt auch diese Option zurück). Die Anmeldung über OAuth setzt diese Option zurück."
+          }
+        },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "flo akan menyimpan URL server, nama pengguna, dan kata sandi kamu di Keychain tanpa perlindungan biometrik. Jika kamu mengaktifkannya, flo akan mencoba untuk ‘menyegarkan’ token autentikasi—dengan melakukan login secara otomatis—setiap kali kamu membuka flo sehingga kamu tidak akan pernah logout kecuali kamu melakukannya secara eksplisit (dan juga akan me-reset opsi ini)."
+            "value" : "flo akan menyimpan URL server, nama pengguna, dan kata sandi kamu di Keychain tanpa perlindungan biometrik. Jika kamu mengaktifkannya, flo akan mencoba untuk 'menyegarkan' token autentikasi—dengan melakukan login secara otomatis—setiap kali kamu membuka flo sehingga kamu tidak akan pernah logout kecuali kamu melakukannya secara eksplisit (dan juga akan me-reset opsi ini)."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "flo vil lagre din server URL, brukernavn, og passord i Nøkkelringen uten biometrisk beskyttelse. Hvis du aktiverer dette, vil flo prøve å 'oppdatere' auth tokenet-ved å logge deg in automatisk-hver gang du åpner flo så du aldri vil logges ut med mindre du selv gjør det eksplisitt (dette vil også tilbakestille dette alternativet)"
           }
         }
       }
@@ -626,16 +1380,34 @@
     "flo+ purchased" : {
       "extractionState" : "stale",
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "flo+ gekauft"
+          }
+        },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "flo+ telah terbeli"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "flo+ kjøpt"
           }
         }
       }
     },
     "Font Family" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Schrift-Familie"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -647,11 +1419,23 @@
             "state" : "translated",
             "value" : "Keluarga font"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fontfamilie"
+          }
         }
       }
     },
     "For now this action means 'Delete all downloaded albums and songs' including its content. Continue?" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Diese Aktion bedeutet derzeit „Alle heruntergeladenen Alben und Songs löschen“ einschließlich deren Inhalt. Fortfahren?"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -663,21 +1447,45 @@
             "state" : "translated",
             "value" : "Untuk saat ini tindakan ini berarti 'Hapus semua album dan lagu yang diunduh' termasuk kontennya. Lanjutkan?"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Foreløpig betyr denne handlingen 'Slett alle nedlastede album og sanger' inkludert deres innhold. Fortsett?"
+          }
         }
       }
     },
     "Force Logout" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abmelden erzwingen"
+          }
+        },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Logout paksa"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tving utlogging"
           }
         }
       }
     },
     "From %@" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Von %@"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -689,21 +1497,45 @@
             "state" : "translated",
             "value" : "Dari %@"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fra %@"
+          }
         }
       }
     },
     "Get a dedicated channel on flo Campfire" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erhalte einen eigenen Kanal auf flo Campfire"
+          }
+        },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Dapatkan channel khusus di flo Campfire"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Få en dedikert kanal på flo Campfire"
           }
         }
       }
     },
     "Going off the grid?" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Offline unterwegs?"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -715,21 +1547,48 @@
             "state" : "translated",
             "value" : "Keluar dari jaringan?"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skal du være koblet fra nettet?"
+          }
         }
       }
     },
     "Help fund flo development" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unterstütze die Entwicklung von flo"
+          }
+        },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Bantu danai pengembangan flo"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hjelp å finansier flo sin utvikling"
+          }
         }
       }
     },
+    "Hide quick links" : {
+
+    },
     "Home" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Startseite"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -741,12 +1600,30 @@
             "state" : "translated",
             "value" : "Beranda"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hjem"
+          }
         }
       }
     },
     "https://lrclib.your-server.net" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "https://lrclib.dein-server.net"
+          }
+        },
         "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "https://lrclib.your-server.net"
+          }
+        },
+        "nb" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "https://lrclib.your-server.net"
@@ -756,26 +1633,56 @@
     },
     "Keychain.%@" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keychain.%@"
+          }
+        },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Keychain.%@"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nøkkelring.%@"
           }
         }
       }
     },
     "Learn more at https://dub.sh/flo-lrclib" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mehr erfahren unter https://dub.sh/flo-lrclib"
+          }
+        },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Selengkapnya di https://dub.sh/flo-lrclib"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lær mer på https://dub.sh/flo-lrclib"
           }
         }
       }
     },
     "Library" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bibliothek"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -787,11 +1694,26 @@
             "state" : "translated",
             "value" : "Koleksi"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bibliotek"
+          }
         }
       }
     },
+    "Liked Songs" : {
+
+    },
     "Link copied to clipboard! (%@)" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Link in die Zwischenablage kopiert! (%@)"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -803,11 +1725,23 @@
             "state" : "translated",
             "value" : "Tautan disalin ke papan klip! (%@)"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lenke kopiert til utklippstavle"
+          }
         }
       }
     },
     "Listening Activity (all time)" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Höraktivität (Gesamthistorie)"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -819,12 +1753,30 @@
             "state" : "translated",
             "value" : "Riwayat mendengarkan (sepanjang waktu)"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lytteaktivitet (hele tiden)"
+          }
         }
       }
     },
     "LIVE" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "LIVE"
+          }
+        },
         "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "LIVE"
+          }
+        },
+        "nb" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "LIVE"
@@ -832,8 +1784,44 @@
         }
       }
     },
+    "Loading downloads…" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Downloads werden geladen…"
+          }
+        }
+      }
+    },
+    "Loading playlists…" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Playlists werden geladen…"
+          }
+        }
+      }
+    },
+    "Loading stations…" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sender werden geladen…"
+          }
+        }
+      }
+    },
     "Local Storage" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lokaler Speicher"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -845,11 +1833,23 @@
             "state" : "translated",
             "value" : "Penyimpanan lokal"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lokal lagringsplass"
+          }
         }
       }
     },
     "Logged in as %@" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Angemeldet als %@"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -861,11 +1861,23 @@
             "state" : "translated",
             "value" : "Login sebagai %@"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Logget inn som %@"
+          }
         }
       }
     },
     "Login" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anmelden"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -877,11 +1889,23 @@
             "state" : "translated",
             "value" : "Login"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Logg inn"
+          }
         }
       }
     },
     "Login Failed" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anmeldung fehlgeschlagen"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -893,11 +1917,23 @@
             "state" : "translated",
             "value" : "Login gagal"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pålogging mislyktes"
+          }
         }
       }
     },
     "Login to your Navidrome server to continue" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Melde dich bei deinem Navidrome-Server an, um fortzufahren"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -909,15 +1945,34 @@
             "state" : "translated",
             "value" : "Login ke server Navidrome kamu untuk melanjutkan"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Logg på din Navidrome server for å fortsette"
+          }
         }
       }
     },
     "Login with IAP" : {
-      "comment" : "A button label that allows users to log in using in-app purchases.",
-      "isCommentAutoGenerated" : true
+      "comment" : "A button label that allows users to log in using IAP.",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mit IAP anmelden"
+          }
+        }
+      }
     },
     "Logout" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abmelden"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -929,12 +1984,30 @@
             "state" : "translated",
             "value" : "Logout"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Logg ut"
+          }
         }
       }
     },
     "LRCLIB" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "LRCLIB"
+          }
+        },
         "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "LRCLIB"
+          }
+        },
+        "nb" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "LRCLIB"
@@ -944,17 +2017,41 @@
     },
     "LRCLIB server is required. Learn more at dub.sh/flo-lrclib" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "LRCLIB-Server erforderlich. Mehr erfahren unter dub.sh/flo-lrclib"
+          }
+        },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Server LRCLIB dibutuhkan. Selengkapnya di dub.sh/flo-lrclib"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "LRCLIB server er påkrevd. Lær mer på dub.sh/flo-lrclib"
           }
         }
       }
     },
     "LRCLIB Server URL" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "LRCLIB-Server-URL"
+          }
+        },
         "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "LRCLIB Server URL"
+          }
+        },
+        "nb" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "LRCLIB Server URL"
@@ -964,6 +2061,12 @@
     },
     "Max Bitrate" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Max. Bitrate"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -975,11 +2078,23 @@
             "state" : "translated",
             "value" : "Max Bitrate"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Maks birate"
+          }
         }
       }
     },
     "Navidrome Version" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Navidrome-Version"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -991,41 +2106,175 @@
             "state" : "translated",
             "value" : "Versi Navidrome"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Navidrome Versjon"
+          }
         }
       }
     },
+    "No downloads" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keine Downloads"
+          }
+        }
+      }
+    },
+    "No downloads available" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keine Downloads verfügbar"
+          }
+        }
+      }
+    },
+    "No liked songs yet" : {
+
+    },
     "No lyrics available" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keine Songtexte verfügbar"
+          }
+        },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tidak ada lirik ditemukan"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ingen tekster tilgjengelig"
+          }
+        }
+      }
+    },
+    "No Radio Available" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kein Radio verfügbar"
+          }
+        }
+      }
+    },
+    "No radio stations" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keine Radiosender"
           }
         }
       }
     },
     "No radios available" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keine Radios verfügbar"
+          }
+        },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tidak ada radio ditemukan"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ingen radioer tilgjengelig"
           }
         }
       }
     },
     "No radios match your search" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keine Radios zu deiner Suche gefunden"
+          }
+        },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tidak ada radio ditemukan"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ingen radioer matcher søket ditt"
+          }
         }
       }
     },
+    "No similar songs found for %@." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keine ähnlichen Songs für %@ gefunden."
+          }
+        }
+      }
+    },
+    "No Top Songs" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keine Top-Songs"
+          }
+        }
+      }
+    },
+    "No top songs found for %@." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keine Top-Songs für %@ gefunden."
+          }
+        }
+      }
+    },
+    "No upcoming tracks" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keine weiteren Titel"
+          }
+        }
+      }
+    },
+    "Off" : {
+
+    },
     "OK" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OK"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1037,11 +2286,23 @@
             "state" : "translated",
             "value" : "OK"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OK"
+          }
         }
       }
     },
     "Optimize local storage" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lokalen Speicher optimieren"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1053,11 +2314,23 @@
             "state" : "translated",
             "value" : "Optimalkan penyimpanan lokal"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Optimaliser lokal lagringsplass"
+          }
         }
       }
     },
     "Optimize Local Storage" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lokalen Speicher optimieren"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1069,15 +2342,35 @@
             "state" : "translated",
             "value" : "Optimalkan penyimpanan lokal"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Optimaliser Lokal Lagringsplass"
+          }
         }
       }
     },
     "OR" : {
       "comment" : "A label used to separate different options in a list.",
-      "isCommentAutoGenerated" : true
+      "isCommentAutoGenerated" : true,
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ODER"
+          }
+        }
+      }
     },
     "Play" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wiedergeben"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1089,24 +2382,65 @@
             "state" : "translated",
             "value" : "Mainkan"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spill"
+          }
+        }
+      }
+    },
+    "Play All" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alle abspielen"
+          }
         }
       }
     },
     "Play Artist Radio" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Künstler-Radio abspielen"
+          }
+        },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Mainkan Artist Radio"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spill Artist Radio"
+          }
         }
       }
     },
     "Play Top Songs" : {
-
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Top-Songs abspielen"
+          }
+        }
+      }
     },
     "Player color" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Player-Farbe"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1118,11 +2452,23 @@
             "state" : "translated",
             "value" : "Warna player"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spiller farge"
+          }
         }
       }
     },
     "Playing Next" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nächster Titel"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1134,11 +2480,23 @@
             "state" : "translated",
             "value" : "Selanjutnya"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spiller Neste"
+          }
         }
       }
     },
     "Playlists" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Playlists"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1150,11 +2508,23 @@
             "state" : "translated",
             "value" : "Daftar Putar"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spilleliste"
+          }
         }
       }
     },
     "Preferences" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Einstellungen"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1166,91 +2536,219 @@
             "state" : "translated",
             "value" : "Preferensi"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Preferanser"
+          }
         }
       }
     },
     "Purchase flo+" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "flo+ kaufen"
+          }
+        },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Beli flo+"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kjøp flo+"
           }
         }
       }
     },
     "Purchase flo+ for %@" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "flo+ kaufen für %@"
+          }
+        },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Beli flo+ seharga %@"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kjøp flo+ for %@"
+          }
+        }
+      }
+    },
+    "Radio" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Radio"
+          }
+        }
+      }
+    },
+    "Radio Unavailable" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Radio nicht verfügbar"
           }
         }
       }
     },
     "Radios" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Radios"
+          }
+        },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Radios"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Radioer"
           }
         }
       }
     },
     "Redownload Album" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Album erneut herunterladen"
+          }
+        },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Unduh ulang album"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nedlast album på nytt"
           }
         }
       }
     },
     "Redownload Album (force)" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Album erneut herunterladen (erzwingen)"
+          }
+        },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Paksa unduh album"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tvangsnedlast album på nytt"
           }
         }
       }
     },
     "Redownload Playlist" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Playlist erneut herunterladen"
+          }
+        },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Unduh ulang playlist"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nedlast spilleliste på nytt"
           }
         }
       }
     },
     "Redownload Playlist (force)" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Playlist erneut herunterladen (erzwingen)"
+          }
+        },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Paksa unduh playlist"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tvangsnedlast spilleliste på nytt"
           }
         }
       }
     },
     "Refetch UserDefaults & Keychains" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "UserDefaults & Keychains neu laden"
+          }
+        },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Refetch UserDefaults & Keychains"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hent Brukerstandardinnstillinger & Nøkkelring"
           }
         }
       }
     },
     "Remove Download" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Download entfernen"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1262,31 +2760,67 @@
             "state" : "translated",
             "value" : "Hapus unduhan"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fjern nedlastning"
+          }
         }
       }
     },
     "Restore purchases" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Käufe wiederherstellen"
+          }
+        },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Pulihkan pembelian"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gjenopprett kjøp"
           }
         }
       }
     },
     "Retry all Failed Queue" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alle fehlgeschlagenen Downloads wiederholen"
+          }
+        },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Coba lagi semua antrian download yang gagal"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prøv alle mislykkede køer på nytt"
           }
         }
       }
     },
     "Save" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Speichern"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1298,11 +2832,23 @@
             "state" : "translated",
             "value" : "Simpan"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lagre"
+          }
         }
       }
     },
     "Save login info" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anmeldedaten speichern"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1314,11 +2860,23 @@
             "state" : "translated",
             "value" : "Simpan info login"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lagre innloggingsinformasjon"
+          }
         }
       }
     },
     "Scrobble to Last.fm" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zu Last.fm „scrobbeln“"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1330,11 +2888,23 @@
             "state" : "translated",
             "value" : "Scrobble ke Last.fm"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scrobble til Last.fm"
+          }
         }
       }
     },
     "Scrobble to ListenBrainz" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zu ListenBrainz „scrobbeln“"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1346,11 +2916,23 @@
             "state" : "translated",
             "value" : "Scrobble ke ListenBrainz"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scrobble til ListenBrainz"
+          }
         }
       }
     },
     "Search" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Suche"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1362,11 +2944,23 @@
             "state" : "translated",
             "value" : "Cari"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Søk"
+          }
         }
       }
     },
     "Server Information" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Serverinformationen"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1378,11 +2972,23 @@
             "state" : "translated",
             "value" : "Informasi server"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Server Informasjon"
+          }
         }
       }
     },
     "Server URL" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Server-URL"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1394,11 +3000,23 @@
             "state" : "translated",
             "value" : "URL server"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Server URL"
+          }
         }
       }
     },
     "Share" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Teilen"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1410,11 +3028,23 @@
             "state" : "translated",
             "value" : "Bagikan"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Del"
+          }
         }
       }
     },
     "Share album '%@'" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Album „%@“ teilen"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1424,13 +3054,25 @@
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bagikan album ‘%@'"
+            "value" : "Bagikan album '%@'"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Del album '%@'"
           }
         }
       }
     },
     "Share features with Download option is disabled, please update directly in Navidrome UI if needed" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Teilen-Funktionen mit Download-Option sind deaktiviert, bitte direkt in der Navidrome-Oberfläche aktualisieren"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1442,11 +3084,26 @@
             "state" : "translated",
             "value" : "Fitur berbagi dengan opsi Unduh dinonaktifkan, harap perbarui langsung di UI Navidrome jika diperlukan"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Del egenskaper med Nedlastningsmulighet er deaktivert, vennligst oppdater direkte i Navidrome UI hvis nødvending"
+          }
         }
       }
     },
+    "Show quick links" : {
+
+    },
     "Shuffle" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shuffle"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1458,25 +3115,57 @@
             "state" : "translated",
             "value" : "Acak"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tilfeldig rekkefølge"
+          }
         }
       }
     },
     "Sign In" : {
       "comment" : "The title of the navigation bar at the top of the view.",
-      "isCommentAutoGenerated" : true
+      "isCommentAutoGenerated" : true,
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anmelden"
+          }
+        }
+      }
     },
     "Some other things yet to come" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Weitere Funktionen folgen"
+          }
+        },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Beberapa hal lain yang akan datang"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Noen andre ting som ennå skal komme"
           }
         }
       }
     },
     "Songs" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Songs"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1488,11 +3177,23 @@
             "state" : "translated",
             "value" : "Lagu"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sanger"
+          }
         }
       }
     },
     "Source Code" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quellcode"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1504,11 +3205,26 @@
             "state" : "translated",
             "value" : "Sumber kode"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kildekode"
+          }
         }
       }
     },
+    "Streaming cache" : {
+
+    },
     "Subsonic Version" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Subsonic-Version"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1520,22 +3236,56 @@
             "state" : "translated",
             "value" : "Versi Subsonic"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Subsonic Versjon"
+          }
+        }
+      }
+    },
+    "Tap to retry" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zum Wiederholen tippen"
+          }
         }
       }
     },
     "Thank you for supporting flo!" : {
       "extractionState" : "stale",
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Danke für deine Unterstützung für flo!"
+          }
+        },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Terima kasih telah mendukung flo!"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Takk for at du støtter flo!"
           }
         }
       }
     },
     "Thanks for choosing flo!" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Danke, dass du dich für flo entschieden hast!"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1547,33 +3297,81 @@
             "state" : "translated",
             "value" : "Terima kasih telah memilih flo!"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Takk for at du valgte flo!"
+          }
         }
       }
     },
     "The cookie containing your session token (leave empty for auto-detection)" : {
       "comment" : "A description of the purpose of the \"Authentication Token Cookie Name\" field.",
-      "isCommentAutoGenerated" : true
+      "isCommentAutoGenerated" : true,
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das Cookie mit deinem Sitzungstoken (leer lassen für automatische Erkennung)"
+          }
+        }
+      }
     },
     "The cookie containing your username (defaults to 'username')" : {
       "comment" : "A description of the purpose of the \"Username Cookie Name\" setting in the IAP login view.",
-      "isCommentAutoGenerated" : true
+      "isCommentAutoGenerated" : true,
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das Cookie mit deinem Benutzernamen (Standard: 'username')"
+          }
+        }
+      }
     },
     "The full version of flo is always Free and OSS" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Vollversion von flo ist kostenlos und Open Source"
+          }
+        },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Versi lengkap flo selalu gratis dan OSS"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Den fullstendige versjonen av flo er alltid Fri og ÅKK"
           }
         }
       }
     },
     "The HTTP header containing your JWT token (leave empty for auto-detection)" : {
       "comment" : "A description of what the \"Authentication Token Header Name\" field is for.",
-      "isCommentAutoGenerated" : true
+      "isCommentAutoGenerated" : true,
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der HTTP-Header mit deinem JWT-Token (leer lassen für automatische Erkennung)"
+          }
+        }
+      }
     },
     "The password is stored securely in Keychain" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das Passwort wird sicher im Schlüsselbund gespeichert"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1585,11 +3383,23 @@
             "state" : "translated",
             "value" : "Kata sandi disimpan dengan aman di Keychain"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Passordet er lagret sikkert i Nøkkelringen"
+          }
         }
       }
     },
     "The quickest action you can take is to log back in — for now." : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die schnellste Lösung ist, dich erneut anzumelden — vorerst."
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1601,14 +3411,33 @@
             "state" : "translated",
             "value" : "Tindakan tercepat yang dapat kamu lakukan adalah Login kembali — untuk saat ini."
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Det raskeste valget du kan ta er å logge inn igjen - for nå."
+          }
         }
       }
     },
     "This option is not available when using OAuth." : {
-
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Diese Option ist bei Verwendung von OAuth nicht verfügbar."
+          }
+        }
+      }
     },
     "This stat is generated on-device (once every session) and no data is stored or shared with a third party — #selfhosting, baby!" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Diese Statistik wird auf dem Gerät erstellt (einmal pro Sitzung) und es werden keine Daten gespeichert oder an Dritte weitergegeben — #selfhosting!"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1620,21 +3449,48 @@
             "state" : "translated",
             "value" : "Statistik ini dibuat di perangkat (sekali setiap sesi) dan tidak ada data yang disimpan atau dibagikan ke pihak ketiga — #selfhosting, bos!"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Denne statistikken er generert på enheten (en gang hver økt) og ingen data er lagret eller delt med en tredjepart - #selfhosting, baby!"
+          }
         }
       }
     },
+    "This will delete all cached streamed songs. Downloads are not affected." : {
+
+    },
     "To change this, please do so via the Navidrome Web UI" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Um dies zu ändern, verwende bitte die Navidrome-Weboberfläche"
+          }
+        },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Gunakan Navidrome Web UI untuk mengubah ini"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "For å endre dette, vennligst gjør det via Navidrome Web UI'et"
           }
         }
       }
     },
     "Total Files Scanned" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dateien insgesamt gescannt"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1646,11 +3502,23 @@
             "state" : "translated",
             "value" : "Total File yang Dipindai"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Totalt Antall Filer Skannet"
+          }
         }
       }
     },
     "Total Folders Scanned" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ordner insgesamt gescannt"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1662,11 +3530,23 @@
             "state" : "translated",
             "value" : "Total Folder yang Dipindai"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Totalt Antall Mapper Skannet"
+          }
         }
       }
     },
     "Total usage" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gesamtnutzung"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1678,60 +3558,182 @@
             "state" : "translated",
             "value" : "Jumlah penggunaan"
           }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Totalt brukt"
+          }
+        }
+      }
+    },
+    "Tracks" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Titel"
+          }
         }
       }
     },
     "Troubleshoot" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fehlerbehebung"
+          }
+        },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Troubleshoot"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Feilsøk"
           }
         }
       }
     },
     "Try a different keyword." : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Versuche ein anderes Stichwort."
+          }
+        },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Coba kata kunci yang lain."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prøv et annet nøkkelord"
           }
         }
       }
     },
     "Try Again" : {
       "comment" : "A button that allows the user to try authenticating again if the previous attempt failed.",
-      "isCommentAutoGenerated" : true
+      "isCommentAutoGenerated" : true,
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erneut versuchen"
+          }
+        }
+      }
     },
     "Unable to Change App Icon" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App-Symbol konnte nicht geändert werden"
+          }
+        },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Gagal mengubah ikon aplikasi"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Klarte ikke å endre appikon"
           }
         }
       }
     },
     "Unable to Purchase flo+" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "flo+ konnte nicht gekauft werden"
+          }
+        },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Gagal membeli flo+"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Klarte ikke å kjøpe flo+"
+          }
+        }
+      }
+    },
+    "Unavailable" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nicht verfügbar"
+          }
+        }
+      }
+    },
+    "Unknown" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unbekannt"
+          }
+        }
+      }
+    },
+    "Up Next" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Warteschlange"
           }
         }
       }
     },
     "Use this if your server is behind OAuth2-Proxy or Identity-Aware Proxy" : {
       "comment" : "A piece of text explaining the purpose of the IAP login button.",
-      "isCommentAutoGenerated" : true
+      "isCommentAutoGenerated" : true,
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verwende dies, wenn dein Server hinter einem OAuth2-Proxy oder Identity-Aware Proxy steht"
+          }
+        }
+      }
     },
     "UserDefaults.%@" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "UserDefaults.%@"
+          }
+        },
         "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "UserDefaults.%@"
+          }
+        },
+        "nb" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "UserDefaults.%@"
@@ -1741,10 +3743,24 @@
     },
     "Username Cookie Name" : {
       "comment" : "A label for the username cookie name field in the IAP login view.",
-      "isCommentAutoGenerated" : true
+      "isCommentAutoGenerated" : true,
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cookie der Benutzernamen enthält"
+          }
+        }
+      }
     },
     "Your Navidrome session may have expired" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deine Navidrome-Sitzung ist möglicherweise abgelaufen"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1755,6 +3771,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sesi Navidrome kamu mungkin telah kedaluwarsa"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Din Navidrome økt kan ha utløpt"
           }
         }
       }
