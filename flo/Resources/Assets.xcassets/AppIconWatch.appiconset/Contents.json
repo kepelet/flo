@@ -1,19 +1,75 @@
 {
   "images" : [
     {
-      "filename" : "flo-watch-marketing-1024.png",
+      "filename" : "watch-marketing-1024.png",
       "idiom" : "watch-marketing",
       "scale" : "1x",
       "size" : "1024x1024"
     },
     {
-      "filename" : "flo-watch.png",
-      "idiom" : "universal",
-      "platform" : "watchos",
-      "size" : "1088x1088"
+      "filename" : "watch-notification-38mm@2x.png",
+      "idiom" : "watch",
+      "role" : "notificationCenter",
+      "scale" : "2x",
+      "size" : "24x24",
+      "subtype" : "38mm"
     },
     {
-      "filename" : "flo-watch-longlook-44mm@2x.png",
+      "filename" : "watch-notification-42mm@2x.png",
+      "idiom" : "watch",
+      "role" : "notificationCenter",
+      "scale" : "2x",
+      "size" : "27.5x27.5",
+      "subtype" : "42mm"
+    },
+    {
+      "filename" : "watch-companion@2x.png",
+      "idiom" : "watch",
+      "role" : "companionSettings",
+      "scale" : "2x",
+      "size" : "29x29"
+    },
+    {
+      "filename" : "watch-companion@3x.png",
+      "idiom" : "watch",
+      "role" : "companionSettings",
+      "scale" : "3x",
+      "size" : "29x29"
+    },
+    {
+      "filename" : "watch-home-38mm@2x.png",
+      "idiom" : "watch",
+      "role" : "appLauncher",
+      "scale" : "2x",
+      "size" : "40x40",
+      "subtype" : "38mm"
+    },
+    {
+      "filename" : "watch-home-40mm@2x.png",
+      "idiom" : "watch",
+      "role" : "appLauncher",
+      "scale" : "2x",
+      "size" : "44x44",
+      "subtype" : "40mm"
+    },
+    {
+      "filename" : "watch-home-44mm@2x.png",
+      "idiom" : "watch",
+      "role" : "appLauncher",
+      "scale" : "2x",
+      "size" : "50x50",
+      "subtype" : "44mm"
+    },
+    {
+      "filename" : "watch-longlook-42mm@2x.png",
+      "idiom" : "watch",
+      "role" : "longLook",
+      "scale" : "2x",
+      "size" : "44x44",
+      "subtype" : "42mm"
+    },
+    {
+      "filename" : "watch-longlook-44mm@2x.png",
       "idiom" : "watch",
       "role" : "longLook",
       "scale" : "2x",
@@ -21,7 +77,23 @@
       "subtype" : "44mm"
     },
     {
-      "filename" : "flo-watch-quicklook-44mm@2x.png",
+      "filename" : "watch-shortlook-38mm@2x.png",
+      "idiom" : "watch",
+      "role" : "quickLook",
+      "scale" : "2x",
+      "size" : "86x86",
+      "subtype" : "38mm"
+    },
+    {
+      "filename" : "watch-shortlook-42mm@2x.png",
+      "idiom" : "watch",
+      "role" : "quickLook",
+      "scale" : "2x",
+      "size" : "98x98",
+      "subtype" : "42mm"
+    },
+    {
+      "filename" : "watch-shortlook-44mm@2x.png",
       "idiom" : "watch",
       "role" : "quickLook",
       "scale" : "2x",
