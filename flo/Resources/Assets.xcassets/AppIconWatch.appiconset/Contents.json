@@ -1,104 +1,10 @@
 {
   "images" : [
     {
-      "filename" : "watch-marketing-1024.png",
-      "idiom" : "watch-marketing",
-      "scale" : "1x",
+      "filename" : "flo.png",
+      "idiom" : "universal",
+      "platform" : "watchos",
       "size" : "1024x1024"
-    },
-    {
-      "filename" : "watch-notification-38mm@2x.png",
-      "idiom" : "watch",
-      "role" : "notificationCenter",
-      "scale" : "2x",
-      "size" : "24x24",
-      "subtype" : "38mm"
-    },
-    {
-      "filename" : "watch-notification-42mm@2x.png",
-      "idiom" : "watch",
-      "role" : "notificationCenter",
-      "scale" : "2x",
-      "size" : "27.5x27.5",
-      "subtype" : "42mm"
-    },
-    {
-      "filename" : "watch-companion@2x.png",
-      "idiom" : "watch",
-      "role" : "companionSettings",
-      "scale" : "2x",
-      "size" : "29x29"
-    },
-    {
-      "filename" : "watch-companion@3x.png",
-      "idiom" : "watch",
-      "role" : "companionSettings",
-      "scale" : "3x",
-      "size" : "29x29"
-    },
-    {
-      "filename" : "watch-home-38mm@2x.png",
-      "idiom" : "watch",
-      "role" : "appLauncher",
-      "scale" : "2x",
-      "size" : "40x40",
-      "subtype" : "38mm"
-    },
-    {
-      "filename" : "watch-home-40mm@2x.png",
-      "idiom" : "watch",
-      "role" : "appLauncher",
-      "scale" : "2x",
-      "size" : "44x44",
-      "subtype" : "40mm"
-    },
-    {
-      "filename" : "watch-home-44mm@2x.png",
-      "idiom" : "watch",
-      "role" : "appLauncher",
-      "scale" : "2x",
-      "size" : "50x50",
-      "subtype" : "44mm"
-    },
-    {
-      "filename" : "watch-longlook-42mm@2x.png",
-      "idiom" : "watch",
-      "role" : "longLook",
-      "scale" : "2x",
-      "size" : "44x44",
-      "subtype" : "42mm"
-    },
-    {
-      "filename" : "watch-longlook-44mm@2x.png",
-      "idiom" : "watch",
-      "role" : "longLook",
-      "scale" : "2x",
-      "size" : "50x50",
-      "subtype" : "44mm"
-    },
-    {
-      "filename" : "watch-shortlook-38mm@2x.png",
-      "idiom" : "watch",
-      "role" : "quickLook",
-      "scale" : "2x",
-      "size" : "86x86",
-      "subtype" : "38mm"
-    },
-    {
-      "filename" : "watch-shortlook-42mm@2x.png",
-      "idiom" : "watch",
-      "role" : "quickLook",
-      "scale" : "2x",
-      "size" : "98x98",
-      "subtype" : "42mm"
-    },
-    {
-      "filename" : "watch-shortlook-44mm@2x.png",
-      "idiom" : "watch",
-      "role" : "quickLook",
-      "scale" : "2x",
-      "size" : "108x108",
-      "subtype" : "44mm"
     }
   ],
   "info" : {

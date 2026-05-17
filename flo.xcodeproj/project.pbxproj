@@ -119,6 +119,7 @@
 		C4B232EF2F44809F006A5044 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C4E8D95F2B763BAB00C2353E /* Assets.xcassets */; };
 		C4B7E6A42F3C1001001D9A01 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = C4B7E6A32F3C0FFF001D9A01 /* PrivacyInfo.xcprivacy */; };
 		C4CACHE012D7B0000003B9C4F /* StreamCacheManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4CACHE002D7B0000003B9C4F /* StreamCacheManager.swift */; };
+		C4CBBA742FBA223C00F0DE75 /* floIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = C4CBBA732FBA223C00F0DE75 /* floIcon.icon */; };
 		C4D7F84D2C7F2AE900165EFD /* flo.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = C4D7F84B2C7F2AE900165EFD /* flo.xcdatamodeld */; };
 		C4D7F84F2C7F2C5D00165EFD /* PlaybackService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4D7F84E2C7F2C5D00165EFD /* PlaybackService.swift */; };
 		C4DE89182C2FFBC900E078CC /* CoreDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4DE89172C2FFBC900E078CC /* CoreDataManager.swift */; };
@@ -252,6 +253,7 @@
 		C4A4BF3C2C1455A100363290 /* FloatingPlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloatingPlayerView.swift; sourceTree = "<group>"; };
 		C4B7E6A32F3C0FFF001D9A01 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		C4CACHE002D7B0000003B9C4F /* StreamCacheManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreamCacheManager.swift; sourceTree = "<group>"; };
+		C4CBBA732FBA223C00F0DE75 /* floIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = floIcon.icon; sourceTree = "<group>"; };
 		C4D7F84C2C7F2AE900165EFD /* flo.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = flo.xcdatamodel; sourceTree = "<group>"; };
 		C4D7F84E2C7F2C5D00165EFD /* PlaybackService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaybackService.swift; sourceTree = "<group>"; };
 		C4DE89172C2FFBC900E078CC /* CoreDataManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreDataManager.swift; sourceTree = "<group>"; };
@@ -390,6 +392,7 @@
 		C4289F4E2C12553800C3A4FD /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				C4CBBA732FBA223C00F0DE75 /* floIcon.icon */,
 				C4B7E6A32F3C0FFF001D9A01 /* PrivacyInfo.xcprivacy */,
 				C4E958972CA033BC00BBF394 /* Localizable.xcstrings */,
 				C4E8D95F2B763BAB00C2353E /* Assets.xcassets */,
@@ -643,6 +646,7 @@
 				C4B7E6A42F3C1001001D9A01 /* PrivacyInfo.xcprivacy in Resources */,
 				C4E8D9632B763BAB00C2353E /* Preview Assets.xcassets in Resources */,
 				C4E8D9602B763BAB00C2353E /* Assets.xcassets in Resources */,
+				C4CBBA742FBA223C00F0DE75 /* floIcon.icon in Resources */,
 				C4E958982CA033BC00BBF394 /* Localizable.xcstrings in Resources */,
 				C415F55F2C11A34C00E3E1D2 /* PlusJakartaSans-VariableFont_wght.ttf in Resources */,
 			);
@@ -995,14 +999,14 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES = AppIconAlt1;
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = floIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				"CODE_SIGN_ENTITLEMENTS[sdk=iphoneos*]" = flo/flo.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 212;
+				CURRENT_PROJECT_VERSION = 300;
 				DEVELOPMENT_ASSET_PATHS = "\"flo/Resources/Preview Content\"";
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 8BJ4LW5J8P;
@@ -1040,7 +1044,7 @@
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "match Development com.penerbangwalet.flo";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "match Development com.penerbangwalet.flo catalyst";
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = YES;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
@@ -1054,14 +1058,14 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES = AppIconAlt1;
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = floIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				"CODE_SIGN_ENTITLEMENTS[sdk=iphoneos*]" = flo/flo.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Distribution";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 212;
+				CURRENT_PROJECT_VERSION = 300;
 				DEVELOPMENT_ASSET_PATHS = "\"flo/Resources/Preview Content\"";
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 8BJ4LW5J8P;
@@ -1100,7 +1104,7 @@
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "match AppStore com.penerbangwalet.flo 1773593177";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "match AppStore com.penerbangwalet.flo catalyst";
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = YES;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;

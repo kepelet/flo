@@ -1,0 +1,15 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1024" height="1024" fill="none" />
+
+  <!-- Top ellipse -->
+  <ellipse cx="474.5" cy="202.5" rx="107.5" ry="20.5" fill="#353393"/>
+
+  <!-- Middle ellipse -->
+  <ellipse cx="484" cy="317" rx="187" ry="36" fill="#353393"/>
+
+  <!-- Main body -->
+  <path
+    d="M224 553C224 473.471 288.471 409 368 409H655C734.529 409 799 473.471 799 553V553C799 711.505 670.505 840 512 840V840C353.495 840 225 711.505 225 553L224 553Z"
+    fill="#353393"
+  />
+</svg>
