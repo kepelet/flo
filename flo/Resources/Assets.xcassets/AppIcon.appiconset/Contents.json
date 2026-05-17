@@ -1,7 +1,7 @@
 {
   "images" : [
     {
-      "filename" : "flo.png",
+      "filename" : "flo 1.png",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"
@@ -14,18 +14,6 @@
         }
       ],
       "filename" : "flo-dark.png",
-      "idiom" : "universal",
-      "platform" : "ios",
-      "size" : "1024x1024"
-    },
-    {
-      "appearances" : [
-        {
-          "appearance" : "luminosity",
-          "value" : "clear"
-        }
-      ],
-      "filename" : "flo-clear-light.png",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"
