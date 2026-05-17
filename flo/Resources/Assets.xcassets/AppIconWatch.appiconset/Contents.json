@@ -1,0 +1,14 @@
+{
+  "images" : [
+    {
+      "filename" : "flo-watch.png",
+      "idiom" : "universal",
+      "platform" : "watchos",
+      "size" : "1088x1088"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}
