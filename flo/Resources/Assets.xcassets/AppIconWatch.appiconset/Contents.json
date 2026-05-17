@@ -1,10 +1,32 @@
 {
   "images" : [
     {
+      "filename" : "flo-watch-marketing-1024.png",
+      "idiom" : "watch-marketing",
+      "scale" : "1x",
+      "size" : "1024x1024"
+    },
+    {
       "filename" : "flo-watch.png",
       "idiom" : "universal",
       "platform" : "watchos",
       "size" : "1088x1088"
+    },
+    {
+      "filename" : "flo-watch-longlook-44mm@2x.png",
+      "idiom" : "watch",
+      "role" : "longLook",
+      "scale" : "2x",
+      "size" : "50x50",
+      "subtype" : "44mm"
+    },
+    {
+      "filename" : "flo-watch-quicklook-44mm@2x.png",
+      "idiom" : "watch",
+      "role" : "quickLook",
+      "scale" : "2x",
+      "size" : "108x108",
+      "subtype" : "44mm"
     }
   ],
   "info" : {
