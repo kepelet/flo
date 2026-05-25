@@ -22,54 +22,24 @@ struct AlbumsView: View {
             contentsOfFile: viewModel.getAlbumCoverArt(
               id: album.id, artistName: album.artist, albumName: album.name, albumCover: album.albumCover))
           {
-            Image(uiImage: image)
-              .resizable()
-              .aspectRatio(contentMode: .fill)
-              .frame(maxWidth: .infinity, maxHeight: 300)
-              .clipShape(
-                RoundedRectangle(cornerRadius: 5, style: .continuous)
-              )
+            albumArtwork(Image(uiImage: image))
           } else {
             if let image = UIImage(named: "placeholder") {
-              Image(uiImage: image)
-                .resizable()
-                .aspectRatio(contentMode: .fill)
-                .frame(maxWidth: .infinity, maxHeight: 300)
-                .clipShape(
-                  RoundedRectangle(cornerRadius: 5, style: .continuous)
-                )
+              albumArtwork(Image(uiImage: image))
             }
           }
         } else {
           if let image = UIImage(
             contentsOfFile: viewModel.getAlbumCoverArt(id: album.id, albumCover: album.albumCover))
           {
-            Image(uiImage: image)
-              .resizable()
-              .aspectRatio(contentMode: .fill)
-              .frame(maxWidth: .infinity, maxHeight: 300)
-              .clipShape(
-                RoundedRectangle(cornerRadius: 5, style: .continuous)
-              )
+            albumArtwork(Image(uiImage: image))
           } else {
             LazyImage(url: URL(string: viewModel.getAlbumCoverArt(id: album.id, albumCover: album.albumCover))) { state in
               if let image = state.image {
-                image
-                  .resizable()
-                  .aspectRatio(contentMode: .fill)
-                  .frame(maxWidth: .infinity, maxHeight: 300)
-                  .clipShape(
-                    RoundedRectangle(cornerRadius: 5, style: .continuous)
-                  )
+                albumArtwork(image)
               } else {
                 if let image = UIImage(named: "placeholder") {
-                  Image(uiImage: image)
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .frame(maxWidth: .infinity, maxHeight: 300)
-                    .clipShape(
-                      RoundedRectangle(cornerRadius: 5, style: .continuous)
-                    )
+                  albumArtwork(Image(uiImage: image))
                 }
               }
             }
@@ -95,6 +65,19 @@ struct AlbumsView: View {
           .frame(maxWidth: .infinity, alignment: .leading)
       }.padding()
     }
+  }
+
+  private func albumArtwork(_ image: Image) -> some View {
+    GeometryReader { proxy in
+      image
+        .resizable()
+        .scaledToFill()
+        .frame(width: proxy.size.width, height: proxy.size.width)
+        .clipShape(
+          RoundedRectangle(cornerRadius: 5, style: .continuous)
+        )
+    }
+    .aspectRatio(1, contentMode: .fit)
   }
 }
 
