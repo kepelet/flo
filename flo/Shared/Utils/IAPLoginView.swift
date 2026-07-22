@@ -15,10 +15,6 @@ struct IAPLoginView: View {
   @State private var showWebAuth = false
   @State private var isLoading = false
   @State private var errorMessage: String?
-  @State private var showAdvancedSettings = false
-  @State private var customHeaderName: String = ""
-  @State private var customCookieName: String = ""
-  @State private var customUsernameCookie: String = ""
   
   var isSubmitButtonDisabled: Bool {
     serverUrl.isEmpty || isLoading
@@ -52,9 +48,6 @@ struct IAPLoginView: View {
       IAPWebAuthView(
         serverURL: serverUrl,
         authViewModel: authViewModel,
-        customHeaderName: customHeaderName.isEmpty ? nil : customHeaderName,
-        customCookieName: customCookieName.isEmpty ? nil : customCookieName,
-        customUsernameCookie: customUsernameCookie.isEmpty ? nil : customUsernameCookie,
         onSuccess: {
           dismiss()
         },
@@ -97,9 +90,7 @@ struct IAPLoginView: View {
         placeholder: "https://your-iap-server.com",
         keyboardType: .URL
       )
-      
-      advancedSettingsSection
-      
+
       submitButton
       
       cancelButton
@@ -128,71 +119,6 @@ struct IAPLoginView: View {
         .disableAutocorrection(true)
         .textContentType(.none)
         .disabled(isLoading)
-    }
-    .padding(.horizontal, 15)
-    .padding(.bottom, 10)
-  }
-  
-  private var advancedSettingsSection: some View {
-    VStack(alignment: .leading, spacing: 12) {
-      DisclosureGroup("Advanced Settings", isExpanded: $showAdvancedSettings) {
-        VStack(alignment: .leading, spacing: 12) {
-          VStack(alignment: .leading, spacing: 4) {
-            Text("Authentication Token Header Name")
-              .font(.subheadline)
-              .fontWeight(.medium)
-            Text("The HTTP header containing your JWT token (leave empty for auto-detection)")
-              .font(.caption)
-              .foregroundStyle(.secondary)
-            TextField("e.g., x-auth-request-access-token", text: $customHeaderName)
-              .padding()
-              .overlay(
-                RoundedRectangle(cornerRadius: 8)
-                  .stroke(.accent, lineWidth: 1)
-              )
-              .autocapitalization(.none)
-              .disableAutocorrection(true)
-              .disabled(isLoading)
-          }
-          
-          VStack(alignment: .leading, spacing: 4) {
-            Text("Authentication Token Cookie Name")
-              .font(.subheadline)
-              .fontWeight(.medium)
-            Text("The cookie containing your session token (leave empty for auto-detection)")
-              .font(.caption)
-              .foregroundStyle(.secondary)
-            TextField("e.g., _oauth2_proxy, KEYCLOAK_IDENTITY", text: $customCookieName)
-              .padding()
-              .overlay(
-                RoundedRectangle(cornerRadius: 8)
-                  .stroke(.accent, lineWidth: 1)
-              )
-              .autocapitalization(.none)
-              .disableAutocorrection(true)
-              .disabled(isLoading)
-          }
-          
-          VStack(alignment: .leading, spacing: 4) {
-            Text("Username Cookie Name")
-              .font(.subheadline)
-              .fontWeight(.medium)
-            Text("The cookie containing your username (defaults to 'username')")
-              .font(.caption)
-              .foregroundStyle(.secondary)
-            TextField("e.g., username, user, preferred_username", text: $customUsernameCookie)
-              .padding()
-              .overlay(
-                RoundedRectangle(cornerRadius: 8)
-                  .stroke(.accent, lineWidth: 1)
-              )
-              .autocapitalization(.none)
-              .disableAutocorrection(true)
-              .disabled(isLoading)
-          }
-        }
-        .padding(.top, 8)
-      }
     }
     .padding(.horizontal, 15)
     .padding(.bottom, 10)

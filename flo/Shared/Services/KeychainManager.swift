@@ -29,7 +29,6 @@ class KeychainManager {
       .accessibility(.afterFirstUnlockThisDeviceOnly)
   #endif
 
-  private static let iapAuthInfoKey = "iapAuthInfo"
   private static let authModeKey = "authMode"
 
   static func getAuthCredsAndPasswords() -> [String: Any] {
@@ -113,45 +112,6 @@ class KeychainManager {
       try store.set(newValue, for: KeychainKeys.serverPassword)
     #else
       try keychain.set(newValue, key: KeychainKeys.serverPassword)
-    #endif
-  }
-
-  static func getIAPAuthInfo() throws -> IAPAuthInfo? {
-    #if targetEnvironment(macCatalyst)
-      guard let jsonString = try store.get(iapAuthInfoKey),
-        let jsonData = jsonString.data(using: .utf8)
-      else {
-        return nil
-      }
-    #else
-      guard let jsonString = try keychain.get(iapAuthInfoKey),
-        let jsonData = jsonString.data(using: .utf8)
-      else {
-        return nil
-      }
-    #endif
-    return try JSONDecoder().decode(IAPAuthInfo.self, from: jsonData)
-  }
-
-  static func setIAPAuthInfo(_ info: IAPAuthInfo) throws {
-    let jsonData = try JSONEncoder().encode(info)
-    guard let jsonString = String(data: jsonData, encoding: .utf8) else {
-      throw NSError(
-        domain: "KeychainManager", code: -1,
-        userInfo: [NSLocalizedDescriptionKey: "Failed to encode IAP auth info"])
-    }
-    #if targetEnvironment(macCatalyst)
-      try store.set(jsonString, for: iapAuthInfoKey)
-    #else
-      try keychain.set(jsonString, key: iapAuthInfoKey)
-    #endif
-  }
-
-  static func removeIAPAuthInfo() throws {
-    #if targetEnvironment(macCatalyst)
-      try store.remove(iapAuthInfoKey)
-    #else
-      try keychain.remove(iapAuthInfoKey)
     #endif
   }
 
