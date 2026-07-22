@@ -12,7 +12,6 @@ enum API {
 
   enum NDEndpoint {
     static let login = "/auth/login"
-    static let loginIAP: String? = "/auth/iap"
     static let getAlbum = "/api/album"
     static let getArtists = "/api/artist"
     static let getPlaylists = "/api/playlist"
