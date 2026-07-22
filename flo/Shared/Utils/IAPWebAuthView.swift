@@ -11,9 +11,6 @@ import WebKit
 struct IAPWebAuthView: View {
   let serverURL: String
   @ObservedObject var authViewModel: AuthViewModel
-  let customHeaderName: String?
-  let customCookieName: String?
-  let customUsernameCookie: String?
   let onSuccess: () -> Void
   let onError: (String) -> Void
   
@@ -26,11 +23,8 @@ struct IAPWebAuthView: View {
       ZStack {
         IAPWebView(
           url: serverURL,
-          customHeaderName: customHeaderName,
-          customCookieName: customCookieName,
-          customUsernameCookie: customUsernameCookie,
-          onDataExtracted: { jwt, username, webView in
-            handleAuthentication(jwt: jwt, username: username, webView: webView)
+          onAuthExtracted: { userAuth, webView in
+            handleAuthentication(userAuth: userAuth, webView: webView)
           },
           onError: { error in
             handleError(error)
@@ -77,68 +71,82 @@ struct IAPWebAuthView: View {
     }
   }
   
-  private func handleAuthentication(jwt: String, username: String, webView: WKWebView) {
+  private func handleAuthentication(userAuth: UserAuth, webView: WKWebView) {
     webView.configuration.websiteDataStore.httpCookieStore.getAllCookies { cookies in
       for cookie in cookies {
         HTTPCookieStorage.shared.setCookie(cookie)
       }
-      
-      self.completeOAuthLogin(jwt: jwt, username: username)
+
+      self.completeOAuthLogin(userAuth: userAuth)
     }
   }
-  
-  private func completeOAuthLogin(jwt: String, username: String) {
-    let iapInfo = IAPAuthInfo(jwtAssertion: jwt, userEmail: username, userId: nil)
-    AuthService.shared.setIAPAuthInfo(iapInfo)
+
+  private func completeOAuthLogin(userAuth: UserAuth) {
     AuthService.shared.setAuthMode(AuthMode.iap)
-    
-    let userAuth = UserAuth(
-      id: username,
-      username: username,
-      name: username,
-      isAdmin: false,
-      lastFMApiKey: "",
-      subsonicSalt: "",
-      subsonicToken: "",
-      token: jwt
-    )
-    
-    let testURL = "\(serverURL)/api/ping"
-    
-    var request = URLRequest(url: URL(string: testURL)!)
-    request.httpMethod = "GET"
-    
-    URLSession.shared.dataTask(with: request) { data, response, error in
-      if let httpResponse = response as? HTTPURLResponse {
-        if httpResponse.statusCode == 200 {
-          DispatchQueue.main.async {
-            self.authViewModel.persistAuthData(userAuth)
-            self.authViewModel.authMode = .iap
-            self.authViewModel.isLoggedIn = true
-            self.authViewModel.user = userAuth
-            
-            self.dismiss()
-            self.onSuccess()
-          }
-        } else if httpResponse.statusCode == 401 || httpResponse.statusCode == 403 {
-          DispatchQueue.main.async {
-            self.handleError("Something went wrong with IAP Authentication.")
-          }
+
+    verifySubsonicAccess(userAuth) { success, errorMessage in
+      DispatchQueue.main.async {
+        if success {
+          self.authViewModel.persistAuthData(userAuth)
+          self.authViewModel.authMode = .iap
+          self.authViewModel.isLoggedIn = true
+          self.authViewModel.user = userAuth
+
+          self.dismiss()
+          self.onSuccess()
         } else {
-          DispatchQueue.main.async {
-            self.authViewModel.persistAuthData(userAuth)
-            self.authViewModel.authMode = .iap
-            self.authViewModel.isLoggedIn = true
-            self.authViewModel.user = userAuth
-            
-            self.dismiss()
-            self.onSuccess()
-          }
+          self.handleError(errorMessage)
         }
+      }
+    }
+  }
+
+  private func verifySubsonicAccess(
+    _ userAuth: UserAuth, completion: @escaping (Bool, String) -> Void
+  ) {
+    guard var components = URLComponents(string: "\(serverURL)/rest/ping") else {
+      completion(false, "Invalid server URL")
+      return
+    }
+
+    components.queryItems = [
+      URLQueryItem(name: "u", value: userAuth.username),
+      URLQueryItem(name: "t", value: userAuth.subsonicToken),
+      URLQueryItem(name: "s", value: userAuth.subsonicSalt),
+      URLQueryItem(name: "v", value: AppMeta.subsonicApiVersion),
+      URLQueryItem(name: "c", value: AppMeta.name),
+      URLQueryItem(name: "f", value: "json"),
+    ]
+
+    guard let url = components.url else {
+      completion(false, "Invalid server URL")
+      return
+    }
+
+    URLSession.shared.dataTask(with: URLRequest(url: url)) { data, response, error in
+      guard let httpResponse = response as? HTTPURLResponse else {
+        completion(false, "Could not verify authentication. Please check your network connection.")
+        return
+      }
+
+      guard let data = data,
+        let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+        let subsonicResponse = json["subsonic-response"] as? [String: Any],
+        let status = subsonicResponse["status"] as? String
+      else {
+        completion(
+          false,
+          "The server did not accept the session (HTTP \(httpResponse.statusCode)). Make sure Navidrome trusts your proxy (ExtAuth.TrustedSources / ReverseProxyWhitelist)."
+        )
+        return
+      }
+
+      if status == "ok" {
+        completion(true, "")
       } else {
-        DispatchQueue.main.async {
-          self.handleError("Could not verify authentication. Please check your network connection.")
-        }
+        let subsonicError = subsonicResponse["error"] as? [String: Any]
+        let message = subsonicError?["message"] as? String ?? "Something went wrong with IAP Authentication."
+        completion(false, message)
       }
     }.resume()
   }

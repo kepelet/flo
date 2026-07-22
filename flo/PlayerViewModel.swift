@@ -225,7 +225,13 @@ class PlayerViewModel: ObservableObject {
 
     self._playFromLocal = audioURL.isFileURL
 
-    self.playerItem = AVPlayerItem(url: audioURL)
+    if !audioURL.isFileURL, AuthService.shared.getAuthMode() == .iap {
+      let cookies = HTTPCookieStorage.shared.cookies(for: audioURL) ?? []
+      let asset = AVURLAsset(url: audioURL, options: [AVURLAssetHTTPCookiesKey: cookies])
+      self.playerItem = AVPlayerItem(asset: asset)
+    } else {
+      self.playerItem = AVPlayerItem(url: audioURL)
+    }
     self.player?.replaceCurrentItem(with: self.playerItem)
 
     let duration = CMTime(
