@@ -7,6 +7,39 @@
 
 import SwiftUI
 
+struct PlaylistCoverImageView: View {
+  let pathOrUrlString: String
+
+  var body: some View {
+    if pathOrUrlString.hasPrefix("http://") || pathOrUrlString.hasPrefix("https://") {
+      AsyncImage(url: URL(string: pathOrUrlString)) { phase in
+        switch phase {
+        case .success(let image):
+          image
+            .resizable()
+            .aspectRatio(contentMode: .fit)
+        case .failure, .empty:
+          placeholderImage
+        @unknown default:
+          placeholderImage
+        }
+      }
+    } else if let uiImage = UIImage(contentsOfFile: pathOrUrlString) {
+      Image(uiImage: uiImage)
+        .resizable()
+        .aspectRatio(contentMode: .fit)
+    } else {
+      placeholderImage
+    }
+  }
+
+  private var placeholderImage: some View {
+    Image(uiImage: UIImage(named: "placeholder") ?? UIImage())
+      .resizable()
+      .aspectRatio(contentMode: .fit)
+  }
+}
+
 struct PlaylistDetailView: View {
   @EnvironmentObject private var viewModel: AlbumViewModel
   @EnvironmentObject private var playerViewModel: PlayerViewModel
@@ -18,17 +51,18 @@ struct PlaylistDetailView: View {
   var body: some View {
     ScrollView {
       VStack {
-        if let image = UIImage(named: "placeholder") {
-          Image(uiImage: image)
-            .resizable()
-            .aspectRatio(contentMode: .fit)
-            .frame(width: 300, height: 300)
-            .clipShape(
-              RoundedRectangle(cornerRadius: 10, style: .continuous)
+          PlaylistCoverImageView(
+            pathOrUrlString: viewModel.getPlaylistCoverArt(
+              id: viewModel.playlist.id,
+              coverArtId: viewModel.playlist.coverArtId
             )
-            .shadow(radius: 5)
-            .padding(.top, 10)
-        }
+          )
+          .frame(width: 300, height: 300)
+          .clipShape(
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+          )
+          .shadow(radius: 5)
+          .padding(.top, 10)
 
         Text(viewModel.playlist.name)
           .customFont(.title)

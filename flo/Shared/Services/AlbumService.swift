@@ -302,6 +302,19 @@ class AlbumService {
         "\(UserDefaultsManager.serverBaseURL)\(API.SubsonicEndpoint.coverArt)\(AuthService.shared.getCreds(key: "subsonicToken"))&id=al-\(albumId)&size=300"
     }
   }
+    
+    func getPlaylistCover(playlistId: String) -> String {
+      let target = "Media/Various Artists/\(playlistId)/cover.png"
+      
+      if LocalFileManager.shared.fileExists(fileName: target) {
+        return LocalFileManager.shared.fileURL(for: target)?.path ?? ""
+      } else if let cached = CoverArtCacheManager.shared.cachedFilePath(albumId: playlistId) {
+        return cached
+      } else {
+        let artId = playlistId.hasPrefix("pl-") ? playlistId : "pl-\(playlistId)"
+        return "\(UserDefaultsManager.serverBaseURL)\(API.SubsonicEndpoint.coverArt)\(AuthService.shared.getCreds(key: "subsonicToken"))&id=\(artId)&size=300"
+      }
+    }
 
   func downloadAlbumCover(
     artistName: String, albumId: String, albumName: String,
