@@ -221,6 +221,11 @@ class AlbumViewModel: ObservableObject {
       artistName: artistName, albumName: albumName, albumId: id, albumCover: albumCover)
   }
 
+  func getPlaylistCoverArt(id: String, coverArtId: String? = nil) -> String {
+    let artId = coverArtId ?? id
+    return AlbumService.shared.getPlaylistCover(playlistId: artId)
+  }
+
   func getArtistCoverArt(id: String, imageURL: String = "") -> String {
     return AlbumService.shared.getArtistCover(artistId: id, imageURL: imageURL)
   }
