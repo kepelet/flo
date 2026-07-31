@@ -42,4 +42,9 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
   func sceneWillEnterForeground(_: UIScene) {}
 
   func sceneDidEnterBackground(_: UIScene) {}
+
+  func scene(_ scene: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>) {
+    guard let _ = URLContexts.first?.url else { return }
+    // URL scheme registered for app launch; routing not yet implemented
+  }
 }

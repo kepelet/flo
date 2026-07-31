@@ -40,5 +40,16 @@
 	<array>
 		<string>audio</string>
 	</array>
+  <key>CFBundleURLTypes</key>
+  <array>
+    <dict>
+    <key>CFBundleURLName</key>
+    <string>app.flo</string>
+    <key>CFBundleURLSchemes</key>
+    <array>
+      <string>flo</string>
+    </array>
+    </dict>
+  </array>
 </dict>
 </plist>
