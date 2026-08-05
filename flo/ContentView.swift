@@ -310,7 +310,7 @@ struct ContentView: View {
                 #if targetEnvironment(macCatalyst)
                   10
                 #else
-                  isPad ? 0 : (40 + bottomPadding)
+                  geometry.safeAreaInsets.bottom + 20
                 #endif
               }()
 
