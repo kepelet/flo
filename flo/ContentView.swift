@@ -296,9 +296,8 @@ struct ContentView: View {
             Spacer()
 
             if playerViewModel.hasNowPlaying() && !playerViewModel.shouldHidePlayer {
-              let isSmallScreen = UIScreen.main.bounds.width <= 390
+              if playerViewModel.hasNowPlaying() && !playerViewModel.shouldHidePlayer {
               let isPad = UIDevice.current.userInterfaceIdiom == .pad
-              let bottomPadding: CGFloat = isSmallScreen ? 32 : 0
               let playerWidth: CGFloat? =
                 isPad
                 ? 720
