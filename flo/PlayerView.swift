@@ -195,6 +195,9 @@ struct PlayerView: View {
           }
         }
         .offset(y: offset.height)
+        .onChange(of: isExpanded) { expanded in
+            if expanded {offset = .zero}
+        }
         .gesture(
           DragGesture()
             .onChanged { gesture in
@@ -206,10 +209,13 @@ struct PlayerView: View {
               }
             }
             .onEnded { _ in
-              if offset.height > size.height / 3 {
+              if offset.height > size.height / 5 {
                 isExpanded = false
+              } else {
+                  withAnimation(.spring(response: 0.3, dampingFraction: 0.7)){
+                      offset = .zero
+                  }
               }
-              offset = .zero
               isDragging = false
             }
         )
