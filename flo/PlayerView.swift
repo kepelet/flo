@@ -41,9 +41,6 @@ struct PlayerView: View {
           ZStack(alignment: .topLeading) {
             Color(.systemBackground)
               .ignoresSafeArea()
-              .clipShape(
-                RoundedRectangle(cornerRadius: 15, style: .continuous)
-              )
             VStack(alignment: .leading) {
               HStack {
                 Spacer()
@@ -484,6 +481,7 @@ struct PlayerView: View {
 
   @ViewBuilder
   private func playerBackground() -> some View {
+    GeometryReader { proxy in
     ZStack {
       if UserDefaultsManager.playerBackground == PlayerBackground.translucent {
         if let image = UIImage(contentsOfFile: viewModel.getAlbumCoverArt()) {
@@ -507,7 +505,14 @@ struct PlayerView: View {
         Rectangle().fill(Color("PlayerColor"))
       }
     }
+    .clipShape(RoundedRectangle(cornerRadius: 37, style: .continuous))
+    .frame(
+                width: proxy.size.width,
+                height: proxy.size.height + 50,
+                alignment: .top
+            )
     .environment(\.colorScheme, .dark)
+                   }
     .ignoresSafeArea()
   }
 
