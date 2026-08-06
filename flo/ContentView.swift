@@ -7,6 +7,7 @@
 
 import PulseUI
 import SwiftUI
+import Combine
 
 struct ContentView: View {
   @AppStorage(UserDefaultsKeys.enableDebug) private var enableDebug = false
@@ -309,7 +310,7 @@ struct ContentView: View {
                 #if targetEnvironment(macCatalyst)
                   10
                 #else
-                  geometry.safeAreaInsets.bottom + 20
+                  keyboardHeight > 0 ? -keyboardHeight + geometry.safeAreaInsets.bottom + 8: geometry.safeAreaInsets.bottom + 20
                 #endif
               }()
 
@@ -352,6 +353,17 @@ struct ContentView: View {
     }
     .onAppear {
       PlaybackCoordinator.shared.attach(playerViewModel: playerViewModel)
+    }
+ .onReceive(NotificationCenter.default.publisher(for:
+    UIResponder.keyboardWillShowNotification)) { notification in
+        if let userInfo = notification.userInfo,
+           let keyboardFrame = userInfo[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect {
+            keyboardHeight = keyboardFrame.height
+        }
+    }
+        .onReceive(NotificationCenter.default.publisher(for:
+    UIResponder.keyboardWillHideNotification)) { _ in
+            keyboardHeight = 0
     }
   }
 }
