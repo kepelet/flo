@@ -203,7 +203,7 @@ struct PlayerView: View {
               }
             }
             .onEnded { _ in
-              if offset.height > size.height / 5 {
+              if offset.height > size.height / 6 {
                 isExpanded = false
               } else {
                   withAnimation(.spring(response: 0.3, dampingFraction: 0.7)){
