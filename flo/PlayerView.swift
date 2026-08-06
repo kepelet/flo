@@ -48,11 +48,8 @@ struct PlayerView: View {
               HStack {
                 Spacer()
 
-                Rectangle()
-                  .foregroundColor(Color.gray.opacity(0.3))
-                  .frame(width: 50, height: 5)
-                  .cornerRadius(30)
-                  .padding(.top)
+                DragHandle(color: .gray.opacity(0.3))
+                      .padding(.top)
 
                 Spacer()
               }
@@ -240,11 +237,8 @@ struct PlayerView: View {
     bottomSafeInset: CGFloat
   ) -> some View {
     VStack {
-      Rectangle()
-        .foregroundColor(Color.gray.opacity(0.8))
-        .frame(width: 50, height: 5)
-        .cornerRadius(30)
-        .padding(.top, topSafeInset + 8)
+      DragHandle(color: .gray.opacity(0.8))
+            .padding(.top, topSafeInset + 8)
 
       Spacer()
       let coverArtUrl = viewModel.getAlbumCoverArt()
@@ -532,6 +526,17 @@ struct PlayerView: View {
     }
     .frame(height: 20)
   }
+}
+
+struct DragHandle: View {
+    let color: Color
+    var body: some View {
+        RoundedRectangle(cornerRadius:2.5)
+            .fill(color)
+            .frame(width: 50, height: 5)
+            .frame(width: 80, height: 44)
+            .contentShape(Rectangle())
+    }
 }
 
 struct PlayerView_previews: PreviewProvider {
