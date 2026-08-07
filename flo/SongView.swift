@@ -55,8 +55,10 @@ struct SongView: View {
         .listRowSeparator(.hidden)
         .contentShape(Rectangle())
         .onTapGesture {
-          playerViewModel.playBySong(
-            idx: idx, item: viewModel.album, isFromLocal: viewModel.isDownloaded)
+            Task {
+                await playerViewModel.playBySong(
+                    idx: idx, item: viewModel.album, isFromLocal: viewModel.isDownloaded)
+            }
         }
         .contextMenu {
           VStack {

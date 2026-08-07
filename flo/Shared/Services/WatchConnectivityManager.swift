@@ -11,7 +11,8 @@ import Foundation
 #if os(iOS)
   import WatchConnectivity
 
-  final class WatchConnectivityManager: NSObject, WCSessionDelegate {
+@MainActor
+final class WatchConnectivityManager: NSObject, @MainActor WCSessionDelegate {
     static let shared = WatchConnectivityManager()
 
     private let session: WCSession? = WCSession.isSupported() ? WCSession.default : nil
@@ -40,7 +41,7 @@ import Foundation
       PlaybackCoordinator.shared.handleWatchCommand(message)
     }
 
-    func session(
+      @MainActor func session(
       _ session: WCSession,
       didReceiveMessage message: [String: Any],
       replyHandler: @escaping ([String: Any]) -> Void

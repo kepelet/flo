@@ -68,17 +68,19 @@ struct SongsView: View {
             Divider()
           }
           .onTapGesture {
-            guard let selectedSongIdx = viewModel.songs.firstIndex(where: { $0.id == song.id })
-            else {
-              return
-            }
-
-            var playlist = Playlist(name: "\"All Tracks\"")
-            playlist.songs = viewModel.songs
-
-            playerViewModel.playBySong(
-              idx: selectedSongIdx, item: playlist, isFromLocal: false
-            )
+              guard let selectedSongIdx = viewModel.songs.firstIndex(where: { $0.id == song.id })
+              else {
+                  return
+              }
+              
+              var playlist = Playlist(name: "\"All Tracks\"")
+              playlist.songs = viewModel.songs
+              
+              Task {
+                  await playerViewModel.playBySong(
+                    idx: selectedSongIdx, item: playlist, isFromLocal: false
+                  )
+              }
           }
           .frame(maxWidth: .infinity, alignment: .leading)
         }

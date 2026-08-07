@@ -56,7 +56,9 @@ struct LikedSongsView: View {
           .onTapGesture {
             let liked = SongCollection(
               id: "starred-songs", name: "Liked Songs", songs: viewModel.starredSongs)
-            playerViewModel.playBySong(idx: idx, item: liked, isFromLocal: false)
+              Task {
+                  await playerViewModel.playBySong(idx: idx, item: liked, isFromLocal: false)
+              }
           }
           .frame(maxWidth: .infinity, alignment: .leading)
         }

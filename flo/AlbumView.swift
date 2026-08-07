@@ -110,9 +110,11 @@ struct AlbumView: View {
 
           HStack(spacing: 20) {
             Button(action: {
-              playerViewModel.playItem(
-                item: viewModel.album,
-                isFromLocal: viewModel.isDownloaded)
+                Task {
+                    await playerViewModel.playItem(
+                        item: viewModel.album,
+                        isFromLocal: viewModel.isDownloaded)
+                }
             }) {
               Text("Play")
                 .foregroundColor(.white)
@@ -124,9 +126,11 @@ struct AlbumView: View {
             }.disabled(viewModel.album.songs.isEmpty)
 
             Button(action: {
-              playerViewModel.shuffleItem(
-                item: viewModel.album,
-                isFromLocal: viewModel.isDownloaded)
+                Task {
+                    await playerViewModel.shuffleItem(
+                        item: viewModel.album,
+                        isFromLocal: viewModel.isDownloaded)
+                }
             }) {
               Text("Shuffle")
                 .foregroundColor(.white)

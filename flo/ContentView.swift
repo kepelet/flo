@@ -7,6 +7,7 @@
 
 import PulseUI
 import SwiftUI
+import Combine
 
 struct ContentView: View {
   @AppStorage(UserDefaultsKeys.enableDebug) private var enableDebug = false
@@ -21,11 +22,14 @@ struct ContentView: View {
   @StateObject private var floooViewModel = FloooViewModel()
   @StateObject private var downloadViewModel = DownloadViewModel()
   @StateObject private var inAppPurchaseManager = InAppPurchaseManager()
-
+    
   @State private var floatingPlayerOffsetX: CGFloat = .zero
   @State private var isSwipping = false
-
-  private var swipeThreshold: CGFloat = 150.0
+  @State private var keyboardHeight: CGFloat = 0
+    
+    private var swipeThreshold: CGFloat {
+        UIScreen.main.bounds.width * 0.3
+    }
 
   private var isPadSidebar: Bool {
     guard UIDevice.current.userInterfaceIdiom == .pad else { return false }
@@ -119,7 +123,7 @@ struct ContentView: View {
       .overlay(alignment: .bottom) {
         if playerViewModel.hasNowPlaying() && !playerViewModel.shouldHidePlayer {
           FloatingPlayerView(viewModel: playerViewModel)
-            .frame(maxWidth: 720)
+                .padding(.horizontal, 20)
             .opacity(playerViewModel.hasNowPlaying() ? 1 : 0)
             .offset(x: floatingPlayerOffsetX)
             .onTapGesture {
@@ -132,16 +136,25 @@ struct ContentView: View {
                     floatingPlayerOffsetX = value.translation.width
                   }
 
-                  if abs(floatingPlayerOffsetX) > swipeThreshold, !isSwipping {
+                    if abs(floatingPlayerOffsetX) > swipeThreshold, !isSwipping {
                     isSwipping = true
                   }
                 }
                 .onEnded { _ in
-                  if abs(floatingPlayerOffsetX) > swipeThreshold, isSwipping {
-                    playerViewModel.destroyPlayerAndQueue()
-                  }
-
-                  self.floatingPlayerOffsetX = .zero
+                    if abs(floatingPlayerOffsetX) > swipeThreshold, isSwipping {
+                        withAnimation(.easeOut(duration: 0.25)) {
+                            self.floatingPlayerOffsetX = -UIScreen.main.bounds.width
+                        }
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+                            Task {
+                                await playerViewModel.destroyPlayerAndQueue()
+                            }
+                        }
+                    } else {
+                        withAnimation(.spring(response: 0.4, dampingFraction: 0.7)){
+                            self.floatingPlayerOffsetX = .zero
+                        }
+                    }
                   self.isSwipping = false
                 }
             )
@@ -288,17 +301,14 @@ struct ContentView: View {
           PlayerView(isExpanded: $isPlayerExpanded, viewModel: playerViewModel)
             .ignoresSafeArea()
             .offset(y: isPlayerExpanded ? 0 : offScreenY)
-            .animation(.spring(duration: 0.2), value: isPlayerExpanded)
+            .animation(.spring(response: 0.4, dampingFraction: 0.7), value: isPlayerExpanded)
         }
 
         if !isPadSidebar {
           VStack {
             Spacer()
-
-            if playerViewModel.hasNowPlaying() && !playerViewModel.shouldHidePlayer {
-              let isSmallScreen = UIScreen.main.bounds.width <= 390
+              if playerViewModel.hasNowPlaying() && !playerViewModel.shouldHidePlayer {
               let isPad = UIDevice.current.userInterfaceIdiom == .pad
-              let bottomPadding: CGFloat = isSmallScreen ? 32 : 0
               let playerWidth: CGFloat? =
                 isPad
                 ? 720
@@ -310,12 +320,12 @@ struct ContentView: View {
                 #if targetEnvironment(macCatalyst)
                   10
                 #else
-                  isPad ? 0 : (40 + bottomPadding)
+                  keyboardHeight > 0 ? -keyboardHeight + geometry.safeAreaInsets.bottom + 8: geometry.safeAreaInsets.bottom + 20
                 #endif
               }()
 
               FloatingPlayerView(viewModel: playerViewModel)
-                .frame(maxWidth: playerWidth ?? .infinity)
+                .padding(.horizontal, isPad ? 40 :8)
                 .padding(.bottom, playerBottomPadding)
                 .opacity(playerViewModel.hasNowPlaying() ? 1 : 0)
                 .offset(
@@ -339,10 +349,19 @@ struct ContentView: View {
                     }
                     .onEnded { _ in
                       if abs(floatingPlayerOffsetX) > swipeThreshold, isSwipping {
-                        playerViewModel.destroyPlayerAndQueue()
+                          withAnimation(.easeOut(duration: 0.25)) {
+                              self.floatingPlayerOffsetX = -UIScreen.main.bounds.width
+                          }
+                          DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+                              Task {
+                                  await playerViewModel.destroyPlayerAndQueue()
+                              }
+                          }
+                      } else {
+                          withAnimation(.spring(response: 0.4, dampingFraction: 0.7)){
+                              self.floatingPlayerOffsetX = .zero
+                          }
                       }
-
-                      self.floatingPlayerOffsetX = .zero
                       self.isSwipping = false
                     }
                 )
@@ -353,6 +372,17 @@ struct ContentView: View {
     }
     .onAppear {
       PlaybackCoordinator.shared.attach(playerViewModel: playerViewModel)
+    }
+ .onReceive(NotificationCenter.default.publisher(for:
+    UIResponder.keyboardWillShowNotification)) { notification in
+        if let userInfo = notification.userInfo,
+           let keyboardFrame = userInfo[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect {
+            keyboardHeight = keyboardFrame.height
+        }
+    }
+        .onReceive(NotificationCenter.default.publisher(for:
+    UIResponder.keyboardWillHideNotification)) { _ in
+            keyboardHeight = 0
     }
   }
 }

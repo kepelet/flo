@@ -28,15 +28,21 @@ final class PlaybackCoordinator {
       }
     case "pause":
       DispatchQueue.main.async {
-        self.playerViewModel?.pause()
+          Task {
+              await self.playerViewModel?.pause()
+          }
       }
     case "next":
       DispatchQueue.main.async {
-        self.playerViewModel?.nextSong()
+          Task {
+            await self.playerViewModel?.nextSong()
+          }
       }
     case "previous":
       DispatchQueue.main.async {
-        self.playerViewModel?.prevSong()
+          Task {
+              await self.playerViewModel?.prevSong()
+          }
       }
     case "playAlbum":
       handlePlayAlbum(message)
@@ -189,11 +195,13 @@ final class PlaybackCoordinator {
     let queue = PlaybackService.shared.addToQueue(item: item)
 
     DispatchQueue.main.async {
-      self.playerViewModel?.addToQueue(idx: startIndex, item: queue, playAudio: true)
+        Task {
+            await self.playerViewModel?.addToQueue(idx: startIndex, item: queue, playAudio: true)
+        }
     }
   }
 
-  func currentNowPlayingPayload() -> [String: Any] {
+    @MainActor func currentNowPlayingPayload() -> [String: Any] {
     guard let playerViewModel, playerViewModel.hasNowPlaying() else {
       return ["hasNowPlaying": false]
     }

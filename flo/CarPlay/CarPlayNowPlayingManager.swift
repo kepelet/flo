@@ -8,6 +8,7 @@ import Combine
 #if canImport(CarPlay)
   import CarPlay
 
+@MainActor
   class CarPlayNowPlayingManager: NSObject {
     private let playerVM: PlayerViewModel
     private var cancellables = Set<AnyCancellable>()
@@ -97,8 +98,10 @@ import Combine
           detailText: entity.artistName ?? ""
         )
         item.handler = { [weak self] _, completion in
-          self?.playerVM.playFromQueue(idx: idx)
-          completion()
+            Task {
+                await self?.playerVM.playFromQueue(idx: idx)
+                completion()
+            }
         }
         return item
       }

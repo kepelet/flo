@@ -12,7 +12,7 @@ final class WatchLibraryResponder {
 
   private init() {}
 
-  func handle(message: [String: Any], replyHandler: @escaping ([String: Any]) -> Void) {
+    @MainActor func handle(message: [String: Any], replyHandler: @escaping ([String: Any]) -> Void) {
     guard let request = message["request"] as? String else {
       replyHandler(["result": "error", "message": "Invalid request."])
 

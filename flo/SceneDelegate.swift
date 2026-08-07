@@ -39,7 +39,11 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
   func sceneWillResignActive(_: UIScene) {}
 
-  func sceneWillEnterForeground(_: UIScene) {}
+  func sceneWillEnterForeground(_: UIScene) {
+      PlayerViewModel.shared.setLowPowerMode(false)
+  }
 
-  func sceneDidEnterBackground(_: UIScene) {}
+  func sceneDidEnterBackground(_: UIScene) {
+      PlayerViewModel.shared.setLowPowerMode(true)
+  }
 }

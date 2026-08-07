@@ -7,12 +7,12 @@ import AVFoundation
 import UIKit
 
 class AppDelegate: NSObject, UIApplicationDelegate {
-    func application(
+    func application (
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
     ) -> Bool {
         do {
-            try AVAudioSession.sharedInstance().setCategory(AVAudioSession.Category.playback)
+                try AVAudioSession.sharedInstance().setCategory(AVAudioSession.Category.playback)
         } catch {
             print(error)
         }

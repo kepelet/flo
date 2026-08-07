@@ -248,7 +248,9 @@ struct PreferencesView: View {
                 "Continue", role: .destructive,
                 action: {
                   floooViewModel.optimizeLocalStorage()
-                  playerViewModel.destroyPlayerAndQueue()
+                    Task {
+                       await playerViewModel.destroyPlayerAndQueue()
+                    }
                 })
             },
             message: {

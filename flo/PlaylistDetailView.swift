@@ -50,10 +50,11 @@ struct PlaylistDetailView: View {
 
         HStack(spacing: 20) {
           Button(action: {
-            playerViewModel.playItem(
-              item: viewModel.playlist,
-              isFromLocal: false)
-
+              Task {
+                  await playerViewModel.playItem(
+                    item: viewModel.playlist,
+                    isFromLocal: false)
+              }
           }) {
             Text("Play")
               .foregroundColor(.white)
@@ -65,9 +66,11 @@ struct PlaylistDetailView: View {
           }.disabled(viewModel.playlist.songs.isEmpty)
 
           Button(action: {
-            playerViewModel.shuffleItem(
-              item: viewModel.playlist,
-              isFromLocal: false)
+              Task {
+                  await playerViewModel.shuffleItem(
+                    item: viewModel.playlist,
+                    isFromLocal: false)
+              }
           }) {
             Text("Shuffle")
               .foregroundColor(.white)
@@ -112,8 +115,10 @@ struct PlaylistDetailView: View {
           .listRowSeparator(.hidden)
           .contentShape(Rectangle())
           .onTapGesture {
-            playerViewModel.playBySong(
-              idx: idx, item: viewModel.playlist, isFromLocal: false)
+              Task {
+                  await playerViewModel.playBySong(
+                    idx: idx, item: viewModel.playlist, isFromLocal: false)
+              }
           }
           .contextMenu {
             VStack {

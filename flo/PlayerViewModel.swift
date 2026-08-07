@@ -10,680 +10,742 @@ import Combine
 import MediaPlayer
 import SwiftUI
 
+@MainActor
 class PlayerViewModel: ObservableObject {
-  static let shared = PlayerViewModel()
-
-  private var player: AVPlayer?
-  private var playerItem: AVPlayerItem?
-  private var timeObserverToken: Any?
-
-  @Published var queue: [QueueEntity] = []
-  @Published var playbackMode = PlaybackMode.defaultPlayback
-
-  @Published var activeQueueIdx: Int = 0
-
-  @Published var isMediaFailed: Bool = false
-  @Published var isMediaLoading: Bool = false
-  @Published var isShuffling: Bool = false
-  @Published var isPlaying: Bool = false
-  @Published var isSeeking: Bool = false
-  @Published var isLyricsMode: Bool = false
-
-  @Published var lyrics: [LyricsLine] = []
-  @Published var currentLyricsLineIndex: Int = 0
-  @Published var isLoadingLyrics: Bool = false
-  @Published var lyricsError: String?
-
-  @Published var progress: Double = 0.0
-
-  @Published var currentTimeString: String = "00:00"
-  @Published var totalTimeString: String = "00:00"
-  @Published var shouldHidePlayer: Bool = false
-  @Published var externalOutputName: String?
-  @Published var isStarred: Bool = false
-
-  // FIXME: this make confusion with `isDownloaded` and/or `isPlayingFromLocal`
-  @Published var _playFromLocal: Bool = false
-
-  private var isLocallySaved: Bool = false
-  private var isFinished: Bool = false
-  private var totalDuration: Double = 0.0
-  private var playerItemObservation: AnyCancellable?
-  private var interruptionObservation = Set<AnyCancellable>()
-  private var routeChangeObservation = Set<AnyCancellable>()
-
-  private var scrobbleThreshold = 0.5
-  private var hasTriggeredCache: Bool = false
-
-  var nowPlaying: QueueEntity {
-    return self.queue[self.activeQueueIdx]
-  }
-
-  var isPlayFromSource: Bool {
-    return self._playFromLocal
-      || UserDefaultsManager.maxBitRate == TranscodingSettings.sourceBitRate
-  }
-
-  var isLRCLIBEnabled: Bool {
-    return UserDefaultsManager.LRCLIBServerURL != ""
-  }
-
-  var isLiveRadio: Bool {
-    guard hasNowPlaying() else { return false }
-
-    return nowPlaying.duration.isInfinite || nowPlaying.duration.isNaN
-  }
-
-  init() {
-    self.player = AVPlayer()
-    self.observeInterruptionNotifications()
-    self.observeRouteChangeNotifications()
-    self.updateAudioRoute()
-
-    let lastPlayData = PlaybackService.shared.getQueue()
-    let queueActiveIdx = UserDefaultsManager.queueActiveIdx
-
-    if !lastPlayData.isEmpty && queueActiveIdx < lastPlayData.count {
-      self.progress = UserDefaultsManager.nowPlayingProgress
-      self.playbackMode = UserDefaultsManager.playbackMode
-      self.addToQueue(
-        idx: UserDefaultsManager.queueActiveIdx, item: lastPlayData, playAudio: false)
-
-      // if users played more than half of the song then it's considered as saved
-      if self.progress > scrobbleThreshold {
-        self.isLocallySaved = true
-      }
-    } else {
-      UserDefaultsManager.removeObject(key: UserDefaultsKeys.queueActiveIdx)
-      UserDefaultsManager.removeObject(key: UserDefaultsKeys.nowPlayingProgress)
-      PlaybackService.shared.clearQueue()
+    static let shared = PlayerViewModel()
+    
+    private var player: AVPlayer?
+    private var playerItem: AVPlayerItem?
+    private var timeObserverToken: Any?
+    
+    @Published var queue: [QueueEntity] = []
+    @Published var playbackMode = PlaybackMode.defaultPlayback
+    
+    @Published var activeQueueIdx: Int = 0
+    
+    @Published var isMediaFailed: Bool = false
+    @Published var playbackErrorMessage: String? = nil
+    @Published var isMediaLoading: Bool = false
+    @Published var isShuffling: Bool = false
+    @Published var isPlaying: Bool = false
+    @Published var isSeeking: Bool = false
+    @Published var isLyricsMode: Bool = false
+    @Published var albumCoverImage: UIImage?
+    
+    @Published var lyrics: [LyricsLine] = []
+    @Published var currentLyricsLineIndex: Int = 0
+    @Published var isLoadingLyrics: Bool = false
+    @Published var lyricsError: String?
+    
+    @Published var progress: Double = 0.0
+    
+    @Published var currentTimeString: String = "00:00"
+    @Published var totalTimeString: String = "00:00"
+    @Published var shouldHidePlayer: Bool = false
+    @Published var externalOutputName: String?
+    @Published var isStarred: Bool = false
+    
+    // FIXME: this make confusion with `isDownloaded` and/or `isPlayingFromLocal`
+    @Published var _playFromLocal: Bool = false
+    
+    private var isLocallySaved: Bool = false
+    private var isFinished: Bool = false
+    private var totalDuration: Double = 0.0
+    private var playerItemObservation: AnyCancellable?
+    private var interruptionObservation = Set<AnyCancellable>()
+    private var routeChangeObservation = Set<AnyCancellable>()
+    
+    private var scrobbleThreshold = 0.5
+    private var hasTriggeredCache: Bool = false
+    
+    var nowPlaying: QueueEntity {
+        return self.queue[self.activeQueueIdx]
     }
-
-    self.setupRemoteCommandCenter()
-  }
-
-  func observeInterruptionNotifications() {
-    NotificationCenter.default
-      .publisher(for: AVAudioSession.interruptionNotification)
-      .sink { notification in
-        self.handleInterruptionNotification(notification)
-      }
-      .store(in: &interruptionObservation)
-  }
-
-  func observeRouteChangeNotifications() {
-    NotificationCenter.default
-      .publisher(for: AVAudioSession.routeChangeNotification)
-      .sink { _ in
+    
+    var isPlayFromSource: Bool {
+        return self._playFromLocal
+        || UserDefaultsManager.maxBitRate == TranscodingSettings.sourceBitRate
+    }
+    
+    var isLRCLIBEnabled: Bool {
+        return UserDefaultsManager.LRCLIBServerURL != ""
+    }
+    
+    var isLiveRadio: Bool {
+        guard hasNowPlaying() else { return false }
+        
+        return nowPlaying.duration.isInfinite || nowPlaying.duration.isNaN
+    }
+    
+    init() {
+        self.player = AVPlayer()
+        self.observeInterruptionNotifications()
+        self.observeRouteChangeNotifications()
         self.updateAudioRoute()
-      }
-      .store(in: &routeChangeObservation)
-  }
-
-  func updateAudioRoute() {
-    let outputs = AVAudioSession.sharedInstance().currentRoute.outputs
-
-    if let externalOutput = outputs.first(where: { !Self.isInternalAudioOutput($0) }) {
-      self.externalOutputName = externalOutput.portName
-    } else {
-      self.externalOutputName = nil
-    }
-  }
-
-  private static func isInternalAudioOutput(_ output: AVAudioSessionPortDescription) -> Bool {
-    switch output.portType {
-    case .builtInReceiver, .builtInSpeaker, .builtInMic:
-      return true
-    default:
-      return false
-    }
-  }
-
-  func handleInterruptionNotification(_ notification: Notification) {
-    guard let userInfo = notification.userInfo,
-      let typeValue = userInfo[AVAudioSessionInterruptionTypeKey] as? Int,
-      let type = AVAudioSession.InterruptionType(rawValue: UInt(typeValue))
-    else {
-      return
-    }
-
-    switch type {
-    case .began:
-      self.pause()
-
-    case .ended:
-      self.play()
-
-      if let optionsValue = userInfo[AVAudioSessionInterruptionOptionKey] as? Int {
-        let options = AVAudioSession.InterruptionOptions(rawValue: UInt(optionsValue))
-
-        if options.contains(.shouldResume) {
-          self.play()
+        
+        let lastPlayData = PlaybackService.shared.getQueue()
+        let queueActiveIdx = UserDefaultsManager.queueActiveIdx
+        
+        if !lastPlayData.isEmpty && queueActiveIdx < lastPlayData.count {
+            self.progress = UserDefaultsManager.nowPlayingProgress
+            self.playbackMode = UserDefaultsManager.playbackMode
+            Task {
+                await self.addToQueue(
+                    idx: UserDefaultsManager.queueActiveIdx, item: lastPlayData, playAudio: false)
+            }
+            
+            // if users played more than half of the song then it's considered as saved
+            if self.progress > scrobbleThreshold {
+                self.isLocallySaved = true
+            }
+        } else {
+            UserDefaultsManager.removeObject(key: UserDefaultsKeys.queueActiveIdx)
+            UserDefaultsManager.removeObject(key: UserDefaultsKeys.nowPlayingProgress)
+            PlaybackService.shared.clearQueue()
         }
-      }
-
-    @unknown default:
-      break
+        
+        self.setupRemoteCommandCenter()
     }
-  }
-
-  func addToQueue(idx: Int, item: [QueueEntity], playAudio: Bool = true) {
-    self.activeQueueIdx = idx
-    self.queue = item
-    self.setNowPlaying(playAudio: playAudio)
-  }
-
-  func getAlbumCoverArt() -> String {
-    return AlbumService.shared.getAlbumCover(
-      artistName: self.nowPlaying.artistName ?? "",
-      albumName: self.nowPlaying.albumName ?? "",
-      albumId: self.nowPlaying.albumId ?? "",
-      trackId: self.nowPlaying.id ?? "",
-      contextName: self.nowPlaying.contextName,
-      albumCover: self.nowPlaying.albumCover ?? ""
-    )
-  }
-
-  func hasNowPlaying() -> Bool {
-    return !self.queue.isEmpty
-  }
-
-  func setNowPlaying(playAudio: Bool = true) {
-    guard self.queue.indices.contains(self.activeQueueIdx) else {
-      self.isMediaLoading = false
-      self.isMediaFailed = true
-
-      return
+    
+    func observeInterruptionNotifications() {
+        NotificationCenter.default
+            .publisher(for: AVAudioSession.interruptionNotification)
+            .sink { notification in
+                self.handleInterruptionNotification(notification)
+            }
+            .store(in: &interruptionObservation)
     }
-
-    self.shouldHidePlayer = false
-    self.isLocallySaved = false
-    self.hasTriggeredCache = false
-
-    StreamCacheManager.shared.cancelAllInFlight()
-
-    try? AVAudioSession.sharedInstance().setActive(true)
-
-    self.resetLyrics()
-    self.checkStarredStatus()
-
-    if let timeObserverToken = timeObserverToken {
-      player?.removeTimeObserver(timeObserverToken)
+    
+    func observeRouteChangeNotifications() {
+        NotificationCenter.default
+            .publisher(for: AVAudioSession.routeChangeNotification)
+            .sink { _ in
+                self.updateAudioRoute()
+            }
+            .store(in: &routeChangeObservation)
     }
-
-    let songId = self.nowPlaying.id ?? ""
-    StreamCacheManager.shared.setCurrentlyPlaying(mediaFileId: songId)
-
-    let streamUrl = AlbumService.shared.getStreamUrl(id: songId)
-
-    guard let audioURL = URL(string: streamUrl), !streamUrl.isEmpty else {
-      self.isMediaLoading = false
-      self.isMediaFailed = true
-
-      return
+    
+    func updateAudioRoute() {
+        let outputs = AVAudioSession.sharedInstance().currentRoute.outputs
+        
+        if let externalOutput = outputs.first(where: { !Self.isInternalAudioOutput($0) }) {
+            self.externalOutputName = externalOutput.portName
+        } else {
+            self.externalOutputName = nil
+        }
     }
-
-    self._playFromLocal = audioURL.isFileURL
-
-    self.playerItem = AVPlayerItem(url: audioURL)
-    self.player?.replaceCurrentItem(with: self.playerItem)
-
-    let duration = CMTime(
-      seconds: self.nowPlaying.duration, preferredTimescale: self.nowPlaying.sampleRate)
-    let playbackDuration = CMTimeGetSeconds(duration)
-
-    self.totalDuration = playbackDuration
-    self.totalTimeString = timeString(for: playbackDuration)
-
-    let newTimeString = self.progress * playbackDuration
-
-    self.currentTimeString = timeString(for: newTimeString)
-
-    self.playerItemObservation = self.playerItem?.publisher(for: \.status)
-      .sink { [weak self] status in
-        guard let self = self else { return }
-        switch status {
-        case .readyToPlay:
-          DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-            self.isMediaLoading = false
-            self.isMediaFailed = false
-          }
-        case .failed:
-          self.isMediaLoading = false
-          self.isMediaFailed = true
-        case .unknown:
-          self.isMediaLoading = false
+    
+    private static func isInternalAudioOutput(_ output: AVAudioSessionPortDescription) -> Bool {
+        switch output.portType {
+        case .builtInReceiver, .builtInSpeaker, .builtInMic:
+            return true
+        default:
+            return false
+        }
+    }
+    
+    func handleInterruptionNotification(_ notification: Notification) {
+        guard let userInfo = notification.userInfo,
+              let typeValue = userInfo[AVAudioSessionInterruptionTypeKey] as? Int,
+              let type = AVAudioSession.InterruptionType(rawValue: UInt(typeValue))
+        else {
+            return
+        }
+        
+        switch type {
+        case .began:
+            Task {
+                await self.pause()
+            }
+        case .ended:
+            self.play()
+            
+            if let optionsValue = userInfo[AVAudioSessionInterruptionOptionKey] as? Int {
+                let options = AVAudioSession.InterruptionOptions(rawValue: UInt(optionsValue))
+                
+                if options.contains(.shouldResume) {
+                    self.play()
+                }
+            }
+            
         @unknown default:
-          self.isMediaLoading = true
+            break
         }
-      }
-
-    if playAudio {
-      self.seek(to: 0.0)
-      self.play()
-    } else {
-      self.seek(to: self.progress)
     }
-
-    self.addPeriodicTimeObserver()
-    self.initNowPlayingInfo(
-      title: self.nowPlaying.songName ?? "",
-      artist: self.nowPlaying.artistName ?? "",
-      playbackDuration: self.totalDuration)
-
-    FloooViewModel.shared.setNowPlayingToScrobbleServer(nowPlaying: self.nowPlaying)
-
-    if isLRCLIBEnabled && !isLiveRadio {
-      self.fetchLyrics()
+    
+    func addToQueue(idx: Int, item: [QueueEntity], playAudio: Bool = true) async {
+        self.activeQueueIdx = idx
+        self.queue = item
+        await self.setNowPlaying(playAudio: playAudio)
     }
-  }
-
-  private func addPeriodicTimeObserver() {
-    guard let player = self.player else { return }
-
-    let interval = CMTime(seconds: 1, preferredTimescale: CMTimeScale(NSEC_PER_SEC))
-
-    timeObserverToken = player.addPeriodicTimeObserver(forInterval: interval, queue: .main) {
-      time in
-      let currentTime = CMTimeGetSeconds(time)
-      let roundedTotalDuration = floor(self.totalDuration)
-
-      if self.totalDuration.isFinite, self.totalDuration > 0 {
-        self.progress = currentTime / self.totalDuration
-      } else {
-        self.progress = 0.0
-      }
-
-      self.currentTimeString = timeString(for: currentTime)
-
-      UserDefaultsManager.nowPlayingProgress = self.progress
-
-      if self.isLRCLIBEnabled {
-        self.updateCurrentLyricsLine(currentTime: currentTime)
-      }
-
-      if !self.isLocallySaved && self.progress >= 0.5 {
-        Task {
-          FloooViewModel.shared.scrobble(submission: true, nowPlaying: self.nowPlaying)
-
-          self.isLocallySaved = true
+    
+    func getAlbumCoverArt() -> String {
+        return AlbumService.shared.getAlbumCover(
+            artistName: self.nowPlaying.artistName ?? "",
+            albumName: self.nowPlaying.albumName ?? "",
+            albumId: self.nowPlaying.albumId ?? "",
+            trackId: self.nowPlaying.id ?? "",
+            contextName: self.nowPlaying.contextName,
+            albumCover: self.nowPlaying.albumCover ?? ""
+        )
+    }
+    
+    func hasNowPlaying() -> Bool {
+        return !self.queue.isEmpty
+    }
+    
+    func setNowPlaying(playAudio: Bool = true) async {
+        guard self.queue.indices.contains(self.activeQueueIdx) else {
+            self.isMediaLoading = false
+            self.isMediaFailed = true
+            let seconds = 4.0
+            DispatchQueue.main.asyncAfter(deadline: .now() + seconds) {
+                Task {
+                    await self.nextSong()
+                }
+            }
+            return
         }
-      }
-
-      if !self.hasTriggeredCache && currentTime >= 10.0 && !self.isLiveRadio {
-        self.hasTriggeredCache = true
-        if let nextIdx = self.nextQueueIdxForPreCache(),
-          let nextId = self.queue[nextIdx].id, !nextId.isEmpty
+        
+        self.shouldHidePlayer = false
+        self.isLocallySaved = false
+        self.hasTriggeredCache = false
+        
+        StreamCacheManager.shared.cancelAllInFlight()
+        
+        DispatchQueue.global().async {
+            try? AVAudioSession.sharedInstance().setActive(true)
+        }
+        
+        self.resetLyrics()
+        self.checkStarredStatus()
+        
+        if let timeObserverToken = timeObserverToken {
+            player?.removeTimeObserver(timeObserverToken)
+        }
+        
+        let songId = self.nowPlaying.id ?? ""
+        StreamCacheManager.shared.setCurrentlyPlaying(mediaFileId: songId)
+        
+        let streamUrl = AlbumService.shared.getStreamUrl(id: songId)
+        
+        guard let audioURL = URL(string: streamUrl), !streamUrl.isEmpty else {
+            self.isMediaLoading = false
+            self.isMediaFailed = true
+            let seconds = 4.0
+            DispatchQueue.main.asyncAfter(deadline: .now() + seconds) {
+                Task {
+                    await self.nextSong()
+                }
+            }
+            return
+        }
+        
+        self._playFromLocal = audioURL.isFileURL
+        
+        self.playerItem = AVPlayerItem(url: audioURL)
+        self.player?.replaceCurrentItem(with: self.playerItem)
+        
+        let duration = CMTime(
+            seconds: self.nowPlaying.duration, preferredTimescale: self.nowPlaying.sampleRate)
+        let playbackDuration = CMTimeGetSeconds(duration)
+        
+        self.totalDuration = playbackDuration
+        self.totalTimeString = timeString(for: playbackDuration)
+        
+        let newTimeString = self.progress * playbackDuration
+        
+        self.currentTimeString = timeString(for: newTimeString)
+        
+        self.playerItemObservation = self.playerItem?.publisher(for: \.status)
+            .sink { [weak self] status in
+                guard let self = self else { return }
+                switch status {
+                case .readyToPlay:
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                        self.isMediaLoading = false
+                        self.isMediaFailed = false
+                    }
+                case .failed:
+                    self.isMediaLoading = false
+                    self.isMediaFailed = true
+                    let seconds = 4.0
+                    DispatchQueue.main.asyncAfter(deadline: .now() + seconds) {
+                        Task {
+                            await self.nextSong()
+                        }
+                    }
+                case .unknown:
+                    self.isMediaLoading = false
+                @unknown default:
+                    self.isMediaLoading = true
+                }
+            }
+        
+        if playAudio {
+            self.seek(to: 0.0)
+            self.play()
+        } else {
+            self.seek(to: self.progress)
+        }
+        
+        self.addPeriodicTimeObserver()
+        self.initNowPlayingInfo(
+            title: self.nowPlaying.songName ?? "",
+            artist: self.nowPlaying.artistName ?? "",
+            playbackDuration: self.totalDuration)
+        
+        FloooViewModel.shared.setNowPlayingToScrobbleServer(nowPlaying: self.nowPlaying)
+        
+        if isLRCLIBEnabled && !isLiveRadio {
+            self.fetchLyrics()
+        }
+    }
+    
+    private func addPeriodicTimeObserver() {
+        guard let player = self.player else { return }
+        
+        let interval = CMTime(seconds: 1, preferredTimescale: CMTimeScale(NSEC_PER_SEC))
+        
+        timeObserverToken = player.addPeriodicTimeObserver(forInterval: interval, queue: .main) { [weak self] time in
+            guard let self = self else { return }
+            let currentTime = CMTimeGetSeconds(time)
+            let roundedTotalDuration = floor(self.totalDuration)
+            
+            if self.totalDuration.isFinite, self.totalDuration > 0 {
+                self.progress = currentTime / self.totalDuration
+            } else {
+                self.progress = 0.0
+            }
+            
+            self.currentTimeString = timeString(for: currentTime)
+            
+            UserDefaultsManager.nowPlayingProgress = self.progress
+            
+            if self.isLRCLIBEnabled {
+                self.updateCurrentLyricsLine(currentTime: currentTime)
+            }
+            
+            if !self.isLocallySaved && self.progress >= 0.5 {
+                Task {
+                    FloooViewModel.shared.scrobble(submission: true, nowPlaying: self.nowPlaying)
+                    
+                    self.isLocallySaved = true
+                }
+            }
+            
+            if !self.hasTriggeredCache && currentTime >= 10.0 && !self.isLiveRadio {
+                self.hasTriggeredCache = true
+                if let nextIdx = self.nextQueueIdxForPreCache(),
+                   let nextId = self.queue[nextIdx].id, !nextId.isEmpty
+                {
+                    StreamCacheManager.shared.cacheSong(
+                        mediaFileId: nextId, originalSuffix: self.queue[nextIdx].suffix,
+                        from: self.queue[nextIdx])
+                }
+            }
+            
+            if self.totalDuration.isFinite,
+               self.totalDuration > 0,
+               round(currentTime) >= roundedTotalDuration
+            {
+                Task {
+                    await self.nextSong()
+                }
+                UserDefaultsManager.removeObject(key: UserDefaultsKeys.nowPlayingProgress)
+            }
+        }
+    }
+    func setLowPowerMode(_ enabled: Bool) {
+        if enabled {
+            if let token = timeObserverToken {
+                player?.removeTimeObserver(token)
+                timeObserverToken = nil
+            } else {
+                if timeObserverToken == nil {
+                    addPeriodicTimeObserver()
+                }
+            }
+        }
+    }
+    private func initNowPlayingInfo(
+        title: String, artist: String, playbackDuration: Double
+    ) {
+        DispatchQueue.global().async {
+            let artwork = self.makeNowPlayingArtwork()
+            
+            DispatchQueue.main.async {
+                var nowPlayingInfo = MPNowPlayingInfoCenter.default().nowPlayingInfo ?? [String: Any]()
+                
+                nowPlayingInfo[MPMediaItemPropertyTitle] = title
+                nowPlayingInfo[MPMediaItemPropertyArtist] = artist
+                nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] = playbackDuration
+                
+                if let artwork = artwork {
+                    nowPlayingInfo[MPMediaItemPropertyArtwork] = artwork
+                }
+                
+                MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
+            }
+        }
+    }
+    
+    private func makeNowPlayingArtwork() -> MPMediaItemArtwork? {
+        if isLiveRadio {
+            if let image = UIImage(named: "placeholder") {
+                return MPMediaItemArtwork(boundsSize: image.size) { _ in
+                    return image
+                }
+            }
+            
+            return nil
+        }
+        
+        let albumCoverArt = self.getAlbumCoverArt()
+        
+        let image: UIImage?
+        
+        if albumCoverArt.hasPrefix("/") {
+            image = UIImage(contentsOfFile: albumCoverArt)
+        } else if let remoteURL = URL(string: albumCoverArt),
+                  let data = try? Data(contentsOf: remoteURL)
         {
-          StreamCacheManager.shared.cacheSong(
-            mediaFileId: nextId, originalSuffix: self.queue[nextIdx].suffix,
-            from: self.queue[nextIdx])
+            image = UIImage(data: data)
+        } else {
+            image = nil
         }
-      }
-
-      if self.totalDuration.isFinite,
-        self.totalDuration > 0,
-        round(currentTime) >= roundedTotalDuration
-      {
-        self.nextSong()
-
-        UserDefaultsManager.removeObject(key: UserDefaultsKeys.nowPlayingProgress)
-      }
+        
+        guard let resolvedImage = image else {
+            return nil
+        }
+        
+        return MPMediaItemArtwork(boundsSize: resolvedImage.size) { _ in
+            return resolvedImage
+        }
     }
-  }
-
-  private func initNowPlayingInfo(
-    title: String, artist: String, playbackDuration: Double
-  ) {
-    DispatchQueue.global().async {
-      let artwork = self.makeNowPlayingArtwork()
-
-      DispatchQueue.main.async {
+    
+    func updateNowPlayingInfo(progress: TimeInterval, rate: Float) {
         var nowPlayingInfo = MPNowPlayingInfoCenter.default().nowPlayingInfo ?? [String: Any]()
-
-        nowPlayingInfo[MPMediaItemPropertyTitle] = title
-        nowPlayingInfo[MPMediaItemPropertyArtist] = artist
-        nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] = playbackDuration
-
-        if let artwork = artwork {
-          nowPlayingInfo[MPMediaItemPropertyArtwork] = artwork
-        }
-
+        
+        nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = progress * self.totalDuration
+        nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] = self.totalDuration
+        nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = rate
+        
         MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
-      }
     }
-  }
+    
+    private func setupRemoteCommandCenter() {
+        let commandCenter = MPRemoteCommandCenter.shared()
+        
+        commandCenter.playCommand.isEnabled = true
+        
+        commandCenter.playCommand.addTarget { [unowned self] event in
+            Task {
+                self.play()
+            }
 
-  private func makeNowPlayingArtwork() -> MPMediaItemArtwork? {
-    if isLiveRadio {
-      if let image = UIImage(named: "placeholder") {
-        return MPMediaItemArtwork(boundsSize: image.size) { _ in
-          return image
+            
+            return .success
         }
-      }
-
-      return nil
-    }
-
-    let albumCoverArt = self.getAlbumCoverArt()
-
-    let image: UIImage?
-
-    if albumCoverArt.hasPrefix("/") {
-      image = UIImage(contentsOfFile: albumCoverArt)
-    } else if let remoteURL = URL(string: albumCoverArt),
-      let data = try? Data(contentsOf: remoteURL)
-    {
-      image = UIImage(data: data)
-    } else {
-      image = nil
-    }
-
-    guard let resolvedImage = image else {
-      return nil
-    }
-
-    return MPMediaItemArtwork(boundsSize: resolvedImage.size) { _ in
-      return resolvedImage
-    }
-  }
-
-  func updateNowPlayingInfo(progress: TimeInterval, rate: Float) {
-    var nowPlayingInfo = MPNowPlayingInfoCenter.default().nowPlayingInfo ?? [String: Any]()
-
-    nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = progress * self.totalDuration
-    nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] = self.totalDuration
-    nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = rate
-
-    MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
-  }
-
-  private func setupRemoteCommandCenter() {
-    let commandCenter = MPRemoteCommandCenter.shared()
-
-    commandCenter.playCommand.isEnabled = true
-
-    commandCenter.playCommand.addTarget { [unowned self] event in
-      self.play()
-
-      return .success
-    }
-
-    commandCenter.pauseCommand.addTarget { [unowned self] event in
-      self.pause()
-
-      return .success
-    }
-
-    commandCenter.nextTrackCommand.isEnabled = true
-    commandCenter.nextTrackCommand.addTarget { event in
-      self.nextSong()
-
-      return .success
-    }
-
-    commandCenter.previousTrackCommand.isEnabled = true
-    commandCenter.previousTrackCommand.addTarget { event in
-      self.prevSong()
-
-      return .success
-    }
-
-    commandCenter.changePlaybackPositionCommand.isEnabled = true
-    commandCenter.changePlaybackPositionCommand.addTarget { event in
-      if self.isLiveRadio {
-        return .commandFailed
-      }
-
-      if let event = event as? MPChangePlaybackPositionCommandEvent {
-        let progress = event.positionTime / self.totalDuration
-
-        self.seek(to: progress)
-
-        return .success
-      }
-
-      return .commandFailed
-    }
-  }
-
-  func play() {
-    if self.isFinished {
-      self.stop()
-      self.updateNowPlayingInfo(progress: self.progress, rate: 0.0)
-    }
-
-    player?.play()
-
-    self.isFinished = false
-    self.isPlaying = true
-    self.updateNowPlayingInfo(progress: self.progress, rate: 1.0)
-    MPNowPlayingInfoCenter.default().playbackState = .playing
-  }
-
-  func pause() {
-    player?.pause()
-
-    self.isPlaying = false
-    self.updateNowPlayingInfo(progress: self.progress, rate: 0.0)
-    MPNowPlayingInfoCenter.default().playbackState = .paused
-  }
-
-  func stop() {
-    player?.pause()
-    player?.seek(to: CMTime.zero)
-
-    self.isFinished = true
-    self.isPlaying = false
-  }
-
-  func seek(to progress: Double) {
-    if isLiveRadio {
-      return
-    }
-
-    self.progress = progress
-
-    let newTime = CMTime(
-      seconds: progress * totalDuration, preferredTimescale: CMTimeScale(NSEC_PER_SEC))
-
-    player?.seek(to: newTime)
-
-    self.updateNowPlayingInfo(progress: progress, rate: 1.0)
-
-    if isLRCLIBEnabled {
-      self.updateCurrentLyricsLine(currentTime: progress * totalDuration)
-    }
-  }
-
-  func setPlaybackMode() {
-    if self.playbackMode == PlaybackMode.defaultPlayback {
-      self.playbackMode = PlaybackMode.repeatAlbum
-    } else if self.playbackMode == PlaybackMode.repeatAlbum {
-      self.playbackMode = PlaybackMode.repeatOnce
-    } else {
-      self.playbackMode = PlaybackMode.defaultPlayback
-    }
-
-    UserDefaultsManager.playbackMode = self.playbackMode
-  }
-
-  func playBySong<T: Playable>(idx: Int, item: T, isFromLocal: Bool) {
-    let queue = PlaybackService.shared.addToQueue(item: item, isFromLocal: isFromLocal)
-
-    self.addToQueue(idx: idx, item: queue)
-  }
-
-  func playItem<T: Playable>(item: T, isFromLocal: Bool) {
-    let queue = PlaybackService.shared.addToQueue(item: item, isFromLocal: isFromLocal)
-
-    self.addToQueue(idx: 0, item: queue)
-  }
-
-  func playRadioItem(radio: Radio) {
-    guard let radioUrl = Self.normalizedRadioURL(from: radio.streamUrl) else {
-      return
-    }
-
-    let item = radio.toPlayable()
-    let queue = PlaybackService.shared.addToQueue(item: item, isFromLocal: false)
-
-    self.activeQueueIdx = 0
-    self.queue = queue
-    self.shouldHidePlayer = false
-    self.isLocallySaved = false
-    self._playFromLocal = false
-
-    self.resetLyrics()
-
-    if let timeObserverToken = timeObserverToken {
-      player?.removeTimeObserver(timeObserverToken)
-
-      self.timeObserverToken = nil
-    }
-
-    self.playerItem = AVPlayerItem(url: radioUrl)
-    self.player?.replaceCurrentItem(with: self.playerItem)
-
-    self.playerItemObservation = self.playerItem?.publisher(for: \.status)
-      .sink { [weak self] status in
-        guard let self = self else { return }
-        switch status {
-        case .readyToPlay:
-          DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-            self.isMediaLoading = false
-            self.isMediaFailed = false
-          }
-        case .failed:
-          self.isMediaLoading = false
-          self.isMediaFailed = true
-        case .unknown:
-          self.isMediaLoading = false
-        @unknown default:
-          self.isMediaLoading = true
+        
+        commandCenter.pauseCommand.addTarget { [unowned self] event in
+            Task {
+                await self.pause()
+            }
+            
+            return .success
         }
-      }
-
-    self.isMediaLoading = true
-    self.isMediaFailed = false
-    self.totalDuration = self.nowPlaying.duration
-    self.progress = 0.0
-    self.currentTimeString = "00:00"
-    self.totalTimeString = "00:00"
-
-    self.addPeriodicTimeObserver()
-    self.play()
-
-    self.initNowPlayingInfo(
-      title: item.name,
-      artist: item.artist,
-      playbackDuration: 0)
-    PlaybackService.shared.clearQueue()
-    UserDefaultsManager.removeObject(key: UserDefaultsKeys.nowPlayingProgress)
-  }
-
-  func shuffleItem<T: Playable>(item: T, isFromLocal: Bool) {
-    var shuffledItem = item
-    shuffledItem.songs.shuffle()
-
-    let queue = PlaybackService.shared.addToQueue(item: shuffledItem, isFromLocal: isFromLocal)
-    self.addToQueue(idx: 0, item: queue)
-  }
-
-  func shuffleCurrentQueue() {
-    self.isShuffling.toggle()
-
-    if self.isShuffling {
-      self.queue = PlaybackService.shared.shuffleQueue(currentIdx: self.activeQueueIdx)
-    } else {
-      self.queue = PlaybackService.shared.getQueue()
+        
+        commandCenter.nextTrackCommand.isEnabled = true
+        commandCenter.nextTrackCommand.addTarget { event in
+            Task {
+                await self.nextSong()
+            }
+            
+            return .success
+        }
+        
+        commandCenter.previousTrackCommand.isEnabled = true
+        commandCenter.previousTrackCommand.addTarget { event in
+            Task { await self.prevSong() }
+            
+            return .success
+        }
+        
+        commandCenter.changePlaybackPositionCommand.isEnabled = true
+        commandCenter.changePlaybackPositionCommand.addTarget { event in
+            if self.isLiveRadio {
+                return .commandFailed
+            }
+            
+            if let event = event as? MPChangePlaybackPositionCommandEvent {
+                let progress = event.positionTime / self.totalDuration
+                
+                self.seek(to: progress)
+                
+                return .success
+            }
+            
+            return .commandFailed
+        }
     }
-  }
-
-  func playFromQueue(idx: Int) {
-    self.activeQueueIdx = idx
-    self.setNowPlaying()
-
-    UserDefaultsManager.queueActiveIdx = self.activeQueueIdx
-  }
-
-  func prevSong() {
-    // TODO: handle experience saat album abis -> balik ke index 0 -> prevSong() -> expect nya i guess ke index .count?
-    if self.activeQueueIdx != 0 {
-      if self.playbackMode != PlaybackMode.repeatOnce {
-        self.activeQueueIdx = self.activeQueueIdx - 1
-      }
-    } else {
-      self.activeQueueIdx = 0
+    
+    func play() {
+        if self.isFinished {
+            self.stop()
+            self.updateNowPlayingInfo(progress: self.progress, rate: 0.0)
+        }
+        
+        player?.play()
+        
+        self.isFinished = false
+        self.isPlaying = true
+        self.updateNowPlayingInfo(progress: self.progress, rate: 1.0)
+        MPNowPlayingInfoCenter.default().playbackState = .playing
     }
-
-    self.setNowPlaying()
-  }
-
-  func nextSong() {
-    // TODO: refactor later ngantuk bosss
-    // singles
-    if self.queue.count == 1 {
-      // klo kaga repeat, stop
-      if self.playbackMode == PlaybackMode.defaultPlayback {
-        self.stop()
-      } else {
-        // klo repeat, ulang
-        self.setNowPlaying()
-      }
-    } else {
-      // albums
-      if self.playbackMode == PlaybackMode.repeatOnce {
-        // klo repeat sekali, ulang
-        self.setNowPlaying()
-      } else if self.playbackMode == PlaybackMode.repeatAlbum {
-        // klo repeat album
-        // ni udah di lagu terakhir blm?
-        // harusnya bisa pakai >= gasi?
-        if self.activeQueueIdx + 1 > self.queue.count - 1 {
-          // klo iya, balik ke lagu pertama
-          self.activeQueueIdx = 0
-          self.setNowPlaying()
+    
+    func pause() async {
+        player?.pause()
+        
+        self.isPlaying = false
+        self.updateNowPlayingInfo(progress: self.progress, rate: 0.0)
+        MPNowPlayingInfoCenter.default().playbackState = .paused
+        DispatchQueue.global().async {
+            try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
+        }
+    }
+    
+    func stop() {
+        player?.pause()
+        player?.seek(to: CMTime.zero)
+        
+        self.isFinished = true
+        self.isPlaying = false
+    }
+    
+    func seek(to progress: Double) {
+        if isLiveRadio {
+            return
+        }
+        
+        self.progress = progress
+        
+        let newTime = CMTime(
+            seconds: progress * totalDuration, preferredTimescale: CMTimeScale(NSEC_PER_SEC))
+        
+        player?.seek(to: newTime)
+        
+        self.updateNowPlayingInfo(progress: progress, rate: 1.0)
+        
+        if isLRCLIBEnabled {
+            self.updateCurrentLyricsLine(currentTime: progress * totalDuration)
+        }
+    }
+    
+    func setPlaybackMode() {
+        if self.playbackMode == PlaybackMode.defaultPlayback {
+            self.playbackMode = PlaybackMode.repeatAlbum
+        } else if self.playbackMode == PlaybackMode.repeatAlbum {
+            self.playbackMode = PlaybackMode.repeatOnce
         } else {
-          // klo bukan, lanjut
-          self.activeQueueIdx = self.activeQueueIdx + 1
-          self.setNowPlaying()
+            self.playbackMode = PlaybackMode.defaultPlayback
         }
-      } else {
-        // klo bukan repeat
-        // ni udah di lagu terakhir blm?
-        // harusnya bisa pakai >= gasi?
-        if self.activeQueueIdx + 1 > self.queue.count - 1 {
-          // klo iya, stop
-          self.stop()
+        
+        UserDefaultsManager.playbackMode = self.playbackMode
+    }
+    
+    func playBySong<T: Playable>(idx: Int, item: T, isFromLocal: Bool) async {
+        let queue = PlaybackService.shared.addToQueue(item: item, isFromLocal: isFromLocal)
+        
+        await self.addToQueue(idx: idx, item: queue)
+    }
+    
+    func playItem<T: Playable>(item: T, isFromLocal: Bool) async {
+        let queue = PlaybackService.shared.addToQueue(item: item, isFromLocal: isFromLocal)
+        
+        await self.addToQueue(idx: 0, item: queue)
+    }
+    
+    func playRadioItem(radio: Radio) {
+        guard let radioUrl = Self.normalizedRadioURL(from: radio.streamUrl) else {
+            return
+        }
+        
+        let item = radio.toPlayable()
+        let queue = PlaybackService.shared.addToQueue(item: item, isFromLocal: false)
+        
+        self.activeQueueIdx = 0
+        self.queue = queue
+        self.shouldHidePlayer = false
+        self.isLocallySaved = false
+        self._playFromLocal = false
+        
+        self.resetLyrics()
+        
+        if let timeObserverToken = timeObserverToken {
+            player?.removeTimeObserver(timeObserverToken)
+            
+            self.timeObserverToken = nil
+        }
+        
+        self.playerItem = AVPlayerItem(url: radioUrl)
+        self.player?.replaceCurrentItem(with: self.playerItem)
+        
+        self.playerItemObservation = self.playerItem?.publisher(for: \.status)
+            .sink { [weak self] status in
+                guard let self = self else { return }
+                switch status {
+                case .readyToPlay:
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                        self.isMediaLoading = false
+                        self.isMediaFailed = false
+                    }
+                case .failed:
+                    self.isMediaLoading = false
+                    self.isMediaFailed = true
+                    let seconds = 4.0
+                    DispatchQueue.main.asyncAfter(deadline: .now() + seconds) {
+                        Task {
+                            await self.nextSong()
+                        }
+                    }
+                case .unknown:
+                    self.isMediaLoading = false
+                @unknown default:
+                    self.isMediaLoading = true
+                }
+            }
+        
+        self.isMediaLoading = true
+        self.isMediaFailed = false
+        self.totalDuration = self.nowPlaying.duration
+        self.progress = 0.0
+        self.currentTimeString = "00:00"
+        self.totalTimeString = "00:00"
+        
+        self.addPeriodicTimeObserver()
+        self.play()
+        
+        self.initNowPlayingInfo(
+            title: item.name,
+            artist: item.artist,
+            playbackDuration: 0)
+        PlaybackService.shared.clearQueue()
+        UserDefaultsManager.removeObject(key: UserDefaultsKeys.nowPlayingProgress)
+    }
+    
+    func shuffleItem<T: Playable>(item: T, isFromLocal: Bool) async {
+        var shuffledItem = item
+        shuffledItem.songs.shuffle()
+        
+        let queue = PlaybackService.shared.addToQueue(item: shuffledItem, isFromLocal: isFromLocal)
+        await self.addToQueue(idx: 0, item: queue)
+    }
+    
+    func shuffleCurrentQueue() {
+        self.isShuffling.toggle()
+        
+        if self.isShuffling {
+            self.queue = PlaybackService.shared.shuffleQueue(currentIdx: self.activeQueueIdx)
         } else {
-          // klo bukan, lanjut
-          self.activeQueueIdx = self.activeQueueIdx + 1
-          self.setNowPlaying()
+            self.queue = PlaybackService.shared.getQueue()
         }
-      }
     }
-
-    UserDefaultsManager.queueActiveIdx = self.activeQueueIdx
-  }
-
-  private func nextQueueIdxForPreCache() -> Int? {
-    if queue.count <= 1 { return nil }
-
-    if playbackMode == PlaybackMode.repeatOnce {
-      return nil
+    
+    func playFromQueue(idx: Int) async {
+        self.activeQueueIdx = idx
+        await self.setNowPlaying()
+        
+        UserDefaultsManager.queueActiveIdx = self.activeQueueIdx
     }
-
-    if playbackMode == PlaybackMode.repeatAlbum {
-      return activeQueueIdx + 1 >= queue.count ? 0 : activeQueueIdx + 1
+    
+    func prevSong() async {
+        // TODO: handle experience saat album abis -> balik ke index 0 -> prevSong() -> expect nya i guess ke index .count?
+        if self.activeQueueIdx != 0 {
+            if self.playbackMode != PlaybackMode.repeatOnce {
+                self.activeQueueIdx = self.activeQueueIdx - 1
+            }
+        } else {
+            self.activeQueueIdx = 0
+        }
+        
+        await self.setNowPlaying()
     }
-
-    let nextIdx = activeQueueIdx + 1
-    guard nextIdx < queue.count else { return nil }
-    return nextIdx
-  }
-
-  func destroyPlayerAndQueue() {
+    
+    func nextSong() async {
+        // TODO: refactor later ngantuk bosss
+        // singles
+        if self.queue.count == 1 {
+            // klo kaga repeat, stop
+            if self.playbackMode == PlaybackMode.defaultPlayback {
+                self.stop()
+            } else {
+                // klo repeat, ulang
+                Task {
+                    await self.setNowPlaying()
+                }
+            }
+        } else {
+            // albums
+            if self.playbackMode == PlaybackMode.repeatOnce {
+                // klo repeat sekali, ulang
+                Task {
+                    await self.setNowPlaying()
+                }
+            } else if self.playbackMode == PlaybackMode.repeatAlbum {
+                // klo repeat album
+                // ni udah di lagu terakhir blm?
+                // harusnya bisa pakai >= gasi?
+                if self.activeQueueIdx + 1 > self.queue.count - 1 {
+                    // klo iya, balik ke lagu pertama
+                    self.activeQueueIdx = 0
+                    Task {
+                        await self.setNowPlaying()
+                    }
+                } else {
+                    // klo bukan, lanjut
+                    self.activeQueueIdx = self.activeQueueIdx + 1
+                    Task {
+                        await self.setNowPlaying()
+                    }
+                }
+            } else {
+                // klo bukan repeat
+                // ni udah di lagu terakhir blm?
+                // harusnya bisa pakai >= gasi?
+                if self.activeQueueIdx + 1 > self.queue.count - 1 {
+                    // klo iya, stop
+                    self.stop()
+                } else {
+                    // klo bukan, lanjut
+                    self.activeQueueIdx = self.activeQueueIdx + 1
+                    Task {
+                        await self.setNowPlaying()
+                    }
+                }
+            }
+        }
+        
+        UserDefaultsManager.queueActiveIdx = self.activeQueueIdx
+    }
+    
+    private func nextQueueIdxForPreCache() -> Int? {
+        if queue.count <= 1 { return nil }
+        
+        if playbackMode == PlaybackMode.repeatOnce {
+            return nil
+        }
+        
+        if playbackMode == PlaybackMode.repeatAlbum {
+            return activeQueueIdx + 1 >= queue.count ? 0 : activeQueueIdx + 1
+        }
+        
+        let nextIdx = activeQueueIdx + 1
+        guard nextIdx < queue.count else { return nil }
+        return nextIdx
+    }
+    
+  func destroyPlayerAndQueue() async {
     self.stop()
     self.progress = 0.0
 
@@ -697,7 +759,9 @@ class PlayerViewModel: ObservableObject {
 
     MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
 
-    try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
+      DispatchQueue.global().async {
+          try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
+      }
   }
 
   func resetLyrics() {
