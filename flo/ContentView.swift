@@ -305,9 +305,12 @@ struct ContentView: View {
         if !isPadSidebar {
           VStack {
             Spacer()
-
-            if playerViewModel.hasNowPlaying() && !playerViewModel.shouldHidePlayer {
+              if playerViewModel.hasNowPlaying() && !playerViewModel.shouldHidePlayer {
               let isPad = UIDevice.current.userInterfaceIdiom == .pad
+              let playerWidth: CGFloat? =
+                isPad
+                ? 720
+                : (horizontalSizeClass == .regular ? 500 : nil)
               let playerCenterOffsetX = floatingPlayerContentCenterOffsetX(
                 totalWidth: geometry.size.width
               )
@@ -366,7 +369,7 @@ struct ContentView: View {
     .onAppear {
       PlaybackCoordinator.shared.attach(playerViewModel: playerViewModel)
     }
-    .onReceive(NotificationCenter.default.publisher(for:
+ .onReceive(NotificationCenter.default.publisher(for:
     UIResponder.keyboardWillShowNotification)) { notification in
         if let userInfo = notification.userInfo,
            let keyboardFrame = userInfo[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect {
