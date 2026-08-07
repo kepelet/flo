@@ -55,7 +55,7 @@ struct FloatingPlayerView: View {
     ZStack {
       HStack(spacing: 10) {
         Group {
-          if let image = UIImage(contentsOfFile: viewModel.getAlbumCoverArt()) {
+            if let image = viewModel.albumCoverImage {
             Image(uiImage: image)
               .resizable()
               .aspectRatio(contentMode: .fit)
@@ -101,7 +101,9 @@ struct FloatingPlayerView: View {
               .scaleEffect(0.7)
           } else {
             Button {
-              viewModel.isPlaying ? viewModel.pause() : viewModel.play()
+                task {
+                    await viewModel.isPlaying ? viewModel.pause() : viewModel.play()
+                }
             } label: {
               Image(systemName: viewModel.isPlaying ? "pause.fill" : "play.fill")
                 .font(.system(size: 20, weight: .semibold))

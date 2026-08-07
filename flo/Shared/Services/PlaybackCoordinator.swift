@@ -28,12 +28,14 @@ final class PlaybackCoordinator {
       }
     case "pause":
       DispatchQueue.main.async {
-        self.playerViewModel?.pause()
+          Task {
+              await self.playerViewModel?.pause()
+          }
       }
     case "next":
       DispatchQueue.main.async {
           Task {
-              await self.playerViewModel?.nextSong()
+            await self.playerViewModel?.nextSong()
           }
       }
     case "previous":

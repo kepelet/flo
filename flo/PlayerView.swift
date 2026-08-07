@@ -309,7 +309,9 @@ struct PlayerView: View {
           Spacer()
 
           Button {
-            viewModel.isPlaying ? viewModel.pause() : viewModel.play()
+              Task {
+                  await viewModel.isPlaying ? viewModel.pause() : viewModel.play()
+              }
           } label: {
             Image(systemName: viewModel.isPlaying ? "pause.fill" : "play.fill")
                   .font(.system(size: imageSize * 0.15))
@@ -330,7 +332,9 @@ struct PlayerView: View {
           }
 
           Button {
-            viewModel.isPlaying ? viewModel.pause() : viewModel.play()
+              Task {
+                  await viewModel.isPlaying ? viewModel.pause() : viewModel.play()
+              }
           } label: {
             Image(systemName: viewModel.isPlaying ? "pause.fill" : "play.fill")
               .font(.system(size: 50))
