@@ -136,7 +136,9 @@ struct PlayerView: View {
                         ? Color.gray.opacity(0.1) : Color(.systemBackground)
                     )
                     .onTapGesture {
-                      viewModel.playFromQueue(idx: idx)
+                        Task {
+                            await viewModel.playFromQueue(idx: idx)
+                        }
                     }
                   }
                 }
@@ -320,7 +322,9 @@ struct PlayerView: View {
       } else {
         HStack(spacing: size.width * 0.15) {
           Button {
-            viewModel.prevSong()
+              Task {
+                  await viewModel.prevSong()
+              }
           } label: {
             Image(systemName: "backward.fill").font(.title)
           }
@@ -335,7 +339,9 @@ struct PlayerView: View {
           .disabled(viewModel.isMediaLoading)
 
           Button {
-            viewModel.nextSong()
+              Task {
+                  await viewModel.nextSong()
+              }
           } label: {
             Image(systemName: "forward.fill").font(.title)
           }

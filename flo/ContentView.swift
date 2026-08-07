@@ -146,7 +146,9 @@ struct ContentView: View {
                             self.floatingPlayerOffsetX = -UIScreen.main.bounds.width
                         }
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
-                            playerViewModel.destroyPlayerAndQueue()
+                            Task {
+                                await playerViewModel.destroyPlayerAndQueue()
+                            }
                         }
                     } else {
                         withAnimation(.spring(response: 0.4, dampingFraction: 0.7)){
@@ -351,7 +353,9 @@ struct ContentView: View {
                               self.floatingPlayerOffsetX = -UIScreen.main.bounds.width
                           }
                           DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
-                              playerViewModel.destroyPlayerAndQueue()
+                              Task {
+                                  await playerViewModel.destroyPlayerAndQueue()
+                              }
                           }
                       } else {
                           withAnimation(.spring(response: 0.4, dampingFraction: 0.7)){

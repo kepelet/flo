@@ -10,6 +10,7 @@ import Combine
 import MediaPlayer
 import SwiftUI
 
+@MainActor
 class PlayerViewModel: ObservableObject {
   static let shared = PlayerViewModel()
 
@@ -86,9 +87,11 @@ class PlayerViewModel: ObservableObject {
     if !lastPlayData.isEmpty && queueActiveIdx < lastPlayData.count {
       self.progress = UserDefaultsManager.nowPlayingProgress
       self.playbackMode = UserDefaultsManager.playbackMode
-      self.addToQueue(
-        idx: UserDefaultsManager.queueActiveIdx, item: lastPlayData, playAudio: false)
-
+        Task {
+            await self.addToQueue(
+                idx: UserDefaultsManager.queueActiveIdx, item: lastPlayData, playAudio: false)
+        }
+        
       // if users played more than half of the song then it's considered as saved
       if self.progress > scrobbleThreshold {
         self.isLocallySaved = true
@@ -167,10 +170,10 @@ class PlayerViewModel: ObservableObject {
     }
   }
 
-  func addToQueue(idx: Int, item: [QueueEntity], playAudio: Bool = true) {
+  func addToQueue(idx: Int, item: [QueueEntity], playAudio: Bool = true) async {
     self.activeQueueIdx = idx
     self.queue = item
-    self.setNowPlaying(playAudio: playAudio)
+    await self.setNowPlaying(playAudio: playAudio)
   }
 
   func getAlbumCoverArt() -> String {
@@ -188,7 +191,7 @@ class PlayerViewModel: ObservableObject {
     return !self.queue.isEmpty
   }
 
-  func setNowPlaying(playAudio: Bool = true) {
+  func setNowPlaying(playAudio: Bool = true) async {
     guard self.queue.indices.contains(self.activeQueueIdx) else {
       self.isMediaLoading = false
       self.isMediaFailed = true
@@ -202,8 +205,8 @@ class PlayerViewModel: ObservableObject {
 
     StreamCacheManager.shared.cancelAllInFlight()
 
-    try? AVAudioSession.sharedInstance().setActive(true)
-
+    try? await AVAudioSession.sharedInstance().setActive(true)
+      
     self.resetLyrics()
     self.checkStarredStatus()
 
@@ -325,8 +328,9 @@ class PlayerViewModel: ObservableObject {
         self.totalDuration > 0,
         round(currentTime) >= roundedTotalDuration
       {
-        self.nextSong()
-
+          Task {
+             await self.nextSong()
+          }
         UserDefaultsManager.removeObject(key: UserDefaultsKeys.nowPlayingProgress)
       }
     }
@@ -417,14 +421,14 @@ class PlayerViewModel: ObservableObject {
 
     commandCenter.nextTrackCommand.isEnabled = true
     commandCenter.nextTrackCommand.addTarget { event in
-      self.nextSong()
+        Task { await self.nextSong() }
 
       return .success
     }
 
     commandCenter.previousTrackCommand.isEnabled = true
     commandCenter.previousTrackCommand.addTarget { event in
-      self.prevSong()
+        Task { await self.prevSong() }
 
       return .success
     }
@@ -508,16 +512,16 @@ class PlayerViewModel: ObservableObject {
     UserDefaultsManager.playbackMode = self.playbackMode
   }
 
-  func playBySong<T: Playable>(idx: Int, item: T, isFromLocal: Bool) {
+  func playBySong<T: Playable>(idx: Int, item: T, isFromLocal: Bool) async {
     let queue = PlaybackService.shared.addToQueue(item: item, isFromLocal: isFromLocal)
 
-    self.addToQueue(idx: idx, item: queue)
+    await self.addToQueue(idx: idx, item: queue)
   }
 
-  func playItem<T: Playable>(item: T, isFromLocal: Bool) {
+  func playItem<T: Playable>(item: T, isFromLocal: Bool) async {
     let queue = PlaybackService.shared.addToQueue(item: item, isFromLocal: isFromLocal)
 
-    self.addToQueue(idx: 0, item: queue)
+    await self.addToQueue(idx: 0, item: queue)
   }
 
   func playRadioItem(radio: Radio) {
@@ -582,12 +586,12 @@ class PlayerViewModel: ObservableObject {
     UserDefaultsManager.removeObject(key: UserDefaultsKeys.nowPlayingProgress)
   }
 
-  func shuffleItem<T: Playable>(item: T, isFromLocal: Bool) {
+  func shuffleItem<T: Playable>(item: T, isFromLocal: Bool) async {
     var shuffledItem = item
     shuffledItem.songs.shuffle()
 
     let queue = PlaybackService.shared.addToQueue(item: shuffledItem, isFromLocal: isFromLocal)
-    self.addToQueue(idx: 0, item: queue)
+    await self.addToQueue(idx: 0, item: queue)
   }
 
   func shuffleCurrentQueue() {
@@ -600,14 +604,14 @@ class PlayerViewModel: ObservableObject {
     }
   }
 
-  func playFromQueue(idx: Int) {
+  func playFromQueue(idx: Int) async {
     self.activeQueueIdx = idx
-    self.setNowPlaying()
+    await self.setNowPlaying()
 
     UserDefaultsManager.queueActiveIdx = self.activeQueueIdx
   }
 
-  func prevSong() {
+  func prevSong() async {
     // TODO: handle experience saat album abis -> balik ke index 0 -> prevSong() -> expect nya i guess ke index .count?
     if self.activeQueueIdx != 0 {
       if self.playbackMode != PlaybackMode.repeatOnce {
@@ -617,7 +621,7 @@ class PlayerViewModel: ObservableObject {
       self.activeQueueIdx = 0
     }
 
-    self.setNowPlaying()
+    await self.setNowPlaying()
   }
 
   func nextSong() {
@@ -629,13 +633,17 @@ class PlayerViewModel: ObservableObject {
         self.stop()
       } else {
         // klo repeat, ulang
-        self.setNowPlaying()
+          Task {
+              await self.setNowPlaying()
+          }
       }
     } else {
       // albums
       if self.playbackMode == PlaybackMode.repeatOnce {
         // klo repeat sekali, ulang
-        self.setNowPlaying()
+          Task {
+              await self.setNowPlaying()
+          }
       } else if self.playbackMode == PlaybackMode.repeatAlbum {
         // klo repeat album
         // ni udah di lagu terakhir blm?
@@ -643,11 +651,15 @@ class PlayerViewModel: ObservableObject {
         if self.activeQueueIdx + 1 > self.queue.count - 1 {
           // klo iya, balik ke lagu pertama
           self.activeQueueIdx = 0
-          self.setNowPlaying()
+            Task {
+                await self.setNowPlaying()
+            }
         } else {
           // klo bukan, lanjut
           self.activeQueueIdx = self.activeQueueIdx + 1
-          self.setNowPlaying()
+            Task {
+                await self.setNowPlaying()
+            }
         }
       } else {
         // klo bukan repeat
@@ -659,7 +671,9 @@ class PlayerViewModel: ObservableObject {
         } else {
           // klo bukan, lanjut
           self.activeQueueIdx = self.activeQueueIdx + 1
-          self.setNowPlaying()
+            Task {
+                await self.setNowPlaying()
+            }
         }
       }
     }
@@ -683,7 +697,7 @@ class PlayerViewModel: ObservableObject {
     return nextIdx
   }
 
-  func destroyPlayerAndQueue() {
+  func destroyPlayerAndQueue() async {
     self.stop()
     self.progress = 0.0
 
@@ -697,7 +711,7 @@ class PlayerViewModel: ObservableObject {
 
     MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
 
-    try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
+    try? await AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
   }
 
   func resetLyrics() {

@@ -40,7 +40,7 @@ import Foundation
       PlaybackCoordinator.shared.handleWatchCommand(message)
     }
 
-    func session(
+      @MainActor func session(
       _ session: WCSession,
       didReceiveMessage message: [String: Any],
       replyHandler: @escaping ([String: Any]) -> Void

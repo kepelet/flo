@@ -17,7 +17,7 @@ import Combine
       self.interfaceController = interfaceController
     }
 
-    func start() {
+      @MainActor func start() {
       nowPlayingManager = CarPlayNowPlayingManager(
         playerVM: playerVM, interfaceController: interfaceController
       )
@@ -33,7 +33,7 @@ import Combine
       interfaceController.setRootTemplate(tabBar, animated: true, completion: nil)
     }
 
-    func stop() {
+      @MainActor func stop() {
       nowPlayingManager?.teardown()
       nowPlayingManager = nil
     }
@@ -188,9 +188,11 @@ import Combine
         image: UIImage(systemName: "play.fill")?.withRenderingMode(.alwaysTemplate)
       )
       playAllItem.handler = { [weak self] _, completion in
-        self?.playerVM.playItem(item: album, isFromLocal: isDownloaded)
-        self?.showNowPlaying()
-        completion()
+          Task {
+              await self?.playerVM.playItem(item: album, isFromLocal: isDownloaded)
+              self?.showNowPlaying()
+              completion()
+          }
       }
 
       let shuffleItem = CPListItem(
@@ -199,9 +201,11 @@ import Combine
         image: UIImage(systemName: "shuffle")?.withRenderingMode(.alwaysTemplate)
       )
       shuffleItem.handler = { [weak self] _, completion in
-        self?.playerVM.shuffleItem(item: album, isFromLocal: isDownloaded)
-        self?.showNowPlaying()
-        completion()
+          Task {
+              await self?.playerVM.shuffleItem(item: album, isFromLocal: isDownloaded)
+              self?.showNowPlaying()
+              completion()
+          }
       }
 
       let actionSection = CPListSection(items: [playAllItem, shuffleItem])
@@ -212,9 +216,11 @@ import Combine
           detailText: song.artist
         )
         item.handler = { [weak self] _, completion in
-          self?.playerVM.playBySong(idx: idx, item: album, isFromLocal: isDownloaded)
-          self?.showNowPlaying()
-          completion()
+            Task {
+                await self?.playerVM.playBySong(idx: idx, item: album, isFromLocal: isDownloaded)
+                self?.showNowPlaying()
+                completion()
+            }
         }
         return item
       }
@@ -355,7 +361,9 @@ import Combine
               songs: songs,
               artist: artist.name
             )
-            self.playerVM.playItem(item: playable, isFromLocal: false)
+              Task {
+                  await self.playerVM.playItem(item: playable, isFromLocal: false)
+              }
             self.showNowPlaying()
           case .success:
             self.showErrorTemplate(
@@ -382,7 +390,9 @@ import Combine
               songs: songs,
               artist: artist.name
             )
-            self.playerVM.playItem(item: playable, isFromLocal: false)
+              Task {
+                  await self.playerVM.playItem(item: playable, isFromLocal: false)
+              }
             self.showNowPlaying()
           case .success:
             self.showErrorTemplate(
@@ -420,11 +430,13 @@ import Combine
                 detailText: song.artist
               )
               item.handler = { [weak self] _, completion in
-                guard let self = self else { return }
-                let allTracks = Playlist(name: String(localized: "All Tracks"), songs: songs)
-                self.playerVM.playBySong(idx: idx, item: allTracks, isFromLocal: false)
-                self.showNowPlaying()
-                completion()
+                  Task {
+                      guard let self = self else { return }
+                      let allTracks = Playlist(name: String(localized: "All Tracks"), songs: songs)
+                      await self.playerVM.playBySong(idx: idx, item: allTracks, isFromLocal: false)
+                      self.showNowPlaying()
+                      completion()
+                  }
               }
               return item
             }
@@ -471,10 +483,12 @@ import Combine
               image: UIImage(systemName: "play.fill")
             )
             playAllItem.handler = { [weak self] _, completion in
-              let collection = SongCollection(id: "liked-songs", name: "Liked Songs", songs: songs)
-              self?.playerVM.playItem(item: collection, isFromLocal: false)
-              self?.showNowPlaying()
-              completion()
+                Task {
+                    let collection = SongCollection(id: "liked-songs", name: "Liked Songs", songs: songs)
+                    await self?.playerVM.playItem(item: collection, isFromLocal: false)
+                    self?.showNowPlaying()
+                    completion()
+                }
             }
 
             let shuffleItem = CPListItem(
@@ -483,10 +497,12 @@ import Combine
               image: UIImage(systemName: "shuffle")
             )
             shuffleItem.handler = { [weak self] _, completion in
-              let collection = SongCollection(id: "liked-songs", name: "Liked Songs", songs: songs)
-              self?.playerVM.shuffleItem(item: collection, isFromLocal: false)
-              self?.showNowPlaying()
-              completion()
+                Task {
+                    let collection = SongCollection(id: "liked-songs", name: "Liked Songs", songs: songs)
+                    await self?.playerVM.shuffleItem(item: collection, isFromLocal: false)
+                    self?.showNowPlaying()
+                    completion()
+                }
             }
 
             let actionSection = CPListSection(items: [playAllItem, shuffleItem])
@@ -497,11 +513,13 @@ import Combine
                 detailText: song.artist
               )
               item.handler = { [weak self] _, completion in
-                let collection = SongCollection(
-                  id: "liked-songs", name: "Liked Songs", songs: songs)
-                self?.playerVM.playBySong(idx: idx, item: collection, isFromLocal: false)
-                self?.showNowPlaying()
-                completion()
+                  Task {
+                      let collection = SongCollection(
+                        id: "liked-songs", name: "Liked Songs", songs: songs)
+                      await self?.playerVM.playBySong(idx: idx, item: collection, isFromLocal: false)
+                      self?.showNowPlaying()
+                      completion()
+                  }
               }
               return item
             }
@@ -605,9 +623,11 @@ import Combine
         image: UIImage(systemName: "play.fill")
       )
       playAllItem.handler = { [weak self] _, completion in
-        self?.playerVM.playItem(item: playlist, isFromLocal: isDownloaded)
-        self?.showNowPlaying()
-        completion()
+          Task {
+              await self?.playerVM.playItem(item: playlist, isFromLocal: isDownloaded)
+              self?.showNowPlaying()
+              completion()
+          }
       }
 
       let shuffleItem = CPListItem(
@@ -616,9 +636,11 @@ import Combine
         image: UIImage(systemName: "shuffle")
       )
       shuffleItem.handler = { [weak self] _, completion in
-        self?.playerVM.shuffleItem(item: playlist, isFromLocal: isDownloaded)
-        self?.showNowPlaying()
-        completion()
+          Task {
+              await self?.playerVM.shuffleItem(item: playlist, isFromLocal: isDownloaded)
+              self?.showNowPlaying()
+              completion()
+          }
       }
 
       let actionSection = CPListSection(items: [playAllItem, shuffleItem])
@@ -629,9 +651,11 @@ import Combine
           detailText: song.artist
         )
         item.handler = { [weak self] _, completion in
-          self?.playerVM.playBySong(idx: idx, item: playlist, isFromLocal: isDownloaded)
-          self?.showNowPlaying()
-          completion()
+            Task {
+                await self?.playerVM.playBySong(idx: idx, item: playlist, isFromLocal: isDownloaded)
+                self?.showNowPlaying()
+                completion()
+            }
         }
         return item
       }
@@ -800,10 +824,12 @@ import Combine
         image: UIImage(systemName: "play.fill")
       )
       playAllItem.handler = { [weak self] _, completion in
-        let collection = SongCollection(id: "cached-songs", name: "Cached", songs: songs)
-        self?.playerVM.playItem(item: collection, isFromLocal: true)
-        self?.showNowPlaying()
-        completion()
+          Task {
+              let collection = SongCollection(id: "cached-songs", name: "Cached", songs: songs)
+              await self?.playerVM.playItem(item: collection, isFromLocal: true)
+              self?.showNowPlaying()
+              completion()
+          }
       }
 
       let shuffleItem = CPListItem(
@@ -812,10 +838,12 @@ import Combine
         image: UIImage(systemName: "shuffle")
       )
       shuffleItem.handler = { [weak self] _, completion in
-        let collection = SongCollection(id: "cached-songs", name: "Cached", songs: songs)
-        self?.playerVM.shuffleItem(item: collection, isFromLocal: true)
-        self?.showNowPlaying()
-        completion()
+          Task {
+              let collection = SongCollection(id: "cached-songs", name: "Cached", songs: songs)
+              await self?.playerVM.shuffleItem(item: collection, isFromLocal: true)
+              self?.showNowPlaying()
+              completion()
+          }
       }
 
       let actionSection = CPListSection(items: [playAllItem, shuffleItem])
@@ -826,10 +854,12 @@ import Combine
           detailText: song.artist
         )
         item.handler = { [weak self] _, completion in
-          let collection = SongCollection(id: "cached-songs", name: "Cached", songs: songs)
-          self?.playerVM.playBySong(idx: idx, item: collection, isFromLocal: true)
-          self?.showNowPlaying()
-          completion()
+            Task {
+                let collection = SongCollection(id: "cached-songs", name: "Cached", songs: songs)
+                await self?.playerVM.playBySong(idx: idx, item: collection, isFromLocal: true)
+                self?.showNowPlaying()
+                completion()
+            }
         }
         return item
       }

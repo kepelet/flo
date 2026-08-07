@@ -141,7 +141,9 @@ struct ArtistDetailView: View {
           songs: songs,
           artist: artist.name
         )
-        playerViewModel.playItem(item: playable, isFromLocal: false)
+          Task {
+              await playerViewModel.playItem(item: playable, isFromLocal: false)
+          }
       }
     }
     .alert("Artist Radio", isPresented: $displayAlert) {
