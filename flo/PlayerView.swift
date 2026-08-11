@@ -531,7 +531,7 @@ struct PlayerView: View {
 
         Capsule()
           .fill(Color.white)
-          .frame(width: geometry.size.width, height: 4)
+          .frame(width: geometry.size.width, height: 5)
       }
     }
     .frame(height: 20)
