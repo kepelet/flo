@@ -512,10 +512,10 @@ struct PlayerView: View {
           .clipShape(.rect(topLeadingRadius: 48, topTrailingRadius: 48))
           .frame(
             width: geometry.size.width,
-            height: geometry.size.height + 40,
+            height: geometry.size.height + 60,
             alignment: .top
           )
-          .offset(x: 0, y: -20)
+          .offset(x: 0, y: -30)
           .environment(\.colorScheme, .dark)
       }
     .ignoresSafeArea()
