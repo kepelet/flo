@@ -30,7 +30,12 @@ struct PlayerView: View {
       let bottomSafeInset = proxy.safeAreaInsets.bottom
       let imageSize: CGFloat = horizontalSizeClass == .regular ? min(400, size.width * 0.4) : 300
       let isIPadPortrait = UIDevice.current.userInterfaceIdiom == .pad && size.height > size.width
-      let queueSheetHeight = isIPadPortrait ? min(700, max(500, size.height * 0.62)) : 500
+        let queueSheetHeight: CGFloat = {
+            if isIPadPortrait {
+                return min(700, max(500, size.height * 0.62))
+            }
+            return size.height * 0.7
+        }()
 
       ZStack {
         playerBackground()
@@ -41,9 +46,7 @@ struct PlayerView: View {
           ZStack(alignment: .topLeading) {
             Color(.systemBackground)
               .ignoresSafeArea()
-              .clipShape(
-                RoundedRectangle(cornerRadius: 15, style: .continuous)
-              )
+              
             VStack(alignment: .leading) {
               HStack {
                 Spacer()
@@ -138,7 +141,7 @@ struct PlayerView: View {
                     }
                   }
                 }
-              }.padding(.bottom, 60)
+              }.padding(.bottom, 40)
             }
           }
           .gesture(
@@ -482,21 +485,29 @@ struct PlayerView: View {
 
   @ViewBuilder
   private func playerBackground() -> some View {
-    ZStack {
-      if UserDefaultsManager.playerBackground == PlayerBackground.translucent {
-        if let image = UIImage(contentsOfFile: viewModel.getAlbumCoverArt()) {
-          Image(uiImage: image)
-            .resizable()
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .blur(radius: 50, opaque: true)
-        } else {
-          LazyImage(url: URL(string: viewModel.getAlbumCoverArt())) { state in
-            if let image = state.image {
-              image
-                .resizable()
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .blur(radius: 50, opaque: true)
-            }
+      GeometryReader { geometry in
+          ZStack {
+              if UserDefaultsManager.playerBackground == PlayerBackground.translucent {
+                  if let image = UIImage(contentsOfFile: viewModel.getAlbumCoverArt()) {
+                      Image(uiImage: image)
+                          .resizable()
+                          .frame(maxWidth: .infinity, maxHeight: .infinity)
+                          .blur(radius: 50, opaque: true)
+                  } else {
+                      LazyImage(url: URL(string: viewModel.getAlbumCoverArt())) { state in
+                          if let image = state.image {
+                              image
+                                  .resizable()
+                                  .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                  .blur(radius: 50, opaque: true)
+                          }
+                      }
+                  }
+                  
+                  Rectangle().fill(.thinMaterial)
+              } else {
+                  Rectangle().fill(Color("PlayerColor"))
+              }
           }
           .clipShape(.rect(topLeadingRadius: 48, topTrailingRadius: 48))
           .frame(
