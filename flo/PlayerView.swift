@@ -283,7 +283,7 @@ struct PlayerView: View {
         }
       }
 
-      Spacer().frame(height: horizontalSizeClass == .regular ? 44 : 36)
+        Spacer().frame(height: size.height * 0.05)
 
       VStack(alignment: .center, spacing: 10) {
         Text(viewModel.nowPlaying.songName ?? "")
@@ -299,7 +299,7 @@ struct PlayerView: View {
           .multilineTextAlignment(.center)
           .lineLimit(2)
       }
-      .padding(.horizontal, 30)
+      .padding(.horizontal, horizontalSizeClass == .regular ? 60 : 20)
 
       Spacer()
 
@@ -311,7 +311,7 @@ struct PlayerView: View {
             viewModel.isPlaying ? viewModel.pause() : viewModel.play()
           } label: {
             Image(systemName: viewModel.isPlaying ? "pause.fill" : "play.fill")
-              .font(.system(size: 50))
+                  .font(.system(size: imageSize * 0.15))
           }
           .foregroundColor(viewModel.isMediaLoading ? .gray : .white)
           .disabled(viewModel.isMediaLoading)
@@ -361,7 +361,7 @@ struct PlayerView: View {
           Text(viewModel.isLiveRadio ? "" : viewModel.currentTimeString)
             .foregroundColor(.white)
             .customFont(.caption2)
-            .frame(width: 60, alignment: .leading)
+            .frame(minWidth: 44, idealWidth: 60, maxWidth: 80, alignment: .leading)
 
           Spacer()
 
