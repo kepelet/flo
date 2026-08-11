@@ -308,13 +308,7 @@ struct ContentView: View {
             Spacer()
 
             if playerViewModel.hasNowPlaying() && !playerViewModel.shouldHidePlayer {
-              let isSmallScreen = UIScreen.main.bounds.width <= 390
               let isPad = UIDevice.current.userInterfaceIdiom == .pad
-              let bottomPadding: CGFloat = isSmallScreen ? 32 : 0
-              let playerWidth: CGFloat? =
-                isPad
-                ? 720
-                : (horizontalSizeClass == .regular ? 500 : nil)
               let playerCenterOffsetX = floatingPlayerContentCenterOffsetX(
                 totalWidth: geometry.size.width
               )
@@ -322,12 +316,12 @@ struct ContentView: View {
                 #if targetEnvironment(macCatalyst)
                   10
                 #else
-                  isPad ? 0 : (40 + bottomPadding)
+                  keyboardHeight > 0 ? -keyboardHeight + geometry.safeAreaInsets.bottom + 8: geometry.safeAreaInsets.bottom + 20
                 #endif
               }()
 
               FloatingPlayerView(viewModel: playerViewModel)
-                .frame(maxWidth: playerWidth ?? .infinity)
+                .padding(.horizontal, isPad ? 40 : 8)
                 .padding(.bottom, playerBottomPadding)
                 .opacity(playerViewModel.hasNowPlaying() ? 1 : 0)
                 .offset(
