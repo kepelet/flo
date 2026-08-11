@@ -300,7 +300,7 @@ struct ContentView: View {
           PlayerView(isExpanded: $isPlayerExpanded, viewModel: playerViewModel)
             .ignoresSafeArea()
             .offset(y: isPlayerExpanded ? 0 : offScreenY)
-            .animation(.spring(duration: 0.2), value: isPlayerExpanded)
+            .animation(.spring(response: 0.4, dampingFraction: 0.7), value: isPlayerExpanded)
         }
 
         if !isPadSidebar {
