@@ -283,7 +283,7 @@ struct PlayerView: View {
         }
       }
 
-      Spacer().frame(height: horizontalSizeClass == .regular ? 44 : 36)
+        Spacer().frame(height: size.height * 0.05)
 
       VStack(alignment: .center, spacing: 10) {
         Text(viewModel.nowPlaying.songName ?? "")
@@ -299,7 +299,7 @@ struct PlayerView: View {
           .multilineTextAlignment(.center)
           .lineLimit(2)
       }
-      .padding(.horizontal, 30)
+      .padding(.horizontal, horizontalSizeClass == .regular ? 60 : 20)
 
       Spacer()
 
@@ -311,7 +311,7 @@ struct PlayerView: View {
             viewModel.isPlaying ? viewModel.pause() : viewModel.play()
           } label: {
             Image(systemName: viewModel.isPlaying ? "pause.fill" : "play.fill")
-              .font(.system(size: 50))
+                  .font(.system(size: imageSize * 0.15))
           }
           .foregroundColor(viewModel.isMediaLoading ? .gray : .white)
           .disabled(viewModel.isMediaLoading)
@@ -361,7 +361,7 @@ struct PlayerView: View {
           Text(viewModel.isLiveRadio ? "" : viewModel.currentTimeString)
             .foregroundColor(.white)
             .customFont(.caption2)
-            .frame(width: 60, alignment: .leading)
+            .frame(minWidth: 44, idealWidth: 60, maxWidth: 80, alignment: .leading)
 
           Spacer()
 
@@ -512,10 +512,10 @@ struct PlayerView: View {
           .clipShape(.rect(topLeadingRadius: 48, topTrailingRadius: 48))
           .frame(
             width: geometry.size.width,
-            height: geometry.size.height + 40,
+            height: geometry.size.height + 60,
             alignment: .top
           )
-          .offset(x: 0, y: -20)
+          .offset(x: 0, y: -30)
           .environment(\.colorScheme, .dark)
       }
     .ignoresSafeArea()
@@ -531,7 +531,7 @@ struct PlayerView: View {
 
         Capsule()
           .fill(Color.white)
-          .frame(width: geometry.size.width, height: 4)
+          .frame(width: geometry.size.width, height: 5)
       }
     }
     .frame(height: 20)
