@@ -48,10 +48,7 @@ struct PlayerView: View {
               HStack {
                 Spacer()
 
-                Rectangle()
-                  .foregroundColor(Color.gray.opacity(0.3))
-                  .frame(width: 50, height: 5)
-                  .cornerRadius(30)
+                  DragHandle(color: .gray.opacity(0.3))
                   .padding(.top)
 
                 Spacer()
@@ -240,11 +237,8 @@ struct PlayerView: View {
     bottomSafeInset: CGFloat
   ) -> some View {
     VStack {
-      Rectangle()
-        .foregroundColor(Color.gray.opacity(0.8))
-        .frame(width: 50, height: 5)
-        .cornerRadius(30)
-        .padding(.top, topSafeInset + 8)
+        DragHandle(color: .gray.opacity(0.8))
+            .padding(.top, topSafeInset + 8)
 
       Spacer()
       let coverArtUrl = viewModel.getAlbumCoverArt()
@@ -504,14 +498,15 @@ struct PlayerView: View {
                 .blur(radius: 50, opaque: true)
             }
           }
-        }
-
-        Rectangle().fill(.thinMaterial)
-      } else {
-        Rectangle().fill(Color("PlayerColor"))
+          .clipShape(.rect(topLeadingRadius: 48, topTrailingRadius: 48))
+          .frame(
+            width: geometry.size.width,
+            height: geometry.size.height + 40,
+            alignment: .top
+          )
+          .offset(x: 0, y: -20)
+          .environment(\.colorScheme, .dark)
       }
-    }
-    .environment(\.colorScheme, .dark)
     .ignoresSafeArea()
   }
 
@@ -532,6 +527,16 @@ struct PlayerView: View {
   }
 }
 
+struct DragHandle: View {
+    let color: Color
+    var body: some View {
+        RoundedRectangle(cornerRadius: 2.5)
+            .fill(color)
+            .frame(width: 50, height: 5)
+            .frame(width: 80, height: 44)
+            .contentShape(Rectangle())
+    }
+}
 struct PlayerView_previews: PreviewProvider {
   @StateObject static var viewModel = PlayerViewModel()
   @State static var isExpanded: Bool = true
