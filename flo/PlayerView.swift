@@ -394,10 +394,10 @@ struct PlayerView: View {
       bottomControlBar(showQueue: $showQueue)
         .padding(.top, 16)
         .padding(.horizontal, 18)
-        .padding(.bottom, max(bottomSafeInset, 12))
+        .padding(.bottom, max(bottomSafeInset, 12) + 20)
     }
-    .frame(maxWidth: horizontalSizeClass == .regular ? 500 : .infinity)
     .frame(maxWidth: .infinity)
+    .padding(.horizontal, horizontalSizeClass == .regular ? 60 : 16)
   }
 
   @ViewBuilder
@@ -442,10 +442,8 @@ struct PlayerView: View {
               .foregroundColor(.white)
               .customFont(.caption2)
               .fontWeight(.bold)
-              .lineLimit(2)
-              .multilineTextAlignment(.center)
-              .frame(maxWidth: 260)
-              .fixedSize(horizontal: false, vertical: true)
+              .lineLimit(1)
+              .fixedSize(horizontal: true, vertical: false)
               .offset(y: 13)
           }
         }
