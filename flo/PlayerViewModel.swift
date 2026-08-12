@@ -204,8 +204,8 @@ class PlayerViewModel: ObservableObject {
 
     try? AVAudioSession.sharedInstance().setActive(true)
 
-    self.resetLyrics()
-    self.checkStarredStatus()
+      self.resetLyrics(closeLyricsMode: false)
+      self.checkStarredStatus()
 
     if let timeObserverToken = timeObserverToken {
       player?.removeTimeObserver(timeObserverToken)
@@ -700,12 +700,23 @@ class PlayerViewModel: ObservableObject {
     try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
   }
 
-  func resetLyrics() {
-    self.lyrics = []
-    self.currentLyricsLineIndex = -1
-    self.lyricsError = nil
-    self.isLyricsMode = false
-  }
+    func resetLyrics(closeLyricsMode: Bool = true) {
+      self.lyrics = []
+      self.currentLyricsLineIndex = -1
+      self.lyricsError = nil
+
+      if closeLyricsMode {
+        self.isLyricsMode = false
+      }
+    }
+
+    func openLyricsMode() {
+      guard hasNowPlaying(), !isLiveRadio else { return }
+
+      withAnimation(.spring(duration: 0.3)) {
+        isLyricsMode = true
+      }
+    }
 
   func fetchLyrics() {
     // just in case

@@ -8,21 +8,79 @@
 import NukeUI
 import SwiftUI
 
-struct LyricsView: View {
-  @ObservedObject var viewModel: PlayerViewModel
-  @Binding var showQueue: Bool
+@MainActor
+class ScrollState: ObservableObject {
+  @Published var isScrolling = false
+  private var lastOffset: CGFloat = .zero
+  private var scrollTask: Task<Void, Never>?
+  private var isAutoScrolling = false
 
-  let imageSize: CGFloat
-  let topSafeInset: CGFloat
-  let bottomSafeInset: CGFloat
+  func setAutoScrolling(_ value: Bool) {
+    isAutoScrolling = value
+  }
+
+  func handleScroll(offset: CGFloat) {
+    guard !isAutoScrolling else { return }
+
+    guard abs(offset - lastOffset) > 1.0 else { return }
+    lastOffset = offset
+
+    scrollTask?.cancel()
+
+    if !isScrolling {
+      withAnimation(.easeOut(duration: 0.15)) {
+        isScrolling = true
+      }
+    }
+
+    scrollTask = Task {
+      try? await Task.sleep(nanoseconds: 800_000_000)
+      guard !Task.isCancelled else { return }
+
+      self.isScrolling = false
+    }
+  }
+}
+
+struct LyricsView: View {
+    @ObservedObject var viewModel: PlayerViewModel
+    @Binding var showQueue: Bool
+    @Binding var isExpanded: Bool
+    @GestureState private var handleDragOffset: CGSize = .zero
+
+    @StateObject private var scrollState = ScrollState()
+
+    let imageSize: CGFloat
+    let topSafeInset: CGFloat
+    let bottomSafeInset: CGFloat
 
   private var isPlainLyrics: Bool {
     return viewModel.lyrics.count == 1
   }
 
-  var body: some View {
-    VStack(spacing: 0) {
-      HStack(spacing: 16) {
+    var body: some View {
+      VStack(spacing: 0) {
+          HStack {
+            Spacer()
+            DragHandle(color: .gray.opacity(0.3))
+            Spacer()
+          }
+          .padding(.top, topSafeInset)
+          .highPriorityGesture(
+            DragGesture(coordinateSpace: .global)
+              .updating($handleDragOffset) { value, state, _ in
+                if value.translation.height > 0 {
+                  state = value.translation
+                }
+              }
+              .onEnded { value in
+                if value.translation.height > UIScreen.main.bounds.height / 6 {
+                  isExpanded = false
+                }
+              }
+          )
+
+        HStack(spacing: 16) {
         Group {
           if let image = UIImage(contentsOfFile: viewModel.getAlbumCoverArt()) {
             Image(uiImage: image)
@@ -56,22 +114,10 @@ struct LyricsView: View {
             .lineLimit(1)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-
-        Button {
-          viewModel.toggleLyricsMode()
-        } label: {
-          Image(systemName: "chevron.down")
-            .font(.title3.weight(.semibold))
-            .foregroundColor(.white)
-            .padding(.vertical, 8)
-            .padding(.horizontal, 12)
-            .background(.white.opacity(0.15))
-            .clipShape(Capsule())
-            .shadow(color: .black.opacity(0.25), radius: 6, x: 0, y: 3)
-        }
       }
+        
       .padding(.horizontal, 30)
-      .padding(.top, topSafeInset + 8)
+      .padding(.top, 8)
       .padding(.bottom, 16)
       .onTapGesture {
         viewModel.toggleLyricsMode()
@@ -99,53 +145,135 @@ struct LyricsView: View {
         Spacer()
       } else {
         ScrollViewReader { proxy in
-          ScrollView(.vertical, showsIndicators: false) {
-            LazyVStack(spacing: 20) {
-              ForEach(Array(viewModel.lyrics.enumerated()), id: \.element.id) { index, line in
-                LyricLineView(
-                  text: line.text,
-                  isCurrentLine: index == viewModel.currentLyricsLineIndex,
-                  isPastLine: index < viewModel.currentLyricsLineIndex,
-                  isPlainLyrics: isPlainLyrics
-                )
-                .id(index)
-                .onTapGesture {
-                  guard !isPlainLyrics else { return }
-
-                  let progress = line.timestamp / viewModel.nowPlaying.duration
-
-                  viewModel.seek(to: progress)
-                  viewModel.play()
+            if #available(iOS 18.0, *) {
+                ScrollView(.vertical, showsIndicators: false) {
+                    LazyVStack(spacing: 40) {
+                        Spacer().frame(height: 20)
+                        ForEach(Array(viewModel.lyrics.enumerated()), id: \.element.id) { index, line in
+                            LyricLineView(
+                              text: line.text,
+                              distance: index - viewModel.currentLyricsLineIndex,
+                              isPlainLyrics: isPlainLyrics,
+                              suppressBlur: scrollState.isScrolling || !viewModel.isPlaying
+                            )
+                            .id(index)
+                            .onTapGesture {
+                                guard !isPlainLyrics else { return }
+                                
+                                let progress = line.timestamp / viewModel.nowPlaying.duration
+                                
+                                viewModel.seek(to: progress)
+                                viewModel.play()
+                            }
+                        }
+                        
+                        Spacer().frame(height: 250)
+                    }
+                    .padding(.horizontal, 30)
                 }
-              }
+                .onScrollGeometryChange(for: CGFloat.self) { geometry in
+                    geometry.contentOffset.y
+                } action: { _, newOffset in
+                    scrollState.handleScroll(offset: newOffset)
+                }
+                .mask(
+                    LinearGradient(
+                        stops: [
+                            .init(color: .clear, location: 0.0),
+                            .init(color: .black, location: 0.08),
+                            .init(color: .black, location: 0.92),
+                            .init(color: .clear, location: 1.0),
+                        ],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
+                .onAppear {
+                  guard !isPlainLyrics else { return }
+                  guard viewModel.currentLyricsLineIndex >= 0 else { return }
 
-              Spacer().frame(height: 250)
+                  scrollState.setAutoScrolling(true)
+                  proxy.scrollTo(viewModel.currentLyricsLineIndex, anchor: UnitPoint(x: 0.5, y: 0.4))
+                  DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    scrollState.setAutoScrolling(false)
+                  }
+                }
+                .onChange(of: viewModel.currentLyricsLineIndex) { newIndex in
+                  guard !isPlainLyrics, newIndex >= 0, !scrollState.isScrolling else { return }
+
+                  scrollState.setAutoScrolling(true)
+                  withAnimation(.easeInOut(duration: 0.5)) {
+                    proxy.scrollTo(newIndex, anchor: UnitPoint(x: 0.5, y: 0.4))
+                  }
+                  DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    scrollState.setAutoScrolling(false)
+                  }
+                }
+            } else {
+                // Fallback on earlier versions
             }
-            .padding(.horizontal, 30)
-          }
-          .onAppear {
-            guard !isPlainLyrics else { return }
-            guard viewModel.currentLyricsLineIndex >= 0 else { return }
-
-            proxy.scrollTo(viewModel.currentLyricsLineIndex, anchor: .center)
-          }
-          .onChange(of: viewModel.currentLyricsLineIndex) { newIndex in
-            guard !isPlainLyrics else { return }
-            guard newIndex >= 0 else { return }
-
-            withAnimation(.easeInOut(duration: 0.5)) {
-              proxy.scrollTo(newIndex, anchor: .center)
-            }
-          }
         }
       }
 
       Spacer()
 
-      VStack(spacing: 0) {
-        HStack(spacing: 0) {
-          Button {
-            viewModel.toggleLyricsMode()
+              VStack(spacing: 10) {
+                PlayerCustomSlider(
+                  isMediaLoading: viewModel.isMediaLoading,
+                  isSeeking: $viewModel.isSeeking,
+                  value: $viewModel.progress,
+                  range: 0...1
+                ) { newValue in
+                  viewModel.seek(to: newValue)
+                }
+
+                HStack {
+                  Text(viewModel.currentTimeString)
+                    .foregroundColor(.white)
+                    .customFont(.caption2)
+
+                  Spacer()
+
+                  Text(viewModel.totalTimeString)
+                    .foregroundColor(.white)
+                    .customFont(.caption2)
+                }
+              }
+              .padding(.horizontal, 30)
+
+              HStack(spacing: 50) {
+                Button {
+                  viewModel.prevSong()
+                } label: {
+                  Image(systemName: "backward.fill")
+                    .font(.title2)
+                    .foregroundColor(.white)
+                }
+
+                Button {
+                  viewModel.isPlaying ? viewModel.pause() : viewModel.play()
+                } label: {
+                  Image(systemName: viewModel.isPlaying ? "pause.fill" : "play.fill")
+                    .font(.system(size: 38))
+                    .foregroundColor(.white)
+                }
+                .disabled(viewModel.isMediaLoading)
+                .opacity(viewModel.isMediaLoading ? 0.4 : 1)
+
+                Button {
+                  viewModel.nextSong()
+                } label: {
+                  Image(systemName: "forward.fill")
+                    .font(.title2)
+                    .foregroundColor(.white)
+                }
+              }
+              .padding(.top, 14)
+
+              VStack(spacing: 0) {
+                HStack(spacing: 0) {
+                  Button {
+                    viewModel.toggleLyricsMode()
           } label: {
             Image(systemName: "quote.bubble.fill")
               .font(.title2)
@@ -177,10 +305,8 @@ struct LyricsView: View {
                   .foregroundColor(.white)
                   .customFont(.caption2)
                   .fontWeight(.bold)
-                  .lineLimit(2)
-                  .multilineTextAlignment(.center)
-                  .frame(maxWidth: 260)
-                  .fixedSize(horizontal: false, vertical: true)
+                  .lineLimit(1)
+                  .fixedSize(horizontal: true, vertical: false)
                   .offset(y: 13)
               }
             }
@@ -217,33 +343,52 @@ struct LyricsView: View {
           }
           .frame(width: 44, height: 44)
         }
-        .padding(.horizontal, 18)
-        .padding(.top, 10)
-        .padding(.bottom, max(bottomSafeInset, 12))
+        .padding(.horizontal, 34)
+        .padding(.top, 32)
+        .padding(.bottom, max(bottomSafeInset, 12) + 20)
       }
     }
+      .offset(y: handleDragOffset.height)
+
+  }
+}
+
+private struct ScrollOffsetKey: PreferenceKey {
+  static var defaultValue: CGFloat = 0
+  static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+    value = nextValue()
   }
 }
 
 struct LyricLineView: View {
-  let text: String
-
-  let isCurrentLine: Bool
-  let isPastLine: Bool
-  let isPlainLyrics: Bool
-
-  var body: some View {
-    Text(text)
-      .foregroundColor(
-        isCurrentLine ? .white : (isPastLine ? .white.opacity(0.3) : .white.opacity(0.5))
-      )
-      .customFont(.title)
-      .fontWeight(.semibold)
-      .multilineTextAlignment(.leading)
-      .frame(maxWidth: .infinity, alignment: .leading)
-      .lineSpacing(6)
-      .scaleEffect(isCurrentLine && !isPlainLyrics ? 1.03 : 1.0)
-      .animation(.easeInOut(duration: 0.3), value: isCurrentLine)
-      .opacity(isPlainLyrics ? 0.9 : 1.0)
-  }
+    let text: String
+    let distance: Int
+    let isPlainLyrics: Bool
+    let suppressBlur: Bool
+    
+    private var isCurrentLine: Bool { distance == 0 }
+    
+    private var blurRadius: CGFloat {
+        if isPlainLyrics || suppressBlur { return 0 }
+            let d = min(abs(distance), 6)
+            return CGFloat(d) * 1.5
+    }
+    
+    var body: some View {
+        Text(text)
+            .foregroundColor(
+                isCurrentLine ? .white : (distance < 0 ? .white.opacity(0.3) : .white.opacity(0.5))
+            )
+            .customFont(.title)
+            .fontWeight(.semibold)
+            .multilineTextAlignment(.leading)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .lineSpacing(6)
+            .scaleEffect(isCurrentLine && !isPlainLyrics ? 1.03 : 1.0)
+            .blur(radius: blurRadius)
+            //.animation(.easeInOut(duration: 0.3), value: distance)
+            //.animation(.easeInOut(duration: 0.3), value: suppressBlur)
+            .animation(.easeInOut(duration: 0.3), value: blurRadius)
+            .opacity(isPlainLyrics ? 0.9 : 1.0)
+    }
 }
