@@ -169,13 +169,16 @@ struct PlayerView: View {
 
           ZStack {
             if viewModel.isLyricsMode {
-              LyricsView(
-                viewModel: viewModel,
-                showQueue: $showQueue,
-                imageSize: imageSize,
-                topSafeInset: topSafeInset,
-                bottomSafeInset: bottomSafeInset
-              ).transition(.opacity.combined(with: .move(edge: .bottom)))
+                if viewModel.isLyricsMode {
+                  LyricsView(
+                    viewModel: viewModel,
+                    showQueue: $showQueue,
+                    isExpanded: $isExpanded,
+                    imageSize: imageSize,
+                    topSafeInset: topSafeInset,
+                    bottomSafeInset: bottomSafeInset
+                  ).transition(.opacity)
+                }
             }
 
             if !viewModel.isLyricsMode {
