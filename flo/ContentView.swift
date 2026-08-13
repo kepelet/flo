@@ -7,6 +7,7 @@
 
 import PulseUI
 import SwiftUI
+import Combine
 
 struct ContentView: View {
   @AppStorage(UserDefaultsKeys.enableDebug) private var enableDebug = false
@@ -24,8 +25,11 @@ struct ContentView: View {
 
   @State private var floatingPlayerOffsetX: CGFloat = .zero
   @State private var isSwipping = false
-
-  private var swipeThreshold: CGFloat = 150.0
+  @State private var keyboardHeight: CGFloat = 0
+    
+    private var swipeThreshold: CGFloat {
+        UIScreen.main.bounds.width * 0.3
+    }
 
   private var isPadSidebar: Bool {
     guard UIDevice.current.userInterfaceIdiom == .pad else { return false }
@@ -114,40 +118,48 @@ struct ContentView: View {
   }
 
   @available(iOS 18.0, *)
-  private func sidebarTabContent<Content: View>(_ content: Content) -> some View {
-    content
-      .overlay(alignment: .bottom) {
-        if playerViewModel.hasNowPlaying() && !playerViewModel.shouldHidePlayer {
-          FloatingPlayerView(viewModel: playerViewModel)
-            .frame(maxWidth: 720)
-            .opacity(playerViewModel.hasNowPlaying() ? 1 : 0)
-            .offset(x: floatingPlayerOffsetX)
-            .onTapGesture {
-              self.isPlayerExpanded = true
+    private func sidebarTabContent<Content: View>(_ content: Content) -> some View {
+        content
+            .overlay(alignment: .bottom) {
+                if playerViewModel.hasNowPlaying() && !playerViewModel.shouldHidePlayer {
+                    FloatingPlayerView(viewModel: playerViewModel)
+                        .padding(.horizontal, 20)
+                        .opacity(playerViewModel.hasNowPlaying() ? 1 : 0)
+                        .offset(x: floatingPlayerOffsetX)
+                        .onTapGesture {
+                            self.isPlayerExpanded = true
+                        }
+                        .gesture(
+                            DragGesture()
+                                .onChanged { value in
+                                    if value.translation.width < .zero {
+                                        floatingPlayerOffsetX = value.translation.width
+                                    }
+                                    
+                                    if abs(floatingPlayerOffsetX) > swipeThreshold, !isSwipping {
+                                        isSwipping = true
+                                    }
+                                }
+                                .onEnded { _ in
+                                    if abs(floatingPlayerOffsetX) > swipeThreshold, isSwipping {
+                                        withAnimation(.easeOut(duration: 0.25)) {
+                                            self.floatingPlayerOffsetX = -UIScreen.main.bounds.width
+                                        }
+                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+                                            playerViewModel.destroyPlayerAndQueue()
+                                            self.floatingPlayerOffsetX = .zero
+                                        }
+                                    } else {
+                                        withAnimation(.spring(response: 0.4, dampingFraction: 0.7)){
+                                            self.floatingPlayerOffsetX = .zero
+                                        }
+                                    }
+                                    self.isSwipping = false
+                                }
+                        )
+                }
             }
-            .gesture(
-              DragGesture()
-                .onChanged { value in
-                  if value.translation.width < .zero {
-                    floatingPlayerOffsetX = value.translation.width
-                  }
-
-                  if abs(floatingPlayerOffsetX) > swipeThreshold, !isSwipping {
-                    isSwipping = true
-                  }
-                }
-                .onEnded { _ in
-                  if abs(floatingPlayerOffsetX) > swipeThreshold, isSwipping {
-                    playerViewModel.destroyPlayerAndQueue()
-                  }
-
-                  self.floatingPlayerOffsetX = .zero
-                  self.isSwipping = false
-                }
-            )
-        }
-      }
-  }
+    }
 
   @available(iOS 18.0, *)
   private var sidebarTabView: some View {
@@ -273,9 +285,9 @@ struct ContentView: View {
     GeometryReader { geometry in
       let offScreenY: CGFloat = {
         #if targetEnvironment(macCatalyst)
-          geometry.size.height
+          geometry.size.height + 20
         #else
-          UIScreen.main.bounds.height
+          UIScreen.main.bounds.height + 20
         #endif
       }()
 
@@ -288,7 +300,7 @@ struct ContentView: View {
           PlayerView(isExpanded: $isPlayerExpanded, viewModel: playerViewModel)
             .ignoresSafeArea()
             .offset(y: isPlayerExpanded ? 0 : offScreenY)
-            .animation(.spring(duration: 0.2), value: isPlayerExpanded)
+            .animation(.spring(response: 0.4, dampingFraction: 0.7), value: isPlayerExpanded)
         }
 
         if !isPadSidebar {
@@ -296,13 +308,7 @@ struct ContentView: View {
             Spacer()
 
             if playerViewModel.hasNowPlaying() && !playerViewModel.shouldHidePlayer {
-              let isSmallScreen = UIScreen.main.bounds.width <= 390
               let isPad = UIDevice.current.userInterfaceIdiom == .pad
-              let bottomPadding: CGFloat = isSmallScreen ? 32 : 0
-              let playerWidth: CGFloat? =
-                isPad
-                ? 720
-                : (horizontalSizeClass == .regular ? 500 : nil)
               let playerCenterOffsetX = floatingPlayerContentCenterOffsetX(
                 totalWidth: geometry.size.width
               )
@@ -310,12 +316,12 @@ struct ContentView: View {
                 #if targetEnvironment(macCatalyst)
                   10
                 #else
-                  isPad ? 0 : (40 + bottomPadding)
+                  keyboardHeight > 0 ? -keyboardHeight + geometry.safeAreaInsets.bottom + 8: geometry.safeAreaInsets.bottom + 20
                 #endif
               }()
 
               FloatingPlayerView(viewModel: playerViewModel)
-                .frame(maxWidth: playerWidth ?? .infinity)
+                .padding(.horizontal, isPad ? 40 : 8)
                 .padding(.bottom, playerBottomPadding)
                 .opacity(playerViewModel.hasNowPlaying() ? 1 : 0)
                 .offset(
@@ -327,24 +333,34 @@ struct ContentView: View {
                   self.isPlayerExpanded = true
                 }
                 .gesture(
-                  DragGesture()
-                    .onChanged { value in
-                      if value.translation.width < .zero {
-                        floatingPlayerOffsetX = value.translation.width
-                      }
+                    DragGesture()
+                        .onChanged { value in
+                            if value.translation.width < .zero {
+                                floatingPlayerOffsetX = value.translation.width
+                            }
+                            
+                            if abs(floatingPlayerOffsetX) > swipeThreshold, !isSwipping {
+                                isSwipping = true
+                            }
+                        }
+                        .onEnded { _ in
+                            if abs(floatingPlayerOffsetX) > swipeThreshold, isSwipping {
+                                withAnimation(.easeOut(duration: 0.25)) {
+                                    self.floatingPlayerOffsetX = -UIScreen.main.bounds.width
+                                }
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+                                    playerViewModel.destroyPlayerAndQueue()
+                                    self.floatingPlayerOffsetX = .zero
+                                }
+                                
+                            } else {
+                                withAnimation(.spring(response: 0.4, dampingFraction: 0.7)){
+                                    self.floatingPlayerOffsetX = .zero
 
-                      if abs(floatingPlayerOffsetX) > swipeThreshold, !isSwipping {
-                        isSwipping = true
-                      }
-                    }
-                    .onEnded { _ in
-                      if abs(floatingPlayerOffsetX) > swipeThreshold, isSwipping {
-                        playerViewModel.destroyPlayerAndQueue()
-                      }
-
-                      self.floatingPlayerOffsetX = .zero
-                      self.isSwipping = false
-                    }
+                                }
+                            }
+                            self.isSwipping = false
+                        }
                 )
             }
           }
@@ -352,7 +368,18 @@ struct ContentView: View {
       }
     }
     .onAppear {
-      PlaybackCoordinator.shared.attach(playerViewModel: playerViewModel)
+        PlaybackCoordinator.shared.attach(playerViewModel: playerViewModel)
+    }
+    .onReceive(NotificationCenter.default.publisher(for:
+        UIResponder.keyboardWillShowNotification)) { notification in
+        if let userInfo = notification.userInfo,
+           let keyboardFrame = userInfo[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect {
+            keyboardHeight = keyboardFrame.height
+        }
+    }
+    .onReceive(NotificationCenter.default.publisher(for:
+        UIResponder.keyboardWillHideNotification)) { _ in
+            keyboardHeight = 0
     }
   }
 }

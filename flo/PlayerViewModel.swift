@@ -54,7 +54,8 @@ class PlayerViewModel: ObservableObject {
 
   private var scrobbleThreshold = 0.5
   private var hasTriggeredCache: Bool = false
-
+  private var pendingSkipTask: Task<Void, Never>?
+    
   var nowPlaying: QueueEntity {
     return self.queue[self.activeQueueIdx]
   }
@@ -189,9 +190,18 @@ class PlayerViewModel: ObservableObject {
   }
 
   func setNowPlaying(playAudio: Bool = true) {
-    guard self.queue.indices.contains(self.activeQueueIdx) else {
+      pendingSkipTask?.cancel()
+      guard self.queue.indices.contains(self.activeQueueIdx) else {
       self.isMediaLoading = false
       self.isMediaFailed = true
+      self.isPlaying = false
+      let failureIdx = self.activeQueueIdx
+      pendingSkipTask = Task { @MainActor in
+      try? await Task.sleep(nanoseconds: 2_000_000_000)
+      guard  !Task.isCancelled else { return }
+      guard self.activeQueueIdx == failureIdx else { return }
+      self.nextSong()
+      }
 
       return
     }
@@ -204,8 +214,8 @@ class PlayerViewModel: ObservableObject {
 
     try? AVAudioSession.sharedInstance().setActive(true)
 
-    self.resetLyrics()
-    self.checkStarredStatus()
+      self.resetLyrics(closeLyricsMode: false)
+      self.checkStarredStatus()
 
     if let timeObserverToken = timeObserverToken {
       player?.removeTimeObserver(timeObserverToken)
@@ -216,10 +226,17 @@ class PlayerViewModel: ObservableObject {
 
     let streamUrl = AlbumService.shared.getStreamUrl(id: songId)
 
-    guard let audioURL = URL(string: streamUrl), !streamUrl.isEmpty else {
-      self.isMediaLoading = false
-      self.isMediaFailed = true
-
+      guard let audioURL = URL(string: streamUrl), !streamUrl.isEmpty else {
+          self.isMediaLoading = false
+          self.isMediaFailed = true
+          self.isPlaying = false
+          let failureIdx = self.activeQueueIdx
+          pendingSkipTask = Task {@MainActor in
+              try? await Task.sleep(nanoseconds: 2_000_000_000)
+              guard  !Task.isCancelled else { return }
+              guard self.activeQueueIdx == failureIdx else { return }
+              self.nextSong()
+          }
       return
     }
 
@@ -251,6 +268,14 @@ class PlayerViewModel: ObservableObject {
         case .failed:
           self.isMediaLoading = false
           self.isMediaFailed = true
+          self.isPlaying = false
+          let failureIdx = self.activeQueueIdx
+          pendingSkipTask = Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 2_000_000_000)
+            guard  !Task.isCancelled else { return }
+            guard self.activeQueueIdx == failureIdx else { return }
+            self.nextSong()
+          }
         case .unknown:
           self.isMediaLoading = false
         @unknown default:
@@ -682,7 +707,7 @@ class PlayerViewModel: ObservableObject {
     guard nextIdx < queue.count else { return nil }
     return nextIdx
   }
-
+    
   func destroyPlayerAndQueue() {
     self.stop()
     self.progress = 0.0
@@ -700,12 +725,23 @@ class PlayerViewModel: ObservableObject {
     try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
   }
 
-  func resetLyrics() {
-    self.lyrics = []
-    self.currentLyricsLineIndex = -1
-    self.lyricsError = nil
-    self.isLyricsMode = false
-  }
+    func resetLyrics(closeLyricsMode: Bool = true) {
+      self.lyrics = []
+      self.currentLyricsLineIndex = -1
+      self.lyricsError = nil
+
+      if closeLyricsMode {
+        self.isLyricsMode = false
+      }
+    }
+
+    func openLyricsMode() {
+      guard hasNowPlaying(), !isLiveRadio else { return }
+
+      withAnimation(.spring(duration: 0.3)) {
+        isLyricsMode = true
+      }
+    }
 
   func fetchLyrics() {
     // just in case

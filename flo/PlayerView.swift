@@ -30,7 +30,12 @@ struct PlayerView: View {
       let bottomSafeInset = proxy.safeAreaInsets.bottom
       let imageSize: CGFloat = horizontalSizeClass == .regular ? min(400, size.width * 0.4) : 300
       let isIPadPortrait = UIDevice.current.userInterfaceIdiom == .pad && size.height > size.width
-      let queueSheetHeight = isIPadPortrait ? min(700, max(500, size.height * 0.62)) : 500
+        let queueSheetHeight: CGFloat = {
+            if isIPadPortrait {
+                return min(700, max(500, size.height * 0.62))
+            }
+            return size.height * 0.7
+        }()
 
       ZStack {
         playerBackground()
@@ -41,17 +46,12 @@ struct PlayerView: View {
           ZStack(alignment: .topLeading) {
             Color(.systemBackground)
               .ignoresSafeArea()
-              .clipShape(
-                RoundedRectangle(cornerRadius: 15, style: .continuous)
-              )
+              
             VStack(alignment: .leading) {
               HStack {
                 Spacer()
 
-                Rectangle()
-                  .foregroundColor(Color.gray.opacity(0.3))
-                  .frame(width: 50, height: 5)
-                  .cornerRadius(30)
+                  DragHandle(color: .gray.opacity(0.3))
                   .padding(.top)
 
                 Spacer()
@@ -141,7 +141,7 @@ struct PlayerView: View {
                     }
                   }
                 }
-              }.padding(.bottom, 60)
+              }.padding(.bottom, 40)
             }
           }
           .gesture(
@@ -169,13 +169,17 @@ struct PlayerView: View {
 
           ZStack {
             if viewModel.isLyricsMode {
-              LyricsView(
-                viewModel: viewModel,
-                showQueue: $showQueue,
-                imageSize: imageSize,
-                topSafeInset: topSafeInset,
-                bottomSafeInset: bottomSafeInset
-              ).transition(.opacity.combined(with: .move(edge: .bottom)))
+                if viewModel.isLyricsMode {
+                  LyricsView(
+                    viewModel: viewModel,
+                    showQueue: $showQueue,
+                    isExpanded: $isExpanded,
+                    dragOffset: $offset,
+                    imageSize: imageSize,
+                    topSafeInset: topSafeInset,
+                    bottomSafeInset: bottomSafeInset
+                  ).transition(.opacity)
+                }
             }
 
             if !viewModel.isLyricsMode {
@@ -195,6 +199,9 @@ struct PlayerView: View {
           }
         }
         .offset(y: offset.height)
+        .onChange(of: isExpanded) { expanded in
+            if expanded {offset = .zero}
+        }
         .gesture(
           DragGesture()
             .onChanged { gesture in
@@ -206,10 +213,13 @@ struct PlayerView: View {
               }
             }
             .onEnded { _ in
-              if offset.height > size.height / 3 {
+              if offset.height > size.height / 6 {
                 isExpanded = false
+              } else {
+                  withAnimation(.spring(response: 0.3, dampingFraction: 0.7)){
+                      offset = .zero
+                  }
               }
-              offset = .zero
               isDragging = false
             }
         )
@@ -234,11 +244,8 @@ struct PlayerView: View {
     bottomSafeInset: CGFloat
   ) -> some View {
     VStack {
-      Rectangle()
-        .foregroundColor(Color.gray.opacity(0.8))
-        .frame(width: 50, height: 5)
-        .cornerRadius(30)
-        .padding(.top, topSafeInset + 8)
+        DragHandle(color: .gray.opacity(0.8))
+            .padding(.top, topSafeInset + 8)
 
       Spacer()
       let coverArtUrl = viewModel.getAlbumCoverArt()
@@ -280,7 +287,7 @@ struct PlayerView: View {
         }
       }
 
-      Spacer().frame(height: horizontalSizeClass == .regular ? 44 : 36)
+        Spacer().frame(height: size.height * 0.05)
 
       VStack(alignment: .center, spacing: 10) {
         Text(viewModel.nowPlaying.songName ?? "")
@@ -296,7 +303,7 @@ struct PlayerView: View {
           .multilineTextAlignment(.center)
           .lineLimit(2)
       }
-      .padding(.horizontal, 30)
+      .padding(.horizontal, horizontalSizeClass == .regular ? 60 : 20)
 
       Spacer()
 
@@ -308,7 +315,7 @@ struct PlayerView: View {
             viewModel.isPlaying ? viewModel.pause() : viewModel.play()
           } label: {
             Image(systemName: viewModel.isPlaying ? "pause.fill" : "play.fill")
-              .font(.system(size: 50))
+                  .font(.system(size: imageSize * 0.15))
           }
           .foregroundColor(viewModel.isMediaLoading ? .gray : .white)
           .disabled(viewModel.isMediaLoading)
@@ -358,7 +365,7 @@ struct PlayerView: View {
           Text(viewModel.isLiveRadio ? "" : viewModel.currentTimeString)
             .foregroundColor(.white)
             .customFont(.caption2)
-            .frame(width: 60, alignment: .leading)
+            .frame(minWidth: 44, idealWidth: 60, maxWidth: 80, alignment: .leading)
 
           Spacer()
 
@@ -388,10 +395,10 @@ struct PlayerView: View {
       bottomControlBar(showQueue: $showQueue)
         .padding(.top, 16)
         .padding(.horizontal, 18)
-        .padding(.bottom, max(bottomSafeInset, 12))
+        .padding(.bottom, max(bottomSafeInset, 12) + 20)
     }
-    .frame(maxWidth: horizontalSizeClass == .regular ? 500 : .infinity)
     .frame(maxWidth: .infinity)
+    .padding(.horizontal, horizontalSizeClass == .regular ? 60 : 16)
   }
 
   @ViewBuilder
@@ -436,10 +443,8 @@ struct PlayerView: View {
               .foregroundColor(.white)
               .customFont(.caption2)
               .fontWeight(.bold)
-              .lineLimit(2)
-              .multilineTextAlignment(.center)
-              .frame(maxWidth: 260)
-              .fixedSize(horizontal: false, vertical: true)
+              .lineLimit(1)
+              .fixedSize(horizontal: true, vertical: false)
               .offset(y: 13)
           }
         }
@@ -484,30 +489,39 @@ struct PlayerView: View {
 
   @ViewBuilder
   private func playerBackground() -> some View {
-    ZStack {
-      if UserDefaultsManager.playerBackground == PlayerBackground.translucent {
-        if let image = UIImage(contentsOfFile: viewModel.getAlbumCoverArt()) {
-          Image(uiImage: image)
-            .resizable()
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .blur(radius: 50, opaque: true)
-        } else {
-          LazyImage(url: URL(string: viewModel.getAlbumCoverArt())) { state in
-            if let image = state.image {
-              image
-                .resizable()
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .blur(radius: 50, opaque: true)
-            }
+      GeometryReader { geometry in
+          ZStack {
+              if UserDefaultsManager.playerBackground == PlayerBackground.translucent {
+                  if let image = UIImage(contentsOfFile: viewModel.getAlbumCoverArt()) {
+                      Image(uiImage: image)
+                          .resizable()
+                          .frame(maxWidth: .infinity, maxHeight: .infinity)
+                          .blur(radius: 50, opaque: true)
+                  } else {
+                      LazyImage(url: URL(string: viewModel.getAlbumCoverArt())) { state in
+                          if let image = state.image {
+                              image
+                                  .resizable()
+                                  .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                  .blur(radius: 50, opaque: true)
+                          }
+                      }
+                  }
+                  
+                  Rectangle().fill(.thinMaterial)
+              } else {
+                  Rectangle().fill(Color("PlayerColor"))
+              }
           }
-        }
-
-        Rectangle().fill(.thinMaterial)
-      } else {
-        Rectangle().fill(Color("PlayerColor"))
+          .clipShape(.rect(topLeadingRadius: 48, topTrailingRadius: 48))
+          .frame(
+            width: geometry.size.width,
+            height: geometry.size.height + 60,
+            alignment: .top
+          )
+          .offset(x: 0, y: -30)
+          .environment(\.colorScheme, .dark)
       }
-    }
-    .environment(\.colorScheme, .dark)
     .ignoresSafeArea()
   }
 
@@ -521,13 +535,23 @@ struct PlayerView: View {
 
         Capsule()
           .fill(Color.white)
-          .frame(width: geometry.size.width, height: 4)
+          .frame(width: geometry.size.width, height: 5)
       }
     }
     .frame(height: 20)
   }
 }
 
+struct DragHandle: View {
+    let color: Color
+    var body: some View {
+        RoundedRectangle(cornerRadius: 2.5)
+            .fill(color)
+            .frame(width: 50, height: 5)
+            .frame(width: 80, height: 44)
+            .contentShape(Rectangle())
+    }
+}
 struct PlayerView_previews: PreviewProvider {
   @StateObject static var viewModel = PlayerViewModel()
   @State static var isExpanded: Bool = true
