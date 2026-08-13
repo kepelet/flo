@@ -46,8 +46,7 @@ struct LyricsView: View {
     @ObservedObject var viewModel: PlayerViewModel
     @Binding var showQueue: Bool
     @Binding var isExpanded: Bool
-    @GestureState private var handleDragOffset: CGSize = .zero
-
+    @Binding var dragOffset: CGSize
     @StateObject private var scrollState = ScrollState()
 
     let imageSize: CGFloat
@@ -68,14 +67,18 @@ struct LyricsView: View {
           .padding(.top, topSafeInset)
           .highPriorityGesture(
             DragGesture(coordinateSpace: .global)
-              .updating($handleDragOffset) { value, state, _ in
+              .onChanged { value in
                 if value.translation.height > 0 {
-                  state = value.translation
+                  dragOffset = value.translation
                 }
               }
               .onEnded { value in
                 if value.translation.height > UIScreen.main.bounds.height / 6 {
                   isExpanded = false
+                } else {
+                  withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                    dragOffset = .zero
+                  }
                 }
               }
           )
@@ -425,8 +428,6 @@ struct LyricsView: View {
         .padding(.bottom, max(bottomSafeInset, 12) + 20)
       }
     }
-      .offset(y: handleDragOffset.height)
-
   }
 }
 

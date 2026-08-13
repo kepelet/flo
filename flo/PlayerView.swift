@@ -174,6 +174,7 @@ struct PlayerView: View {
                     viewModel: viewModel,
                     showQueue: $showQueue,
                     isExpanded: $isExpanded,
+                    dragOffset: $offset,
                     imageSize: imageSize,
                     topSafeInset: topSafeInset,
                     bottomSafeInset: bottomSafeInset
