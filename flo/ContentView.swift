@@ -285,9 +285,9 @@ struct ContentView: View {
     GeometryReader { geometry in
       let offScreenY: CGFloat = {
         #if targetEnvironment(macCatalyst)
-          geometry.size.height
+          geometry.size.height + 20
         #else
-          UIScreen.main.bounds.height
+          UIScreen.main.bounds.height + 20
         #endif
       }()
 
