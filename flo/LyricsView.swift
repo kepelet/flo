@@ -210,65 +210,142 @@ struct LyricsView: View {
                   }
                 }
             } else {
-                // Fallback on earlier versions
+                ScrollView(.vertical, showsIndicators: false) {
+                    LazyVStack(spacing: 40) {
+                        Spacer().frame(height: 20)
+                        ForEach(Array(viewModel.lyrics.enumerated()), id: \.element.id) { index, line in
+                            LyricLineView(
+                                text: line.text,
+                                distance: index - viewModel.currentLyricsLineIndex,
+                                isPlainLyrics: isPlainLyrics,
+                                suppressBlur: true
+                            )
+                            .id(index)
+                            .onTapGesture {
+                                guard !isPlainLyrics else { return }
+                                
+                                let progress = line.timestamp / viewModel.nowPlaying.duration
+                                
+                                viewModel.seek(to: progress)
+                                viewModel.play()
+                            }
+                        }
+                        
+                        Spacer().frame(height: 250)
+                    }
+                    .padding(.horizontal, 30)
+                }
+                .mask(
+                    LinearGradient(
+                        stops: [
+                            .init(color: .clear, location: 0.0),
+                            .init(color: .black, location: 0.08),
+                            .init(color: .black, location: 0.92),
+                            .init(color: .clear, location: 1.0),
+                        ],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
+                .onAppear {
+                    guard !isPlainLyrics else { return }
+                    guard viewModel.currentLyricsLineIndex >= 0 else { return }
+                    
+                    scrollState.setAutoScrolling(true)
+                    proxy.scrollTo(viewModel.currentLyricsLineIndex, anchor: UnitPoint(x: 0.5, y: 0.4))
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        scrollState.setAutoScrolling(false)
+                    }
+                }
+                .onChange(of: viewModel.currentLyricsLineIndex) { newIndex in
+                    guard !isPlainLyrics, newIndex >= 0, !scrollState.isScrolling else { return }
+                    
+                    scrollState.setAutoScrolling(true)
+                    withAnimation(.easeInOut(duration: 0.5)) {
+                        proxy.scrollTo(newIndex, anchor: UnitPoint(x: 0.5, y: 0.4))
+                    }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                        scrollState.setAutoScrolling(false)
+                    }
+                }
             }
         }
       }
 
       Spacer()
 
-              VStack(spacing: 10) {
-                PlayerCustomSlider(
-                  isMediaLoading: viewModel.isMediaLoading,
-                  isSeeking: $viewModel.isSeeking,
-                  value: $viewModel.progress,
-                  range: 0...1
-                ) { newValue in
-                  viewModel.seek(to: newValue)
-                }
-
-                HStack {
-                  Text(viewModel.currentTimeString)
-                    .foregroundColor(.white)
-                    .customFont(.caption2)
-
-                  Spacer()
-
-                  Text(viewModel.totalTimeString)
-                    .foregroundColor(.white)
-                    .customFont(.caption2)
-                }
-              }
-              .padding(.horizontal, 30)
-
-              HStack(spacing: 50) {
-                Button {
+          HStack(spacing: 50) {
+              Button {
                   viewModel.prevSong()
-                } label: {
+              } label: {
                   Image(systemName: "backward.fill")
-                    .font(.title2)
-                    .foregroundColor(.white)
-                }
-
-                Button {
-                  viewModel.isPlaying ? viewModel.pause() : viewModel.play()
-                } label: {
-                  Image(systemName: viewModel.isPlaying ? "pause.fill" : "play.fill")
-                    .font(.system(size: 38))
-                    .foregroundColor(.white)
-                }
-                .disabled(viewModel.isMediaLoading)
-                .opacity(viewModel.isMediaLoading ? 0.4 : 1)
-
-                Button {
-                  viewModel.nextSong()
-                } label: {
-                  Image(systemName: "forward.fill")
-                    .font(.title2)
-                    .foregroundColor(.white)
-                }
+                      .font(.title2)
+                      .foregroundColor(.white)
               }
+              
+              Button {
+                  viewModel.isPlaying ? viewModel.pause() : viewModel.play()
+              } label: {
+                  Image(systemName: viewModel.isPlaying ? "pause.fill" : "play.fill")
+                      .font(.system(size: 38))
+                      .foregroundColor(.white)
+              }
+              .disabled(viewModel.isMediaLoading)
+              .opacity(viewModel.isMediaLoading ? 0.4 : 1)
+              
+              Button {
+                  viewModel.nextSong()
+              } label: {
+                  Image(systemName: "forward.fill")
+                      .font(.title2)
+                      .foregroundColor(.white)
+              }
+          }
               .padding(.top, 14)
+
+          VStack {
+            if viewModel.isLiveRadio {
+              liveProgressBar()
+            } else {
+              PlayerCustomSlider(
+                isMediaLoading: viewModel.isMediaLoading,
+                isSeeking: $viewModel.isSeeking, value: $viewModel.progress, range: 0...1
+              ) { newValue in
+                viewModel.seek(to: newValue)
+              }
+            }
+
+            HStack {
+              Text(viewModel.isLiveRadio ? "" : viewModel.currentTimeString)
+                .foregroundColor(.white)
+                .customFont(.caption2)
+                .frame(minWidth: 44, idealWidth: 60, maxWidth: 80, alignment: .leading)
+
+              Spacer()
+
+              Text(
+                viewModel.isLiveRadio
+                  ? "LIVE"
+                  : (viewModel.isPlayFromSource
+                    ? "\(viewModel.nowPlaying.suffix ?? "")   \(viewModel.nowPlaying.bitRate.description)"
+                    : "\(TranscodingSettings.targetFormat)   \(UserDefaultsManager.maxBitRate)")
+              )
+              .foregroundColor(.white)
+              .customFont(.caption2)
+              .fontWeight(.bold)
+              .textCase(.uppercase)
+              .frame(maxWidth: .infinity, alignment: .center)
+
+              Spacer()
+
+              Text(viewModel.isLiveRadio ? "" : viewModel.totalTimeString)
+                .foregroundColor(.white)
+                .customFont(.caption2)
+                .frame(width: 60, alignment: .trailing)
+            }
+          }
+              .padding(.top, 30)
+              .padding(.horizontal, 30)
 
               VStack(spacing: 0) {
                 HStack(spacing: 0) {
@@ -353,11 +430,20 @@ struct LyricsView: View {
   }
 }
 
-private struct ScrollOffsetKey: PreferenceKey {
-  static var defaultValue: CGFloat = 0
-  static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
-    value = nextValue()
+@ViewBuilder
+private func liveProgressBar() -> some View {
+  GeometryReader { geometry in
+    ZStack(alignment: .leading) {
+      Capsule()
+        .fill(Color.gray.opacity(0.8))
+        .frame(height: 5)
+
+      Capsule()
+        .fill(Color.white)
+        .frame(width: geometry.size.width, height: 5)
+    }
   }
+  .frame(height: 20)
 }
 
 struct LyricLineView: View {
@@ -386,8 +472,6 @@ struct LyricLineView: View {
             .lineSpacing(6)
             .scaleEffect(isCurrentLine && !isPlainLyrics ? 1.03 : 1.0)
             .blur(radius: blurRadius)
-            //.animation(.easeInOut(duration: 0.3), value: distance)
-            //.animation(.easeInOut(duration: 0.3), value: suppressBlur)
             .animation(.easeInOut(duration: 0.3), value: blurRadius)
             .opacity(isPlainLyrics ? 0.9 : 1.0)
     }
