@@ -33,6 +33,8 @@ struct Album: Codable, Identifiable, Playable {
   var name: String = ""
   var albumArtist: String = ""
   var artist: String = ""
+  var artistId: String = ""
+  var albumArtistId: String = ""
   var albumCover: String = ""
   var info: String = ""
   var songs: [Song] = []
@@ -44,6 +46,8 @@ struct Album: Codable, Identifiable, Playable {
     case name
     case albumArtist
     case artist
+    case artistId
+    case albumArtistId
     case albumCover
     case genre
     case minYear
@@ -56,6 +60,8 @@ struct Album: Codable, Identifiable, Playable {
     self.id = try container.decode(String.self, forKey: .id)
     self.name = try container.decode(String.self, forKey: .name)
     self.albumArtist = try container.decode(String.self, forKey: .albumArtist)
+    self.artistId = try container.decodeIfPresent(String.self, forKey: .artistId) ?? ""
+    self.albumArtistId = try container.decodeIfPresent(String.self, forKey: .albumArtistId) ?? ""
 
     // pre BFR compatibility
     // FIXME(@faultables): fix this in 2.x
@@ -73,6 +79,7 @@ struct Album: Codable, Identifiable, Playable {
 
   init(
     id: String = "", name: String = "", albumArtist: String = "", artist: String = "",
+    artistId: String = "", albumArtistId: String = "",
     songs: [Song] = [], genre: String = "",
     minYear: Int = 0
   ) {
@@ -80,9 +87,19 @@ struct Album: Codable, Identifiable, Playable {
     self.name = name
     self.albumArtist = albumArtist
     self.artist = artist
+    self.artistId = artistId
+    self.albumArtistId = albumArtistId
     self.songs = songs
     self.genre = genre
     self.minYear = minYear
+  }
+
+  var resolvedArtistId: String {
+    if !albumArtistId.isEmpty {
+      return albumArtistId
+    }
+
+    return artistId
   }
 
   #if os(iOS)

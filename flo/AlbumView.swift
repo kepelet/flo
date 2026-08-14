@@ -29,6 +29,32 @@ struct AlbumView: View {
 
   var isDownloadScreen: Bool = false
 
+  @ViewBuilder
+  private var albumArtistLabel: some View {
+    let artistName = viewModel.album.albumArtist
+
+    if let artist = viewModel.artistForNavigation(
+      id: viewModel.album.resolvedArtistId, name: artistName)
+    {
+      NavigationLink {
+        ArtistDetailView(artist: artist)
+          .environmentObject(viewModel)
+          .environmentObject(playerViewModel)
+          .environmentObject(downloadViewModel)
+      } label: {
+        Text(artistName)
+          .customFont(.title3)
+          .multilineTextAlignment(.center)
+          .foregroundColor(.accentColor)
+      }
+      .buttonStyle(.plain)
+    } else {
+      Text(artistName)
+        .customFont(.title3)
+        .multilineTextAlignment(.center)
+    }
+  }
+
   var body: some View {
     ScrollView {
       VStack {
@@ -87,9 +113,7 @@ struct AlbumView: View {
             .multilineTextAlignment(.center)
             .padding(.bottom, 5)
 
-          Text(viewModel.album.albumArtist)
-            .customFont(.title3)
-            .multilineTextAlignment(.center)
+          albumArtistLabel
             .padding(.bottom, 10)
 
           HStack {
@@ -224,6 +248,9 @@ struct AlbumView: View {
           downloadViewModel.clearCurrentAlbumDownload(albumName: viewModel.album.name)
         }
       }
+    }
+    .onAppear {
+      viewModel.getArtists()
     }
     .onReceive(downloadViewModel.$downloadWatcher) { newValue in
       if newValue {

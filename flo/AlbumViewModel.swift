@@ -179,7 +179,8 @@ class AlbumViewModel: ObservableObject {
   // MARK: - Fetch methods
 
   func fetchAllSongs() {
-    fetchCached(current: songs, cacheKey: .songs,
+    fetchCached(
+      current: songs, cacheKey: .songs,
       assign: { self.songs = $0 }, request: AlbumService.shared.getAllSongs)
   }
 
@@ -213,7 +214,9 @@ class AlbumViewModel: ObservableObject {
     }
   }
 
-  func getAlbumCoverArt(id: String, artistName: String = "", albumName: String = "", albumCover: String = "") -> String {
+  func getAlbumCoverArt(
+    id: String, artistName: String = "", albumName: String = "", albumCover: String = ""
+  ) -> String {
     return AlbumService.shared.getAlbumCover(
       artistName: artistName, albumName: albumName, albumId: id, albumCover: albumCover)
   }
@@ -343,7 +346,8 @@ class AlbumViewModel: ObservableObject {
   }
 
   func fetchAlbums() {
-    fetchCached(current: albums, cacheKey: .albums, showsLoading: true,
+    fetchCached(
+      current: albums, cacheKey: .albums, showsLoading: true,
       assign: { self.albums = $0 }, request: AlbumService.shared.getAlbum)
   }
 
@@ -383,34 +387,106 @@ class AlbumViewModel: ObservableObject {
   }
 
   func getPlaylists() {
-    fetchCached(current: playlists, cacheKey: .playlists,
+    fetchCached(
+      current: playlists, cacheKey: .playlists,
       assign: { self.playlists = $0 }, request: AlbumService.shared.getPlaylists)
   }
 
   func getArtists() {
-    fetchCached(current: artists, cacheKey: .artists,
+    fetchCached(
+      current: artists, cacheKey: .artists,
       assign: { self.artists = $0 }, request: AlbumService.shared.getArtists)
+  }
+
+  func artistForNavigation(id: String = "", name: String) -> Artist? {
+    let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
+    let hasName = !trimmedName.isEmpty && trimmedName != "N/A"
+
+    if !id.isEmpty, let match = artists.first(where: { $0.id == id }) {
+      return match
+    }
+
+    if hasName,
+      let match = artists.first(where: {
+        $0.name.caseInsensitiveCompare(trimmedName) == .orderedSame
+      })
+    {
+      return match
+    }
+
+    if !id.isEmpty {
+      return Artist.placeholder(id: id, name: hasName ? trimmedName : name)
+    }
+
+    return nil
+  }
+
+  func albumForNavigation(id: String = "", name: String, artist: String = "") -> Album? {
+    let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
+    let hasName = !trimmedName.isEmpty && trimmedName != "N/A"
+
+    if !id.isEmpty {
+      if let match = albums.first(where: { $0.id == id }) {
+        return match
+      }
+
+      if let match = downloadedAlbums.first(where: { $0.id == id }) {
+        return match
+      }
+
+      return Album(
+        id: id,
+        name: hasName ? trimmedName : name,
+        albumArtist: artist,
+        artist: artist
+      )
+    }
+
+    guard hasName else { return nil }
+
+    let matchingAlbums = albums.filter {
+      $0.name.caseInsensitiveCompare(trimmedName) == .orderedSame
+    }
+
+    if matchingAlbums.isEmpty {
+      return downloadedAlbums.first(where: {
+        $0.name.caseInsensitiveCompare(trimmedName) == .orderedSame
+      })
+    }
+
+    if artist.isEmpty || artist == "N/A" {
+      return matchingAlbums.first
+    }
+
+    return matchingAlbums.first(where: {
+      $0.albumArtist.caseInsensitiveCompare(artist) == .orderedSame
+        || $0.artist.caseInsensitiveCompare(artist) == .orderedSame
+    }) ?? matchingAlbums.first
   }
 
   // MARK: - Async refresh variants
 
   @MainActor func refreshAlbums() async {
-    await refreshCached(cacheKey: .albums, assign: { self.albums = $0 },
+    await refreshCached(
+      cacheKey: .albums, assign: { self.albums = $0 },
       request: AlbumService.shared.getAlbum)
   }
 
   @MainActor func refreshArtists() async {
-    await refreshCached(cacheKey: .artists, assign: { self.artists = $0 },
+    await refreshCached(
+      cacheKey: .artists, assign: { self.artists = $0 },
       request: AlbumService.shared.getArtists)
   }
 
   @MainActor func refreshPlaylists() async {
-    await refreshCached(cacheKey: .playlists, assign: { self.playlists = $0 },
+    await refreshCached(
+      cacheKey: .playlists, assign: { self.playlists = $0 },
       request: AlbumService.shared.getPlaylists)
   }
 
   @MainActor func refreshAllSongs() async {
-    await refreshCached(cacheKey: .songs, assign: { self.songs = $0 },
+    await refreshCached(
+      cacheKey: .songs, assign: { self.songs = $0 },
       request: AlbumService.shared.getAllSongs)
   }
 

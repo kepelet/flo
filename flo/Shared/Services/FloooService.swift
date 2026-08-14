@@ -35,17 +35,21 @@ class FloooService {
   @MainActor
   func generateStats(_ listeningActivity: [HistoryEntity]) async -> Stats? {
     // Extract values on the main thread — NSManagedObjects must not cross thread boundaries
-    let rawEntries: [(albumName: String, artistName: String)] = listeningActivity.map {
-      (albumName: $0.albumName ?? "", artistName: $0.artistName ?? "")
-    }
+    let rawEntries: [(albumId: String, albumName: String, artistName: String)] =
+      listeningActivity.map {
+        (
+          albumId: $0.albumId ?? "",
+          albumName: $0.albumName ?? "",
+          artistName: $0.artistName ?? ""
+        )
+      }
 
     return await Task.detached(priority: .userInitiated) {
-      let albumCounts = Dictionary(grouping: rawEntries) { entry in
+      let albumGroups = Dictionary(grouping: rawEntries) { entry in
         "\(entry.albumName)|\(entry.artistName)"
       }
-      .mapValues { $0.count }
 
-      let topAlbum = albumCounts.max(by: { $0.value < $1.value })
+      let topAlbumGroup = albumGroups.max(by: { $0.value.count < $1.value.count })
 
       let artistCounts = Dictionary(grouping: rawEntries) { entry in
         entry.artistName
@@ -54,11 +58,17 @@ class FloooService {
 
       let topArtist = artistCounts.max(by: { $0.value < $1.value })
 
-      let components = topAlbum?.key.split(separator: "|")
+      let components = topAlbumGroup?.key.split(separator: "|")
       let album = String(components?[0] ?? "N/A")
       let artist = String(components?[1] ?? "N/A")
+      let albumId = topAlbumGroup?.value.first(where: { !$0.albumId.isEmpty })?.albumId ?? ""
 
-      return Stats(topArtist: topArtist?.key ?? "N/A", topAlbum: album, topAlbumArtist: artist)
+      return Stats(
+        topArtist: topArtist?.key ?? "N/A",
+        topAlbum: album,
+        topAlbumArtist: artist,
+        topAlbumId: albumId
+      )
     }.value
   }
 
