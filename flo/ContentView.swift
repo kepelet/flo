@@ -13,6 +13,8 @@ struct ContentView: View {
   @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
   @State private var isPlayerExpanded: Bool = false
+  @State private var playerLibraryDestination: LibraryDestination?
+  @State private var shouldRestorePlayerAfterLibrary = false
   @State private var tabViewID = UUID()
 
   @StateObject private var authViewModel = AuthViewModel()
@@ -79,7 +81,11 @@ struct ContentView: View {
     TabView {
       HomeView(viewModel: authViewModel).tabItem {
         Label("Home", systemImage: "house")
-      }.environmentObject(floooViewModel)
+      }
+      .environmentObject(floooViewModel)
+      .environmentObject(albumViewModel)
+      .environmentObject(playerViewModel)
+      .environmentObject(downloadViewModel)
 
       if authViewModel.isLoggedIn {
         LibraryView(viewModel: albumViewModel).tabItem {
@@ -156,6 +162,9 @@ struct ContentView: View {
         sidebarTabContent(
           HomeView(viewModel: authViewModel)
             .environmentObject(floooViewModel)
+            .environmentObject(albumViewModel)
+            .environmentObject(playerViewModel)
+            .environmentObject(downloadViewModel)
         )
       }
 
@@ -284,11 +293,33 @@ struct ContentView: View {
 
         rootTabView
 
-        if playerViewModel.hasNowPlaying() && !playerViewModel.shouldHidePlayer {
-          PlayerView(isExpanded: $isPlayerExpanded, viewModel: playerViewModel)
-            .ignoresSafeArea()
-            .offset(y: isPlayerExpanded ? 0 : offScreenY)
-            .animation(.spring(duration: 0.2), value: isPlayerExpanded)
+        if let destination = playerLibraryDestination {
+          NavigationStack {
+            playerLibraryContent(destination)
+              .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                  Button("Close") {
+                    closePlayerLibraryDestination()
+                  }
+                }
+              }
+          }
+          .background(Color(.systemBackground).ignoresSafeArea())
+        }
+
+        if playerViewModel.hasNowPlaying() && !playerViewModel.shouldHidePlayer
+          && playerLibraryDestination == nil
+        {
+          PlayerView(
+            isExpanded: $isPlayerExpanded,
+            viewModel: playerViewModel,
+            albumViewModel: albumViewModel,
+            onOpenLibraryDestination: openLibraryDestinationFromPlayer
+          )
+          .environmentObject(downloadViewModel)
+          .ignoresSafeArea()
+          .offset(y: isPlayerExpanded ? 0 : offScreenY)
+          .animation(.spring(duration: 0.2), value: isPlayerExpanded)
         }
 
         if !isPadSidebar {
@@ -310,7 +341,11 @@ struct ContentView: View {
                 #if targetEnvironment(macCatalyst)
                   10
                 #else
-                  isPad ? 0 : (40 + bottomPadding)
+                  if playerLibraryDestination != nil {
+                    return 0
+                  }
+
+                  return isPad ? 0 : (40 + bottomPadding)
                 #endif
               }()
 
@@ -320,11 +355,15 @@ struct ContentView: View {
                 .opacity(playerViewModel.hasNowPlaying() ? 1 : 0)
                 .offset(
                   x: playerCenterOffsetX + self.floatingPlayerOffsetX,
-                  y: isPlayerExpanded ? offScreenY : 0
+                  y: (isPlayerExpanded && playerLibraryDestination == nil) ? offScreenY : 0
                 )
                 .animation(.spring(duration: 0.2), value: isPlayerExpanded)
                 .onTapGesture {
-                  self.isPlayerExpanded = true
+                  if playerLibraryDestination != nil {
+                    closePlayerLibraryDestination()
+                  } else {
+                    self.isPlayerExpanded = true
+                  }
                 }
                 .gesture(
                   DragGesture()
@@ -353,6 +392,48 @@ struct ContentView: View {
     }
     .onAppear {
       PlaybackCoordinator.shared.attach(playerViewModel: playerViewModel)
+    }
+  }
+
+  private func openLibraryDestinationFromPlayer(_ destination: LibraryDestination) {
+    shouldRestorePlayerAfterLibrary = true
+    isPlayerExpanded = false
+    playerLibraryDestination = destination
+  }
+
+  private func closePlayerLibraryDestination() {
+    playerLibraryDestination = nil
+    if shouldRestorePlayerAfterLibrary {
+      shouldRestorePlayerAfterLibrary = false
+      isPlayerExpanded = true
+    }
+  }
+
+  @ViewBuilder
+  private func playerLibraryContent(_ destination: LibraryDestination) -> some View {
+    switch destination {
+    case .artist(let id, let name):
+      if let artist = albumViewModel.artistForNavigation(id: id, name: name) {
+        ArtistDetailView(artist: artist)
+          .environmentObject(albumViewModel)
+          .environmentObject(playerViewModel)
+          .environmentObject(downloadViewModel)
+      } else {
+        Text("Artist unavailable")
+          .foregroundColor(.secondary)
+      }
+    case .album(let id, let name, let artist):
+      if let album = albumViewModel.albumForNavigation(id: id, name: name, artist: artist) {
+        AlbumView(viewModel: albumViewModel)
+          .environmentObject(playerViewModel)
+          .environmentObject(downloadViewModel)
+          .onAppear {
+            albumViewModel.setActiveAlbum(album: album)
+          }
+      } else {
+        Text("Album unavailable")
+          .foregroundColor(.secondary)
+      }
     }
   }
 }

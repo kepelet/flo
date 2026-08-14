@@ -13,6 +13,10 @@ struct PlayerView: View {
   @Binding var isExpanded: Bool
 
   @ObservedObject var viewModel: PlayerViewModel
+  @ObservedObject var albumViewModel: AlbumViewModel
+  var onOpenLibraryDestination: ((LibraryDestination) -> Void)?
+
+  @EnvironmentObject var downloadViewModel: DownloadViewModel
 
   @State private var offset = CGSize.zero
   @State private var isDragging = false
@@ -195,6 +199,10 @@ struct PlayerView: View {
           }
         }
         .offset(y: offset.height)
+        .onAppear {
+          albumViewModel.getArtists()
+          albumViewModel.fetchAlbums()
+        }
         .gesture(
           DragGesture()
             .onChanged { gesture in
@@ -214,8 +222,8 @@ struct PlayerView: View {
             }
         )
       }
+      .foregroundColor(.white)
     }
-    .foregroundColor(.white)
   }
 
   private var windowTopSafeInset: CGFloat {
@@ -241,44 +249,7 @@ struct PlayerView: View {
         .padding(.top, topSafeInset + 8)
 
       Spacer()
-      let coverArtUrl = viewModel.getAlbumCoverArt()
-      if let image = UIImage(contentsOfFile: coverArtUrl) {
-        Image(uiImage: image)
-          .resizable()
-          .aspectRatio(contentMode: .fit)
-          .frame(width: imageSize, height: imageSize)
-          .clipShape(
-            RoundedRectangle(cornerRadius: 15, style: .continuous)
-          )
-      } else {
-        LazyImage(url: URL(string: coverArtUrl)) { state in
-          if state.isLoading {
-            Color.gray.opacity(0.3)
-              .frame(width: imageSize, height: imageSize)
-              .clipShape(
-                RoundedRectangle(cornerRadius: 15, style: .continuous)
-              )
-          } else {
-            if let image = state.image {
-              image
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .frame(width: imageSize, height: imageSize)
-                .clipShape(
-                  RoundedRectangle(cornerRadius: 15, style: .continuous)
-                )
-            } else if state.error != nil {
-              Image("placeholder")
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .frame(width: imageSize, height: imageSize)
-                .clipShape(
-                  RoundedRectangle(cornerRadius: 15, style: .continuous)
-                )
-            }
-          }
-        }
-      }
+      albumCoverArt(imageSize: imageSize)
 
       Spacer().frame(height: horizontalSizeClass == .regular ? 44 : 36)
 
@@ -290,11 +261,7 @@ struct PlayerView: View {
           .multilineTextAlignment(.center)
           .lineLimit(3)
 
-        Text(viewModel.nowPlaying.artistName ?? "")
-          .foregroundColor(.white.opacity(0.8))
-          .customFont(.title3)
-          .multilineTextAlignment(.center)
-          .lineLimit(2)
+        nowPlayingArtistLabel
       }
       .padding(.horizontal, 30)
 
@@ -511,6 +478,100 @@ struct PlayerView: View {
     .ignoresSafeArea()
   }
 
+  private var canNavigateNowPlayingAlbum: Bool {
+    !viewModel.isLiveRadio && viewModel.nowPlaying.isFromPlaylist == false
+  }
+
+  @ViewBuilder
+  private var nowPlayingArtistLabel: some View {
+    let artistName = viewModel.nowPlaying.artistName ?? ""
+    let artist = albumViewModel.artistForNavigation(name: artistName)
+
+    if let artist, !artistName.isEmpty, !viewModel.isLiveRadio {
+      Button {
+        onOpenLibraryDestination?(.artist(id: artist.id, name: artist.name))
+      } label: {
+        Text(artistName)
+          .foregroundColor(.white.opacity(0.8))
+          .customFont(.title3)
+          .multilineTextAlignment(.center)
+          .lineLimit(2)
+      }
+      .buttonStyle(.plain)
+    } else {
+      Text(artistName)
+        .foregroundColor(.white.opacity(0.8))
+        .customFont(.title3)
+        .multilineTextAlignment(.center)
+        .lineLimit(2)
+    }
+  }
+
+  @ViewBuilder
+  private func albumCoverArt(imageSize: CGFloat) -> some View {
+    let cover = albumCoverImage(imageSize: imageSize)
+    let album = albumViewModel.albumForNavigation(
+      id: viewModel.nowPlaying.albumId ?? "",
+      name: viewModel.nowPlaying.albumName ?? "",
+      artist: viewModel.nowPlaying.artistName ?? ""
+    )
+
+    if canNavigateNowPlayingAlbum, let album {
+      Button {
+        onOpenLibraryDestination?(
+          .album(id: album.id, name: album.name, artist: album.albumArtist)
+        )
+      } label: {
+        cover
+      }
+      .buttonStyle(.plain)
+    } else {
+      cover
+    }
+  }
+
+  @ViewBuilder
+  private func albumCoverImage(imageSize: CGFloat) -> some View {
+    let coverArtUrl = viewModel.getAlbumCoverArt()
+    if let image = UIImage(contentsOfFile: coverArtUrl) {
+      Image(uiImage: image)
+        .resizable()
+        .aspectRatio(contentMode: .fit)
+        .frame(width: imageSize, height: imageSize)
+        .clipShape(
+          RoundedRectangle(cornerRadius: 15, style: .continuous)
+        )
+    } else {
+      LazyImage(url: URL(string: coverArtUrl)) { state in
+        if state.isLoading {
+          Color.gray.opacity(0.3)
+            .frame(width: imageSize, height: imageSize)
+            .clipShape(
+              RoundedRectangle(cornerRadius: 15, style: .continuous)
+            )
+        } else {
+          if let image = state.image {
+            image
+              .resizable()
+              .aspectRatio(contentMode: .fit)
+              .frame(width: imageSize, height: imageSize)
+              .clipShape(
+                RoundedRectangle(cornerRadius: 15, style: .continuous)
+              )
+          } else if state.error != nil {
+            Image("placeholder")
+              .resizable()
+              .aspectRatio(contentMode: .fit)
+              .frame(width: imageSize, height: imageSize)
+              .clipShape(
+                RoundedRectangle(cornerRadius: 15, style: .continuous)
+              )
+          }
+        }
+      }
+    }
+  }
+
   @ViewBuilder
   private func liveProgressBar() -> some View {
     GeometryReader { geometry in
@@ -530,10 +591,13 @@ struct PlayerView: View {
 
 struct PlayerView_previews: PreviewProvider {
   @StateObject static var viewModel = PlayerViewModel()
+  @StateObject static var albumViewModel = AlbumViewModel()
+  @StateObject static var downloadViewModel = DownloadViewModel()
   @State static var isExpanded: Bool = true
 
   static var previews: some View {
-    PlayerView(isExpanded: $isExpanded, viewModel: viewModel)
+    PlayerView(isExpanded: $isExpanded, viewModel: viewModel, albumViewModel: albumViewModel)
+      .environmentObject(downloadViewModel)
   }
 }
 
@@ -541,23 +605,23 @@ struct PlayerView_previews: PreviewProvider {
 /// leaving the bottom edges straight so the background extends
 /// fully into the bottom safe area.
 struct TopRoundedRectangle: Shape {
-    var cornerRadius: CGFloat
+  var cornerRadius: CGFloat
 
-    func path(in rect: CGRect) -> Path {
-        var path = Path()
-        path.move(to: CGPoint(x: rect.minX, y: rect.maxY))
-        path.addLine(to: CGPoint(x: rect.minX, y: rect.minY + cornerRadius))
-        path.addQuadCurve(
-            to: CGPoint(x: rect.minX + cornerRadius, y: rect.minY),
-            control: CGPoint(x: rect.minX, y: rect.minY)
-        )
-        path.addLine(to: CGPoint(x: rect.maxX - cornerRadius, y: rect.minY))
-        path.addQuadCurve(
-            to: CGPoint(x: rect.maxX, y: rect.minY + cornerRadius),
-            control: CGPoint(x: rect.maxX, y: rect.minY)
-        )
-        path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
-        path.closeSubpath()
-        return path
-    }
+  func path(in rect: CGRect) -> Path {
+    var path = Path()
+    path.move(to: CGPoint(x: rect.minX, y: rect.maxY))
+    path.addLine(to: CGPoint(x: rect.minX, y: rect.minY + cornerRadius))
+    path.addQuadCurve(
+      to: CGPoint(x: rect.minX + cornerRadius, y: rect.minY),
+      control: CGPoint(x: rect.minX, y: rect.minY)
+    )
+    path.addLine(to: CGPoint(x: rect.maxX - cornerRadius, y: rect.minY))
+    path.addQuadCurve(
+      to: CGPoint(x: rect.maxX, y: rect.minY + cornerRadius),
+      control: CGPoint(x: rect.maxX, y: rect.minY)
+    )
+    path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
+    path.closeSubpath()
+    return path
+  }
 }
