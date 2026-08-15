@@ -221,6 +221,10 @@ class AlbumViewModel: ObservableObject {
       artistName: artistName, albumName: albumName, albumId: id, albumCover: albumCover)
   }
 
+  func getArtistCoverArt(id: String, imageURL: String = "") -> String {
+    return AlbumService.shared.getArtistCover(artistId: id, imageURL: imageURL)
+  }
+
   func shareAlbum(description: String, completion: @escaping (String) -> Void) {
     AlbumService.shared.share(albumId: self.album.id, description: description, downloadable: false)
     { result in

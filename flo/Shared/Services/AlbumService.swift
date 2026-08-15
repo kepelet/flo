@@ -303,6 +303,15 @@ class AlbumService {
     }
   }
 
+  func getArtistCover(artistId: String, imageURL: String = "") -> String {
+    if !imageURL.isEmpty {
+      return imageURL
+    }
+
+    return
+      "\(UserDefaultsManager.serverBaseURL)\(API.SubsonicEndpoint.coverArt)\(AuthService.shared.getCreds(key: "subsonicToken"))&id=ar-\(artistId)&size=300"
+  }
+
   func downloadAlbumCover(
     artistName: String, albumId: String, albumName: String,
     completion: @escaping (Result<URL?, Error>) -> Void
