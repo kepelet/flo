@@ -6,45 +6,51 @@
 //
 
 #if os(watchOS)
-import SwiftUI
+  import SwiftUI
 
-struct WatchSongsView: View {
-  @ObservedObject var libraryViewModel: WatchLibraryViewModel
-  @ObservedObject var playerViewModel: WatchPlayerViewModel
+  struct WatchSongsView: View {
+    @ObservedObject var libraryViewModel: WatchLibraryViewModel
+    @ObservedObject var playerViewModel: WatchPlayerViewModel
 
-  var body: some View {
-    List {
-      if libraryViewModel.isLoading {
-        ProgressView()
-      }
+    var body: some View {
+      List {
+        if libraryViewModel.isLoading {
+          ProgressView()
+        }
 
-      if let errorMessage = libraryViewModel.errorMessage {
-        Text(errorMessage)
-          .foregroundColor(.red)
-      }
+        if let errorMessage = libraryViewModel.errorMessage {
+          Text(errorMessage)
+            .foregroundColor(.red)
+        }
 
-      ForEach(libraryViewModel.songs) { song in
-        Button {
-          playerViewModel.playSongAll(song)
-        } label: {
-          VStack(alignment: .leading, spacing: 2) {
-            Text(song.title)
-              .font(.body)
-              .lineLimit(1)
-            Text(song.artist)
-              .font(.caption)
-              .foregroundColor(.secondary)
-              .lineLimit(1)
+        ForEach(libraryViewModel.songs) { song in
+          Button {
+            playerViewModel.playSongAll(song)
+          } label: {
+            VStack(alignment: .leading, spacing: 2) {
+              HStack(alignment: .center, spacing: 4) {
+                Text(song.title)
+                  .font(.body)
+                  .lineLimit(1)
+
+                if song.isExplicit {
+                  ExplicitBadge(size: .compact)
+                }
+              }
+              Text(song.artist)
+                .font(.caption)
+                .foregroundColor(.secondary)
+                .lineLimit(1)
+            }
           }
         }
       }
-    }
-    .navigationTitle("Songs")
-    .onAppear {
-      if libraryViewModel.songs.isEmpty {
-        libraryViewModel.loadAllSongs()
+      .navigationTitle("Songs")
+      .onAppear {
+        if libraryViewModel.songs.isEmpty {
+          libraryViewModel.loadAllSongs()
+        }
       }
     }
   }
-}
 #endif

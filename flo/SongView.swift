@@ -26,8 +26,15 @@ struct SongView: View {
               .padding(.trailing, 5)
 
             VStack(alignment: .leading) {
-              Text(song.title)
-                .fontWeight(.medium)
+              HStack(alignment: .center, spacing: 6) {
+                Text(song.title)
+                  .fontWeight(.medium)
+                  .lineLimit(1)
+
+                if song.isExplicit {
+                  ExplicitBadge(size: .compact)
+                }
+              }
 
               if song.id.hasPrefix("pl:") {
                 Text(song.artist).customFont(.caption1).offset(y: 5)

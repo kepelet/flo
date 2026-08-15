@@ -119,10 +119,16 @@ struct PlayerView: View {
                   ForEach(viewModel.queue.indices, id: \.self) { idx in
                     HStack(alignment: .top) {
                       VStack(alignment: .leading) {
-                        Text(viewModel.queue[idx].songName ?? "")
-                          .customFont(.callout)
-                          .fontWeight(.medium)
-                          .padding(.bottom, 3)
+                        HStack(alignment: .center, spacing: 6) {
+                          Text(viewModel.queue[idx].songName ?? "")
+                            .customFont(.callout)
+                            .fontWeight(.medium)
+
+                          if ExplicitStatus(from: viewModel.queue[idx].explicitStatus).isExplicit {
+                            ExplicitBadge(size: .compact)
+                          }
+                        }
+                        .padding(.bottom, 3)
 
                         Text(viewModel.queue[idx].artistName ?? "")
                           .customFont(.caption1)
@@ -486,27 +492,30 @@ struct PlayerView: View {
       artist: viewModel.nowPlaying.artistName ?? ""
     )
 
-    if canNavigateNowPlayingAlbum, let album, !songName.isEmpty {
-      Button {
-        onOpenLibraryDestination?(
-          .album(id: album.id, name: album.name, artist: album.albumArtist)
-        )
-      } label: {
-        Text(songName)
-          .foregroundColor(.white)
-          .customFont(.title2)
-          .fontWeight(.bold)
-          .multilineTextAlignment(.center)
-          .lineLimit(3)
-      }
-      .buttonStyle(.plain)
-    } else {
+    let titleLabel = HStack(alignment: .center, spacing: 8) {
       Text(songName)
         .foregroundColor(.white)
         .customFont(.title2)
         .fontWeight(.bold)
         .multilineTextAlignment(.center)
         .lineLimit(3)
+
+      if ExplicitStatus(from: viewModel.nowPlaying.explicitStatus).isExplicit {
+        ExplicitBadge(tint: .white.opacity(0.85))
+      }
+    }
+
+    if canNavigateNowPlayingAlbum, let album, !songName.isEmpty {
+      Button {
+        onOpenLibraryDestination?(
+          .album(id: album.id, name: album.name, artist: album.albumArtist)
+        )
+      } label: {
+        titleLabel
+      }
+      .buttonStyle(.plain)
+    } else {
+      titleLabel
     }
   }
 

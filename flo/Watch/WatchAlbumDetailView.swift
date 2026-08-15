@@ -26,8 +26,15 @@
             )
 
             VStack(alignment: .leading, spacing: 2) {
-              Text(album.name)
-                .font(.headline)
+              HStack(alignment: .center, spacing: 4) {
+                Text(album.name)
+                  .font(.headline)
+                  .lineLimit(1)
+
+                if album.isExplicit {
+                  ExplicitBadge(size: .compact)
+                }
+              }
               Text(album.artist)
                 .font(.caption)
                 .foregroundColor(.secondary)
@@ -56,9 +63,15 @@
               playerViewModel.playSong(song, inAlbum: album)
             } label: {
               VStack(alignment: .leading, spacing: 2) {
-                Text(song.title)
-                  .font(.body)
-                  .lineLimit(1)
+                HStack(alignment: .center, spacing: 4) {
+                  Text(song.title)
+                    .font(.body)
+                    .lineLimit(1)
+
+                  if song.isExplicit {
+                    ExplicitBadge(size: .compact)
+                  }
+                }
               }
             }
           }

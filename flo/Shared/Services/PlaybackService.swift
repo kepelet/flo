@@ -54,6 +54,7 @@ class PlaybackService {
         "isFromPlaylist": isFromPlaylist,
         "isFromLocal": isFromLocal,
         "duration": song.duration,
+        "explicitStatus": song.explicitStatus.rawValue,
       ] as [String: Any]
     }
 

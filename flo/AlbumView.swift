@@ -107,11 +107,17 @@ struct AlbumView: View {
         }
 
         VStack {
-          Text(viewModel.album.name)
-            .customFont(.title)
-            .fontWeight(.bold)
-            .multilineTextAlignment(.center)
-            .padding(.bottom, 5)
+          HStack(alignment: .center, spacing: 8) {
+            Text(viewModel.album.name)
+              .customFont(.title)
+              .fontWeight(.bold)
+              .multilineTextAlignment(.center)
+
+            if viewModel.album.isExplicit {
+              ExplicitBadge()
+            }
+          }
+          .padding(.bottom, 5)
 
           albumArtistLabel
             .padding(.bottom, 10)

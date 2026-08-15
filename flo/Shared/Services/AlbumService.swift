@@ -385,6 +385,7 @@ class AlbumService {
         "Media/\(isFromPlaylist ? "Various Artists" : song.artist)/\(albumName ?? "Unknown Albums")/\(Int16(song.trackNumber)) \(song.title).\(song.suffix)"
       existingSong.albumName = resolvedAlbumName
       existingSong.status = status
+      existingSong.explicitStatus = song.explicitStatus.rawValue
     } else {
       let downloadedSong = SongEntity(context: CoreDataManager.shared.viewContext)
 
@@ -402,6 +403,7 @@ class AlbumService {
       downloadedSong.fileURL = fileURL
       downloadedSong.status = status
       downloadedSong.mediaFileId = isFromPlaylist ? song.mediaFileId : song.id
+      downloadedSong.explicitStatus = song.explicitStatus.rawValue
     }
 
     CoreDataManager.shared.saveRecord()
@@ -416,6 +418,7 @@ class AlbumService {
     album.minYear = Int64(albumToDownload.minYear)
     album.artistName = albumToDownload.artist
     album.albumArtist = albumToDownload.albumArtist
+    album.explicitStatus = albumToDownload.explicitStatus.rawValue
 
     CoreDataManager.shared.saveRecord()
   }

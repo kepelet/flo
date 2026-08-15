@@ -40,6 +40,15 @@ struct Album: Codable, Identifiable, Playable {
   var songs: [Song] = []
   var genre: String = ""
   var minYear: Int = 0
+  var explicitStatus: ExplicitStatus = .unknown
+
+  var isExplicit: Bool {
+    if explicitStatus.isExplicit {
+      return true
+    }
+
+    return songs.contains(where: \.isExplicit)
+  }
 
   enum CodingKeys: String, CodingKey {
     case id
@@ -52,6 +61,7 @@ struct Album: Codable, Identifiable, Playable {
     case genre
     case minYear
     case songs
+    case explicitStatus
   }
 
   init(from decoder: any Decoder) throws {
@@ -75,13 +85,15 @@ struct Album: Codable, Identifiable, Playable {
     self.genre = try container.decode(String.self, forKey: .genre)
     self.minYear = try container.decode(Int.self, forKey: .minYear)
     self.songs = try container.decodeIfPresent([Song].self, forKey: .songs) ?? []
+    self.explicitStatus = ExplicitStatus(
+      from: try container.decodeIfPresent(String.self, forKey: .explicitStatus))
   }
 
   init(
     id: String = "", name: String = "", albumArtist: String = "", artist: String = "",
     artistId: String = "", albumArtistId: String = "",
     songs: [Song] = [], genre: String = "",
-    minYear: Int = 0
+    minYear: Int = 0, explicitStatus: ExplicitStatus = .unknown
   ) {
     self.id = id
     self.name = name
@@ -92,6 +104,7 @@ struct Album: Codable, Identifiable, Playable {
     self.songs = songs
     self.genre = genre
     self.minYear = minYear
+    self.explicitStatus = explicitStatus
   }
 
   var resolvedArtistId: String {
@@ -111,6 +124,7 @@ struct Album: Codable, Identifiable, Playable {
       self.genre = playlist.genre ?? "Unknown Genre"
       self.minYear = Int(playlist.minYear)
       self.albumCover = playlist.albumCover ?? ""
+      self.explicitStatus = ExplicitStatus(from: playlist.explicitStatus)
     }
   #endif
 

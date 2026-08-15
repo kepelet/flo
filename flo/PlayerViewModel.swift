@@ -344,6 +344,8 @@ class PlayerViewModel: ObservableObject {
         nowPlayingInfo[MPMediaItemPropertyTitle] = title
         nowPlayingInfo[MPMediaItemPropertyArtist] = artist
         nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] = playbackDuration
+        nowPlayingInfo[MPMediaItemPropertyIsExplicit] =
+          ExplicitStatus(from: self.nowPlaying.explicitStatus).isExplicit
 
         if let artwork = artwork {
           nowPlayingInfo[MPMediaItemPropertyArtwork] = artwork

@@ -38,9 +38,15 @@
               )
 
               VStack(alignment: .leading, spacing: 2) {
-                Text(album.name)
-                  .font(.headline)
-                  .lineLimit(1)
+                HStack(alignment: .center, spacing: 4) {
+                  Text(album.name)
+                    .font(.headline)
+                    .lineLimit(1)
+
+                  if album.isExplicit {
+                    ExplicitBadge(size: .compact)
+                  }
+                }
 
                 Text(album.artist)
                   .font(.caption)

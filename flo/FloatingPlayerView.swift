@@ -81,11 +81,17 @@ struct FloatingPlayerView: View {
         .shadow(radius: 2)
 
         VStack(alignment: .leading, spacing: 1) {
-          Text(viewModel.nowPlaying.songName ?? "")
-            .foregroundColor(.accent)
-            .customFont(.callout)
-            .fontWeight(.bold)
-            .lineLimit(1)
+          HStack(alignment: .center, spacing: 6) {
+            Text(viewModel.nowPlaying.songName ?? "")
+              .foregroundColor(.accent)
+              .customFont(.callout)
+              .fontWeight(.bold)
+              .lineLimit(1)
+
+            if ExplicitStatus(from: viewModel.nowPlaying.explicitStatus).isExplicit {
+              ExplicitBadge(size: .compact)
+            }
+          }
 
           Text(viewModel.nowPlaying.artistName ?? "")
             .customFont(.caption1)
