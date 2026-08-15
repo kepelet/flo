@@ -15,6 +15,7 @@ struct HomeView: View {
   @EnvironmentObject var albumViewModel: AlbumViewModel
   @EnvironmentObject var playerViewModel: PlayerViewModel
   @EnvironmentObject var downloadViewModel: DownloadViewModel
+  @EnvironmentObject var libraryRouter: LibraryRouter
 
   private enum ConnectionState {
     case online
@@ -260,7 +261,7 @@ struct HomeView: View {
   }
 
   var body: some View {
-    NavigationStack {
+    NavigationStack(path: $libraryRouter.homePath) {
       Group {
         if UIDevice.current.userInterfaceIdiom == .pad {
           AnyView(
@@ -273,6 +274,14 @@ struct HomeView: View {
               loginContent
             })
         }
+      }
+      .navigationDestination(for: LibraryDestination.self) { destination in
+        LibraryDestinationView(
+          destination: destination,
+          albumViewModel: albumViewModel,
+          playerViewModel: playerViewModel,
+          downloadViewModel: downloadViewModel
+        )
       }
     }
   }
@@ -291,5 +300,6 @@ struct HomeViewPreviews_Previews: PreviewProvider {
       .environmentObject(albumViewModel)
       .environmentObject(playerViewModel)
       .environmentObject(downloadViewModel)
+      .environmentObject(LibraryRouter())
   }
 }

@@ -13,11 +13,10 @@ struct ContentView: View {
   @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
   @State private var isPlayerExpanded: Bool = false
-  @State private var playerLibraryDestination: LibraryDestination?
-  @State private var shouldRestorePlayerAfterLibrary = false
   @State private var tabViewID = UUID()
 
   @StateObject private var authViewModel = AuthViewModel()
+  @StateObject private var libraryRouter = LibraryRouter()
   @ObservedObject private var playerViewModel = PlayerViewModel.shared
   @StateObject private var albumViewModel = AlbumViewModel()
   @StateObject private var floooViewModel = FloooViewModel()
@@ -78,39 +77,54 @@ struct ContentView: View {
   }
 
   private var baseTabView: some View {
-    TabView {
+    TabView(selection: $libraryRouter.selectedTab) {
       HomeView(viewModel: authViewModel).tabItem {
         Label("Home", systemImage: "house")
       }
+      .tag(AppTab.home)
       .environmentObject(floooViewModel)
       .environmentObject(albumViewModel)
       .environmentObject(playerViewModel)
       .environmentObject(downloadViewModel)
+      .environmentObject(libraryRouter)
 
       if authViewModel.isLoggedIn {
         LibraryView(viewModel: albumViewModel).tabItem {
           Label("Library", systemImage: "square.grid.2x2")
-        }.environmentObject(playerViewModel).environmentObject(downloadViewModel)
-          .onAppear {
-            albumViewModel.fetchAlbums()
-          }
+        }
+        .tag(AppTab.library)
+        .environmentObject(albumViewModel)
+        .environmentObject(playerViewModel)
+        .environmentObject(downloadViewModel)
+        .environmentObject(libraryRouter)
+        .onAppear {
+          albumViewModel.fetchAlbums()
+        }
       }
 
       DownloadsView(viewModel: albumViewModel).tabItem {
         Label("Downloads", systemImage: "arrow.down.circle")
-      }.environmentObject(playerViewModel).environmentObject(downloadViewModel).onAppear {
+      }
+      .tag(AppTab.downloads)
+      .environmentObject(playerViewModel)
+      .environmentObject(downloadViewModel)
+      .onAppear {
         albumViewModel.fetchDownloadedAlbums()
       }.badge(downloadViewModel.getRemainingDownloadItems())
 
       PreferencesView(authViewModel: authViewModel).tabItem {
         Label("Preferences", systemImage: "gear")
-      }.environmentObject(playerViewModel).environmentObject(floooViewModel).environmentObject(
-        inAppPurchaseManager)
+      }
+      .tag(AppTab.preferences)
+      .environmentObject(playerViewModel)
+      .environmentObject(floooViewModel)
+      .environmentObject(inAppPurchaseManager)
 
       if UserDefaultsManager.enableDebug {
         ConsoleView().tabItem {
           Label("Debug", systemImage: "terminal")
         }
+        .tag(AppTab.debug)
       }
     }
     .id(tabViewID)
@@ -157,34 +171,45 @@ struct ContentView: View {
 
   @available(iOS 18.0, *)
   private var sidebarTabView: some View {
-    TabView {
-      Tab("Home", systemImage: "house") {
+    TabView(selection: $libraryRouter.selectedTab) {
+      Tab("Home", systemImage: "house", value: AppTab.home) {
         sidebarTabContent(
           HomeView(viewModel: authViewModel)
             .environmentObject(floooViewModel)
             .environmentObject(albumViewModel)
             .environmentObject(playerViewModel)
             .environmentObject(downloadViewModel)
+            .environmentObject(libraryRouter)
         )
       }
 
       if authViewModel.isLoggedIn {
         TabSection("Library") {
-          Tab("Albums", systemImage: "square.grid.2x2") {
+          Tab("Albums", systemImage: "square.grid.2x2", value: AppTab.library) {
             sidebarTabContent(
               LibraryView(viewModel: albumViewModel, showQuickNavigation: false)
+                .environmentObject(albumViewModel)
                 .environmentObject(playerViewModel)
                 .environmentObject(downloadViewModel)
+                .environmentObject(libraryRouter)
                 .onAppear {
                   albumViewModel.fetchAlbums()
                 }
             )
           }
 
-          Tab("Artists", systemImage: "music.mic") {
+          Tab("Artists", systemImage: "music.mic", value: AppTab.libraryArtists) {
             sidebarTabContent(
-              NavigationStack {
+              NavigationStack(path: $libraryRouter.artistsPath) {
                 ArtistsView(artists: albumViewModel.artists)
+                  .navigationDestination(for: LibraryDestination.self) { destination in
+                    LibraryDestinationView(
+                      destination: destination,
+                      albumViewModel: albumViewModel,
+                      playerViewModel: playerViewModel,
+                      downloadViewModel: downloadViewModel
+                    )
+                  }
                   .onAppear {
                     albumViewModel.getArtists()
                   }
@@ -192,10 +217,11 @@ struct ContentView: View {
               .environmentObject(albumViewModel)
               .environmentObject(playerViewModel)
               .environmentObject(downloadViewModel)
+              .environmentObject(libraryRouter)
             )
           }
 
-          Tab("Liked Songs", systemImage: "heart.fill") {
+          Tab("Liked Songs", systemImage: "heart.fill", value: AppTab.likedSongs) {
             sidebarTabContent(
               NavigationStack {
                 LikedSongsView()
@@ -205,7 +231,7 @@ struct ContentView: View {
             )
           }
 
-          Tab("Playlists", systemImage: "music.note.list") {
+          Tab("Playlists", systemImage: "music.note.list", value: AppTab.playlists) {
             sidebarTabContent(
               NavigationStack {
                 PlaylistView()
@@ -219,7 +245,7 @@ struct ContentView: View {
             )
           }
 
-          Tab("Songs", systemImage: "music.note") {
+          Tab("Songs", systemImage: "music.note", value: AppTab.songs) {
             sidebarTabContent(
               NavigationStack {
                 SongsView()
@@ -232,7 +258,7 @@ struct ContentView: View {
             )
           }
 
-          Tab("Radios", systemImage: "radio") {
+          Tab("Radios", systemImage: "radio", value: AppTab.radios) {
             sidebarTabContent(
               NavigationStack {
                 RadiosView()
@@ -243,7 +269,7 @@ struct ContentView: View {
         }
       }
 
-      Tab("Downloads", systemImage: "arrow.down.circle") {
+      Tab("Downloads", systemImage: "arrow.down.circle", value: AppTab.downloads) {
         sidebarTabContent(
           DownloadsView(viewModel: albumViewModel)
             .environmentObject(playerViewModel)
@@ -255,7 +281,7 @@ struct ContentView: View {
       }
       .badge(downloadViewModel.getRemainingDownloadItems())
 
-      Tab("Preferences", systemImage: "gear") {
+      Tab("Preferences", systemImage: "gear", value: AppTab.preferences) {
         sidebarTabContent(
           PreferencesView(authViewModel: authViewModel)
             .environmentObject(playerViewModel)
@@ -265,7 +291,7 @@ struct ContentView: View {
       }
 
       if UserDefaultsManager.enableDebug {
-        Tab("Debug", systemImage: "terminal") {
+        Tab("Debug", systemImage: "terminal", value: AppTab.debug) {
           sidebarTabContent(
             ConsoleView()
           )
@@ -293,23 +319,7 @@ struct ContentView: View {
 
         rootTabView
 
-        if let destination = playerLibraryDestination {
-          NavigationStack {
-            playerLibraryContent(destination)
-              .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                  Button("Close") {
-                    closePlayerLibraryDestination()
-                  }
-                }
-              }
-          }
-          .background(Color(.systemBackground).ignoresSafeArea())
-        }
-
-        if playerViewModel.hasNowPlaying() && !playerViewModel.shouldHidePlayer
-          && playerLibraryDestination == nil
-        {
+        if playerViewModel.hasNowPlaying() && !playerViewModel.shouldHidePlayer {
           PlayerView(
             isExpanded: $isPlayerExpanded,
             viewModel: playerViewModel,
@@ -341,10 +351,6 @@ struct ContentView: View {
                 #if targetEnvironment(macCatalyst)
                   10
                 #else
-                  if playerLibraryDestination != nil {
-                    return 0
-                  }
-
                   return isPad ? 0 : (40 + bottomPadding)
                 #endif
               }()
@@ -355,15 +361,11 @@ struct ContentView: View {
                 .opacity(playerViewModel.hasNowPlaying() ? 1 : 0)
                 .offset(
                   x: playerCenterOffsetX + self.floatingPlayerOffsetX,
-                  y: (isPlayerExpanded && playerLibraryDestination == nil) ? offScreenY : 0
+                  y: isPlayerExpanded ? offScreenY : 0
                 )
                 .animation(.spring(duration: 0.2), value: isPlayerExpanded)
                 .onTapGesture {
-                  if playerLibraryDestination != nil {
-                    closePlayerLibraryDestination()
-                  } else {
-                    self.isPlayerExpanded = true
-                  }
+                  self.isPlayerExpanded = true
                 }
                 .gesture(
                   DragGesture()
@@ -396,43 +398,32 @@ struct ContentView: View {
   }
 
   private func openLibraryDestinationFromPlayer(_ destination: LibraryDestination) {
-    shouldRestorePlayerAfterLibrary = true
     isPlayerExpanded = false
-    playerLibraryDestination = destination
-  }
 
-  private func closePlayerLibraryDestination() {
-    playerLibraryDestination = nil
-    if shouldRestorePlayerAfterLibrary {
-      shouldRestorePlayerAfterLibrary = false
-      isPlayerExpanded = true
-    }
-  }
-
-  @ViewBuilder
-  private func playerLibraryContent(_ destination: LibraryDestination) -> some View {
+    let targetTab: AppTab
     switch destination {
-    case .artist(let id, let name):
-      if let artist = albumViewModel.artistForNavigation(id: id, name: name) {
-        ArtistDetailView(artist: artist)
-          .environmentObject(albumViewModel)
-          .environmentObject(playerViewModel)
-          .environmentObject(downloadViewModel)
+    case .artist:
+      if isPadSidebar {
+        targetTab = .libraryArtists
+      } else if authViewModel.isLoggedIn {
+        targetTab = .library
       } else {
-        Text("Artist unavailable")
-          .foregroundColor(.secondary)
+        targetTab = .home
       }
-    case .album(let id, let name, let artist):
-      if let album = albumViewModel.albumForNavigation(id: id, name: name, artist: artist) {
-        AlbumView(viewModel: albumViewModel)
-          .environmentObject(playerViewModel)
-          .environmentObject(downloadViewModel)
-          .onAppear {
-            albumViewModel.setActiveAlbum(album: album)
-          }
-      } else {
-        Text("Album unavailable")
-          .foregroundColor(.secondary)
+    case .album:
+      targetTab = authViewModel.isLoggedIn ? .library : .home
+    }
+
+    libraryRouter.selectedTab = targetTab
+
+    DispatchQueue.main.async {
+      switch targetTab {
+      case .libraryArtists:
+        libraryRouter.artistsPath.append(destination)
+      case .library:
+        libraryRouter.libraryPath.append(destination)
+      default:
+        libraryRouter.homePath.append(destination)
       }
     }
   }

@@ -17,6 +17,7 @@ struct LibraryView: View {
 
   @EnvironmentObject var playerViewModel: PlayerViewModel
   @EnvironmentObject var downloadViewModel: DownloadViewModel
+  @EnvironmentObject var libraryRouter: LibraryRouter
 
   @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
@@ -49,8 +50,16 @@ struct LibraryView: View {
   }
 
   var body: some View {
-    NavigationStack {
+    NavigationStack(path: $libraryRouter.libraryPath) {
       libraryContent
+        .navigationDestination(for: LibraryDestination.self) { destination in
+          LibraryDestinationView(
+            destination: destination,
+            albumViewModel: viewModel,
+            playerViewModel: playerViewModel,
+            downloadViewModel: downloadViewModel
+          )
+        }
     }
   }
 
@@ -279,6 +288,8 @@ struct LibraryView_Previews: PreviewProvider {
   @StateObject private static var viewModel: AlbumViewModel = .init(albums: albums)
 
   static var previews: some View {
-    LibraryView(viewModel: viewModel).environmentObject(playerViewModel)
+    LibraryView(viewModel: viewModel)
+      .environmentObject(playerViewModel)
+      .environmentObject(LibraryRouter())
   }
 }

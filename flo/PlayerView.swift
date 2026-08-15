@@ -254,12 +254,7 @@ struct PlayerView: View {
       Spacer().frame(height: horizontalSizeClass == .regular ? 44 : 36)
 
       VStack(alignment: .center, spacing: 10) {
-        Text(viewModel.nowPlaying.songName ?? "")
-          .foregroundColor(.white)
-          .customFont(.title2)
-          .fontWeight(.bold)
-          .multilineTextAlignment(.center)
-          .lineLimit(3)
+        nowPlayingTrackLabel
 
         nowPlayingArtistLabel
       }
@@ -483,6 +478,39 @@ struct PlayerView: View {
   }
 
   @ViewBuilder
+  private var nowPlayingTrackLabel: some View {
+    let songName = viewModel.nowPlaying.songName ?? ""
+    let album = albumViewModel.albumForNavigation(
+      id: viewModel.nowPlaying.albumId ?? "",
+      name: viewModel.nowPlaying.albumName ?? "",
+      artist: viewModel.nowPlaying.artistName ?? ""
+    )
+
+    if canNavigateNowPlayingAlbum, let album, !songName.isEmpty {
+      Button {
+        onOpenLibraryDestination?(
+          .album(id: album.id, name: album.name, artist: album.albumArtist)
+        )
+      } label: {
+        Text(songName)
+          .foregroundColor(.white)
+          .customFont(.title2)
+          .fontWeight(.bold)
+          .multilineTextAlignment(.center)
+          .lineLimit(3)
+      }
+      .buttonStyle(.plain)
+    } else {
+      Text(songName)
+        .foregroundColor(.white)
+        .customFont(.title2)
+        .fontWeight(.bold)
+        .multilineTextAlignment(.center)
+        .lineLimit(3)
+    }
+  }
+
+  @ViewBuilder
   private var nowPlayingArtistLabel: some View {
     let artistName = viewModel.nowPlaying.artistName ?? ""
     let artist = albumViewModel.artistForNavigation(name: artistName)
@@ -509,25 +537,7 @@ struct PlayerView: View {
 
   @ViewBuilder
   private func albumCoverArt(imageSize: CGFloat) -> some View {
-    let cover = albumCoverImage(imageSize: imageSize)
-    let album = albumViewModel.albumForNavigation(
-      id: viewModel.nowPlaying.albumId ?? "",
-      name: viewModel.nowPlaying.albumName ?? "",
-      artist: viewModel.nowPlaying.artistName ?? ""
-    )
-
-    if canNavigateNowPlayingAlbum, let album {
-      Button {
-        onOpenLibraryDestination?(
-          .album(id: album.id, name: album.name, artist: album.albumArtist)
-        )
-      } label: {
-        cover
-      }
-      .buttonStyle(.plain)
-    } else {
-      cover
-    }
+    albumCoverImage(imageSize: imageSize)
   }
 
   @ViewBuilder
