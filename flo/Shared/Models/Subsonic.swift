@@ -108,12 +108,14 @@ struct SubsonicSong: Codable {
   let samplingRate: Int?
   let suffix: String?
   let duration: Int?
+  let explicitStatus: String?
 
   func toSong() -> Song {
     return Song(
       id: id, title: title, albumId: albumId ?? "", albumName: album ?? "",
       artist: artist ?? "", trackNumber: track ?? 0, discNumber: discNumber ?? 0,
       bitRate: bitRate ?? 0, sampleRate: samplingRate ?? 0, suffix: suffix ?? "",
-      duration: Double(duration ?? 0), mediaFileId: id)
+      duration: Double(duration ?? 0), mediaFileId: id,
+      explicitStatus: ExplicitStatus(from: explicitStatus))
   }
 }

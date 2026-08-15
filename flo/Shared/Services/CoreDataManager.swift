@@ -34,7 +34,11 @@ class CoreDataManager: ObservableObject {
 
   lazy var persistentContainer: NSPersistentContainer = {
     let container = NSPersistentContainer(name: "flo")  //FIXME: constants?
-    container.persistentStoreDescriptions.forEach { $0.shouldAddStoreAsynchronously = false }
+    container.persistentStoreDescriptions.forEach { description in
+      description.shouldAddStoreAsynchronously = false
+      description.shouldMigrateStoreAutomatically = true
+      description.shouldInferMappingModelAutomatically = true
+    }
 
     var loadError: Error?
 

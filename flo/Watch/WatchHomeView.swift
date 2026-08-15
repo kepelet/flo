@@ -28,9 +28,15 @@
                     Text("Nothing Playing")
                       .font(.headline)
                   } else {
-                    Text(playerViewModel.nowPlayingTitle)
-                      .font(.headline)
-                      .lineLimit(1)
+                    HStack(alignment: .center, spacing: 4) {
+                      Text(playerViewModel.nowPlayingTitle)
+                        .font(.headline)
+                        .lineLimit(1)
+
+                      if playerViewModel.isNowPlayingExplicit {
+                        ExplicitBadge(size: .compact)
+                      }
+                    }
 
                     Text(playerViewModel.nowPlayingArtist)
                       .font(.caption)

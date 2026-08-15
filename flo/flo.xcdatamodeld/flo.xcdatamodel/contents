@@ -16,6 +16,7 @@
         <attribute name="id" attributeType="String"/>
         <attribute name="minYear" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="name" optional="YES" attributeType="String"/>
+        <attribute name="explicitStatus" optional="YES" attributeType="String"/>
         <uniquenessConstraints>
             <uniquenessConstraint>
                 <constraint value="name"/>
@@ -36,6 +37,7 @@
         <attribute name="sampleRate" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="songName" optional="YES" attributeType="String"/>
         <attribute name="suffix" optional="YES" attributeType="String"/>
+        <attribute name="explicitStatus" optional="YES" attributeType="String"/>
     </entity>
     <entity name="CacheEntity" representedClassName="CacheEntity" syncable="YES" codeGenerationType="class">
         <attribute name="albumId" optional="YES" attributeType="String"/>
@@ -53,6 +55,7 @@
         <attribute name="state" optional="YES" attributeType="String"/>
         <attribute name="suffix" optional="YES" attributeType="String"/>
         <attribute name="title" optional="YES" attributeType="String"/>
+        <attribute name="explicitStatus" optional="YES" attributeType="String"/>
         <uniquenessConstraints>
             <uniquenessConstraint>
                 <constraint value="cacheKey"/>
@@ -74,6 +77,7 @@
         <attribute name="suffix" optional="YES" attributeType="String"/>
         <attribute name="title" optional="YES" attributeType="String"/>
         <attribute name="trackNumber" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="explicitStatus" optional="YES" attributeType="String"/>
         <uniquenessConstraints>
             <uniquenessConstraint>
                 <constraint value="id"/>

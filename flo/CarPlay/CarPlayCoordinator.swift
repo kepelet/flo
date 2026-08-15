@@ -106,7 +106,7 @@ import Combine
           case .success(let albums):
             let items = albums.map { album -> CPListItem in
               let item = CPListItem(
-                text: album.name,
+                text: album.explicitStatus.annotatedTitle(album.name),
                 detailText: album.albumArtist.isEmpty ? album.artist : album.albumArtist
               )
               item.handler = { [weak self] _, completion in
@@ -208,7 +208,7 @@ import Combine
 
       let trackItems = album.songs.enumerated().map { idx, song -> CPListItem in
         let item = CPListItem(
-          text: song.title,
+          text: song.explicitStatus.annotatedTitle(song.title),
           detailText: song.artist
         )
         item.handler = { [weak self] _, completion in
@@ -304,7 +304,7 @@ import Combine
 
             let albumItems = albums.map { album -> CPListItem in
               let item = CPListItem(
-                text: album.name,
+                text: album.explicitStatus.annotatedTitle(album.name),
                 detailText: album.minYear > 0 ? "\(album.minYear)" : nil
               )
               item.handler = { [weak self] _, completion in
@@ -416,7 +416,7 @@ import Combine
           case .success(let songs):
             let items = songs.enumerated().map { idx, song -> CPListItem in
               let item = CPListItem(
-                text: song.title,
+                text: song.explicitStatus.annotatedTitle(song.title),
                 detailText: song.artist
               )
               item.handler = { [weak self] _, completion in
@@ -493,7 +493,7 @@ import Combine
 
             let trackItems = songs.enumerated().map { idx, song -> CPListItem in
               let item = CPListItem(
-                text: song.title,
+                text: song.explicitStatus.annotatedTitle(song.title),
                 detailText: song.artist
               )
               item.handler = { [weak self] _, completion in
@@ -625,7 +625,7 @@ import Combine
 
       let trackItems = playlist.songs.enumerated().map { idx, song -> CPListItem in
         let item = CPListItem(
-          text: song.title,
+          text: song.explicitStatus.annotatedTitle(song.title),
           detailText: song.artist
         )
         item.handler = { [weak self] _, completion in
@@ -746,7 +746,7 @@ import Combine
 
             let items = filtered.map { album -> CPListItem in
               let item = CPListItem(
-                text: album.name,
+                text: album.explicitStatus.annotatedTitle(album.name),
                 detailText: album.artist
               )
               item.handler = { [weak self] _, completion in
@@ -822,7 +822,7 @@ import Combine
 
       let trackItems = songs.enumerated().map { idx, song -> CPListItem in
         let item = CPListItem(
-          text: song.title,
+          text: song.explicitStatus.annotatedTitle(song.title),
           detailText: song.artist
         )
         item.handler = { [weak self] _, completion in

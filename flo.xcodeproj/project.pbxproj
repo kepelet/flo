@@ -37,6 +37,10 @@
 		C4100A6B2CE78B62001BC9BE /* Playlist.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4100A6A2CE78B5F001BC9BE /* Playlist.swift */; };
 		C4120FD92C15D58E00E712BE /* Errors.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4120FD82C15D58E00E712BE /* Errors.swift */; };
 		C4120FDD2C15E1C300E712BE /* Song.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4120FDC2C15E1C300E712BE /* Song.swift */; };
+		C4EXPLICIT012F4B0001AAAAAA /* ExplicitStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4EXPLICIT002F4B0001AAAAAA /* ExplicitStatus.swift */; };
+		C4EXPLICIT022F4B0001AAAAAA /* ExplicitStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4EXPLICIT002F4B0001AAAAAA /* ExplicitStatus.swift */; };
+		C4EXPLICIT042F4B0001AAAAAA /* ExplicitBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4EXPLICIT032F4B0001AAAAAA /* ExplicitBadge.swift */; };
+		C4EXPLICIT052F4B0001AAAAAA /* ExplicitBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4EXPLICIT032F4B0001AAAAAA /* ExplicitBadge.swift */; };
 		C41470BB2CE6580B008BDCE8 /* Artist.swift in Sources */ = {isa = PBXBuildFile; fileRef = C41470BA2CE65808008BDCE8 /* Artist.swift */; };
 		C415F54E2C11908100E3E1D2 /* AuthViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C415F54D2C11908100E3E1D2 /* AuthViewModel.swift */; };
 		C415F5512C11912800E3E1D2 /* KeychainAccess in Frameworks */ = {isa = PBXBuildFile; productRef = C415F5502C11912800E3E1D2 /* KeychainAccess */; };
@@ -194,6 +198,8 @@
 		C4100A6A2CE78B5F001BC9BE /* Playlist.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Playlist.swift; sourceTree = "<group>"; };
 		C4120FD82C15D58E00E712BE /* Errors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Errors.swift; sourceTree = "<group>"; };
 		C4120FDC2C15E1C300E712BE /* Song.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Song.swift; sourceTree = "<group>"; };
+		C4EXPLICIT002F4B0001AAAAAA /* ExplicitStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExplicitStatus.swift; sourceTree = "<group>"; };
+		C4EXPLICIT032F4B0001AAAAAA /* ExplicitBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExplicitBadge.swift; sourceTree = "<group>"; };
 		C41470BA2CE65808008BDCE8 /* Artist.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Artist.swift; sourceTree = "<group>"; };
 		C415F54D2C11908100E3E1D2 /* AuthViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthViewModel.swift; sourceTree = "<group>"; };
 		C415F5592C11953000E3E1D2 /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
@@ -371,6 +377,7 @@
 				C4289F492C12392B00C3A4FD /* Album.swift */,
 				C446A6B62C08DE8800CC9787 /* UserAuth.swift */,
 				C4120FDC2C15E1C300E712BE /* Song.swift */,
+				C4EXPLICIT002F4B0001AAAAAA /* ExplicitStatus.swift */,
 				C49495802C1C25E5006B4D1E /* ScanStatus.swift */,
 				B0BAAAAA2F3214F7002A5FBB /* Radio.swift */,
 				C4EAA4852C297E35007EB2E0 /* NowPlaying.swift */,
@@ -392,6 +399,7 @@
 				C46B8DDA2CF4B89200B40644 /* LibraryNavigation.swift */,
 				C415F5632C11AA8700E3E1D2 /* Fonts.swift */,
 				C49134522C15BE0C00CCF2EB /* Strings.swift */,
+				C4EXPLICIT032F4B0001AAAAAA /* ExplicitBadge.swift */,
 				C4120FD82C15D58E00E712BE /* Errors.swift */,
 				50C9128A2F5DD9990087EE61 /* IAPLoginView.swift */,
 			);
@@ -677,6 +685,8 @@
 				C42B25AA2F445C8900E62008 /* UserAuth.swift in Sources */,
 				C42B25AB2F445C8900E62008 /* LyricsLine.swift in Sources */,
 				C42B25AC2F445C8900E62008 /* Song.swift in Sources */,
+				C4EXPLICIT022F4B0001AAAAAA /* ExplicitStatus.swift in Sources */,
+				C4EXPLICIT052F4B0001AAAAAA /* ExplicitBadge.swift in Sources */,
 				C42B25AD2F445C8900E62008 /* LRCLIB.swift in Sources */,
 				C42B25BE2F4464AE00E62008 /* WatchRadiosView.swift in Sources */,
 				C42B25AE2F445C8900E62008 /* AccountLinkStatus.swift in Sources */,
@@ -725,6 +735,8 @@
 				B0BAAAAB2F3214F7002A5FBB /* Radio.swift in Sources */,
 				C467AD552D329C8B00644E68 /* AccountLinkStatus.swift in Sources */,
 				C4120FDD2C15E1C300E712BE /* Song.swift in Sources */,
+				C4EXPLICIT012F4B0001AAAAAA /* ExplicitStatus.swift in Sources */,
+				C4EXPLICIT042F4B0001AAAAAA /* ExplicitBadge.swift in Sources */,
 				C467AD532D3267D000644E68 /* Subsonic.swift in Sources */,
 				C47876022C2BF15900184A33 /* AlbumsView.swift in Sources */,
 				50C912A42F648A440087EE61 /* IAPWebAuthView.swift in Sources */,

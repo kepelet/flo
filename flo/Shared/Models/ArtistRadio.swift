@@ -14,7 +14,7 @@ struct SimilarSongsList: SubsonicResponseData {
 
   private enum SubsonicSongKeys: String, CodingKey {
     case id, title, artist, albumId, album, track, discNumber, bitRate, samplingRate, suffix,
-      duration, mediaFileId
+      duration, mediaFileId, explicitStatus
   }
 
   init(from decoder: any Decoder) throws {
@@ -41,7 +41,9 @@ struct SimilarSongsList: SubsonicResponseData {
           sampleRate: try s.decodeIfPresent(Int.self, forKey: .samplingRate) ?? 0,
           suffix: try s.decodeIfPresent(String.self, forKey: .suffix) ?? "",
           duration: try s.decode(Double.self, forKey: .duration),
-          mediaFileId: try s.decodeIfPresent(String.self, forKey: .mediaFileId) ?? ""
+          mediaFileId: try s.decodeIfPresent(String.self, forKey: .mediaFileId) ?? "",
+          explicitStatus: ExplicitStatus(
+            from: try s.decodeIfPresent(String.self, forKey: .explicitStatus))
         ))
     }
     self.song = songs
@@ -65,24 +67,24 @@ struct SimilarSongsResponse: Codable {
 struct TopSongsList: SubsonicResponseData {
   static var key: String { "topSongs" }
   let song: [Song]
-  
+
   private enum CodingKeys: String, CodingKey {
     case song
   }
-  
+
   private enum SubsonicSongKeys: String, CodingKey {
     case id, title, artist, albumId, album, track, discNumber, bitRate, samplingRate, suffix,
-         duration, mediaFileId
+      duration, mediaFileId, explicitStatus
   }
-  
+
   init(from decoder: any Decoder) throws {
     let container = try decoder.container(keyedBy: CodingKeys.self)
-    
+
     guard var songsContainer = try? container.nestedUnkeyedContainer(forKey: .song) else {
       self.song = []
       return
     }
-    
+
     var songs: [Song] = []
     while !songsContainer.isAtEnd {
       let s = try songsContainer.nestedContainer(keyedBy: SubsonicSongKeys.self)
@@ -99,7 +101,9 @@ struct TopSongsList: SubsonicResponseData {
           sampleRate: try s.decodeIfPresent(Int.self, forKey: .samplingRate) ?? 0,
           suffix: try s.decodeIfPresent(String.self, forKey: .suffix) ?? "",
           duration: try s.decode(Double.self, forKey: .duration),
-          mediaFileId: try s.decodeIfPresent(String.self, forKey: .mediaFileId) ?? ""
+          mediaFileId: try s.decodeIfPresent(String.self, forKey: .mediaFileId) ?? "",
+          explicitStatus: ExplicitStatus(
+            from: try s.decodeIfPresent(String.self, forKey: .explicitStatus))
         ))
     }
     self.song = songs
@@ -108,11 +112,11 @@ struct TopSongsList: SubsonicResponseData {
 
 struct TopSongsResponse: Codable {
   let subsonicResponse: SubsonicResponse<TopSongsList>
-  
+
   private enum CodingKeys: String, CodingKey {
     case subsonicResponse = "subsonic-response"
   }
-  
+
   var songs: [Song] {
     return subsonicResponse.data?.song ?? []
   }

@@ -20,7 +20,8 @@ struct AlbumsView: View {
         if self.isDownloadScreen {
           if let image = UIImage(
             contentsOfFile: viewModel.getAlbumCoverArt(
-              id: album.id, artistName: album.artist, albumName: album.name, albumCover: album.albumCover))
+              id: album.id, artistName: album.artist, albumName: album.name,
+              albumCover: album.albumCover))
           {
             Image(uiImage: image)
               .resizable()
@@ -52,7 +53,10 @@ struct AlbumsView: View {
                 RoundedRectangle(cornerRadius: 5, style: .continuous)
               )
           } else {
-            LazyImage(url: URL(string: viewModel.getAlbumCoverArt(id: album.id, albumCover: album.albumCover))) { state in
+            LazyImage(
+              url: URL(
+                string: viewModel.getAlbumCoverArt(id: album.id, albumCover: album.albumCover))
+            ) { state in
               if let image = state.image {
                 image
                   .resizable()
@@ -76,15 +80,21 @@ struct AlbumsView: View {
           }
         }
 
-        Text(album.name)
-          .customFont(.caption1)
-          .fontWeight(.bold)
-          .foregroundColor(.primary)
-          .truncationMode(.tail)
-          .padding(.trailing, 20)
-          .lineLimit(1)
-          .multilineTextAlignment(.leading)
-          .frame(maxWidth: .infinity, alignment: .leading)
+        HStack(alignment: .center, spacing: 4) {
+          Text(album.name)
+            .customFont(.caption1)
+            .fontWeight(.bold)
+            .foregroundColor(.primary)
+            .truncationMode(.tail)
+            .lineLimit(1)
+            .multilineTextAlignment(.leading)
+
+          if album.isExplicit {
+            ExplicitBadge(size: .compact)
+          }
+        }
+        .padding(.trailing, 20)
+        .frame(maxWidth: .infinity, alignment: .leading)
 
         Text(album.albumArtist)
           .customFont(.caption2)

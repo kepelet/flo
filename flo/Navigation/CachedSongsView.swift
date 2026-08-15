@@ -34,11 +34,17 @@ struct CachedSongsView: View {
               }
 
               VStack(alignment: .leading) {
-                Text(song.title)
-                  .customFont(.headline)
-                  .multilineTextAlignment(.leading)
-                  .lineLimit(2)
-                  .padding(.bottom, 3)
+                HStack(alignment: .center, spacing: 6) {
+                  Text(song.title)
+                    .customFont(.headline)
+                    .multilineTextAlignment(.leading)
+                    .lineLimit(2)
+
+                  if song.isExplicit {
+                    ExplicitBadge(size: .compact)
+                  }
+                }
+                .padding(.bottom, 3)
 
                 Text(song.artist)
                   .customFont(.subheadline)
