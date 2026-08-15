@@ -38,9 +38,12 @@ struct ArtistsView: View {
           } label: {
             VStack {
               HStack {
+                ArtistImageView(artist: artist)
+
                 Text(artist.name)
                   .customFont(.headline)
                   .multilineTextAlignment(.leading)
+                  .padding(.leading, 10)
 
                 Spacer()
 
