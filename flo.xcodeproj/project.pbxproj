@@ -109,6 +109,7 @@
 		C46B8DDB2CF4B89200B40644 /* LibraryNavigation.swift in Sources */ = {isa = PBXBuildFile; fileRef = C46B8DDA2CF4B89200B40644 /* LibraryNavigation.swift */; };
 		C46C85C42C07114200903F54 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C46C85C32C07114200903F54 /* LoginView.swift */; };
 		C47876022C2BF15900184A33 /* AlbumsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C47876012C2BF15900184A33 /* AlbumsView.swift */; };
+		C4PLSTVW012F4B0001AAAAAA /* PlaylistsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4PLSTVW002F4B0001AAAAAA /* PlaylistsView.swift */; };
 		C47876042C2BFFF900184A33 /* SongView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C47876032C2BFFF900184A33 /* SongView.swift */; };
 		C4824D232CE8C41F003EAB52 /* Playable.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4824D222CE8C41D003EAB52 /* Playable.swift */; };
 		C4824D272CE908DC003EAB52 /* SongsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4824D262CE908DA003EAB52 /* SongsView.swift */; };
@@ -248,6 +249,7 @@
 		C46B8DDA2CF4B89200B40644 /* LibraryNavigation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryNavigation.swift; sourceTree = "<group>"; };
 		C46C85C32C07114200903F54 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
 		C47876012C2BF15900184A33 /* AlbumsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlbumsView.swift; sourceTree = "<group>"; };
+		C4PLSTVW002F4B0001AAAAAA /* PlaylistsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaylistsView.swift; sourceTree = "<group>"; };
 		C47876032C2BFFF900184A33 /* SongView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SongView.swift; sourceTree = "<group>"; };
 		C4824D222CE8C41D003EAB52 /* Playable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Playable.swift; sourceTree = "<group>"; };
 		C4824D262CE908DA003EAB52 /* SongsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SongsView.swift; sourceTree = "<group>"; };
@@ -530,6 +532,7 @@
 				C42E7E172CE7EF4D00505B4E /* PlaylistDetailView.swift */,
 				C4F870CF2CEFD24D00312F8A /* StatCardView.swift */,
 				C47876012C2BF15900184A33 /* AlbumsView.swift */,
+				C4PLSTVW002F4B0001AAAAAA /* PlaylistsView.swift */,
 				B0AD2E702F4B037400577062 /* Artists */,
 				C47876032C2BFFF900184A33 /* SongView.swift */,
 				C4100A682CE78B21001BC9BE /* PlaylistView.swift */,
@@ -739,6 +742,7 @@
 				C4EXPLICIT042F4B0001AAAAAA /* ExplicitBadge.swift in Sources */,
 				C467AD532D3267D000644E68 /* Subsonic.swift in Sources */,
 				C47876022C2BF15900184A33 /* AlbumsView.swift in Sources */,
+				C4PLSTVW012F4B0001AAAAAA /* PlaylistsView.swift in Sources */,
 				50C912A42F648A440087EE61 /* IAPWebAuthView.swift in Sources */,
 				C4824D272CE908DC003EAB52 /* SongsView.swift in Sources */,
 				0E1A2B3C4D5E6F7A8B9C0D1E /* LikedSongsView.swift in Sources */,
