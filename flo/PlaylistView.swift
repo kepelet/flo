@@ -12,8 +12,18 @@ struct PlaylistView: View {
   @EnvironmentObject private var playerViewModel: PlayerViewModel
   @EnvironmentObject private var downloadViewModel: DownloadViewModel
 
+  @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+
   @State private var searchPlaylist = ""
   @State private var showDownloadSheet: Bool = false
+
+  private var columns: [GridItem] {
+    if horizontalSizeClass == .regular {
+      return Array(repeating: GridItem(.flexible()), count: 4)
+    } else {
+      return Array(repeating: GridItem(.flexible()), count: 2)
+    }
+  }
 
   var filteredPlaylists: [Playlist] {
     if searchPlaylist.isEmpty {
@@ -27,7 +37,7 @@ struct PlaylistView: View {
 
   var body: some View {
     ScrollView {
-      LazyVStack {
+      LazyVGrid(columns: columns) {
         ForEach(filteredPlaylists) { playlist in
           NavigationLink {
             PlaylistDetailView()
@@ -38,32 +48,14 @@ struct PlaylistView: View {
                 viewModel.setActivePlaylist(playlist: playlist)
               }
           } label: {
-            VStack {
-              HStack {
-                VStack(alignment: .leading) {
-                  Text("\(playlist.name)\(playlist.isPublic ? "" : " 🔒")")
-                    .customFont(.headline)
-                    .multilineTextAlignment(.leading)
-
-                  Text(playlist.comment)
-                    .customFont(.caption1)
-                    .multilineTextAlignment(.leading)
-                }
-
-                Spacer()
-
-                Image(systemName: "chevron.right")
-                  .foregroundColor(.gray)
-                  .font(.caption)
-              }
-              .padding(.horizontal)
-              .padding(.vertical, 5)
-
-              Divider()
-            }
+            PlaylistsView(viewModel: viewModel, playlist: playlist)
           }
         }
-      }.padding(.bottom, 100)
+      }
+      .padding(.top, 10)
+      .padding(
+        .bottom, playerViewModel.hasNowPlaying() && !playerViewModel.shouldHidePlayer ? 100 : 0
+      )
     }
     .toolbar {
       if downloadViewModel.hasDownloadQueue() {
