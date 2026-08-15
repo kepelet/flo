@@ -77,7 +77,7 @@ class FloooService {
 
     var listenBrainzStatus: Bool?
     var lastFMStatus: Bool?
-    var error: Error?
+    var requestError: Error?
 
     group.enter()
 
@@ -85,8 +85,8 @@ class FloooService {
       switch result {
       case .success(let status):
         listenBrainzStatus = status
-      case .failure:
-        listenBrainzStatus = false
+      case .failure(let error):
+        requestError = error
       }
 
       group.leave()
@@ -98,14 +98,19 @@ class FloooService {
       switch result {
       case .success(let status):
         lastFMStatus = status
-      case .failure:
-        lastFMStatus = false
+      case .failure(let error):
+        requestError = error
       }
 
       group.leave()
     }
 
     group.notify(queue: .main) {
+      if listenBrainzStatus == nil && lastFMStatus == nil, let requestError = requestError {
+        completion(.failure(requestError))
+        return
+      }
+
       completion(
         .success(
           AccountLinkStatus(
@@ -140,13 +145,13 @@ class FloooService {
   }
 
   func scrobbleToBuiltinEndpoint(
-    submission: Bool, songId: String,
+    submission: Bool, songId: String, time: Date? = nil,
     completion: @escaping (Result<BasicSubsonicResponse, Error>) -> Void
   ) {
     var params: [String: Any] = ["submission": String(submission), "id": songId]
 
     if submission {
-      params["time"] = Int(Date().timeIntervalSince1970 * 1000)
+      params["time"] = Int((time ?? Date()).timeIntervalSince1970 * 1000)
     }
 
     APIManager.shared.SubsonicEndpointRequest(

@@ -62,6 +62,16 @@
             </uniquenessConstraint>
         </uniquenessConstraints>
     </entity>
+    <entity name="ScrobbleEntity" representedClassName="ScrobbleEntity" syncable="YES" codeGenerationType="class">
+        <attribute name="albumName" optional="YES" attributeType="String"/>
+        <attribute name="artistName" optional="YES" attributeType="String"/>
+        <attribute name="listenTime" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="queuedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="sentAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="songId" attributeType="String"/>
+        <attribute name="status" optional="YES" attributeType="String"/>
+        <attribute name="trackName" optional="YES" attributeType="String"/>
+    </entity>
     <entity name="SongEntity" representedClassName="SongEntity" syncable="YES" codeGenerationType="class">
         <attribute name="albumId" attributeType="String"/>
         <attribute name="albumName" optional="YES" attributeType="String"/>

@@ -141,6 +141,9 @@
 		C4F0B0A22F3A111100ABC002 /* AirPlayRoutePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4F0B0A12F3A111100ABC002 /* AirPlayRoutePicker.swift */; };
 		C4F1A0012F4A000100AAAAAA /* InAppPurchaseManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4F1A0022F4A000100AAAAAA /* InAppPurchaseManager.swift */; };
 		C4F870CE2CEFCC5E00312F8A /* FloooService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4F870CD2CEFCC5B00312F8A /* FloooService.swift */; };
+		5C0FF0022F8B0001000000A2 /* NetworkMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C0FF0012F8B0001000000A1 /* NetworkMonitor.swift */; };
+		5C0FF0042F8B0001000000A4 /* ScrobbleQueueManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C0FF0032F8B0001000000A3 /* ScrobbleQueueManager.swift */; };
+		5C0FF0062F8B0001000000A6 /* ScrobbleQueueView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C0FF0052F8B0001000000A5 /* ScrobbleQueueView.swift */; };
 		C4F870D02CEFD25900312F8A /* StatCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4F870CF2CEFD24D00312F8A /* StatCardView.swift */; };
 		C4FE524B2C14E1F70053763A /* UserDefaultsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4FE524A2C14E1F70053763A /* UserDefaultsManager.swift */; };
 		C4FE524D2C14E71B0053763A /* KeychainManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4FE524C2C14E71B0053763A /* KeychainManager.swift */; };
@@ -282,6 +285,9 @@
 		C4F0B0A12F3A111100ABC002 /* AirPlayRoutePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AirPlayRoutePicker.swift; sourceTree = "<group>"; };
 		C4F1A0022F4A000100AAAAAA /* InAppPurchaseManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InAppPurchaseManager.swift; sourceTree = "<group>"; };
 		C4F870CD2CEFCC5B00312F8A /* FloooService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloooService.swift; sourceTree = "<group>"; };
+		5C0FF0012F8B0001000000A1 /* NetworkMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkMonitor.swift; sourceTree = "<group>"; };
+		5C0FF0032F8B0001000000A3 /* ScrobbleQueueManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrobbleQueueManager.swift; sourceTree = "<group>"; };
+		5C0FF0052F8B0001000000A5 /* ScrobbleQueueView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrobbleQueueView.swift; sourceTree = "<group>"; };
 		C4F870CF2CEFD24D00312F8A /* StatCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatCardView.swift; sourceTree = "<group>"; };
 		C4FE524A2C14E1F70053763A /* UserDefaultsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserDefaultsManager.swift; sourceTree = "<group>"; };
 		C4FE524C2C14E71B0053763A /* KeychainManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainManager.swift; sourceTree = "<group>"; };
@@ -455,6 +461,8 @@
 			isa = PBXGroup;
 			children = (
 				C4F870CD2CEFCC5B00312F8A /* FloooService.swift */,
+				5C0FF0012F8B0001000000A1 /* NetworkMonitor.swift */,
+				5C0FF0032F8B0001000000A3 /* ScrobbleQueueManager.swift */,
 				C4875DFF2C149D9000D9BAEB /* AlbumService.swift */,
 				C4CACHE002D7B0000003B9C4F /* StreamCacheManager.swift */,
 				0C2A3B4C5D6E7F8A9B0C1D2E /* LibraryCacheManager.swift */,
@@ -539,6 +547,7 @@
 				C467AD502D3264AE00644E68 /* FloooViewModel.swift */,
 				C429DB312D33C704009F2684 /* DownloadButtonView.swift */,
 				C429DB2F2D33AE81009F2684 /* DownloadQueueView.swift */,
+				5C0FF0052F8B0001000000A5 /* ScrobbleQueueView.swift */,
 				C4DFFA202D32E769003B9C4E /* DownloadViewModel.swift */,
 				C456D8FD2F300D37002AAB8B /* LyricsView.swift */,
 				C42B25662F44533D00E62008 /* Watch */,
@@ -749,6 +758,9 @@
 				C456D8FA2F2FF33E002AAB8B /* LRCParser.swift in Sources */,
 				50C912892F5DD9280087EE61 /* AuthMode.swift in Sources */,
 				C4F870CE2CEFCC5E00312F8A /* FloooService.swift in Sources */,
+				5C0FF0022F8B0001000000A2 /* NetworkMonitor.swift in Sources */,
+				5C0FF0042F8B0001000000A4 /* ScrobbleQueueManager.swift in Sources */,
+				5C0FF0062F8B0001000000A6 /* ScrobbleQueueView.swift in Sources */,
 				C4DFFA212D32E76E003B9C4E /* DownloadViewModel.swift in Sources */,
 				C4F1A0012F4A000100AAAAAA /* InAppPurchaseManager.swift in Sources */,
 				C4120FD92C15D58E00E712BE /* Errors.swift in Sources */,
