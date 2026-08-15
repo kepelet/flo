@@ -85,6 +85,9 @@ struct PreferencesView: View {
   @State private var showLoginSheet = false
   @State private var showCustomLRCLIBServer = false
   @State private var showFloPlusSheet = false
+  @State private var showScrobbleQueueSheet = false
+
+  @ObservedObject private var scrobbleQueue = ScrobbleQueueManager.shared
 
   @State private var accentColor = Color(.accent)
   @State private var playerColor = Color(.player)
@@ -197,6 +200,21 @@ struct PreferencesView: View {
             Text("Streaming cache")
             Spacer()
             Text(floooViewModel.streamCacheSize)
+          }
+
+          Button(action: {
+            showScrobbleQueueSheet = true
+          }) {
+            HStack {
+              Text("Offline Scrobbles")
+
+              Spacer()
+
+              Text(
+                scrobbleQueue.pendingCount == 0 ? "Empty" : "\(scrobbleQueue.pendingCount) waiting"
+              )
+              .foregroundColor(.secondary)
+            }
           }
 
           Picker("Cache limit", selection: $experimentalStreamCacheSize) {
@@ -414,7 +432,8 @@ struct PreferencesView: View {
                     }
                   }
                 }
-              ))
+              )
+            )
             .disabled(authViewModel.authMode == .iap)
 
             Text(
@@ -578,6 +597,10 @@ struct PreferencesView: View {
       FloPlusSheet(showSheet: $showFloPlusSheet)
         .environmentObject(inAppPurchaseManager)
     }
+    .sheet(isPresented: $showScrobbleQueueSheet) {
+      ScrobbleQueueView()
+        .presentationDetents([.medium, .large])
+    }
     .alert("Unable to Purchase flo+", isPresented: $inAppPurchaseManager.showPurchaseError) {
       Button("OK", role: .cancel) {}
     } message: {
@@ -625,13 +648,15 @@ struct PreferencesView: View {
   var body: some View {
     Group {
       if UIDevice.current.userInterfaceIdiom == .pad {
-        AnyView(mainContent.fullScreenCover(isPresented: shouldShowLoginSheet) {
-          loginContent
-        })
+        AnyView(
+          mainContent.fullScreenCover(isPresented: shouldShowLoginSheet) {
+            loginContent
+          })
       } else {
-        AnyView(mainContent.sheet(isPresented: shouldShowLoginSheet) {
-          loginContent
-        })
+        AnyView(
+          mainContent.sheet(isPresented: shouldShowLoginSheet) {
+            loginContent
+          })
       }
     }
   }

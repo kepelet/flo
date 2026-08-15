@@ -89,7 +89,7 @@ class FloooViewModel: ObservableObject {
     }
   }
 
-  func fetchAccountLinkStatus(completion: @escaping (AccountLinkStatus) -> Void) {
+  func fetchAccountLinkStatus(completion: @escaping (Result<Bool, Error>) -> Void) {
     return FloooService.shared.getAccountLinkStatuses { result in
       switch result {
       case .success(let status):
@@ -97,19 +97,16 @@ class FloooViewModel: ObservableObject {
         self.isLastFmLinked = status.lastFM
         self.isScrobbleAccountStatusChecked = true
 
-        completion(status)
+        completion(.success(status.listenBrainz || status.lastFM))
 
       case .failure(let error):
-        print("error>>>>", error)
+        completion(.failure(error))
       }
     }
   }
 
   func checkAccountLinkStatus() {
-    self.fetchAccountLinkStatus { status in
-      self.isListenBrainzLinked = status.listenBrainz
-      self.isLastFmLinked = status.lastFM
-    }
+    self.fetchAccountLinkStatus { _ in }
   }
 
   func checkScanStatus() {
@@ -139,30 +136,58 @@ class FloooViewModel: ObservableObject {
   }
 
   private func processScrobble(submission: Bool, nowPlaying: QueueEntity) {
-    guard let songId = nowPlaying.id else { return }
+    guard let songId = nowPlaying.id, !songId.isEmpty else { return }
+
+    if !NetworkMonitor.shared.isOnline {
+      if isScrobbleAccountStatusChecked && !(isListenBrainzLinked || isLastFmLinked) {
+        return
+      }
+
+      if submission {
+        ScrobbleQueueManager.shared.enqueue(nowPlaying: nowPlaying)
+      }
+
+      return
+    }
 
     if isScrobbleAccountStatusChecked {
-      let shouldSubmit = isListenBrainzLinked || isLastFmLinked
-
-      if shouldSubmit {
-        sendScrobble(submission: submission, songId: songId)
+      if isListenBrainzLinked || isLastFmLinked {
+        sendScrobble(submission: submission, nowPlaying: nowPlaying)
       }
     } else {
-      fetchAccountLinkStatus { status in
-        let shouldSubmit = status.listenBrainz || status.lastFM
+      fetchAccountLinkStatus { [weak self] result in
+        guard let self = self else { return }
 
-        if shouldSubmit {
-          self.sendScrobble(submission: submission, songId: songId)
+        switch result {
+        case .success(true):
+          self.sendScrobble(submission: submission, nowPlaying: nowPlaying)
+
+        case .success(false):
+          break
+
+        case .failure:
+          if submission {
+            ScrobbleQueueManager.shared.enqueue(nowPlaying: nowPlaying)
+          }
         }
       }
     }
   }
 
-  private func sendScrobble(submission: Bool, songId: String) {
+  private func sendScrobble(submission: Bool, nowPlaying: QueueEntity) {
+    guard let songId = nowPlaying.id else { return }
+
     FloooService.shared.scrobbleToBuiltinEndpoint(submission: submission, songId: songId) {
       result in
-      // TODO: handle when this fail
-      // TODO: also, add "check offline mode" later
+      switch result {
+      case .success:
+        break
+
+      case .failure:
+        if submission {
+          ScrobbleQueueManager.shared.enqueue(nowPlaying: nowPlaying)
+        }
+      }
     }
   }
 }
