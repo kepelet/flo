@@ -176,3 +176,21 @@ extension FloooService {
     let status: Bool
   }
 }
+
+extension AFError {
+  var receivedServerResponse: Bool {
+    switch self {
+    case .responseValidationFailed, .responseSerializationFailed:
+      return true
+    default:
+      return false
+    }
+  }
+}
+
+extension FloooService {
+  func shouldQueueOfflineScrobble(_ error: Error) -> Bool {
+    guard let afError = error as? AFError else { return true }
+    return !afError.receivedServerResponse
+  }
+}
