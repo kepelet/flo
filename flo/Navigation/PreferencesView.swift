@@ -597,9 +597,8 @@ struct PreferencesView: View {
       FloPlusSheet(showSheet: $showFloPlusSheet)
         .environmentObject(inAppPurchaseManager)
     }
-    .sheet(isPresented: $showScrobbleQueueSheet) {
+    .fullScreenCover(isPresented: $showScrobbleQueueSheet) {
       ScrobbleQueueView()
-        .presentationDetents([.medium, .large])
     }
     .alert("Unable to Purchase flo+", isPresented: $inAppPurchaseManager.showPurchaseError) {
       Button("OK", role: .cancel) {}

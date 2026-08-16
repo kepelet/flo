@@ -3,6 +3,7 @@ import SwiftUI
 struct ScrobbleQueueView: View {
   @ObservedObject private var queue = ScrobbleQueueManager.shared
   @Environment(\.dismiss) private var dismiss
+  @State private var showClearAllConfirmation = false
 
   var body: some View {
     NavigationStack {
@@ -50,8 +51,29 @@ struct ScrobbleQueueView: View {
 
   private var scrobbleList: some View {
     List {
+      if queue.pendingCount > 0 {
+        Section {
+          if let nextRetryAt = queue.nextRetryAt {
+            Label {
+              (Text("Next retry ") + Text(nextRetryAt, style: .relative))
+                .font(.subheadline)
+            } icon: {
+              Image(systemName: "clock.arrow.circlepath")
+            }
+            .foregroundColor(.secondary)
+          } else {
+            Label {
+              Text("Waiting for the server to be reachable").font(.subheadline)
+            } icon: {
+              Image(systemName: "wifi.exclamationmark")
+            }
+            .foregroundColor(.secondary)
+          }
+        }
+      }
+
       ForEach(queue.scrobbles, id: \.objectID) { entry in
-        ScrobbleQueueRow(entry: entry, nextRetryAt: queue.nextRetryAt)
+        ScrobbleQueueRow(entry: entry)
           .swipeActions(edge: .trailing, allowsFullSwipe: false) {
             if entry.status == ScrobbleQueueStatus.failed {
               Button {
@@ -82,20 +104,49 @@ struct ScrobbleQueueView: View {
               ProgressView().controlSize(.small)
             }
           }
+          .frame(maxWidth: .infinity)
         }
+        .buttonStyle(.borderedProminent)
         .disabled(queue.pendingCount == 0 || queue.isFlushing)
+
+        Button(
+          role: .destructive,
+          action: {
+            showClearAllConfirmation = true
+          }
+        ) {
+          HStack {
+            Text("Clear all")
+
+            Spacer()
+          }
+          .frame(maxWidth: .infinity)
+        }
+        .buttonStyle(.bordered)
+        .tint(.red)
       } footer: {
         Text(
           "Waiting and failed scrobbles are retried automatically every few minutes while the server is unreachable. Use Retry now to submit immediately."
         )
       }
     }
+    .confirmationDialog(
+      "Clear all scrobbles?", isPresented: $showClearAllConfirmation,
+      titleVisibility: .visible
+    ) {
+      Button("Clear all", role: .destructive) {
+        queue.clearAll()
+      }
+
+      Button("Cancel", role: .cancel) {}
+    } message: {
+      Text("This removes every pending, failed, and submitted scrobble from the queue.")
+    }
   }
 }
 
 private struct ScrobbleQueueRow: View {
   @ObservedObject var entry: ScrobbleEntity
-  let nextRetryAt: Date?
 
   private var status: (label: String, color: Color) {
     switch entry.status {
@@ -148,18 +199,6 @@ private struct ScrobbleQueueRow: View {
           .font(.caption)
           .foregroundColor(.red)
           .lineLimit(2)
-      }
-
-      if entry.status != ScrobbleQueueStatus.sent {
-        if let nextRetryAt = nextRetryAt {
-          (Text("Next retry ") + Text(nextRetryAt, style: .relative))
-            .font(.caption)
-            .foregroundColor(.gray)
-        } else {
-          Text("Waiting for the server to be reachable")
-            .font(.caption)
-            .foregroundColor(.gray)
-        }
       }
     }
     .padding(.vertical, 2)

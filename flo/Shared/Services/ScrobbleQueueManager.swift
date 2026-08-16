@@ -149,6 +149,16 @@ final class ScrobbleQueueManager: ObservableObject {
     reload()
   }
 
+  func clearAll() {
+    guard !scrobbles.isEmpty else { return }
+
+    scrobbles.forEach { CoreDataManager.shared.viewContext.delete($0) }
+
+    CoreDataManager.shared.saveRecord()
+    reload()
+    cancelRetry()
+  }
+
   private func submitPending(_ entries: [ScrobbleEntity]) {
     guard let entry = entries.first else {
       isFlushing = false
