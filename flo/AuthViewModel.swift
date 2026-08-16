@@ -59,7 +59,16 @@ class AuthViewModel: ObservableObject {
             id: data.id, username: data.username, name: data.name, isAdmin: data.isAdmin,
             lastFMApiKey: data.lastFMApiKey
           )
+          AuthService.shared.setCreds(data)
           isLoggedIn = true
+
+          AuthService.shared.verifySubsonicAccess(data, serverUrl: serverUrl) { result in
+            if case .invalid = result {
+              DispatchQueue.main.async {
+                self.logout()
+              }
+            }
+          }
         } else if UserDefaultsManager.saveLoginInfo {
           do {
             password = try KeychainManager.getAuthPassword() ?? ""

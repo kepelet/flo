@@ -9,6 +9,12 @@ import Alamofire
 import Foundation
 import Pulse
 
+enum IAPSessionCheckResult {
+  case valid
+  case invalid(String)
+  case unreachable
+}
+
 class AuthService {
   static let shared = AuthService()
 
@@ -59,7 +65,7 @@ class AuthService {
     self.NDToken = data.token
     self.subsonicParams = subsonicParams
   }
-  
+
   func setAuthMode(_ mode: AuthMode) {
     self.authMode = mode
     try? KeychainManager.setAuthMode(mode)
@@ -102,5 +108,60 @@ class AuthService {
         }
       }
     }
+  }
+
+  func verifySubsonicAccess(
+    _ userAuth: UserAuth,
+    serverUrl: String,
+    completion: @escaping (IAPSessionCheckResult) -> Void
+  ) {
+    guard var components = URLComponents(string: "\(serverUrl)/rest/ping") else {
+      completion(.unreachable)
+      return
+    }
+
+    components.queryItems = [
+      URLQueryItem(name: "u", value: userAuth.username),
+      URLQueryItem(name: "t", value: userAuth.subsonicToken),
+      URLQueryItem(name: "s", value: userAuth.subsonicSalt),
+      URLQueryItem(name: "v", value: AppMeta.subsonicApiVersion),
+      URLQueryItem(name: "c", value: AppMeta.name),
+      URLQueryItem(name: "f", value: "json"),
+    ]
+
+    guard let url = components.url else {
+      completion(.unreachable)
+      return
+    }
+
+    URLSession.shared.dataTask(with: URLRequest(url: url)) { data, response, _ in
+      guard let httpResponse = response as? HTTPURLResponse else {
+        completion(.unreachable)
+        return
+      }
+
+      if httpResponse.statusCode == 401 || httpResponse.statusCode == 403 {
+        completion(.invalid("Authentication rejected by the server."))
+        return
+      }
+
+      guard let data = data,
+        let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+        let subsonicResponse = json["subsonic-response"] as? [String: Any],
+        let status = subsonicResponse["status"] as? String
+      else {
+        completion(.unreachable)
+        return
+      }
+
+      if status == "ok" {
+        completion(.valid)
+      } else {
+        let subsonicError = subsonicResponse["error"] as? [String: Any]
+        let message =
+          subsonicError?["message"] as? String ?? "Something went wrong with IAP Authentication."
+        completion(.invalid(message))
+      }
+    }.resume()
   }
 }
