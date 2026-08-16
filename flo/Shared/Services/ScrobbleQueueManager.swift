@@ -16,7 +16,7 @@ final class ScrobbleQueueManager: ObservableObject {
   @Published private(set) var nextRetryAt: Date?
 
   private var retryTimer: Timer?
-  private var retryDelay: TimeInterval = 15
+  private let retryInterval: TimeInterval = 30
 
   private init() {
     NotificationCenter.default.addObserver(
@@ -163,7 +163,6 @@ final class ScrobbleQueueManager: ObservableObject {
     guard let entry = entries.first else {
       isFlushing = false
       reload()
-      retryDelay = 15
       cancelRetry()
       return
     }
@@ -218,16 +217,17 @@ final class ScrobbleQueueManager: ObservableObject {
   private func scheduleRetry() {
     cancelRetry()
 
-    nextRetryAt = Date().addingTimeInterval(retryDelay)
+    nextRetryAt = Date().addingTimeInterval(retryInterval)
 
-    let delay = retryDelay
-
-    retryTimer = Timer.scheduledTimer(withTimeInterval: delay, repeats: false) { [weak self] _ in
+    retryTimer = Timer.scheduledTimer(withTimeInterval: retryInterval, repeats: false) {
+      [weak self] _ in
       DispatchQueue.main.async {
         guard let self = self else { return }
-        guard NetworkMonitor.shared.isOnline else { return }
+        guard NetworkMonitor.shared.isOnline else {
+          self.nextRetryAt = nil
+          return
+        }
 
-        self.retryDelay = min(self.retryDelay * 2, 300)
         NetworkMonitor.shared.probeServerReachability()
         self.flush()
       }
