@@ -183,8 +183,8 @@ class FloooViewModel: ObservableObject {
       case .success:
         break
 
-      case .failure:
-        if submission {
+      case .failure(let error):
+        if submission && FloooService.shared.shouldQueueOfflineScrobble(error) {
           ScrobbleQueueManager.shared.enqueue(nowPlaying: nowPlaying)
         }
       }

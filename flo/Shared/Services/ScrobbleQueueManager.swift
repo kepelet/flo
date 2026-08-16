@@ -183,14 +183,24 @@ final class ScrobbleQueueManager: ObservableObject {
         self.submitPending(remaining)
 
       case .failure(let error):
-        entry.status = ScrobbleQueueStatus.failed
-        entry.errorReason = error.localizedDescription
+        if FloooService.shared.shouldQueueOfflineScrobble(error) {
+          entry.status = ScrobbleQueueStatus.failed
+          entry.errorReason = error.localizedDescription
 
-        CoreDataManager.shared.saveRecord()
+          CoreDataManager.shared.saveRecord()
 
-        self.isFlushing = false
-        self.reload()
-        self.scheduleRetry()
+          self.isFlushing = false
+          self.reload()
+          self.scheduleRetry()
+        } else {
+          entry.status = ScrobbleQueueStatus.sent
+          entry.sentAt = Date()
+          entry.errorReason = nil
+
+          CoreDataManager.shared.saveRecord()
+
+          self.submitPending(remaining)
+        }
       }
     }
   }
