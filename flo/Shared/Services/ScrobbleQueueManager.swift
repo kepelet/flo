@@ -14,6 +14,9 @@ final class ScrobbleQueueManager: ObservableObject {
   @Published private(set) var scrobbles: [ScrobbleEntity] = []
   @Published private(set) var isFlushing = false
 
+  private var retryTimer: Timer?
+  private var retryDelay: TimeInterval = 15
+
   private init() {
     NotificationCenter.default.addObserver(
       self, selector: #selector(handleNetworkBecameOnline), name: .networkBecameOnline, object: nil)
@@ -52,6 +55,7 @@ final class ScrobbleQueueManager: ObservableObject {
 
     CoreDataManager.shared.saveRecord()
     reload()
+    scheduleRetry()
   }
 
   func reload() {
@@ -61,11 +65,19 @@ final class ScrobbleQueueManager: ObservableObject {
   }
 
   func flush() {
-    guard !isFlushing, NetworkMonitor.shared.isOnline else { return }
+    guard !isFlushing else { return }
 
     let pending = scrobbles.filter { $0.status != ScrobbleQueueStatus.sent }
 
-    guard !pending.isEmpty else { return }
+    guard !pending.isEmpty else {
+      cancelRetry()
+      return
+    }
+
+    guard NetworkMonitor.shared.isOnline, NetworkMonitor.shared.isServerReachable else {
+      scheduleRetry()
+      return
+    }
 
     isFlushing = true
 
@@ -83,9 +95,11 @@ final class ScrobbleQueueManager: ObservableObject {
 
         self.isFlushing = false
         self.reload()
+        self.cancelRetry()
 
       case .failure:
         self.isFlushing = false
+        self.scheduleRetry()
       }
     }
   }
@@ -94,6 +108,10 @@ final class ScrobbleQueueManager: ObservableObject {
     CoreDataManager.shared.viewContext.delete(entry)
     CoreDataManager.shared.saveRecord()
     reload()
+
+    if pendingCount == 0 {
+      cancelRetry()
+    }
   }
 
   func clearSent() {
@@ -111,6 +129,8 @@ final class ScrobbleQueueManager: ObservableObject {
     guard let entry = entries.first else {
       isFlushing = false
       reload()
+      retryDelay = 15
+      cancelRetry()
       return
     }
 
@@ -124,7 +144,7 @@ final class ScrobbleQueueManager: ObservableObject {
     }
 
     FloooService.shared.scrobbleToBuiltinEndpoint(
-      submission: true, songId: songId, time: entry.listenTime ?? Date()
+      submission: true, songId: songId, time: entry.listenTime ?? Date(), timeout: 8
     ) { [weak self] result in
       guard let self = self else { return }
 
@@ -144,8 +164,31 @@ final class ScrobbleQueueManager: ObservableObject {
 
         self.isFlushing = false
         self.reload()
+        self.scheduleRetry()
       }
     }
+  }
+
+  private func scheduleRetry() {
+    cancelRetry()
+
+    let delay = retryDelay
+
+    retryTimer = Timer.scheduledTimer(withTimeInterval: delay, repeats: false) { [weak self] _ in
+      DispatchQueue.main.async {
+        guard let self = self else { return }
+        guard NetworkMonitor.shared.isOnline else { return }
+
+        self.retryDelay = min(self.retryDelay * 2, 300)
+        NetworkMonitor.shared.probeServerReachability()
+        self.flush()
+      }
+    }
+  }
+
+  private func cancelRetry() {
+    retryTimer?.invalidate()
+    retryTimer = nil
   }
 
   private func purgeSent() {
@@ -160,10 +203,12 @@ final class ScrobbleQueueManager: ObservableObject {
   }
 
   @objc private func handleNetworkBecameOnline() {
+    NetworkMonitor.shared.probeServerReachability()
     flush()
   }
 
   @objc private func handleAppBecameActive() {
+    NetworkMonitor.shared.probeServerReachability()
     flush()
   }
 }

@@ -61,7 +61,7 @@ class APIManager {
 
   func NDEndpointRequest<T: Decodable>(
     endpoint: String, method: HTTPMethod = .get, parameters: Parameters?,
-    encoding: ParameterEncoding = URLEncoding.queryString,
+    encoding: ParameterEncoding = URLEncoding.queryString, timeout: TimeInterval? = nil,
     completion: @escaping (DataResponse<T, AFError>) -> Void
   ) {
     let token: String = AuthService.shared.getCreds(key: "NDToken")
@@ -70,7 +70,12 @@ class APIManager {
     let headers: HTTPHeaders = [API.NDAuthHeader: "Bearer \(token)"]
 
     session.request(
-      url, method: method, parameters: parameters, encoding: encoding, headers: headers
+      url, method: method, parameters: parameters, encoding: encoding, headers: headers,
+      requestModifier: { request in
+        if let timeout = timeout {
+          request.timeoutInterval = timeout
+        }
+      }
     )
     .validate(statusCode: 200..<500)
     .responseDecodable(of: T.self) { response in
@@ -80,7 +85,7 @@ class APIManager {
 
   func SubsonicEndpointRequest<T: Decodable>(
     endpoint: String, method: HTTPMethod = .get, parameters: Parameters?,
-    encoding: ParameterEncoding = URLEncoding.queryString,
+    encoding: ParameterEncoding = URLEncoding.queryString, timeout: TimeInterval? = nil,
     completion: @escaping (DataResponse<T, AFError>) -> Void
   ) {
 
@@ -89,7 +94,12 @@ class APIManager {
       "\(UserDefaultsManager.serverBaseURL)\(endpoint)\(AuthService.shared.getCreds(key: "subsonicToken"))"
 
     session.request(
-      url, method: method, parameters: parameters, encoding: encoding
+      url, method: method, parameters: parameters, encoding: encoding,
+      requestModifier: { request in
+        if let timeout = timeout {
+          request.timeoutInterval = timeout
+        }
+      }
     )
     .validate(statusCode: 200..<500)
     .responseDecodable(of: T.self) { response in
@@ -172,7 +182,7 @@ extension APIManager {
       completion(response)
     }
   }
-  
+
   func loginWithIAP<T: Decodable>(
     endpoint: String, parameters: Parameters?, jwtAssertion: String,
     completion: @escaping (DataResponse<T, AFError>) -> Void
@@ -180,7 +190,7 @@ extension APIManager {
     let headers: HTTPHeaders = [
       "X-Goog-IAP-JWT-Assertion": jwtAssertion
     ]
-    
+
     session.request(
       endpoint,
       method: .post,

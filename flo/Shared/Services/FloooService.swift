@@ -106,7 +106,7 @@ class FloooService {
     }
 
     group.notify(queue: .main) {
-      if listenBrainzStatus == nil && lastFMStatus == nil, let requestError = requestError {
+      if listenBrainzStatus == nil || lastFMStatus == nil, let requestError = requestError {
         completion(.failure(requestError))
         return
       }
@@ -120,8 +120,9 @@ class FloooService {
   }
 
   func checkListenBrainzAccountStatus(completion: @escaping (Result<Bool, Error>) -> Void) {
-    APIManager.shared.NDEndpointRequest(endpoint: API.NDEndpoint.listenBrainzLink, parameters: [:])
-    {
+    APIManager.shared.NDEndpointRequest(
+      endpoint: API.NDEndpoint.listenBrainzLink, parameters: [:], timeout: 8
+    ) {
       (response: DataResponse<AccountStatusResponse, AFError>) in
       switch response.result {
       case .success(let status):
@@ -133,7 +134,9 @@ class FloooService {
   }
 
   func checkLastFMAccountStatus(completion: @escaping (Result<Bool, Error>) -> Void) {
-    APIManager.shared.NDEndpointRequest(endpoint: API.NDEndpoint.lastFMLink, parameters: [:]) {
+    APIManager.shared.NDEndpointRequest(
+      endpoint: API.NDEndpoint.lastFMLink, parameters: [:], timeout: 8
+    ) {
       (response: DataResponse<AccountStatusResponse, AFError>) in
       switch response.result {
       case .success(let status):
@@ -145,7 +148,7 @@ class FloooService {
   }
 
   func scrobbleToBuiltinEndpoint(
-    submission: Bool, songId: String, time: Date? = nil,
+    submission: Bool, songId: String, time: Date? = nil, timeout: TimeInterval? = nil,
     completion: @escaping (Result<BasicSubsonicResponse, Error>) -> Void
   ) {
     var params: [String: Any] = ["submission": String(submission), "id": songId]
@@ -155,7 +158,7 @@ class FloooService {
     }
 
     APIManager.shared.SubsonicEndpointRequest(
-      endpoint: API.SubsonicEndpoint.scrobble, parameters: params
+      endpoint: API.SubsonicEndpoint.scrobble, parameters: params, timeout: timeout
     ) {
       (response: DataResponse<BasicSubsonicResponse, AFError>) in
       switch response.result {

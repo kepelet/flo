@@ -303,7 +303,7 @@ class PlayerViewModel: ObservableObject {
       }
 
       if !self.isLocallySaved && self.progress >= 0.5 {
-        Task {
+        Task { @MainActor in
           FloooViewModel.shared.scrobble(submission: true, nowPlaying: self.nowPlaying)
 
           self.isLocallySaved = true
