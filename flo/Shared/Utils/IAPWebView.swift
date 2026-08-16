@@ -27,6 +27,7 @@ struct IAPWebView: UIViewRepresentable {
     if let url = URL(string: url) {
       let request = URLRequest(url: url)
       webView.load(request)
+      context.coordinator.startTimeout()
     } else {
       onError("Invalid server URL")
     }
@@ -40,8 +41,11 @@ struct IAPWebView: UIViewRepresentable {
     let onAuthExtracted: (UserAuth, WKWebView) -> Void
     let onError: (String) -> Void
     private var hasExtractedData = false
+    private var timeoutWorkItem: DispatchWorkItem?
     weak var webView: WKWebView?
     var originalServerURL: String = ""
+
+    private static let timeoutInterval: TimeInterval = 90
 
     private static let appConfigScript = """
       (function() {
@@ -57,6 +61,27 @@ struct IAPWebView: UIViewRepresentable {
     ) {
       self.onAuthExtracted = onAuthExtracted
       self.onError = onError
+    }
+
+    func startTimeout() {
+      let workItem = DispatchWorkItem { [weak self] in
+        guard let self, !self.hasExtractedData else { return }
+        self.cancelTimeout()
+        DispatchQueue.main.async {
+          self.onError(
+            "Timed out waiting for the server to authenticate. Make sure Navidrome is behind Authentik/Caddy and reachable."
+          )
+        }
+      }
+      timeoutWorkItem = workItem
+      DispatchQueue.main.asyncAfter(
+        deadline: .now() + Self.timeoutInterval, execute: workItem
+      )
+    }
+
+    private func cancelTimeout() {
+      timeoutWorkItem?.cancel()
+      timeoutWorkItem = nil
     }
 
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
@@ -76,9 +101,19 @@ struct IAPWebView: UIViewRepresentable {
           let authPayload = appConfig["auth"] as? [String: Any],
           let authData = try? JSONSerialization.data(withJSONObject: authPayload),
           let userAuth = try? JSONDecoder().decode(UserAuth.self, from: authData)
-        else { return }
+        else {
+          self.hasExtractedData = true
+          self.cancelTimeout()
+          DispatchQueue.main.async {
+            self.onError(
+              "Could not read authentication data from the server. Make sure Navidrome is behind Authentik/Caddy and serving the expected login page."
+            )
+          }
+          return
+        }
 
         self.hasExtractedData = true
+        self.cancelTimeout()
         DispatchQueue.main.async {
           self.onAuthExtracted(userAuth, webView)
         }
@@ -104,6 +139,7 @@ struct IAPWebView: UIViewRepresentable {
 
     func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
       if !hasExtractedData {
+        cancelTimeout()
         DispatchQueue.main.async {
           self.onError("Failed to load server: \(error.localizedDescription)")
         }
@@ -116,6 +152,7 @@ struct IAPWebView: UIViewRepresentable {
       withError error: Error
     ) {
       if !hasExtractedData {
+        cancelTimeout()
         DispatchQueue.main.async {
           self.onError("Failed to connect: \(error.localizedDescription)")
         }
