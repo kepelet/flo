@@ -43,13 +43,23 @@ final class ScrobbleQueueManager: ObservableObject {
   func enqueue(nowPlaying: QueueEntity) {
     guard let songId = nowPlaying.id, !songId.isEmpty else { return }
 
+    let listenTime = Date()
+
+    let isDuplicate = scrobbles.contains { entry in
+      entry.songId == songId
+        && entry.status != ScrobbleQueueStatus.sent
+        && (entry.listenTime.map { abs($0.timeIntervalSince(listenTime)) < 10 } ?? false)
+    }
+
+    guard !isDuplicate else { return }
+
     let entry = ScrobbleEntity(context: CoreDataManager.shared.viewContext)
 
     entry.songId = songId
     entry.trackName = nowPlaying.songName
     entry.artistName = nowPlaying.artistName
     entry.albumName = nowPlaying.albumName
-    entry.listenTime = Date()
+    entry.listenTime = listenTime
     entry.queuedAt = Date()
     entry.status = ScrobbleQueueStatus.pending
 
@@ -144,7 +154,7 @@ final class ScrobbleQueueManager: ObservableObject {
     }
 
     FloooService.shared.scrobbleToBuiltinEndpoint(
-      submission: true, songId: songId, time: entry.listenTime ?? Date(), timeout: 8
+      submission: true, songId: songId, time: entry.listenTime ?? Date()
     ) { [weak self] result in
       guard let self = self else { return }
 

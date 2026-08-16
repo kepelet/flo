@@ -177,9 +177,7 @@ class FloooViewModel: ObservableObject {
   private func sendScrobble(submission: Bool, nowPlaying: QueueEntity) {
     guard let songId = nowPlaying.id else { return }
 
-    FloooService.shared.scrobbleToBuiltinEndpoint(
-      submission: submission, songId: songId, timeout: 8
-    ) {
+    FloooService.shared.scrobbleToBuiltinEndpoint(submission: submission, songId: songId) {
       result in
       switch result {
       case .success:
