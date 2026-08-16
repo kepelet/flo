@@ -18,7 +18,7 @@ struct ScrobbleQueueView: View {
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {
         ToolbarItem(placement: .navigationBarLeading) {
-          Button("Done") {
+          Button("Close") {
             dismiss()
           }
         }
@@ -107,6 +107,7 @@ struct ScrobbleQueueView: View {
 
             Spacer()
           }
+          .frame(maxWidth: .infinity)
         }
         .disabled(queue.pendingCount == 0 || queue.isFlushing)
 
@@ -121,6 +122,7 @@ struct ScrobbleQueueView: View {
             Text("Clear all")
             Spacer()
           }
+          .frame(maxWidth: .infinity)
         }
       } footer: {
         Text(
