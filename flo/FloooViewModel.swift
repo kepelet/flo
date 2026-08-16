@@ -138,7 +138,7 @@ class FloooViewModel: ObservableObject {
   private func processScrobble(submission: Bool, nowPlaying: QueueEntity) {
     guard let songId = nowPlaying.id, !songId.isEmpty else { return }
 
-    if !NetworkMonitor.shared.isOnline {
+    if !NetworkMonitor.shared.isOnline || !NetworkMonitor.shared.isServerReachable {
       if isScrobbleAccountStatusChecked && !(isListenBrainzLinked || isLastFmLinked) {
         return
       }
@@ -177,7 +177,9 @@ class FloooViewModel: ObservableObject {
   private func sendScrobble(submission: Bool, nowPlaying: QueueEntity) {
     guard let songId = nowPlaying.id else { return }
 
-    FloooService.shared.scrobbleToBuiltinEndpoint(submission: submission, songId: songId) {
+    FloooService.shared.scrobbleToBuiltinEndpoint(
+      submission: submission, songId: songId, timeout: 8
+    ) {
       result in
       switch result {
       case .success:
