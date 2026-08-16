@@ -97,16 +97,17 @@ struct ScrobbleQueueView: View {
           queue.flush()
         }) {
           HStack {
+            Spacer()
+
             Text("Retry now")
 
             if queue.isFlushing {
-              Spacer()
               ProgressView().controlSize(.small)
             }
+
+            Spacer()
           }
-          .frame(maxWidth: .infinity)
         }
-        .buttonStyle(.borderedProminent)
         .disabled(queue.pendingCount == 0 || queue.isFlushing)
 
         Button(
@@ -116,14 +117,11 @@ struct ScrobbleQueueView: View {
           }
         ) {
           HStack {
+            Spacer()
             Text("Clear all")
-
             Spacer()
           }
-          .frame(maxWidth: .infinity)
         }
-        .buttonStyle(.bordered)
-        .tint(.red)
       } footer: {
         Text(
           "Waiting and failed scrobbles are retried automatically every few minutes while the server is unreachable. Use Retry now to submit immediately."
