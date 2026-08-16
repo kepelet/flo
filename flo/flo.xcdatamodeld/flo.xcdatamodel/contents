@@ -65,6 +65,7 @@
     <entity name="ScrobbleEntity" representedClassName="ScrobbleEntity" syncable="YES" codeGenerationType="class">
         <attribute name="albumName" optional="YES" attributeType="String"/>
         <attribute name="artistName" optional="YES" attributeType="String"/>
+        <attribute name="errorReason" optional="YES" attributeType="String"/>
         <attribute name="listenTime" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="queuedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="sentAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>

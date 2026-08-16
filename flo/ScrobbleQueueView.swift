@@ -51,10 +51,23 @@ struct ScrobbleQueueView: View {
   private var scrobbleList: some View {
     List {
       ForEach(queue.scrobbles, id: \.objectID) { entry in
-        ScrobbleQueueRow(entry: entry)
-      }
-      .onDelete { offsets in
-        offsets.map { queue.scrobbles[$0] }.forEach { queue.remove($0) }
+        ScrobbleQueueRow(entry: entry, nextRetryAt: queue.nextRetryAt)
+          .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+            if entry.status == ScrobbleQueueStatus.failed {
+              Button {
+                queue.retry(entry)
+              } label: {
+                Label("Retry", systemImage: "arrow.clockwise")
+              }
+              .tint(.blue)
+            }
+
+            Button(role: .destructive) {
+              queue.remove(entry)
+            } label: {
+              Label("Delete", systemImage: "trash")
+            }
+          }
       }
 
       Section {
@@ -73,7 +86,7 @@ struct ScrobbleQueueView: View {
         .disabled(queue.pendingCount == 0 || queue.isFlushing)
       } footer: {
         Text(
-          "Waiting and failed scrobbles are submitted automatically when the server is reachable."
+          "Waiting and failed scrobbles are retried automatically every few minutes while the server is unreachable. Use Retry now to submit immediately."
         )
       }
     }
@@ -82,6 +95,7 @@ struct ScrobbleQueueView: View {
 
 private struct ScrobbleQueueRow: View {
   @ObservedObject var entry: ScrobbleEntity
+  let nextRetryAt: Date?
 
   private var status: (label: String, color: Color) {
     switch entry.status {
@@ -128,6 +142,25 @@ private struct ScrobbleQueueRow: View {
       }
       .font(.caption)
       .foregroundColor(.gray)
+
+      if entry.status == ScrobbleQueueStatus.failed {
+        Text(entry.errorReason ?? "Unknown error")
+          .font(.caption)
+          .foregroundColor(.red)
+          .lineLimit(2)
+      }
+
+      if entry.status != ScrobbleQueueStatus.sent {
+        if let nextRetryAt = nextRetryAt {
+          (Text("Next retry ") + Text(nextRetryAt, style: .relative))
+            .font(.caption)
+            .foregroundColor(.gray)
+        } else {
+          Text("Waiting for the server to be reachable")
+            .font(.caption)
+            .foregroundColor(.gray)
+        }
+      }
     }
     .padding(.vertical, 2)
   }

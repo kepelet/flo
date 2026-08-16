@@ -13,6 +13,7 @@ final class ScrobbleQueueManager: ObservableObject {
 
   @Published private(set) var scrobbles: [ScrobbleEntity] = []
   @Published private(set) var isFlushing = false
+  @Published private(set) var nextRetryAt: Date?
 
   private var retryTimer: Timer?
   private var retryDelay: TimeInterval = 15
@@ -124,6 +125,19 @@ final class ScrobbleQueueManager: ObservableObject {
     }
   }
 
+  func retry(_ entry: ScrobbleEntity) {
+    guard entry.status == ScrobbleQueueStatus.failed else { return }
+
+    entry.status = ScrobbleQueueStatus.pending
+    entry.errorReason = nil
+
+    CoreDataManager.shared.saveRecord()
+    reload()
+
+    NetworkMonitor.shared.probeServerReachability()
+    flush()
+  }
+
   func clearSent() {
     let sent = scrobbles.filter { $0.status == ScrobbleQueueStatus.sent }
 
@@ -162,13 +176,15 @@ final class ScrobbleQueueManager: ObservableObject {
       case .success:
         entry.status = ScrobbleQueueStatus.sent
         entry.sentAt = Date()
+        entry.errorReason = nil
 
         CoreDataManager.shared.saveRecord()
 
         self.submitPending(remaining)
 
-      case .failure:
+      case .failure(let error):
         entry.status = ScrobbleQueueStatus.failed
+        entry.errorReason = error.localizedDescription
 
         CoreDataManager.shared.saveRecord()
 
@@ -181,6 +197,8 @@ final class ScrobbleQueueManager: ObservableObject {
 
   private func scheduleRetry() {
     cancelRetry()
+
+    nextRetryAt = Date().addingTimeInterval(retryDelay)
 
     let delay = retryDelay
 
@@ -199,6 +217,7 @@ final class ScrobbleQueueManager: ObservableObject {
   private func cancelRetry() {
     retryTimer?.invalidate()
     retryTimer = nil
+    nextRetryAt = nil
   }
 
   private func purgeSent() {
