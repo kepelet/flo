@@ -118,7 +118,7 @@ platform :mac do
     build_mac_app(
       configuration: configuration,
       scheme: "flo",
-      export_method: "app-store-connect",
+      export_method: "app-store",
       output_directory: "./fastlane/builds",
       skip_package_dependencies_resolution: true
     )
