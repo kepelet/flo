@@ -27,6 +27,13 @@ jobs:
         with:
           ruby-version: 3.2.1
           bundler-cache: true
+      - name: Cache Swift packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/Library/Developer/Xcode/SourcePackages
+            ~/Library/Caches/org.swift.swiftpm
+          key: ${{ runner.os }}-swiftpm-${{ hashFiles('**/Package.resolved') }}
       - run: |
           if [[ "${{ github.ref }}" == "refs/heads/develop" ]]; then
             bundle exec fastlane ios beta public:true
@@ -61,6 +68,21 @@ jobs:
         with:
           ruby-version: 3.2.1
           bundler-cache: true
+      - name: Cache Swift packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/Library/Developer/Xcode/SourcePackages
+            ~/Library/Caches/org.swift.swiftpm
+          key: ${{ runner.os }}-swiftpm-${{ hashFiles('**/Package.resolved') }}
+      - name: Resolve Swift packages
+        run: |
+          xcodebuild \
+            -resolvePackageDependencies \
+            -project flo.xcodeproj \
+            -scheme flo \
+            -configuration Release \
+            -skipPackageUpdates
       - run: |
           if [[ "${{ github.ref }}" == "refs/heads/develop" ]]; then
             bundle exec fastlane mac beta public:true
