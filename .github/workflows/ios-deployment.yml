@@ -8,7 +8,7 @@ on:
 
 jobs:
   deploy:
-    if: github.actor == 'faultables'
+    if: github.actor == 'faultables' || github.actor == 'violetisasi'
     runs-on: macos-latest
     env:
       APPLE_ID: ${{ secrets.APPLE_ID }}
@@ -38,4 +38,39 @@ jobs:
           name: appstore ipa & dsym
           path: |
             ${{ github.workspace }}/fastlane/builds/flo.ipa
+            ${{ github.workspace }}/fastlane/builds/flo.app.dSYM.zip
+
+  deploy-catalyst:
+    if: github.actor == 'faultables' || github.actor == 'violetisasi'
+    needs: deploy
+    runs-on: macos-latest
+    env:
+      APPLE_ID: ${{ secrets.APPLE_ID }}
+      ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+      ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+      ASC_KEY_CONTENT: ${{ secrets.ASC_KEY_CONTENT }}
+      MATCH_GIT_PRIVATE_KEY: ${{ secrets.MATCH_GIT_PRIVATE_KEY }}
+      MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '26.3'
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.2.1
+          bundler-cache: true
+      - run: |
+          if [[ "${{ github.ref }}" == "refs/heads/develop" ]]; then
+            bundle exec fastlane mac beta public:true
+          else
+            bundle exec fastlane mac beta
+          fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: appstore catalyst pkg & dsym
+          if-no-files-found: error
+          path: |
+            ${{ github.workspace }}/fastlane/builds/flo.pkg
             ${{ github.workspace }}/fastlane/builds/flo.app.dSYM.zip
