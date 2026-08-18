@@ -170,6 +170,18 @@ struct PlayerView: View {
           .animation(.spring(duration: 0.4), value: queueDragOffset.height)
           .foregroundColor(.primary)
           .zIndex(1)
+          .overlay {
+            if showQueue {
+              Button {
+                showQueue = false
+              } label: {
+                EmptyView()
+              }
+              .keyboardShortcut(.escape, modifiers: [])
+              .frame(width: 0, height: 0)
+              .opacity(0)
+            }
+          }
           .offset(
             y: showQueue
               ? size.height - queueSheetHeight + queueDragOffset.height : size.height
@@ -198,6 +210,18 @@ struct PlayerView: View {
             }
           }
           .frame(maxHeight: .infinity)
+          .overlay {
+            if viewModel.isLyricsMode {
+              Button {
+                viewModel.toggleLyricsMode()
+              } label: {
+                EmptyView()
+              }
+              .keyboardShortcut(.escape, modifiers: [])
+              .frame(width: 0, height: 0)
+              .opacity(0)
+            }
+          }
           .onChange(of: viewModel.isLiveRadio) { isLive in
             if isLive {
               showQueue = false
@@ -229,6 +253,18 @@ struct PlayerView: View {
         )
       }
       .foregroundColor(.white)
+      .overlay(alignment: .topTrailing) {
+        if !showQueue && !viewModel.isLyricsMode {
+          Button {
+            isExpanded = false
+          } label: {
+            EmptyView()
+          }
+          .keyboardShortcut(.escape, modifiers: [])
+          .frame(width: 0, height: 0)
+          .opacity(0)
+        }
+      }
     }
   }
 

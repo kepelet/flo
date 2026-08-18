@@ -75,6 +75,7 @@ struct LyricsView: View {
             .clipShape(Capsule())
             .shadow(color: .black.opacity(0.25), radius: 6, x: 0, y: 3)
         }
+        .keyboardShortcut(.escape, modifiers: [])
       }
       .padding(.horizontal, 30)
       .padding(.top, topSafeInset + 8)
