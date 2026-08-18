@@ -140,6 +140,7 @@ struct ContentView: View {
         if playerViewModel.hasNowPlaying() && !playerViewModel.shouldHidePlayer {
           FloatingPlayerView(viewModel: playerViewModel)
             .frame(maxWidth: 720)
+            .padding(.bottom, 16)
             .opacity(playerViewModel.hasNowPlaying() ? 1 : 0)
             .offset(x: floatingPlayerOffsetX)
             .onTapGesture {
@@ -319,6 +320,8 @@ struct ContentView: View {
 
         rootTabView
 
+        tabKeyboardShortcuts
+
         if playerViewModel.hasNowPlaying() && !playerViewModel.shouldHidePlayer {
           PlayerView(
             isExpanded: $isPlayerExpanded,
@@ -349,7 +352,7 @@ struct ContentView: View {
               )
               let playerBottomPadding: CGFloat = {
                 #if targetEnvironment(macCatalyst)
-                  10
+                  24
                 #else
                   return isPad ? 0 : (40 + bottomPadding)
                 #endif
@@ -395,6 +398,40 @@ struct ContentView: View {
     .onAppear {
       PlaybackCoordinator.shared.attach(playerViewModel: playerViewModel)
     }
+  }
+
+  @ViewBuilder
+  private var tabKeyboardShortcuts: some View {
+    Group {
+      if isPadSidebar {
+        tabShortcut(.home, key: "1")
+        tabShortcut(.library, key: "2")
+        tabShortcut(.libraryArtists, key: "3")
+        tabShortcut(.likedSongs, key: "4")
+        tabShortcut(.playlists, key: "5")
+        tabShortcut(.songs, key: "6")
+        tabShortcut(.radios, key: "7")
+        tabShortcut(.downloads, key: "8")
+        tabShortcut(.preferences, key: "9")
+        tabShortcut(.debug, key: "0")
+      } else {
+        tabShortcut(.home, key: "1")
+        tabShortcut(.library, key: "2")
+        tabShortcut(.downloads, key: "3")
+        tabShortcut(.preferences, key: "4")
+      }
+    }
+    .frame(width: 0, height: 0)
+    .opacity(0)
+  }
+
+  private func tabShortcut(_ tab: AppTab, key: KeyEquivalent) -> some View {
+    Button {
+      libraryRouter.selectedTab = tab
+    } label: {
+      EmptyView()
+    }
+    .keyboardShortcut(key, modifiers: .command)
   }
 
   private func openLibraryDestinationFromPlayer(_ destination: LibraryDestination) {
