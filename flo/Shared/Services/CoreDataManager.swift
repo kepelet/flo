@@ -11,7 +11,7 @@ import Foundation
 class CoreDataManager: ObservableObject {
   static let shared = CoreDataManager()
 
-  private init() {}
+  init() {}
 
   private static func inMemoryContainer() -> NSPersistentContainer {
     let container = NSPersistentContainer(name: "flo")

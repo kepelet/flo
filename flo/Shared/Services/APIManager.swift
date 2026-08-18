@@ -41,11 +41,18 @@ class APIManager {
     session = Self.createSession()
   }
 
+  /// Test-only hook: extra URLProtocol subclasses to register on the session.
+  static var extraProtocolClasses: [AnyClass] = []
+
   private static func createSession() -> Session {
     LoggerStore.shared.removeAll()
 
     let configuration = URLSessionConfiguration.default
     configuration.timeoutIntervalForRequest = 30
+
+    if !extraProtocolClasses.isEmpty {
+      configuration.protocolClasses = extraProtocolClasses + (configuration.protocolClasses ?? [])
+    }
 
     let retrier = RetryPolicy(retryLimit: 3)
     let monitor = NetworkLoggerEventMonitor()

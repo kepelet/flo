@@ -1,0 +1,86 @@
+name: ios-tests
+
+# Safe to run on pull requests from any fork:
+# - `pull_request` runs the workflow YAML from the BASE branch (attackers
+#   cannot edit these steps), secrets are empty for fork PRs, and GITHUB_TOKEN
+#   is read-only.
+# - The PR code IS executed (XCTest = arbitrary code), which is fine on the
+#   ephemeral, credential-free GitHub-hosted runner. Do NOT add secrets, and
+#   never change this to `pull_request_target` or a self-hosted runner.
+#
+# Also runs on push to release/develop (trusted maintainers only) as a
+# pre-deploy gate. Still secret-free — the push path never needs signing.
+on:
+  pull_request:
+  push:
+    branches:
+      - 'release/*'
+      - 'develop'
+  workflow_dispatch:
+
+# Minimal permissions: fork PRs are force-read-only anyway, but keep this
+# explicit and never elevate it.
+permissions:
+  contents: read
+
+concurrency:
+  group: ios-tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    # Prevent double-runs: a push to release/* or develop that also updates an
+    # open same-repo PR would otherwise fire BOTH `push` and `pull_request`.
+    # The `push` trigger already covers those refs, so skip the PR run for them.
+    # Forks and same-repo feature/bugfix branches still run via `pull_request`.
+    if: |
+      github.event_name != 'pull_request'
+      || github.event.pull_request.head.repo.full_name != github.repository
+      || !(startsWith(github.head_ref, 'release/') || github.head_ref == 'develop')
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '26.3'
+
+      # Cache is keyed by PR ref so an untrusted fork PR cannot poison the
+      # cache that the default branch later consumes.
+      - name: Restore Swift package cache
+        id: swiftpm-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ~/Library/Developer/Xcode/SourcePackages
+            ~/Library/Caches/org.swift.swiftpm
+          key: ${{ runner.os }}-swiftpm-${{ github.ref }}-${{ hashFiles('**/Package.resolved') }}
+          restore-keys: |
+            ${{ runner.os }}-swiftpm-${{ github.ref }}-
+
+      - name: Run unit tests
+        run: |
+          xcodebuild test \
+            -project flo.xcodeproj \
+            -scheme flo \
+            -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
+            -derivedDataPath DerivedData \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO
+
+      - name: Save Swift package cache
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            ~/Library/Developer/Xcode/SourcePackages
+            ~/Library/Caches/org.swift.swiftpm
+          key: ${{ steps.swiftpm-cache.outputs.cache-primary-key }}
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: xcresult
+          path: DerivedData/Logs/Test/*.xcresult
+          if-no-files-found: ignore
