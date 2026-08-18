@@ -175,7 +175,8 @@ struct PlaylistDetailView: View {
 
                   viewModel.downloadPlaylist(viewModel.playlist, targetIdx: idx)
                   downloadViewModel.addIndividualItem(
-                    album: playlist, song: viewModel.playlist.songs[idx], isFromPlaylist: true)
+                    album: playlist, song: viewModel.playlist.songs[idx], isFromPlaylist: true,
+                    playlistIndex: idx)
                 } label: {
                   HStack {
                     Text("Download")
