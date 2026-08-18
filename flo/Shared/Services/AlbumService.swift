@@ -262,6 +262,46 @@ class AlbumService {
     ).map(Song.init)
   }
 
+  func getPlaylistSongs(playlistId: String) -> [Song] {
+    let sortByPosition = NSSortDescriptor(key: "position", ascending: true)
+    let sortByTrackNumber = NSSortDescriptor(key: "trackNumber", ascending: true)
+
+    return CoreDataManager.shared.getRecordByKey(
+      entity: SongEntity.self, key: \SongEntity.albumId, value: playlistId,
+      sortDescriptors: [sortByPosition, sortByTrackNumber]
+    ).map(Song.init)
+  }
+
+  func isPlaylistDownload(id: String) -> Bool {
+    let songs = CoreDataManager.shared.getRecordByKey(
+      entity: SongEntity.self, key: \SongEntity.albumId, value: id, limit: 1)
+
+    return songs.first?.id?.hasPrefix("pl:") ?? false
+  }
+
+  func updatePlaylistPositions(playlistId: String, songs: [Song]) {
+    let existing = CoreDataManager.shared.getRecordByKey(
+      entity: SongEntity.self, key: \SongEntity.albumId, value: playlistId)
+
+    guard !existing.isEmpty else { return }
+
+    var changed = false
+
+    for (index, song) in songs.enumerated() where song.id.hasPrefix("pl:") {
+      guard let entity = existing.first(where: { $0.id == song.id }) else { continue }
+
+      let position = Int32(index)
+      if entity.position != position {
+        entity.position = position
+        changed = true
+      }
+    }
+
+    if changed {
+      CoreDataManager.shared.saveRecord()
+    }
+  }
+
   func getAlbumCover(
     artistName: String,
     albumName: String,
@@ -382,9 +422,11 @@ class AlbumService {
   }
 
   func saveDownload(
-    albumId: String, albumName: String?, song: Song, status: String, isFromPlaylist: Bool = false
+    albumId: String, albumName: String?, song: Song, status: String, isFromPlaylist: Bool = false,
+    playlistIndex: Int = -1
   ) {
     let songId = isFromPlaylist ? "pl:\(albumId):\(song.mediaFileId)" : song.id
+    let position = isFromPlaylist ? Int32(playlistIndex) : Int32(-1)
 
     let checkExistingSong = CoreDataManager.shared.getRecordByKey(
       entity: SongEntity.self, key: \SongEntity.id, value: songId, limit: 1)
@@ -399,6 +441,7 @@ class AlbumService {
         "Media/\(isFromPlaylist ? "Various Artists" : song.artist)/\(albumName ?? "Unknown Albums")/\(Int16(song.trackNumber)) \(song.title).\(song.suffix)"
       existingSong.albumName = resolvedAlbumName
       existingSong.status = status
+      existingSong.position = position
       existingSong.explicitStatus = song.explicitStatus.rawValue
     } else {
       let downloadedSong = SongEntity(context: CoreDataManager.shared.viewContext)
@@ -417,6 +460,7 @@ class AlbumService {
       downloadedSong.fileURL = fileURL
       downloadedSong.status = status
       downloadedSong.mediaFileId = isFromPlaylist ? song.mediaFileId : song.id
+      downloadedSong.position = position
       downloadedSong.explicitStatus = song.explicitStatus.rawValue
     }
 

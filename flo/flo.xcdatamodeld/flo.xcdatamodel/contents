@@ -83,6 +83,7 @@
         <attribute name="fileURL" optional="YES" attributeType="String"/>
         <attribute name="id" attributeType="String"/>
         <attribute name="mediaFileId" optional="YES" attributeType="String"/>
+        <attribute name="position" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="sampleRate" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="status" optional="YES" attributeType="String"/>
         <attribute name="suffix" optional="YES" attributeType="String"/>

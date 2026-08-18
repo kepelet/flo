@@ -53,7 +53,12 @@ class AlbumViewModel: ObservableObject {
 
     if !album.id.isEmpty {
       self.getAlbumById()
-      self.fetchSongs(id: album.id)
+
+      if AlbumService.shared.isPlaylistDownload(id: album.id) {
+        self.fetchPlaylistSongsIntoAlbum(id: album.id)
+      } else {
+        self.fetchSongs(id: album.id)
+      }
     }
   }
 
@@ -90,6 +95,26 @@ class AlbumViewModel: ObservableObject {
             }
             return lhs.discNumber < rhs.discNumber
           }
+
+        case .failure(let error):
+          self.error = error
+        }
+      }
+    }
+  }
+
+  func fetchPlaylistSongsIntoAlbum(id: String) {
+    let localSongs = AlbumService.shared.getPlaylistSongs(playlistId: id)
+
+    self.album.songs = localSongs
+
+    AlbumService.shared.getSongsByPlaylist(id: id) { result in
+      DispatchQueue.main.async {
+        switch result {
+        case .success(let remoteSongs):
+          let merged = Self.mergePlaylistSongs(local: localSongs, remote: remoteSongs)
+          self.album.songs = merged
+          AlbumService.shared.updatePlaylistPositions(playlistId: id, songs: merged)
 
         case .failure(let error):
           self.error = error
@@ -374,25 +399,54 @@ class AlbumViewModel: ObservableObject {
   }
 
   func fetchSongsByPlaylist(id: String) {
-    let checkLocalSongs = AlbumService.shared.getSongsByAlbumId(albumId: id)
+    let localSongs = AlbumService.shared.getPlaylistSongs(playlistId: id)
 
-    self.playlist.songs = checkLocalSongs
+    self.playlist.songs = localSongs
 
     AlbumService.shared.getSongsByPlaylist(id: id) { result in
       DispatchQueue.main.async {
         switch result {
-        case .success(let songs):
-          let remoteSongs = songs.filter { song in
-            !self.playlist.songs.contains(where: { $0.mediaFileId == song.mediaFileId })
-          }
-
-          self.playlist.songs.append(contentsOf: remoteSongs)
+        case .success(let remoteSongs):
+          let merged = Self.mergePlaylistSongs(local: localSongs, remote: remoteSongs)
+          self.playlist.songs = merged
+          AlbumService.shared.updatePlaylistPositions(playlistId: id, songs: merged)
 
         case .failure(let error):
           self.error = error
         }
       }
     }
+  }
+
+  /// Preserves the server-defined playlist order, substituting locally downloaded
+  /// versions in place so the download indicator/offline playback still work.
+  static func mergePlaylistSongs(local: [Song], remote: [Song]) -> [Song] {
+    var localByMediaFileId: [String: Song] = [:]
+
+    for song in local where localByMediaFileId[song.mediaFileId] == nil {
+      localByMediaFileId[song.mediaFileId] = song
+    }
+
+    var merged: [Song] = []
+    var consumedMediaFileIds = Set<String>()
+
+    for remoteSong in remote {
+      if let localSong = localByMediaFileId[remoteSong.mediaFileId],
+        !consumedMediaFileIds.contains(remoteSong.mediaFileId)
+      {
+        merged.append(localSong)
+        consumedMediaFileIds.insert(remoteSong.mediaFileId)
+      } else {
+        merged.append(remoteSong)
+      }
+    }
+
+    // Keep any downloaded songs that are no longer part of the server playlist.
+    for localSong in local where !consumedMediaFileIds.contains(localSong.mediaFileId) {
+      merged.append(localSong)
+    }
+
+    return merged
   }
 
   func getPlaylists() {
