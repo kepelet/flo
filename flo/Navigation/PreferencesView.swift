@@ -84,7 +84,7 @@ struct PreferencesView: View {
   @State private var optimizeLocalStorageAlert = false
   @State private var showLoginSheet = false
   @State private var showCustomLRCLIBServer = false
-  @State private var showFloPlusSheet = false
+  @State private var showTipJarSheet = false
   @State private var showScrobbleQueueSheet = false
 
   @ObservedObject private var scrobbleQueue = ScrobbleQueueManager.shared
@@ -123,14 +123,6 @@ struct PreferencesView: View {
   @State private var clearStreamCacheAlert = false
   @State private var experimentalLRCLIBIntegration = UserDefaultsManager.LRCLIBServerURL
   @State private var customLRCLIBServer = ""
-
-  var floPlusPriceLabel: String {
-    if let price = inAppPurchaseManager.floPlusProduct?.displayPrice {
-      return price
-    }
-
-    return inAppPurchaseManager.isLoadingProduct ? "Loading..." : "Unavailable"
-  }
 
   var shouldShowLoginSheet: Binding<Bool> {
     Binding(
@@ -466,22 +458,11 @@ struct PreferencesView: View {
 
         Section(header: Text("Development")) {
 
-          // TODO(@fariz): uncomment this on 2.2
-          //          if !UserDefaultsManager.floPlus {
-          //            VStack(alignment: .leading, spacing: 6) {
-          //              Button(action: {
-          //                showFloPlusSheet = true
-          //              }) {
-          //                Text("Purchase flo+")
-          //              }
-          //            }
-          //          } else {
-          //            VStack(alignment: .leading, spacing: 6) {
-          //              Text("flo+ purchased")
-          //              Text("Thank you for supporting flo!").font(.caption)
-          //                .foregroundColor(.gray)
-          //            }
-          //          }
+          Button(action: {
+            showTipJarSheet = true
+          }) {
+            Text("Support flo")
+          }
 
           Button(action: {
             if let url = URL(string: "https://client.flooo.club/about") {
@@ -574,7 +555,7 @@ struct PreferencesView: View {
       floooViewModel.getLocalStorageInformation()
 
       Task {
-        await inAppPurchaseManager.loadFloPlusProduct()
+        await inAppPurchaseManager.loadTipProducts()
       }
 
       if authViewModel.isLoggedIn {
@@ -593,14 +574,14 @@ struct PreferencesView: View {
     } message: {
       Text(appIconViewModel.errorMessage)
     }
-    .sheet(isPresented: $showFloPlusSheet) {
-      FloPlusSheet(showSheet: $showFloPlusSheet)
+    .sheet(isPresented: $showTipJarSheet) {
+      TipJarSheet(showSheet: $showTipJarSheet)
         .environmentObject(inAppPurchaseManager)
     }
     .fullScreenCover(isPresented: $showScrobbleQueueSheet) {
       ScrobbleQueueView()
     }
-    .alert("Unable to Purchase flo+", isPresented: $inAppPurchaseManager.showPurchaseError) {
+    .alert("Unable to Send Tip", isPresented: $inAppPurchaseManager.showPurchaseError) {
       Button("OK", role: .cancel) {}
     } message: {
       Text(inAppPurchaseManager.purchaseErrorMessage)
@@ -661,94 +642,267 @@ struct PreferencesView: View {
   }
 }
 
-struct FloPlusSheet: View {
+struct TipJarSheet: View {
   @Binding var showSheet: Bool
   @EnvironmentObject var inAppPurchaseManager: InAppPurchaseManager
 
-  private var floPlusPriceLabel: String {
-    if let price = inAppPurchaseManager.floPlusProduct?.displayPrice {
-      return price
-    }
+  /// Default tier. Dinner (tipjar.large) sits center and is active on open.
+  @State private var selectedTierID = "tipjar.large"
 
-    return inAppPurchaseManager.isLoadingProduct ? "Loading..." : "Unavailable"
+  /// A description bullet with an accent-colored icon and secondary text.
+  private func tipBullet(_ systemImage: String, _ text: String) -> some View {
+    Label {
+      Text(text)
+        .foregroundColor(.white.opacity(0.92))
+    } icon: {
+      Image(systemName: systemImage)
+        .foregroundColor(.white)
+    }
+  }
+
+  /// All loaded tiers, rendered as a carousel where the selected tier sits centered.
+  private var carouselItems: [InAppPurchaseManager.TipTier] {
+    inAppPurchaseManager.tipTiers
+  }
+
+  /// Circular slot for an item relative to the selection: -1 left, 0 center, +1 right.
+  private func relIndex(for productID: String) -> Int {
+    let order = ["tipjar.small", "tipjar.medium", "tipjar.large"]
+    guard let selected = order.firstIndex(of: selectedTierID),
+      let index = order.firstIndex(of: productID)
+    else {
+      return 0
+    }
+    let delta = index - selected
+    if delta > 1 { return -1 }
+    if delta < -1 { return 1 }
+    return delta
+  }
+
+  /// Moves the selection to the previous/next tier following the ring order.
+  private func advanceSelection(by delta: Int) {
+    let order = ["tipjar.small", "tipjar.medium", "tipjar.large"]
+    guard let current = order.firstIndex(of: selectedTierID) else { return }
+    let nextIndex = (current + delta + order.count) % order.count
+    let nextID = order[nextIndex]
+    guard inAppPurchaseManager.tipTiers.contains(where: { $0.id == nextID }) else { return }
+    selectedTierID = nextID
+  }
+
+  private var selectedTier: InAppPurchaseManager.TipTier? {
+    inAppPurchaseManager.tipTiers.first { $0.id == selectedTierID }
+  }
+
+  /// Column background color matching its image.
+  private func tierBackground(_ productID: String) -> Color {
+    switch productID {
+    case "tipjar.small":
+      return Color(red: 253 / 255, green: 188 / 255, blue: 139 / 255)  // coffee peach
+    case "tipjar.medium":
+      return Color(red: 244 / 255, green: 119 / 255, blue: 88 / 255)  // lunch coral
+    case "tipjar.large":
+      return Color(red: 62 / 255, green: 75 / 255, blue: 50 / 255)  // dinner deep green
+    default:
+      return Color(.secondarySystemBackground)
+    }
+  }
+
+  /// Asset image name for each tier.
+  private func tierImage(_ productID: String) -> String {
+    switch productID {
+    case "tipjar.small":
+      return "TipCoffee"
+    case "tipjar.medium":
+      return "TipLunch"
+    case "tipjar.large":
+      return "TipDinner"
+    default:
+      return "TipCoffee"
+    }
+  }
+
+  private func tierCard(_ tier: InAppPurchaseManager.TipTier, isSelected: Bool) -> some View {
+    ZStack(alignment: .bottom) {
+      Image(tierImage(tier.id))
+        .resizable()
+        .scaledToFill()
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .clipped()
+        .opacity(isSelected ? 1 : 0.45)
+
+      if isSelected {
+        LinearGradient(
+          colors: [.black.opacity(0.0), .black.opacity(0.65)],
+          startPoint: .top,
+          endPoint: .bottom
+        )
+        .frame(height: 90)
+
+        VStack(alignment: .leading, spacing: 2) {
+          Text(tier.displayName)
+            .fontWeight(.semibold)
+            .foregroundColor(.white)
+          Text(tier.priceLabel)
+            .font(.subheadline)
+            .foregroundColor(.white.opacity(0.95))
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(10)
+      }
+    }
+    .frame(height: isSelected ? 210 : 165)
+    .background(tierBackground(tier.id))
+    .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+    .overlay(
+      RoundedRectangle(cornerRadius: 20, style: .continuous)
+        .stroke(isSelected ? Color.white : Color.clear, lineWidth: 3)
+    )
   }
 
   var body: some View {
-    NavigationStack {
-      VStack(alignment: .leading, spacing: 18) {
-        Spacer()
-
-        Image("AppIconPreviewAlt1")
-          .resizable()
-          .scaledToFit()
-          .frame(width: 88, height: 88)
-          .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-          .overlay(
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-              .stroke(Color.secondary.opacity(0.25), lineWidth: 1)
-          )
-
-        Text("Purchase flo+")
+    VStack(alignment: .leading, spacing: 24) {
+      VStack(alignment: .leading, spacing: 4) {
+        Text("Support flo")
           .font(.title2)
           .fontWeight(.bold)
+          .foregroundColor(.white)
 
-        Text("Help fund flo development")
-          .foregroundColor(.secondary)
-
-        VStack(alignment: .leading, spacing: 12) {
-          Label("The full version of flo is always Free and OSS", systemImage: "heart")
-          Label("Get a dedicated channel on flo Campfire", systemImage: "cloud")
-          Label("Some other things yet to come", systemImage: "sparkles")
-        }
-
-        Spacer()
-
-        Button(action: {
-          Task {
-            await inAppPurchaseManager.purchaseFloPlus()
-
-            if UserDefaultsManager.floPlus {
-              showSheet = false
-            }
-          }
-        }) {
-          HStack {
-            Text("Purchase flo+ for \(floPlusPriceLabel)")
-              .fontWeight(.semibold)
-
-            if inAppPurchaseManager.isPurchasing {
-              Spacer()
-              ProgressView().controlSize(.small)
-            }
-          }
-          .frame(maxWidth: .infinity)
-        }
-        .padding()
-        .buttonStyle(.borderedProminent)
-        .disabled(inAppPurchaseManager.isPurchasing)
-
-        Button(action: {
-          Task {
-            await inAppPurchaseManager.restorePurchases()
-          }
-        }) {
-          HStack {
-            Text("Restore purchases")
-
-            if inAppPurchaseManager.isRestoring {
-              Spacer()
-              ProgressView().controlSize(.small)
-            }
-          }
-          .frame(maxWidth: .infinity)
-        }
-        .disabled(inAppPurchaseManager.isRestoring)
+        Text("Your support helps flo get better over time.")
+          .font(.subheadline)
+          .foregroundColor(.white.opacity(0.85))
       }
-      .padding(20)
-      .navigationBarTitleDisplayMode(.inline)
+
+      Rectangle()
+        .stroke(Color.white.opacity(0.6), style: StrokeStyle(lineWidth: 1, dash: [5, 5]))
+        .frame(height: 1)
+
+      VStack(spacing: 24) {
+        if inAppPurchaseManager.isLoadingProducts {
+          ProgressView()
+            .frame(maxWidth: .infinity)
+            .padding()
+        } else if inAppPurchaseManager.tipTiers.isEmpty {
+          Text("Tip options are currently unavailable.")
+            .foregroundColor(.white.opacity(0.85))
+            .frame(maxWidth: .infinity)
+            .padding()
+        } else {
+          GeometryReader { geo in
+            let cardWidth: CGFloat = (geo.size.width - 24) / 3
+            let gap: CGFloat = -30
+            ZStack(alignment: .bottom) {
+              ForEach(carouselItems) { tier in
+                let rel = relIndex(for: tier.id)
+                Button(action: {
+                  withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
+                    selectedTierID = tier.id
+                  }
+                }) {
+                  tierCard(tier, isSelected: rel == 0)
+                }
+                .buttonStyle(.plain)
+                .frame(width: cardWidth)
+                .offset(x: CGFloat(rel) * (cardWidth + gap))
+                .zIndex(rel == 0 ? 1 : 0)
+              }
+            }
+            .frame(width: geo.size.width, height: 220)
+            .frame(maxWidth: .infinity)
+            .gesture(
+              DragGesture(minimumDistance: 20)
+                .onEnded { value in
+                  let horizontal = value.translation.width
+                  if horizontal > 40 {
+                    withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
+                      advanceSelection(by: -1)
+                    }
+                  } else if horizontal < -40 {
+                    withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
+                      advanceSelection(by: 1)
+                    }
+                  }
+                }
+            )
+          }
+          .frame(height: 220)
+
+          Button(action: {
+            guard let selected = selectedTier else { return }
+            Task {
+              await inAppPurchaseManager.purchase(selected)
+            }
+          }) {
+            HStack {
+              if let selected = selectedTier {
+                Text("Tip \(selected.priceLabel)")
+                  .fontWeight(.semibold)
+              } else {
+                Text("Select a tip")
+              }
+
+              if inAppPurchaseManager.purchasingProductID != nil {
+                Spacer()
+                ProgressView().controlSize(.small)
+              }
+            }
+            .frame(maxWidth: .infinity)
+          }
+          .tint(.white)
+          .foregroundColor(.accentColor)
+          .font(.title3)
+          .fontWeight(.semibold)
+          .controlSize(.large)
+          .padding(.vertical, 4)
+          .buttonStyle(.borderedProminent)
+          .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+          .disabled(selectedTier == nil || inAppPurchaseManager.isPurchasing)
+        }
+      }
+      .padding(.top, 12)
+
+      Rectangle()
+        .stroke(Color.white.opacity(0.6), style: StrokeStyle(lineWidth: 1, dash: [5, 5]))
+        .frame(height: 1)
+
+      VStack(alignment: .leading, spacing: 10) {
+        tipBullet("gift", "Tipping is optional and unlocks no features.")
+        tipBullet(
+          "wrench.and.screwdriver",
+          "Your tip helps flo improve and grow."
+        )
+        tipBullet("heart", "flo stays free and open source for everyone.")
+      }
+      .font(.subheadline)
     }
-    .presentationDetents([.medium, .large])
-    .presentationDragIndicator(.visible)
+    .padding(20)
+    .frame(maxWidth: .infinity, maxHeight: .infinity)
+    .background(Color.accentColor.ignoresSafeArea())
+    .overlay(alignment: .topTrailing) {
+      Button {
+        showSheet = false
+      } label: {
+        Image(systemName: "xmark")
+          .font(.body.weight(.semibold))
+          .foregroundColor(.white.opacity(0.9))
+          .frame(width: 36, height: 36)
+          .padding(.trailing, 16)
+          .padding(.top, 8)
+      }
+    }
+    .alert("Thank you!", isPresented: $inAppPurchaseManager.showThankYou) {
+      Button("OK", role: .cancel) {
+        showSheet = false
+      }
+    } message: {
+      Text(
+        "Thank you for the \(inAppPurchaseManager.thankYouTierName)! It really helps keep flo going."
+      )
+    }
+    .presentationDetents([.large])
+    .presentationDragIndicator(.hidden)
+    .task {
+      await inAppPurchaseManager.refreshTipProducts()
+    }
   }
 }
 
