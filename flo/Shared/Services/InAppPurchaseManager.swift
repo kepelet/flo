@@ -10,14 +10,26 @@ import StoreKit
 
 @MainActor
 final class InAppPurchaseManager: ObservableObject {
+  /// A single consumable tip tier shown to the user.
+  struct TipTier: Identifiable {
+    let product: Product
+    let displayName: String
+
+    var id: String { product.id }
+
+    var priceLabel: String { product.displayPrice }
+  }
+
   @Published var isPurchasing = false
-  @Published var isRestoring = false
-  @Published var isLoadingProduct = false
-  @Published var floPlusProduct: Product?
+  @Published var purchasingProductID: String?
+  @Published var isLoadingProducts = false
+  @Published var tipTiers: [TipTier] = []
   @Published var purchaseErrorMessage = ""
   @Published var showPurchaseError = false
+  @Published var thankYouTierName = ""
+  @Published var showThankYou = false
 
-  private let floPlusProductID = "flo.plus"
+  private let tipProductIDs = ["tipjar.small", "tipjar.medium", "tipjar.large"]
   private var transactionUpdatesTask: Task<Void, Never>?
 
   init(startObservingTransactions: Bool = true) {
@@ -28,8 +40,7 @@ final class InAppPurchaseManager: ObservableObject {
     transactionUpdatesTask = observeTransactionUpdates()
 
     Task {
-      await loadFloPlusProduct()
-      await refreshFloPlusEntitlement()
+      await loadTipProducts()
     }
   }
 
@@ -37,26 +48,27 @@ final class InAppPurchaseManager: ObservableObject {
     transactionUpdatesTask?.cancel()
   }
 
-  func purchaseFloPlus() async {
+  func purchase(_ tier: TipTier) async {
     guard !isPurchasing else {
       return
     }
 
     isPurchasing = true
+    purchasingProductID = tier.id
     defer {
       isPurchasing = false
+      purchasingProductID = nil
     }
 
     do {
-      let product = try await fetchFloPlusProduct()
-
-      let result = try await product.purchase()
+      let result = try await tier.product.purchase()
 
       switch result {
       case .success(let verificationResult):
         let transaction = try verify(verificationResult)
         await transaction.finish()
-        await refreshFloPlusEntitlement()
+        thankYouTierName = tier.displayName
+        showThankYou = true
       case .pending, .userCancelled:
         break
       @unknown default:
@@ -68,60 +80,47 @@ final class InAppPurchaseManager: ObservableObject {
     }
   }
 
-  func loadFloPlusProduct() async {
-    guard !isLoadingProduct else {
+  func loadTipProducts() async {
+    guard !isLoadingProducts else {
       return
     }
 
-    isLoadingProduct = true
-    defer { isLoadingProduct = false }
+    isLoadingProducts = true
+    defer { isLoadingProducts = false }
 
-    floPlusProduct = try? await fetchFloPlusProduct()
+    let products = try? await Product.products(for: tipProductIDs)
+    let tiers =
+      products?.compactMap { product -> TipTier? in
+        guard let displayName = Self.displayName(for: product.id) else {
+          return nil
+        }
+
+        return TipTier(product: product, displayName: displayName)
+      } ?? []
+
+    tipTiers = tiers
   }
 
-  func restorePurchases() async {
-    guard !isRestoring else {
-      return
-    }
-
-    isRestoring = true
-    defer { isRestoring = false }
-
-    do {
-      try await AppStore.sync()
-      await refreshFloPlusEntitlement()
-    } catch {
-      purchaseErrorMessage = error.localizedDescription
-      showPurchaseError = true
-    }
+  /// Re-fetches tip products from scratch, discarding any previously loaded set.
+  /// Used so reopening the sheet always pulls the latest products from StoreKit
+  /// (newly added products can take a moment to propagate to the sandbox).
+  func refreshTipProducts() async {
+    tipTiers = []
+    await loadTipProducts()
   }
 
-  func refreshFloPlusEntitlement() async {
-    var hasFloPlus = false
-    let now = Date()
-
-    for await result in Transaction.currentEntitlements {
-      guard let transaction = try? verify(result) else {
-        continue
-      }
-
-      if transaction.productID != floPlusProductID {
-        continue
-      }
-
-      if transaction.revocationDate != nil {
-        continue
-      }
-
-      if let expirationDate = transaction.expirationDate, expirationDate < now {
-        continue
-      }
-
-      hasFloPlus = true
-      break
+  /// Maps a product identifier to its user-facing display name.
+  private static func displayName(for productID: String) -> String? {
+    switch productID {
+    case "tipjar.small":
+      return "Coffee"
+    case "tipjar.medium":
+      return "Lunch"
+    case "tipjar.large":
+      return "Dinner"
+    default:
+      return nil
     }
-
-    UserDefaultsManager.floPlus = hasFloPlus
   }
 
   private func observeTransactionUpdates() -> Task<Void, Never> {
@@ -136,19 +135,8 @@ final class InAppPurchaseManager: ObservableObject {
         }
 
         await transaction.finish()
-        await self.refreshFloPlusEntitlement()
       }
     }
-  }
-
-  private func fetchFloPlusProduct() async throws -> Product {
-    let products = try await Product.products(for: [floPlusProductID])
-
-    guard let product = products.first else {
-      throw PurchaseError.productNotFound
-    }
-
-    return product
   }
 
   private func verify<T>(_ verificationResult: VerificationResult<T>) throws -> T {
@@ -163,15 +151,12 @@ final class InAppPurchaseManager: ObservableObject {
 
 extension InAppPurchaseManager {
   enum PurchaseError: LocalizedError {
-    case productNotFound
     case verificationFailed
 
     var errorDescription: String? {
       switch self {
-      case .productNotFound:
-        return "flo+ product was not found. Check the product ID in App Store Connect."
       case .verificationFailed:
-        return "Unable to verify purchase transaction."
+        return "Unable to verify the tip transaction."
       }
     }
   }

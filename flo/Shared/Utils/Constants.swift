@@ -59,7 +59,6 @@ enum UserDefaultsKeys {
   static let playerBackground = "playerBackground"
   static let saveLoginInfo = "saveLoginInfo"
   static let LRCLIBServerURL = "LRCLIBServerURL"
-  static let floPlus = "floPlus"
   static let streamCacheMaxSize = "streamCacheMaxSize"
 }
 
