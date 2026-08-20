@@ -22,7 +22,6 @@ final class UserDefaultsManagerTests: XCTestCase {
       UserDefaultsKeys.enableMaxBitRate,
       UserDefaultsKeys.saveLoginInfo,
       UserDefaultsKeys.LRCLIBServerURL,
-      UserDefaultsKeys.floPlus,
       UserDefaultsKeys.streamCacheMaxSize,
     ]
 
@@ -43,7 +42,6 @@ final class UserDefaultsManagerTests: XCTestCase {
       UserDefaultsKeys.enableMaxBitRate,
       UserDefaultsKeys.saveLoginInfo,
       UserDefaultsKeys.LRCLIBServerURL,
-      UserDefaultsKeys.floPlus,
       UserDefaultsKeys.streamCacheMaxSize,
     ]
 
@@ -150,18 +148,6 @@ final class UserDefaultsManagerTests: XCTestCase {
     XCTAssertEqual(UserDefaultsManager.LRCLIBServerURL, "https://lrclib.example.com")
   }
 
-  // MARK: - floPlus
-
-  func testFloPlus_getDefault() {
-    XCTAssertFalse(UserDefaultsManager.floPlus)
-  }
-
-  func testFloPlus_setAndGet() {
-    UserDefaultsManager.floPlus = true
-
-    XCTAssertTrue(UserDefaultsManager.floPlus)
-  }
-
   // MARK: - streamCacheMaxSize
 
   func testStreamCacheMaxSize_getDefault() {
@@ -179,13 +165,11 @@ final class UserDefaultsManagerTests: XCTestCase {
 
   func testGetAll_includesSetKeys() {
     UserDefaultsManager.serverBaseURL = "https://example.com"
-    UserDefaultsManager.floPlus = true
     UserDefaultsManager.playbackMode = PlaybackMode.repeatOnce
 
     let all = UserDefaultsManager.getAll()
 
     XCTAssertEqual(all[UserDefaultsKeys.serverURL] as? String, "https://example.com")
-    XCTAssertEqual(all[UserDefaultsKeys.floPlus] as? Bool, true)
     XCTAssertEqual(all[UserDefaultsKeys.playbackMode] as? String, PlaybackMode.repeatOnce)
   }
 
