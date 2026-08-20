@@ -459,17 +459,17 @@ struct PreferencesView: View {
         Section(header: Text("Development")) {
 
           Button(action: {
-            showTipJarSheet = true
-          }) {
-            Text("Support flo")
-          }
-
-          Button(action: {
             if let url = URL(string: "https://client.flooo.club/about") {
               UIApplication.shared.open(url)
             }
           }) {
             Text("About flo")
+          }
+
+          Button(action: {
+            showTipJarSheet = true
+          }) {
+            Text("Support flo")
           }
 
           Button(action: {
@@ -757,6 +757,18 @@ struct TipJarSheet: View {
       RoundedRectangle(cornerRadius: 20, style: .continuous)
         .stroke(isSelected ? Color.white : Color.clear, lineWidth: 3)
     )
+    .overlay(alignment: .topTrailing) {
+      let count = inAppPurchaseManager.tipCounts[tier.id] ?? 0
+      if count > 0 {
+        Text("\(count)")
+          .font(.caption.bold())
+          .foregroundColor(.white)
+          .padding(.horizontal, 8)
+          .padding(.vertical, 3)
+          .background(Capsule().fill(Color.black.opacity(0.5)))
+          .padding(8)
+      }
+    }
   }
 
   var body: some View {
@@ -889,19 +901,48 @@ struct TipJarSheet: View {
           .padding(.top, 8)
       }
     }
-    .alert("Thank you!", isPresented: $inAppPurchaseManager.showThankYou) {
-      Button("OK", role: .cancel) {
-        showSheet = false
-      }
-    } message: {
-      Text(
-        "Thank you for the \(inAppPurchaseManager.thankYouTierName)! It really helps keep flo going."
-      )
-    }
     .presentationDetents([.large])
     .presentationDragIndicator(.hidden)
     .task {
       await inAppPurchaseManager.refreshTipProducts()
+    }
+    .overlay {
+      if inAppPurchaseManager.showThankYou {
+        ZStack {
+          ConfettiView()
+
+          VStack(spacing: 12) {
+            Image(systemName: "heart.fill")
+              .font(.system(size: 46))
+              .foregroundColor(.white)
+            Text("Thank you!")
+              .font(.title2.bold())
+              .foregroundColor(.white)
+            Text("for the \(inAppPurchaseManager.thankYouTierName)")
+              .font(.subheadline)
+              .foregroundColor(.white.opacity(0.92))
+          }
+          .padding(28)
+          .background(
+            .ultraThinMaterial,
+            in: RoundedRectangle(cornerRadius: 24, style: .continuous)
+          )
+        }
+        .transition(.opacity)
+      }
+    }
+    .onChange(of: inAppPurchaseManager.showThankYou) { isShowing in
+      guard isShowing else { return }
+
+      Task {
+        try? await Task.sleep(nanoseconds: 2_600_000_000)
+
+        guard inAppPurchaseManager.showThankYou else { return }
+
+        inAppPurchaseManager.thankYouTierName = ""
+        inAppPurchaseManager.showThankYou = false
+        showSheet = false
+      }
     }
   }
 }
