@@ -45,7 +45,7 @@ struct Login: View {
         dismissButton: .default(Text("OK"))
       )
     }
-    .sheet(isPresented: $showIAPLogin) {
+    .iapModal(isPresented: $showIAPLogin) {
       IAPLoginView(authViewModel: viewModel)
     }
     .onChange(of: viewModel.isLoggedIn) { isLoggedIn in
@@ -218,6 +218,19 @@ struct Login: View {
         .multilineTextAlignment(.center)
         .padding(.horizontal, 20)
     }
+  }
+}
+
+extension View {
+  @ViewBuilder
+  func iapModal<Modal: View>(
+    isPresented: Binding<Bool>, @ViewBuilder content: @escaping () -> Modal
+  ) -> some View {
+    #if targetEnvironment(macCatalyst)
+      fullScreenCover(isPresented: isPresented, content: content)
+    #else
+      sheet(isPresented: isPresented, content: content)
+    #endif
   }
 }
 
