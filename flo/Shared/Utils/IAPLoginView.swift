@@ -44,7 +44,7 @@ struct IAPLoginView: View {
         dismissButton: .default(Text("OK"))
       )
     }
-    .sheet(isPresented: $showWebAuth) {
+    .iapModal(isPresented: $showWebAuth) {
       IAPWebAuthView(
         serverURL: serverUrl,
         authViewModel: authViewModel,
