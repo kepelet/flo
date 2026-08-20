@@ -28,6 +28,8 @@ final class InAppPurchaseManager: ObservableObject {
   @Published var showPurchaseError = false
   @Published var thankYouTierName = ""
   @Published var showThankYou = false
+  /// Number of successful tips per product ID (for the card badges).
+  @Published var tipCounts: [String: Int] = [:]
 
   private let tipProductIDs = ["tipjar.small", "tipjar.medium", "tipjar.large"]
   private var transactionUpdatesTask: Task<Void, Never>?
@@ -41,6 +43,7 @@ final class InAppPurchaseManager: ObservableObject {
 
     Task {
       await loadTipProducts()
+      await reconcileTipCounts()
     }
   }
 
@@ -67,6 +70,9 @@ final class InAppPurchaseManager: ObservableObject {
       case .success(let verificationResult):
         let transaction = try verify(verificationResult)
         await transaction.finish()
+        let count = (tipCounts[tier.id] ?? 0) + 1
+        tipCounts[tier.id] = count
+        UserDefaultsManager.setTipCount(count, for: tier.id)
         thankYouTierName = tier.displayName
         showThankYou = true
       case .pending, .userCancelled:
@@ -107,6 +113,30 @@ final class InAppPurchaseManager: ObservableObject {
   func refreshTipProducts() async {
     tipTiers = []
     await loadTipProducts()
+    await reconcileTipCounts()
+  }
+
+  /// Recovers the lifetime tip count from StoreKit transaction history so the
+  /// badges survive an app reinstall on the same Apple ID. Consumables aren't
+  /// restorable, but `Transaction.all` still lists finished consumable purchases;
+  /// we keep the larger of the stored count and the recovered history count and
+  /// never let a recovered value erase a locally recorded one.
+  func reconcileTipCounts() async {
+    var history: [String: Int] = [:]
+
+    for await result in Transaction.all {
+      guard case .verified(let transaction) = result else { continue }
+      guard tipProductIDs.contains(transaction.productID) else { continue }
+      history[transaction.productID, default: 0] += 1
+    }
+
+    for productID in tipProductIDs {
+      let recovered = history[productID] ?? 0
+      let stored = UserDefaultsManager.tipCount(for: productID)
+      let merged = max(recovered, stored)
+      UserDefaultsManager.setTipCount(merged, for: productID)
+      tipCounts[productID] = merged
+    }
   }
 
   /// Maps a product identifier to its user-facing display name.

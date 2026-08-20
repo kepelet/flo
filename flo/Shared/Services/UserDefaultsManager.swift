@@ -128,4 +128,14 @@ class UserDefaultsManager {
     }
   }
 
+  /// Number of times the user has tipped a given product. Stored per product so
+  /// it survives relaunch, and recoverable from StoreKit history on reinstall.
+  static func tipCount(for productID: String) -> Int {
+    return UserDefaults.standard.integer(forKey: "tipCount.\(productID)")
+  }
+
+  static func setTipCount(_ count: Int, for productID: String) {
+    UserDefaults.standard.set(count, forKey: "tipCount.\(productID)")
+  }
+
 }
