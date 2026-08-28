@@ -110,6 +110,39 @@ class AuthService {
     }
   }
 
+  /// Lightweight ND JWT liveness check for standard auth.
+  /// Standard mode previously never revalidated (ghost session when ND token
+  /// expires but Subsonic token still returns 200 for getScanStatus). Hits
+  /// `GET /api/album?_start=0&_end=1` with Bearer token and maps 401/403 →
+  /// .invalid so the caller can clear isLoggedIn.
+  func verifyNDSession(
+    serverUrl: String, token: String,
+    completion: @escaping (IAPSessionCheckResult) -> Void
+  ) {
+    guard !serverUrl.isEmpty, !token.isEmpty,
+      let url = URL(string: "\(serverUrl)/api/album?_start=0&_end=1")
+    else {
+      completion(.unreachable)
+      return
+    }
+    var request = URLRequest(url: url)
+    request.setValue("Bearer \(token)", forHTTPHeaderField: API.NDAuthHeader)
+    request.timeoutInterval = 10
+    URLSession.shared.dataTask(with: request) { _, response, _ in
+      guard let http = response as? HTTPURLResponse else {
+        completion(.unreachable)
+        return
+      }
+      if http.statusCode == 401 || http.statusCode == 403 {
+        completion(.invalid("Session expired"))
+      } else if (200..<300).contains(http.statusCode) {
+        completion(.valid)
+      } else {
+        completion(.unreachable)
+      }
+    }.resume()
+  }
+
   func verifySubsonicAccess(
     _ userAuth: UserAuth,
     serverUrl: String,

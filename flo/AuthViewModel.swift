@@ -42,7 +42,9 @@ class AuthViewModel: ObservableObject {
   }
 
   init() {
-    // TODO: invalidate authz token somewhere here
+    NotificationCenter.default.addObserver(
+      self, selector: #selector(handleSessionExpired), name: .sessionExpired, object: nil)
+
     do {
       if let jsonString = try KeychainManager.getAuthCreds(),
         let jsonData = jsonString.data(using: .utf8)
@@ -82,12 +84,32 @@ class AuthViewModel: ObservableObject {
             id: data.id, username: data.username, name: data.name, isAdmin: data.isAdmin,
             lastFMApiKey: data.lastFMApiKey
           )
+          AuthService.shared.setCreds(data)
           isLoggedIn = true
+
+          // Standard auth was previously never revalidated (only IAP via
+          // verifySubsonicAccess in 7a9f844). A stale ND JWT therefore
+          // produced a ghost isLoggedIn=true while every /api/* returned
+          // 401. Verify ND token in background; on 401/403 clear the
+          // session so UI flips to .expired / login sheet instead of
+          // hanging empty.
+          AuthService.shared.verifyNDSession(serverUrl: serverUrl, token: data.token) {
+            result in
+            if case .invalid = result {
+              DispatchQueue.main.async {
+                self.logout()
+              }
+            }
+          }
         }
       }
     } catch {
       print("Error loading data from Keychain: \(error)")
     }
+  }
+
+  @objc private func handleSessionExpired() {
+    logout()
   }
 
   func login() {
@@ -125,6 +147,9 @@ class AuthViewModel: ObservableObject {
           switch error {
           case .server(let message):
             self.alertMessage = message
+
+          case .sessionExpired:
+            self.alertMessage = "Session expired. Please log in again."
 
           case .unknown:
             self.alertMessage = "Unknown error ocurred"
