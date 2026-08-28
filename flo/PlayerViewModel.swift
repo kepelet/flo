@@ -410,16 +410,30 @@ class PlayerViewModel: ObservableObject {
     let commandCenter = MPRemoteCommandCenter.shared()
 
     commandCenter.playCommand.isEnabled = true
-
-    commandCenter.playCommand.addTarget { [unowned self] event in
+    commandCenter.playCommand.addTarget { [weak self] _ in
+      guard let self else { return .commandFailed }
       self.play()
-
       return .success
     }
 
-    commandCenter.pauseCommand.addTarget { [unowned self] event in
+    commandCenter.pauseCommand.isEnabled = true
+    commandCenter.pauseCommand.addTarget { [weak self] _ in
+      guard let self else { return .commandFailed }
       self.pause()
+      return .success
+    }
 
+    // FLO-6: Wired EarPods single-press sends togglePlayPauseCommand (iOS 26),
+    // not discrete play/pause. Without this target the click is dropped as
+    // .commandFailed while volume/skip still work.
+    commandCenter.togglePlayPauseCommand.isEnabled = true
+    commandCenter.togglePlayPauseCommand.addTarget { [weak self] _ in
+      guard let self else { return .commandFailed }
+      if self.isPlaying {
+        self.pause()
+      } else {
+        self.play()
+      }
       return .success
     }
 
