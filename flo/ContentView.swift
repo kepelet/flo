@@ -29,27 +29,23 @@ struct ContentView: View {
   private var swipeThreshold: CGFloat = 150.0
 
   private var isPadSidebar: Bool {
-    guard UIDevice.current.userInterfaceIdiom == .pad else { return false }
-    if #available(iOS 18.0, *) {
-      return true
-    }
-    return false
+    #if targetEnvironment(macCatalyst)
+      return false
+    #else
+      guard UIDevice.current.userInterfaceIdiom == .pad else { return false }
+      if #available(iOS 18.0, *) {
+        return true
+      }
+      return false
+    #endif
   }
 
   private func estimatedSidebarWidth(for totalWidth: CGFloat) -> CGFloat {
-    #if targetEnvironment(macCatalyst)
-      return min(max(totalWidth * 0.22, 220), 320)
-    #else
-      return 0
-    #endif
+    return 0
   }
 
   private func floatingPlayerContentCenterOffsetX(totalWidth: CGFloat) -> CGFloat {
-    #if targetEnvironment(macCatalyst)
-      return estimatedSidebarWidth(for: totalWidth) / 2
-    #else
-      return 0
-    #endif
+    return 0
   }
 
   @ViewBuilder
@@ -64,7 +60,7 @@ struct ContentView: View {
 
   @ViewBuilder
   private var rootTabView: some View {
-    if UIDevice.current.userInterfaceIdiom == .pad {
+    if isPadSidebar {
       if #available(iOS 18.0, *) {
         sidebarTabView
           .tabViewStyle(.sidebarAdaptable)
