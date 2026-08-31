@@ -23,6 +23,7 @@ final class UserDefaultsManagerTests: XCTestCase {
       UserDefaultsKeys.saveLoginInfo,
       UserDefaultsKeys.LRCLIBServerURL,
       UserDefaultsKeys.streamCacheMaxSize,
+      UserDefaultsKeys.libraryViewV2,
     ]
 
     for key in keys {
@@ -43,6 +44,7 @@ final class UserDefaultsManagerTests: XCTestCase {
       UserDefaultsKeys.saveLoginInfo,
       UserDefaultsKeys.LRCLIBServerURL,
       UserDefaultsKeys.streamCacheMaxSize,
+      UserDefaultsKeys.libraryViewV2,
     ]
 
     for key in keys {
@@ -187,5 +189,18 @@ final class UserDefaultsManagerTests: XCTestCase {
   func testPlayerBackground_alwaysReturnsTranslucent() {
     // per the implementation, playerBackground always returns translucent
     XCTAssertEqual(UserDefaultsManager.playerBackground, PlayerBackground.translucent)
+  }
+
+  // MARK: - libraryViewV2
+
+  func testLibraryViewV2_getDefault() {
+    XCTAssertFalse(UserDefaultsManager.libraryViewV2)
+  }
+
+  func testLibraryViewV2_setAndGet() {
+    UserDefaultsManager.libraryViewV2 = true
+    XCTAssertTrue(UserDefaultsManager.libraryViewV2)
+    UserDefaultsManager.libraryViewV2 = false
+    XCTAssertFalse(UserDefaultsManager.libraryViewV2)
   }
 }

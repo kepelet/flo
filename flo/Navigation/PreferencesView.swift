@@ -454,6 +454,18 @@ struct PreferencesView: View {
                 .foregroundColor(.gray)
             }
           }
+
+          VStack(alignment: .leading, spacing: 4) {
+            Toggle(
+              "Library View V2",
+              isOn: Binding(
+                get: { UserDefaultsManager.libraryViewV2 },
+                set: { UserDefaultsManager.libraryViewV2 = $0 }
+              ))
+
+            Text("Unified library").font(.caption)
+              .foregroundColor(.gray)
+          }
         }
 
         Section(header: Text("Development")) {

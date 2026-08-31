@@ -17,6 +17,8 @@ class AlbumViewModel: ObservableObject {
   @Published var album: Album = Album()
   @Published var starredSongs: [Song] = []
   @Published var downloadedAlbums: [Album] = []
+  @Published var recentlyPlayedAlbums: [Album] = []
+  @Published var recentlyAddedAlbums: [Album] = []
 
   @Published var isDownloadingAlbumId: String = ""
   @Published var isDownloaded = false
@@ -194,6 +196,32 @@ class AlbumViewModel: ObservableObject {
         switch result {
         case .success(let songs):
           self.starredSongs = songs
+        case .failure(let error):
+          self.error = error
+        }
+      }
+    }
+  }
+
+  func fetchRecentlyPlayedAlbums() {
+    AlbumService.shared.getRecentlyPlayedAlbums { result in
+      DispatchQueue.main.async {
+        switch result {
+        case .success(let albums):
+          self.recentlyPlayedAlbums = albums
+        case .failure(let error):
+          self.error = error
+        }
+      }
+    }
+  }
+
+  func fetchRecentlyAddedAlbums() {
+    AlbumService.shared.getRecentlyAddedAlbums { result in
+      DispatchQueue.main.async {
+        switch result {
+        case .success(let albums):
+          self.recentlyAddedAlbums = albums
         case .failure(let error):
           self.error = error
         }
@@ -551,6 +579,28 @@ class AlbumViewModel: ObservableObject {
     await refreshCached(
       cacheKey: .songs, assign: { self.songs = $0 },
       request: AlbumService.shared.getAllSongs)
+  }
+
+  @MainActor func refreshRecentlyPlayedAlbums() async {
+    await withCheckedContinuation { continuation in
+      AlbumService.shared.getRecentlyPlayedAlbums { result in
+        DispatchQueue.main.async {
+          if case .success(let albums) = result { self.recentlyPlayedAlbums = albums }
+          continuation.resume()
+        }
+      }
+    }
+  }
+
+  @MainActor func refreshRecentlyAddedAlbums() async {
+    await withCheckedContinuation { continuation in
+      AlbumService.shared.getRecentlyAddedAlbums { result in
+        DispatchQueue.main.async {
+          if case .success(let albums) = result { self.recentlyAddedAlbums = albums }
+          continuation.resume()
+        }
+      }
+    }
   }
 
   func fetchDownloadedAlbums() {

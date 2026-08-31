@@ -16,6 +16,7 @@ enum API {
     static let getArtists = "/api/artist"
     static let getPlaylists = "/api/playlist"
     static let getSong = "/api/song"
+    static let getGenre = "/api/genre"
     static let shareAlbum = "/api/share"
     static let listenBrainzLink = "/api/listenbrainz/link"
     static let lastFMLink = "/api/lastfm/link"
@@ -34,6 +35,7 @@ enum API {
     static let star = "/rest/star"
     static let unstar = "/rest/unstar"
     static let getStarred2 = "/rest/getStarred2"
+    static let getAlbumList2 = "/rest/getAlbumList2"
   }
 }
 
@@ -60,6 +62,7 @@ enum UserDefaultsKeys {
   static let saveLoginInfo = "saveLoginInfo"
   static let LRCLIBServerURL = "LRCLIBServerURL"
   static let streamCacheMaxSize = "streamCacheMaxSize"
+  static let libraryViewV2 = "libraryViewV2"
 }
 
 enum KeychainKeys {
