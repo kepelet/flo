@@ -582,7 +582,33 @@ private struct LibrarySearchTabView: View {
     if searchText.isEmpty { return [] }
     return albumViewModel.songs.filter { $0.title.localizedCaseInsensitiveContains(searchText) || $0.artist.localizedCaseInsensitiveContains(searchText) }
   }
-  private var hasResults: Bool { !filteredAlbums.isEmpty || !filteredArtists.isEmpty || !filteredSongs.isEmpty }
+
+  private var filteredPlaylists: [Playlist] {
+    if searchText.isEmpty { return [] }
+    return albumViewModel.playlists.filter { $0.name.localizedCaseInsensitiveContains(searchText) }
+  }
+
+  private var filteredRadios: [Radio] {
+    if searchText.isEmpty { return [] }
+    return radiosViewModel.radios.filter { $0.name.localizedCaseInsensitiveContains(searchText) }
+  }
+
+  private var filteredLiked: [Song] {
+    if searchText.isEmpty { return [] }
+    return albumViewModel.starredSongs.filter { $0.title.localizedCaseInsensitiveContains(searchText) || $0.artist.localizedCaseInsensitiveContains(searchText) }
+  }
+
+  private var filteredRecentPlayed: [Album] {
+    if searchText.isEmpty { return [] }
+    return albumViewModel.recentlyPlayedAlbums.filter { $0.name.localizedCaseInsensitiveContains(searchText) }
+  }
+
+  private var filteredRecentAdded: [Album] {
+    if searchText.isEmpty { return [] }
+    return albumViewModel.recentlyAddedAlbums.filter { $0.name.localizedCaseInsensitiveContains(searchText) }
+  }
+
+  private var hasResults: Bool { !filteredAlbums.isEmpty || !filteredArtists.isEmpty || !filteredSongs.isEmpty || !filteredPlaylists.isEmpty || !filteredRadios.isEmpty || !filteredLiked.isEmpty || !filteredRecentPlayed.isEmpty || !filteredRecentAdded.isEmpty }
 
   private func sectionHeader(title: String, subtitle: String? = nil) -> some View {
     VStack(alignment: .leading, spacing: 2) {
