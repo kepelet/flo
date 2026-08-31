@@ -581,6 +581,7 @@ private struct LibrarySearchTabView: View {
   @State private var selectedGenre: Genre?
   @State private var genreAlbums: [Album] = []
   @State private var isLoadingGenreAlbums = false
+  @State private var path = NavigationPath()
 
   private var columns: [GridItem] {
     if horizontalSizeClass == .regular { return Array(repeating: GridItem(.flexible()), count: 4) }
@@ -689,10 +690,9 @@ private struct LibrarySearchTabView: View {
       LinearGradient(colors: [Color.black.opacity(0.30), Color.black.opacity(0.0)], startPoint: .bottom, endPoint: .top)
         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
       Text(genre.name)
-        .customFont(.headline)
-        .fontWeight(.bold)
+        .font(.custom("Plus Jakarta Sans", size: 17).weight(.bold))
         .foregroundColor(.white)
-        .shadow(color: Color.black.opacity(0.25), radius: 1, x: 0, y: 1)
+        .shadow(color: Color.black.opacity(0.35), radius: 1, x: 0, y: 1)
         .lineLimit(1)
         .padding(.horizontal, 14)
         .padding(.vertical, 12)
@@ -792,7 +792,7 @@ private struct LibrarySearchTabView: View {
   }
 
   var body: some View {
-    NavigationStack {
+    NavigationStack(path: $path) {
       ScrollView {
         if searchText.isEmpty {
             if isLoadingGenres {
@@ -988,6 +988,11 @@ private struct LibrarySearchTabView: View {
         albumViewModel.fetchDownloadedAlbums()
         cachedSongs = StreamCacheManager.shared.getCachedSongs()
         fetchGenres()
+        if ProcessInfo.processInfo.arguments.contains("-UITestPushGenre") {
+          DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+            path.append(Genre(name: "Rock"))
+          }
+        }
       }
       .onChange(of: searchText) { _ in
         if searchText.isEmpty { selectedGenre = nil; genreAlbums = [] }
