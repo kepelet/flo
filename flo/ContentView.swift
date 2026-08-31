@@ -105,6 +105,7 @@ struct ContentView: View {
                 .environmentObject(albumViewModel)
                 .environmentObject(playerViewModel)
                 .environmentObject(downloadViewModel)
+                .environmentObject(authViewModel)
             }
             Tab("Preferences", systemImage: "gear", value: AppTab.preferences) {
               PreferencesView(authViewModel: authViewModel)
@@ -140,6 +141,7 @@ struct ContentView: View {
                 .environmentObject(albumViewModel)
                 .environmentObject(playerViewModel)
                 .environmentObject(downloadViewModel)
+                .environmentObject(authViewModel)
             }
             Tab("Preferences", systemImage: "gear", value: AppTab.preferences) {
               PreferencesView(authViewModel: authViewModel)
@@ -564,6 +566,7 @@ private struct LibrarySearchTabView: View {
   @EnvironmentObject var albumViewModel: AlbumViewModel
   @EnvironmentObject var playerViewModel: PlayerViewModel
   @EnvironmentObject var downloadViewModel: DownloadViewModel
+  @EnvironmentObject var authViewModel: AuthViewModel
   @StateObject private var radiosViewModel = RadiosViewModel()
   @Environment(\.horizontalSizeClass) private var horizontalSizeClass
   @State private var searchText = ""
@@ -575,7 +578,7 @@ private struct LibrarySearchTabView: View {
   }
 
   private var isLoggedIn: Bool {
-    !AuthService.shared.getCreds(key: "NDToken").isEmpty && albumViewModel.error == nil
+    authViewModel.isLoggedIn
   }
 
   private func tintColor(for key: String) -> Color {
