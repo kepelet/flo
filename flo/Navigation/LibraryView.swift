@@ -747,7 +747,7 @@ struct LibraryView: View {
                 .environmentObject(downloadViewModel)
                 .onAppear { viewModel.setActivePlaylist(playlist: playlist) }
             } label: {
-              VStack(alignment: .leading, spacing: 6) {
+              VStack(alignment: .leading) {
                 v2PlaylistCover(playlist: playlist)
                 Text(playlist.name)
                   .customFont(.caption1)
@@ -900,9 +900,21 @@ struct LibraryView: View {
               .frame(width: 44, height: 44)
               .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
           } else if state.error != nil {
-            v2PlaceholderArtwork(key: key)
-              .frame(width: 44, height: 44)
-              .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+            ZStack {
+              RoundedRectangle(cornerRadius: 6, style: .continuous)
+                .fill(Color.gray.opacity(0.12))
+              Image(uiImage: UIImage(named: "placeholder") ?? UIImage())
+                .resizable()
+                .scaledToFit()
+                .padding(8)
+                .opacity(0.6)
+                .overlay(
+                  RoundedRectangle(cornerRadius: 6, style: .continuous)
+                    .fill(tintColor(for: key).opacity(0.35))
+                )
+            }
+            .frame(width: 44, height: 44)
+            .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
           } else {
             ZStack {
               RoundedRectangle(cornerRadius: 6).fill(Color.gray.opacity(0.12))
@@ -960,9 +972,21 @@ struct LibraryView: View {
               .frame(width: 100, height: 100)
               .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
           } else if state.error != nil {
-            v2PlaceholderArtwork(key: key)
-              .frame(width: 100, height: 100)
-              .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+            ZStack {
+              RoundedRectangle(cornerRadius: 8, style: .continuous)
+                .fill(Color.gray.opacity(0.12))
+              Image(uiImage: UIImage(named: "placeholder") ?? UIImage())
+                .resizable()
+                .scaledToFit()
+                .padding(16)
+                .opacity(0.6)
+                .overlay(
+                  RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .fill(tintColor(for: key).opacity(0.35))
+                )
+            }
+            .frame(width: 100, height: 100)
+            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
           } else {
             ZStack {
               RoundedRectangle(cornerRadius: 8).fill(Color.gray.opacity(0.12))
@@ -996,15 +1020,23 @@ struct LibraryView: View {
       ScrollView(.horizontal, showsIndicators: false) {
         HStack(spacing: 12) {
           ForEach(Array(radiosViewModel.radios.prefix(5)), id: \.id) { radio in
-            VStack(spacing: 6) {
-              v2PlaceholderArtwork(key: radio.id, systemImage: "radio")
-                .frame(width: 100, height: 100)
-                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+            ZStack(alignment: .bottomLeading) {
+              RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(tintColor(for: radio.name.isEmpty ? radio.id : radio.name))
+              LinearGradient(colors: [Color.black.opacity(0.58), Color.clear], startPoint: .bottom, endPoint: .top)
+                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
               Text(radio.name)
-                .customFont(.caption1)
+                .font(.custom("Plus Jakarta Sans", size: 17).weight(.bold))
+                .foregroundColor(.white)
+                .shadow(color: Color.black.opacity(0.50), radius: 2, x: 0, y: 1)
                 .lineLimit(1)
-                .frame(width: 100)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 12)
+                .frame(maxWidth: .infinity, alignment: .bottomLeading)
             }
+            .frame(width: 220, height: 110)
+            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(Color.white.opacity(0.12), lineWidth: 1))
             .onTapGesture {
               playerViewModel.playRadioItem(radio: radio)
             }
@@ -1026,14 +1058,19 @@ struct LibraryView: View {
                 .environmentObject(downloadViewModel)
                 .onAppear { viewModel.setActiveAlbum(album: album) }
             } label: {
-              VStack(alignment: .leading, spacing: 6) {
+              VStack(alignment: .leading) {
                 v2AlbumCoverSmall(album: album)
-                Text(album.name)
-                  .customFont(.caption1)
-                  .fontWeight(.bold)
-                  .foregroundColor(.primary)
-                  .lineLimit(1)
-                  .frame(width: 120, alignment: .leading)
+                HStack(alignment: .center, spacing: 4) {
+                  Text(album.name)
+                    .customFont(.caption1)
+                    .fontWeight(.bold)
+                    .foregroundColor(.primary)
+                    .lineLimit(1)
+                  if album.isExplicit {
+                    ExplicitBadge(size: .compact)
+                  }
+                }
+                .frame(width: 120, alignment: .leading)
                 Text(album.albumArtist.isEmpty ? album.artist : album.albumArtist)
                   .customFont(.caption2)
                   .foregroundColor(.gray)
@@ -1059,14 +1096,19 @@ struct LibraryView: View {
                 .environmentObject(downloadViewModel)
                 .onAppear { viewModel.setActiveAlbum(album: album) }
             } label: {
-              VStack(alignment: .leading, spacing: 6) {
+              VStack(alignment: .leading) {
                 v2AlbumCoverSmall(album: album)
-                Text(album.name)
-                  .customFont(.caption1)
-                  .fontWeight(.bold)
-                  .foregroundColor(.primary)
-                  .lineLimit(1)
-                  .frame(width: 120, alignment: .leading)
+                HStack(alignment: .center, spacing: 4) {
+                  Text(album.name)
+                    .customFont(.caption1)
+                    .fontWeight(.bold)
+                    .foregroundColor(.primary)
+                    .lineLimit(1)
+                  if album.isExplicit {
+                    ExplicitBadge(size: .compact)
+                  }
+                }
+                .frame(width: 120, alignment: .leading)
                 Text(album.albumArtist.isEmpty ? album.artist : album.albumArtist)
                   .customFont(.caption2)
                   .foregroundColor(.gray)
@@ -1109,14 +1151,19 @@ struct LibraryView: View {
                   viewModel.setActiveAlbum(album: album)
                 }
             } label: {
-              VStack(alignment: .leading, spacing: 6) {
+              VStack(alignment: .leading) {
                 v2AlbumCoverSmall(album: album)
-                Text(album.name)
-                  .customFont(.caption1)
-                  .fontWeight(.bold)
-                  .foregroundColor(.primary)
-                  .lineLimit(1)
-                  .frame(width: 120, alignment: .leading)
+                HStack(alignment: .center, spacing: 4) {
+                  Text(album.name)
+                    .customFont(.caption1)
+                    .fontWeight(.bold)
+                    .foregroundColor(.primary)
+                    .lineLimit(1)
+                  if album.isExplicit {
+                    ExplicitBadge(size: .compact)
+                  }
+                }
+                .frame(width: 120, alignment: .leading)
                 Text(album.albumArtist)
                   .customFont(.caption2)
                   .foregroundColor(.gray)
