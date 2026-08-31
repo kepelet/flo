@@ -10,6 +10,7 @@ import SwiftUI
 
 struct ContentView: View {
   @AppStorage(UserDefaultsKeys.enableDebug) private var enableDebug = false
+  @AppStorage(UserDefaultsKeys.libraryViewV2) private var libraryViewV2Enabled = false
   @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
   @State private var isPlayerExpanded: Bool = false
@@ -102,15 +103,17 @@ struct ContentView: View {
         }
       }
 
-      DownloadsView(viewModel: albumViewModel).tabItem {
-        Label("Downloads", systemImage: "arrow.down.circle")
+      if !libraryViewV2Enabled {
+        DownloadsView(viewModel: albumViewModel).tabItem {
+          Label("Downloads", systemImage: "arrow.down.circle")
+        }
+        .tag(AppTab.downloads)
+        .environmentObject(playerViewModel)
+        .environmentObject(downloadViewModel)
+        .onAppear {
+          albumViewModel.fetchDownloadedAlbums()
+        }.badge(downloadViewModel.getRemainingDownloadItems())
       }
-      .tag(AppTab.downloads)
-      .environmentObject(playerViewModel)
-      .environmentObject(downloadViewModel)
-      .onAppear {
-        albumViewModel.fetchDownloadedAlbums()
-      }.badge(downloadViewModel.getRemainingDownloadItems())
 
       PreferencesView(authViewModel: authViewModel).tabItem {
         Label("Preferences", systemImage: "gear")
@@ -130,6 +133,11 @@ struct ContentView: View {
     .id(tabViewID)
     .onChange(of: enableDebug) { _ in
       tabViewID = UUID()
+    }
+    .onChange(of: libraryViewV2Enabled) { isEnabled in
+      if isEnabled, libraryRouter.selectedTab == .downloads {
+        libraryRouter.selectedTab = authViewModel.isLoggedIn ? .library : .home
+      }
     }
   }
 
@@ -270,17 +278,19 @@ struct ContentView: View {
         }
       }
 
-      Tab("Downloads", systemImage: "arrow.down.circle", value: AppTab.downloads) {
-        sidebarTabContent(
-          DownloadsView(viewModel: albumViewModel)
-            .environmentObject(playerViewModel)
-            .environmentObject(downloadViewModel)
-            .onAppear {
-              albumViewModel.fetchDownloadedAlbums()
-            }
-        )
+      if !libraryViewV2Enabled {
+        Tab("Downloads", systemImage: "arrow.down.circle", value: AppTab.downloads) {
+          sidebarTabContent(
+            DownloadsView(viewModel: albumViewModel)
+              .environmentObject(playerViewModel)
+              .environmentObject(downloadViewModel)
+              .onAppear {
+                albumViewModel.fetchDownloadedAlbums()
+              }
+          )
+        }
+        .badge(downloadViewModel.getRemainingDownloadItems())
       }
-      .badge(downloadViewModel.getRemainingDownloadItems())
 
       Tab("Preferences", systemImage: "gear", value: AppTab.preferences) {
         sidebarTabContent(
@@ -302,6 +312,11 @@ struct ContentView: View {
     .id(tabViewID)
     .onChange(of: enableDebug) { _ in
       tabViewID = UUID()
+    }
+    .onChange(of: libraryViewV2Enabled) { isEnabled in
+      if isEnabled, libraryRouter.selectedTab == .downloads {
+        libraryRouter.selectedTab = authViewModel.isLoggedIn ? .library : .home
+      }
     }
   }
 

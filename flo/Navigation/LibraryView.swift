@@ -8,11 +8,20 @@
 import NukeUI
 import SwiftUI
 
+enum LibraryV2Segment: String, CaseIterable, Identifiable {
+  case library = "Library"
+  case downloads = "Downloads"
+  var id: String { rawValue }
+}
+
 struct LibraryView: View {
   let showQuickNavigation: Bool
   @State private var searchAlbum = ""
   @State private var showDownloadSheet: Bool = false
   @State private var forceShowQuickNavigation: Bool = false
+  @State private var selectedSegment: LibraryV2Segment = .library
+  @State private var downloadsSearch = ""
+  @State private var cachedSongs: [Song] = []
 
   @ObservedObject var viewModel: AlbumViewModel
   @StateObject private var radiosViewModel = RadiosViewModel()
@@ -46,6 +55,14 @@ struct LibraryView: View {
       return viewModel.albums.filter { album in
         album.name.localizedCaseInsensitiveContains(searchAlbum)
       }
+    }
+  }
+
+  private var filteredDownloadedAlbums: [Album] {
+    if downloadsSearch.isEmpty {
+      return viewModel.downloadedAlbums
+    } else {
+      return viewModel.downloadedAlbums.filter { $0.name.localizedCaseInsensitiveContains(downloadsSearch) }
     }
   }
 
@@ -283,14 +300,21 @@ struct LibraryView: View {
 
   // MARK: - V2
 
+  private var activeSearchBinding: Binding<String> {
+    Binding(
+      get: { selectedSegment == .downloads ? downloadsSearch : searchAlbum },
+      set: { if selectedSegment == .downloads { downloadsSearch = $0 } else { searchAlbum = $0 } }
+    )
+  }
+
   @ViewBuilder
   private var libraryV2ContentWrapper: some View {
     if #available(iOS 26.0, macOS 26.0, macCatalyst 26.0, *) {
       libraryV2ScrollContent
         .searchable(
-          text: $searchAlbum,
+          text: activeSearchBinding,
           placement: .navigationBarDrawer(displayMode: .always),
-          prompt: "Search"
+          prompt: selectedSegment == .downloads ? "Search Downloads" : "Search"
         )
         .searchToolbarBehavior(.minimize)
         .sheet(isPresented: $showDownloadSheet) {
@@ -305,7 +329,7 @@ struct LibraryView: View {
             }
           }
         }
-        .navigationTitle("Library")
+        .navigationTitle(selectedSegment == .downloads ? "Library • Downloads" : "Library")
         .refreshable {
           await viewModel.refreshAlbums()
           await viewModel.refreshArtists()
@@ -315,6 +339,8 @@ struct LibraryView: View {
           await viewModel.refreshRecentlyAddedAlbums()
           viewModel.fetchStarredSongs()
           radiosViewModel.fetchAllRadios()
+          viewModel.fetchDownloadedAlbums()
+          cachedSongs = StreamCacheManager.shared.getCachedSongs()
         }
         .onAppear {
           viewModel.getArtists()
@@ -323,14 +349,16 @@ struct LibraryView: View {
           viewModel.fetchStarredSongs()
           viewModel.fetchRecentlyPlayedAlbums()
           viewModel.fetchRecentlyAddedAlbums()
+          viewModel.fetchDownloadedAlbums()
+          cachedSongs = StreamCacheManager.shared.getCachedSongs()
           radiosViewModel.fetchAllRadios()
         }
     } else {
       libraryV2ScrollContent
         .searchable(
-          text: $searchAlbum,
+          text: activeSearchBinding,
           placement: .navigationBarDrawer(displayMode: .always),
-          prompt: "Search"
+          prompt: selectedSegment == .downloads ? "Search Downloads" : "Search"
         )
         .sheet(isPresented: $showDownloadSheet) {
           DownloadQueueView().environmentObject(downloadViewModel)
@@ -344,7 +372,7 @@ struct LibraryView: View {
             }
           }
         }
-        .navigationTitle("Library")
+        .navigationTitle(selectedSegment == .downloads ? "Library • Downloads" : "Library")
         .refreshable {
           await viewModel.refreshAlbums()
           await viewModel.refreshArtists()
@@ -354,6 +382,8 @@ struct LibraryView: View {
           await viewModel.refreshRecentlyAddedAlbums()
           viewModel.fetchStarredSongs()
           radiosViewModel.fetchAllRadios()
+          viewModel.fetchDownloadedAlbums()
+          cachedSongs = StreamCacheManager.shared.getCachedSongs()
         }
         .onAppear {
           viewModel.getArtists()
@@ -362,61 +392,140 @@ struct LibraryView: View {
           viewModel.fetchStarredSongs()
           viewModel.fetchRecentlyPlayedAlbums()
           viewModel.fetchRecentlyAddedAlbums()
+          viewModel.fetchDownloadedAlbums()
+          cachedSongs = StreamCacheManager.shared.getCachedSongs()
           radiosViewModel.fetchAllRadios()
         }
     }
   }
 
+  private var libraryV2SegmentedControl: some View {
+    // HIG segmented control: 2 equal-width segments, icons optional, persistent selection
+    Picker("Library section", selection: $selectedSegment) {
+      Label("Library", systemImage: "square.grid.2x2")
+        .tag(LibraryV2Segment.library)
+      Label("Downloads", systemImage: "arrow.down.circle")
+        .tag(LibraryV2Segment.downloads)
+    }
+    .pickerStyle(.segmented)
+    .accessibilityLabel("Library section")
+    .padding(.horizontal)
+    .padding(.top, 8)
+    .padding(.bottom, 4)
+  }
+
   private var libraryV2ScrollContent: some View {
+    VStack(spacing: 0) {
+      libraryV2SegmentedControl
+      Divider().opacity(0.6)
+      if selectedSegment == .downloads {
+        v2DownloadsScrollContent
+      } else {
+        ScrollView {
+          if viewModel.albums.isEmpty && viewModel.error != nil {
+            VStack(alignment: .center) {
+              Image("Home").resizable().aspectRatio(contentMode: .fit).frame(
+                maxWidth: .infinity, maxHeight: 300
+              ).padding()
+              Group {
+                Text("Your Navidrome session may have expired")
+                  .customFont(.title1)
+                  .fontWeight(.bold)
+                  .multilineTextAlignment(.center)
+                  .padding(.bottom, 10)
+                Text("The quickest action you can take is to log back in — for now.")
+                  .customFont(.subheadline)
+                  .multilineTextAlignment(.center)
+              }.padding(.horizontal, 20).foregroundColor(.accent)
+            }
+            .frame(maxWidth: .infinity)
+          } else {
+            VStack(alignment: .leading, spacing: 24) {
+              if !viewModel.recentlyPlayedAlbums.isEmpty {
+                v2RecentlyPlayedSection
+              }
+              v2AlbumsHorizontalSection
+              if !viewModel.recentlyAddedAlbums.isEmpty {
+                v2RecentlyAddedSection
+              }
+
+              if searchAlbum.isEmpty {
+                if !viewModel.artists.isEmpty {
+                  v2ArtistsSection
+                }
+                if !viewModel.starredSongs.isEmpty {
+                  v2LikedSongsSection
+                }
+                if !viewModel.playlists.isEmpty {
+                  v2PlaylistsSection
+                }
+                if !viewModel.songs.isEmpty {
+                  v2SongsSection
+                }
+                if !radiosViewModel.radios.isEmpty {
+                  v2RadiosSection
+                }
+              }
+            }
+            .padding(.top, 10)
+            .padding(.bottom, playerViewModel.hasNowPlaying() && !playerViewModel.shouldHidePlayer ? 90 : 12)
+          }
+        }
+      }
+    }
+  }
+
+  private var v2DownloadsScrollContent: some View {
     ScrollView {
-      if viewModel.albums.isEmpty && viewModel.error != nil {
+      if viewModel.downloadedAlbums.isEmpty && cachedSongs.isEmpty {
         VStack(alignment: .center) {
-          Image("Home").resizable().aspectRatio(contentMode: .fit).frame(
-            maxWidth: .infinity, maxHeight: 300
-          ).padding()
+          Image("Downloads").resizable().aspectRatio(contentMode: .fit).frame(width: 300)
+            .padding().padding(.bottom, 10)
           Group {
-            Text("Your Navidrome session may have expired")
+            Text("Going off the grid?")
               .customFont(.title1)
               .fontWeight(.bold)
               .multilineTextAlignment(.center)
               .padding(.bottom, 10)
-            Text("The quickest action you can take is to log back in — for now.")
+            Text("Bring your music anywhere, even when you're offline. Your downloaded music will be here.")
               .customFont(.subheadline)
               .multilineTextAlignment(.center)
           }.padding(.horizontal, 20).foregroundColor(.accent)
-        }
-        .frame(maxWidth: .infinity)
+        }.frame(maxWidth: .infinity).padding(.top, 20)
       } else {
-        VStack(alignment: .leading, spacing: 24) {
-          if !viewModel.recentlyPlayedAlbums.isEmpty {
-            v2RecentlyPlayedSection
+        VStack(alignment: .leading, spacing: 16) {
+          if !cachedSongs.isEmpty {
+            NavigationLink {
+              CachedSongsView(viewModel: viewModel, songs: cachedSongs)
+            } label: {
+              HStack {
+                Image(systemName: "music.note.list").font(.title3).foregroundColor(.accentColor).frame(width: 40)
+                VStack(alignment: .leading) {
+                  Text("Cached").customFont(.headline)
+                  Text("\(cachedSongs.count) songs").customFont(.caption1).foregroundColor(.gray)
+                }
+                Spacer()
+                Image(systemName: "chevron.right").foregroundColor(.gray)
+              }.padding(.horizontal).padding(.vertical, 8)
+            }.buttonStyle(.plain)
+            Divider().padding(.horizontal)
           }
-          v2AlbumsHorizontalSection
-          if !viewModel.recentlyAddedAlbums.isEmpty {
-            v2RecentlyAddedSection
-          }
-
-          if searchAlbum.isEmpty {
-            if !viewModel.artists.isEmpty {
-              v2ArtistsSection
+          LazyVGrid(columns: columns, spacing: 20) {
+            ForEach(filteredDownloadedAlbums) { album in
+              NavigationLink {
+                AlbumView(viewModel: viewModel, isDownloadScreen: true).onAppear { viewModel.setActiveAlbum(album: album) }
+              } label: {
+                AlbumsView(viewModel: viewModel, album: album, isDownloadScreen: true)
+              }
             }
-            if !viewModel.starredSongs.isEmpty {
-              v2LikedSongsSection
-            }
-            if !viewModel.playlists.isEmpty {
-              v2PlaylistsSection
-            }
-            if !viewModel.songs.isEmpty {
-              v2SongsSection
-            }
-            if !radiosViewModel.radios.isEmpty {
-              v2RadiosSection
-            }
-          }
+          }.padding(.horizontal, 4).padding(.top, 10)
         }
-        .padding(.top, 10)
         .padding(.bottom, playerViewModel.hasNowPlaying() && !playerViewModel.shouldHidePlayer ? 90 : 12)
       }
+    }
+    .onAppear {
+      cachedSongs = StreamCacheManager.shared.getCachedSongs()
+      viewModel.fetchDownloadedAlbums()
     }
   }
 
