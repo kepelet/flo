@@ -571,10 +571,16 @@ private struct LibrarySearchTabView: View {
   @EnvironmentObject var albumViewModel: AlbumViewModel
   @EnvironmentObject var playerViewModel: PlayerViewModel
   @EnvironmentObject var downloadViewModel: DownloadViewModel
+  @EnvironmentObject var authViewModel: AuthViewModel
   @StateObject private var radiosViewModel = RadiosViewModel()
   @Environment(\.horizontalSizeClass) private var horizontalSizeClass
   @State private var searchText = ""
   @State private var cachedSongs: [Song] = []
+  @State private var genres: [Genre] = []
+  @State private var isLoadingGenres = false
+  @State private var selectedGenre: Genre?
+  @State private var genreAlbums: [Album] = []
+  @State private var isLoadingGenreAlbums = false
 
   private var columns: [GridItem] {
     if horizontalSizeClass == .regular { return Array(repeating: GridItem(.flexible()), count: 4) }
@@ -583,7 +589,7 @@ private struct LibrarySearchTabView: View {
 
   private var isLoggedIn: Bool {
     if ProcessInfo.processInfo.arguments.contains("-UITestForceLoggedIn") { return true }
-    return !AuthService.shared.getCreds(key: "NDToken").isEmpty
+    return authViewModel.isLoggedIn
   }
 
   private func tintColor(for key: String) -> Color {
@@ -600,23 +606,35 @@ private struct LibrarySearchTabView: View {
     }
   }
 
+  private func artistCircle(_ artist: Artist) -> some View {
+    let size: CGFloat = 72
+    let url = artist.mediumImageURL ?? artist.smallImageURL ?? artist.largeImageURL ?? ""
+    let has = !artist.id.isEmpty || !url.isEmpty
+    return Group {
+      if has {
+        LazyImage(url: URL(string: albumViewModel.getArtistCoverArt(id: artist.id, imageURL: url))) { state in
+          if let img = state.image { img.resizable().scaledToFill().frame(width: size, height: size).clipShape(Circle()) }
+          else if state.error != nil { ZStack { Circle().fill(tintColor(for: artist.id.isEmpty ? artist.name : artist.id)); Image(systemName: "music.mic").foregroundColor(.white.opacity(0.9)) }.frame(width: size, height: size) }
+          else { ZStack { Circle().fill(Color.gray.opacity(0.12)); ProgressView().scaleEffect(0.7) }.frame(width: size, height: size) }
+        }
+      } else {
+        ZStack { Circle().fill(tintColor(for: artist.name)); Image(systemName: "music.mic").foregroundColor(.white.opacity(0.9)) }.frame(width: size, height: size)
+      }
+    }
+  }
+
   private func songCoverTiny(_ song: Song) -> some View {
     let key = song.albumId.isEmpty ? song.id : song.albumId
     let mediaId = song.mediaFileId.isEmpty ? song.id : song.mediaFileId
     let cover = AlbumService.shared.getAlbumCover(artistName: song.artist, albumName: song.albumName, albumId: song.albumId, trackId: mediaId)
     let remote = mediaId.isEmpty ? albumViewModel.getAlbumCoverArt(id: song.albumId) : "\(UserDefaultsManager.serverBaseURL)\(API.SubsonicEndpoint.coverArt)\(AuthService.shared.getCreds(key: "subsonicToken"))&id=mf-\(mediaId)&size=300"
     return Group {
-      if let img = UIImage(contentsOfFile: cover) {
-        Image(uiImage: img).resizable().scaledToFill().frame(width: 44, height: 44).clipShape(RoundedRectangle(cornerRadius: 6))
-      } else {
+      if let img = UIImage(contentsOfFile: cover) { Image(uiImage: img).resizable().scaledToFill().frame(width: 44, height: 44).clipShape(RoundedRectangle(cornerRadius: 6)) }
+      else {
         LazyImage(url: URL(string: remote)) { state in
-          if let i = state.image {
-            i.resizable().scaledToFill().frame(width: 44, height: 44).clipShape(RoundedRectangle(cornerRadius: 6))
-          } else if state.error != nil {
-            placeholderArtwork(key: key).frame(width: 44, height: 44).clipShape(RoundedRectangle(cornerRadius: 6))
-          } else {
-            RoundedRectangle(cornerRadius: 6).fill(Color.gray.opacity(0.12)).frame(width: 44, height: 44).overlay { if state.isLoading { ProgressView().scaleEffect(0.6) } }
-          }
+          if let i = state.image { i.resizable().scaledToFill().frame(width: 44, height: 44).clipShape(RoundedRectangle(cornerRadius: 6)) }
+          else if state.error != nil { placeholderArtwork(key: key).frame(width: 44, height: 44).clipShape(RoundedRectangle(cornerRadius: 6)) }
+          else { RoundedRectangle(cornerRadius: 6).fill(Color.gray.opacity(0.12)).frame(width: 44, height: 44).overlay { if state.isLoading { ProgressView().scaleEffect(0.6) } } }
         }
       }
     }
@@ -636,6 +654,32 @@ private struct LibrarySearchTabView: View {
         }
       }.frame(width: 240, alignment: .leading).contentShape(Rectangle())
     }.buttonStyle(.plain)
+  }
+
+  private func albumCard(_ album: Album) -> some View {
+    let key = album.id.isEmpty ? album.name : album.id
+    return VStack(alignment: .leading, spacing: 6) {
+      Group {
+        if let img = UIImage(contentsOfFile: albumViewModel.getAlbumCoverArt(id: album.id, albumCover: album.albumCover)) {
+          Image(uiImage: img).resizable().scaledToFill().frame(width: 120, height: 120).clipShape(RoundedRectangle(cornerRadius: 8))
+        } else {
+          LazyImage(url: URL(string: albumViewModel.getAlbumCoverArt(id: album.id, albumCover: album.albumCover))) { state in
+            if let i = state.image { i.resizable().scaledToFill().frame(width: 120, height: 120).clipShape(RoundedRectangle(cornerRadius: 8)) }
+            else if state.error != nil { placeholderArtwork(key: key).frame(width: 120, height: 120).clipShape(RoundedRectangle(cornerRadius: 8)) }
+            else { RoundedRectangle(cornerRadius: 8).fill(Color.gray.opacity(0.12)).frame(width: 120, height: 120).overlay { if state.isLoading { ProgressView().scaleEffect(0.7) } } }
+          }
+        }
+      }
+      Text(album.name).customFont(.caption1).fontWeight(.bold).foregroundColor(.primary).lineLimit(1).frame(width: 120, alignment: .leading)
+      Text(album.albumArtist.isEmpty ? album.artist : album.albumArtist).customFont(.caption2).foregroundColor(.gray).lineLimit(1).frame(width: 120, alignment: .leading)
+    }
+  }
+
+  private func sectionHeader(title: String, subtitle: String? = nil) -> some View {
+    VStack(alignment: .leading, spacing: 2) {
+      Text(title).customFont(.title3).fontWeight(.bold)
+      if let s = subtitle { Text(s).customFont(.caption1).foregroundColor(.gray) }
+    }.frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal)
   }
 
   private func chunked(_ songs: [Song], size: Int = 4) -> [[Song]] {
@@ -658,9 +702,7 @@ private struct LibrarySearchTabView: View {
     if isLoggedIn {
       return albumViewModel.songs.filter { $0.title.localizedCaseInsensitiveContains(searchText) || $0.artist.localizedCaseInsensitiveContains(searchText) }
     } else {
-      let downloaded = albumViewModel.downloadedAlbums.flatMap { album in
-        AlbumService.shared.getSongsByAlbumId(albumId: album.id)
-      }
+      let downloaded = albumViewModel.downloadedAlbums.flatMap { AlbumService.shared.getSongsByAlbumId(albumId: $0.id) }
       let combined = Array(Set(cachedSongs + downloaded))
       return combined.filter { $0.title.localizedCaseInsensitiveContains(searchText) || $0.artist.localizedCaseInsensitiveContains(searchText) }
     }
@@ -695,21 +737,104 @@ private struct LibrarySearchTabView: View {
     !filteredAlbums.isEmpty || !filteredArtists.isEmpty || !filteredSongs.isEmpty || !filteredPlaylists.isEmpty || !filteredRadios.isEmpty || !filteredLiked.isEmpty || !filteredRecentPlayed.isEmpty || !filteredRecentAdded.isEmpty
   }
 
+  private func fetchGenres() {
+    if ProcessInfo.processInfo.arguments.contains("-UITestMockGenres") {
+      genres = [Genre(name: "Rock"), Genre(name: "Pop"), Genre(name: "Jazz"), Genre(name: "Electronic"), Genre(name: "Hip-Hop")]
+      isLoadingGenres = false
+      return
+    }
+    isLoadingGenres = true
+    AlbumService.shared.getGenres { result in
+      DispatchQueue.main.async {
+        isLoadingGenres = false
+        switch result {
+        case .success(let g): genres = g
+        case .failure: genres = []
+        }
+      }
+    }
+  }
+
+  private func fetchGenreAlbums(_ genre: Genre) {
+    selectedGenre = genre
+    isLoadingGenreAlbums = true
+    genreAlbums = []
+    AlbumService.shared.getAlbumsByGenre(genre: genre.name) { result in
+      DispatchQueue.main.async {
+        isLoadingGenreAlbums = false
+        switch result {
+        case .success(let albums): genreAlbums = albums
+        case .failure: genreAlbums = []
+        }
+      }
+    }
+  }
+
   var body: some View {
     NavigationStack {
       ScrollView {
         if searchText.isEmpty {
-          Group {
-            if #available(iOS 17.0, *) {
-              ContentUnavailableView("Search your library", systemImage: "magnifyingglass", description: Text(isLoggedIn ? "Albums, artists and songs — all in one place." : "Search your downloaded music."))
-            } else {
-              VStack(spacing: 12) {
-                Image(systemName: "magnifyingglass").font(.largeTitle).foregroundColor(.secondary)
-                Text("Search your library").customFont(.headline)
-                Text(isLoggedIn ? "Albums, artists and songs — all in one place." : "Search your downloaded music.").customFont(.subheadline).foregroundColor(.secondary)
+          if let genre = selectedGenre {
+            VStack(alignment: .leading, spacing: 14) {
+              HStack {
+                Button { selectedGenre = nil; genreAlbums = [] } label: {
+                  HStack(spacing: 6) {
+                    Image(systemName: "chevron.left").font(.caption.weight(.semibold))
+                    Text("Genres").customFont(.subheadline)
+                  }.foregroundColor(.accent)
+                }
+                Spacer()
+                Text("Genre: \(genre.name)").customFont(.headline).lineLimit(1)
+                Spacer()
+                Button { selectedGenre = nil; genreAlbums = [] } label: {
+                  Image(systemName: "xmark.circle.fill").foregroundColor(.secondary).font(.title3)
+                }
+              }.padding(.horizontal)
+              if isLoadingGenreAlbums {
+                ProgressView().frame(maxWidth: .infinity).padding(.top, 40)
+              } else if genreAlbums.isEmpty {
+                Text("No albums for this genre").customFont(.subheadline).foregroundColor(.secondary).frame(maxWidth: .infinity).padding(.top, 40)
+              } else {
+                ScrollView(.horizontal, showsIndicators: false) {
+                  HStack(spacing: 12) {
+                    ForEach(Array(genreAlbums.prefix(16))) { album in
+                      NavigationLink {
+                        AlbumView(viewModel: albumViewModel).environmentObject(downloadViewModel).onAppear { albumViewModel.setActiveAlbum(album: album) }
+                      } label: {
+                        albumCard(album)
+                      }.buttonStyle(.plain)
+                    }
+                  }.padding(.horizontal)
+                }
               }
+            }.padding(.top, 10).padding(.bottom, 12)
+          } else {
+            if isLoadingGenres {
+              ProgressView().frame(maxWidth: .infinity).padding(.top, 40)
+            } else if genres.isEmpty {
+              Color.clear.frame(height: 1).padding(.top, 40)
+            } else {
+              VStack(alignment: .leading, spacing: 14) {
+                sectionHeader(title: "Genres", subtitle: "Browse by genre")
+                LazyVGrid(columns: [GridItem(.adaptive(minimum: 110), spacing: 8)], spacing: 8) {
+                  ForEach(genres) { genre in
+                    Button { fetchGenreAlbums(genre) } label: {
+                      Text(genre.name)
+                        .customFont(.caption1)
+                        .fontWeight(.medium)
+                        .lineLimit(1)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 10)
+                        .frame(maxWidth: .infinity)
+                        .background(Capsule().fill(Color.accentColor.opacity(0.12)))
+                        .foregroundColor(.accent)
+                        .overlay(Capsule().stroke(Color.accentColor.opacity(0.18), lineWidth: 1))
+                    }.buttonStyle(.plain)
+                  }
+                }.padding(.horizontal)
+              }.padding(.top, 10).padding(.bottom, 12)
             }
-          }.padding(.top, 40)
+          }
         } else if !hasResults {
           Group {
             if #available(iOS 17.0, *) {
@@ -722,30 +847,44 @@ private struct LibrarySearchTabView: View {
             }
           }.padding(.top, 40)
         } else {
-          LazyVStack(alignment: .leading, spacing: 24) {
+          VStack(alignment: .leading, spacing: 24) {
             if !filteredAlbums.isEmpty {
               VStack(alignment: .leading, spacing: 14) {
-                Text("Albums").customFont(.headline).frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal)
+                sectionHeader(title: "Albums", subtitle: "Sorted by name")
                 ScrollView(.horizontal, showsIndicators: false) {
                   HStack(spacing: 12) {
                     ForEach(filteredAlbums.prefix(10)) { album in
                       NavigationLink {
                         AlbumView(viewModel: albumViewModel).environmentObject(downloadViewModel).onAppear { albumViewModel.setActiveAlbum(album: album) }
-                      } label: {
-                        VStack(alignment: .leading, spacing: 6) {
-                          if let img = UIImage(contentsOfFile: albumViewModel.getAlbumCoverArt(id: album.id, albumCover: album.albumCover)) {
-                            Image(uiImage: img).resizable().scaledToFill().frame(width: 120, height: 120).clipShape(RoundedRectangle(cornerRadius: 8))
-                          } else {
-                            LazyImage(url: URL(string: albumViewModel.getAlbumCoverArt(id: album.id, albumCover: album.albumCover))) { state in
-                              if let i = state.image { i.resizable().scaledToFill().frame(width: 120, height: 120).clipShape(RoundedRectangle(cornerRadius: 8)) }
-                              else if state.error != nil { placeholderArtwork(key: album.id).frame(width: 120, height: 120).clipShape(RoundedRectangle(cornerRadius: 8)) }
-                              else { RoundedRectangle(cornerRadius: 8).fill(Color.gray.opacity(0.12)).frame(width: 120, height: 120) }
-                            }
-                          }
-                          Text(album.name).customFont(.caption1).fontWeight(.bold).lineLimit(1).frame(width: 120, alignment: .leading)
-                          Text(album.albumArtist).customFont(.caption2).foregroundColor(.gray).lineLimit(1).frame(width: 120, alignment: .leading)
-                        }
-                      }.buttonStyle(.plain)
+                      } label: { albumCard(album) }.buttonStyle(.plain)
+                    }
+                  }.padding(.horizontal)
+                }
+              }
+            }
+            if !filteredRecentPlayed.isEmpty {
+              VStack(alignment: .leading, spacing: 14) {
+                sectionHeader(title: "Recently Played", subtitle: "I think you will like this?")
+                ScrollView(.horizontal, showsIndicators: false) {
+                  HStack(spacing: 12) {
+                    ForEach(filteredRecentPlayed.prefix(10)) { album in
+                      NavigationLink {
+                        AlbumView(viewModel: albumViewModel).environmentObject(downloadViewModel).onAppear { albumViewModel.setActiveAlbum(album: album) }
+                      } label: { albumCard(album) }.buttonStyle(.plain)
+                    }
+                  }.padding(.horizontal)
+                }
+              }
+            }
+            if !filteredRecentAdded.isEmpty {
+              VStack(alignment: .leading, spacing: 14) {
+                sectionHeader(title: "Recently Added", subtitle: "Let's try this one or two, maybe?")
+                ScrollView(.horizontal, showsIndicators: false) {
+                  HStack(spacing: 12) {
+                    ForEach(filteredRecentAdded.prefix(10)) { album in
+                      NavigationLink {
+                        AlbumView(viewModel: albumViewModel).environmentObject(downloadViewModel).onAppear { albumViewModel.setActiveAlbum(album: album) }
+                      } label: { albumCard(album) }.buttonStyle(.plain)
                     }
                   }.padding(.horizontal)
                 }
@@ -753,16 +892,65 @@ private struct LibrarySearchTabView: View {
             }
             if !filteredArtists.isEmpty {
               VStack(alignment: .leading, spacing: 14) {
-                Text("Artists").customFont(.headline).frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal)
+                sectionHeader(title: "Artists", subtitle: "Sorted by name")
                 ScrollView(.horizontal, showsIndicators: false) {
                   HStack(spacing: 12) {
-                    ForEach(filteredArtists.prefix(8)) { artist in
+                    ForEach(filteredArtists.prefix(5)) { artist in
                       NavigationLink {
                         ArtistDetailView(artist: artist).environmentObject(albumViewModel).environmentObject(playerViewModel).environmentObject(downloadViewModel)
                       } label: {
                         VStack(spacing: 6) {
-                          ArtistImageView(artist: artist).frame(width: 72, height: 72)
+                          artistCircle(artist)
                           Text(artist.name).customFont(.caption1).fontWeight(.bold).lineLimit(1).frame(width: 72)
+                        }
+                      }.buttonStyle(.plain)
+                    }
+                  }.padding(.horizontal)
+                }
+              }
+            }
+            if !filteredLiked.isEmpty {
+              VStack(alignment: .leading, spacing: 14) {
+                sectionHeader(title: "Liked Songs", subtitle: "Yeah, not this again")
+                ScrollView(.horizontal, showsIndicators: false) {
+                  HStack(alignment: .top, spacing: 16) {
+                    ForEach(Array(chunked(Array(filteredLiked.prefix(16))).enumerated()), id: \.offset) { _, chunk in
+                      VStack(spacing: 12) {
+                        ForEach(chunk, id: \.id) { song in
+                          songCard(song) {
+                            if let idx = filteredLiked.firstIndex(where: { $0.id == song.id }) {
+                              let c = SongCollection(id: "starred-songs", name: "Liked Songs", songs: filteredLiked)
+                              playerViewModel.playBySong(idx: idx, item: c, isFromLocal: false)
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }.padding(.horizontal)
+                }
+              }
+            }
+            if !filteredPlaylists.isEmpty {
+              VStack(alignment: .leading, spacing: 14) {
+                sectionHeader(title: "Playlists", subtitle: "As usual?")
+                ScrollView(.horizontal, showsIndicators: false) {
+                  HStack(spacing: 12) {
+                    ForEach(filteredPlaylists.prefix(5)) { playlist in
+                      NavigationLink {
+                        PlaylistDetailView().environmentObject(albumViewModel).environmentObject(playerViewModel).environmentObject(downloadViewModel).onAppear { albumViewModel.setActivePlaylist(playlist: playlist) }
+                      } label: {
+                        VStack(alignment: .leading, spacing: 6) {
+                          if let img = UIImage(contentsOfFile: albumViewModel.getPlaylistCoverArt(id: playlist.id, coverArtId: playlist.coverArtId)) {
+                            Image(uiImage: img).resizable().scaledToFill().frame(width: 120, height: 120).clipShape(RoundedRectangle(cornerRadius: 8))
+                          } else {
+                            LazyImage(url: URL(string: albumViewModel.getPlaylistCoverArt(id: playlist.id, coverArtId: playlist.coverArtId))) { state in
+                              if let i = state.image { i.resizable().scaledToFill().frame(width: 120, height: 120).clipShape(RoundedRectangle(cornerRadius: 8)) }
+                              else if state.error != nil { placeholderArtwork(key: playlist.id, systemImage: "music.note.list").frame(width: 120, height: 120).clipShape(RoundedRectangle(cornerRadius: 8)) }
+                              else { RoundedRectangle(cornerRadius: 8).fill(Color.gray.opacity(0.12)).frame(width: 120, height: 120) }
+                            }
+                          }
+                          Text(playlist.name).customFont(.caption1).fontWeight(.bold).lineLimit(1).frame(width: 120, alignment: .leading)
+                          Text(playlist.ownerName).customFont(.caption2).foregroundColor(.gray).lineLimit(1).frame(width: 120, alignment: .leading)
                         }
                       }.buttonStyle(.plain)
                     }
@@ -772,7 +960,7 @@ private struct LibrarySearchTabView: View {
             }
             if !filteredSongs.isEmpty {
               VStack(alignment: .leading, spacing: 14) {
-                Text("Songs").customFont(.headline).frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal)
+                sectionHeader(title: "Songs", subtitle: "Sorted by name")
                 ScrollView(.horizontal, showsIndicators: false) {
                   HStack(alignment: .top, spacing: 16) {
                     ForEach(Array(chunked(Array(filteredSongs.prefix(16))).enumerated()), id: \.offset) { _, chunk in
@@ -792,100 +980,22 @@ private struct LibrarySearchTabView: View {
                 }
               }
             }
-            if !filteredPlaylists.isEmpty {
-              VStack(alignment: .leading, spacing: 14) {
-                Text("Playlists").customFont(.headline).frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal)
-                ScrollView(.horizontal, showsIndicators: false) {
-                  HStack(spacing: 12) {
-                    ForEach(filteredPlaylists.prefix(8)) { pl in
-                      NavigationLink {
-                        PlaylistDetailView().environmentObject(albumViewModel).environmentObject(playerViewModel).environmentObject(downloadViewModel).onAppear { albumViewModel.setActivePlaylist(playlist: pl) }
-                      } label: {
-                        VStack(alignment: .leading, spacing: 6) {
-                          Text(pl.name).customFont(.caption1).fontWeight(.bold).lineLimit(1).frame(width: 120, alignment: .leading)
-                          Text(pl.ownerName).customFont(.caption2).foregroundColor(.gray).lineLimit(1).frame(width: 120, alignment: .leading)
-                        }.frame(width: 120).padding(6).background(Color.gray.opacity(0.08)).clipShape(RoundedRectangle(cornerRadius: 8))
-                      }.buttonStyle(.plain)
-                    }
-                  }.padding(.horizontal)
-                }
-              }
-            }
             if !filteredRadios.isEmpty {
               VStack(alignment: .leading, spacing: 14) {
-                Text("Radios").customFont(.headline).frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal)
+                sectionHeader(title: "Radios", subtitle: "The good ol radio")
                 ScrollView(.horizontal, showsIndicators: false) {
                   HStack(spacing: 12) {
-                    ForEach(filteredRadios.prefix(8), id: \.id) { r in
+                    ForEach(filteredRadios.prefix(5), id: \.id) { radio in
                       VStack(spacing: 6) {
-                        placeholderArtwork(key: r.id, systemImage: "radio").frame(width: 100, height: 100).clipShape(RoundedRectangle(cornerRadius: 8))
-                        Text(r.name).customFont(.caption1).lineLimit(1).frame(width: 100)
-                      }.onTapGesture { playerViewModel.playRadioItem(radio: r) }
+                        placeholderArtwork(key: radio.id, systemImage: "radio").frame(width: 100, height: 100).clipShape(RoundedRectangle(cornerRadius: 8))
+                        Text(radio.name).customFont(.caption1).lineLimit(1).frame(width: 100)
+                      }.onTapGesture { playerViewModel.playRadioItem(radio: radio) }
                     }
                   }.padding(.horizontal)
                 }
               }
             }
-            if !filteredLiked.isEmpty {
-              VStack(alignment: .leading, spacing: 14) {
-                Text("Liked Songs").customFont(.headline).frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal)
-                ScrollView(.horizontal, showsIndicators: false) {
-                  HStack(alignment: .top, spacing: 16) {
-                    ForEach(Array(chunked(Array(filteredLiked.prefix(16))).enumerated()), id: \.offset) { _, chunk in
-                      VStack(spacing: 12) {
-                        ForEach(chunk, id: \.id) { song in
-                          songCard(song) {
-                            if let idx = filteredLiked.firstIndex(where: { $0.id == song.id }) {
-                              let c = SongCollection(id: "starred-songs", name: "Liked Songs", songs: filteredLiked)
-                              playerViewModel.playBySong(idx: idx, item: c, isFromLocal: false)
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }.padding(.horizontal)
-                }
-              }
-            }
-            if !filteredRecentPlayed.isEmpty {
-              VStack(alignment: .leading, spacing: 14) {
-                Text("Recently Played").customFont(.headline).frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal)
-                ScrollView(.horizontal, showsIndicators: false) {
-                  HStack(spacing: 12) {
-                    ForEach(filteredRecentPlayed.prefix(10)) { album in
-                      NavigationLink {
-                        AlbumView(viewModel: albumViewModel).environmentObject(downloadViewModel).onAppear { albumViewModel.setActiveAlbum(album: album) }
-                      } label: {
-                        VStack(alignment: .leading, spacing: 6) {
-                          Text(album.name).customFont(.caption1).fontWeight(.bold).lineLimit(1).frame(width: 120, alignment: .leading)
-                          Text(album.albumArtist).customFont(.caption2).foregroundColor(.gray).lineLimit(1).frame(width: 120, alignment: .leading)
-                        }.frame(width: 120).padding(6).background(Color.gray.opacity(0.08)).clipShape(RoundedRectangle(cornerRadius: 8))
-                      }.buttonStyle(.plain)
-                    }
-                  }.padding(.horizontal)
-                }
-              }
-            }
-            if !filteredRecentAdded.isEmpty {
-              VStack(alignment: .leading, spacing: 14) {
-                Text("Recently Added").customFont(.headline).frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal)
-                ScrollView(.horizontal, showsIndicators: false) {
-                  HStack(spacing: 12) {
-                    ForEach(filteredRecentAdded.prefix(10)) { album in
-                      NavigationLink {
-                        AlbumView(viewModel: albumViewModel).environmentObject(downloadViewModel).onAppear { albumViewModel.setActiveAlbum(album: album) }
-                      } label: {
-                        VStack(alignment: .leading, spacing: 6) {
-                          Text(album.name).customFont(.caption1).fontWeight(.bold).lineLimit(1).frame(width: 120, alignment: .leading)
-                          Text(album.albumArtist).customFont(.caption2).foregroundColor(.gray).lineLimit(1).frame(width: 120, alignment: .leading)
-                        }.frame(width: 120).padding(6).background(Color.gray.opacity(0.08)).clipShape(RoundedRectangle(cornerRadius: 8))
-                      }.buttonStyle(.plain)
-                    }
-                  }.padding(.horizontal)
-                }
-              }
-            }
-          }.padding(.top, 8).padding(.bottom, 90)
+          }.padding(.top, 10).padding(.bottom, 12)
         }
       }
       .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search Library")
@@ -899,6 +1009,10 @@ private struct LibrarySearchTabView: View {
         radiosViewModel.fetchAllRadios()
         albumViewModel.fetchDownloadedAlbums()
         cachedSongs = StreamCacheManager.shared.getCachedSongs()
+        fetchGenres()
+      }
+      .onChange(of: searchText) { _ in
+        if searchText.isEmpty { selectedGenre = nil; genreAlbums = [] }
       }
     }
   }
