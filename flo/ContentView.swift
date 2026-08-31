@@ -563,7 +563,6 @@ private struct LibrarySearchTabView: View {
   @EnvironmentObject var albumViewModel: AlbumViewModel
   @EnvironmentObject var playerViewModel: PlayerViewModel
   @EnvironmentObject var downloadViewModel: DownloadViewModel
-  @StateObject private var radiosViewModel = RadiosViewModel()
   @Environment(\.horizontalSizeClass) private var horizontalSizeClass
   @State private var searchText = ""
   private var columns: [GridItem] {
@@ -582,161 +581,22 @@ private struct LibrarySearchTabView: View {
     if searchText.isEmpty { return [] }
     return albumViewModel.songs.filter { $0.title.localizedCaseInsensitiveContains(searchText) || $0.artist.localizedCaseInsensitiveContains(searchText) }
   }
-
-  private var filteredPlaylists: [Playlist] {
-    if searchText.isEmpty { return [] }
-    return albumViewModel.playlists.filter { $0.name.localizedCaseInsensitiveContains(searchText) }
-  }
-
-  private var filteredRadios: [Radio] {
-    if searchText.isEmpty { return [] }
-    return radiosViewModel.radios.filter { $0.name.localizedCaseInsensitiveContains(searchText) }
-  }
-
-  private var filteredLiked: [Song] {
-    if searchText.isEmpty { return [] }
-    return albumViewModel.starredSongs.filter { $0.title.localizedCaseInsensitiveContains(searchText) || $0.artist.localizedCaseInsensitiveContains(searchText) }
-  }
-
-  private var filteredRecentPlayed: [Album] {
-    if searchText.isEmpty { return [] }
-    return albumViewModel.recentlyPlayedAlbums.filter { $0.name.localizedCaseInsensitiveContains(searchText) }
-  }
-
-  private var filteredRecentAdded: [Album] {
-    if searchText.isEmpty { return [] }
-    return albumViewModel.recentlyAddedAlbums.filter { $0.name.localizedCaseInsensitiveContains(searchText) }
-  }
-
-  private var hasResults: Bool { !filteredAlbums.isEmpty || !filteredArtists.isEmpty || !filteredSongs.isEmpty || !filteredPlaylists.isEmpty || !filteredRadios.isEmpty || !filteredLiked.isEmpty || !filteredRecentPlayed.isEmpty || !filteredRecentAdded.isEmpty }
-
-  private func sectionHeader(title: String, subtitle: String? = nil) -> some View {
-    VStack(alignment: .leading, spacing: 2) {
-      Text(title).customFont(.title3).fontWeight(.bold)
-      if let s = subtitle { Text(s).customFont(.caption1).foregroundColor(.gray) }
-    }.frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal)
-  }
-
-  private func simpleAlbumCard(_ album: Album) -> some View {
-    VStack(alignment: .leading, spacing: 6) {
-      RoundedRectangle(cornerRadius: 8).fill(Color.gray.opacity(0.12)).frame(width: 120, height: 120).overlay { Text(String(album.name.prefix(1))).customFont(.title2).foregroundColor(.gray) }
-      Text(album.name).customFont(.caption1).fontWeight(.bold).lineLimit(1).frame(width: 120, alignment: .leading)
-      Text(album.albumArtist.isEmpty ? album.artist : album.albumArtist).customFont(.caption2).foregroundColor(.gray).lineLimit(1).frame(width: 120, alignment: .leading)
-    }
-  }
-
-  private var emptyV2Content: some View {
-    VStack(alignment: .leading, spacing: 24) {
-      VStack(alignment: .leading, spacing: 14) {
-        sectionHeader(title: "Recently Played", subtitle: "I think you like this?")
-        ScrollView(.horizontal, showsIndicators: false) {
-          HStack(spacing: 12) {
-            ForEach(Array(albumViewModel.recentlyPlayedAlbums.prefix(16))) { album in
-              NavigationLink { AlbumView(viewModel: albumViewModel).environmentObject(downloadViewModel).onAppear { albumViewModel.setActiveAlbum(album: album) } } label: { simpleAlbumCard(album) }.buttonStyle(.plain)
-            }
-          }.padding(.horizontal)
-        }
-      }
-      VStack(alignment: .leading, spacing: 14) {
-        sectionHeader(title: "Albums", subtitle: "Sorted by name")
-        ScrollView(.horizontal, showsIndicators: false) {
-          HStack(spacing: 12) {
-            ForEach(Array(albumViewModel.albums.prefix(10))) { album in
-              NavigationLink { AlbumView(viewModel: albumViewModel).environmentObject(downloadViewModel).onAppear { albumViewModel.setActiveAlbum(album: album) } } label: { simpleAlbumCard(album) }.buttonStyle(.plain)
-            }
-          }.padding(.horizontal)
-        }
-      }
-      if !albumViewModel.recentlyAddedAlbums.isEmpty {
-        VStack(alignment: .leading, spacing: 14) {
-          sectionHeader(title: "Recently Added", subtitle: "Let's try this one or two, maybe?")
-          ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 12) {
-              ForEach(Array(albumViewModel.recentlyAddedAlbums.prefix(16))) { album in
-                NavigationLink { AlbumView(viewModel: albumViewModel).environmentObject(downloadViewModel).onAppear { albumViewModel.setActiveAlbum(album: album) } } label: { simpleAlbumCard(album) }.buttonStyle(.plain)
-              }
-            }.padding(.horizontal)
-          }
-        }
-      }
-      if !albumViewModel.artists.isEmpty {
-        VStack(alignment: .leading, spacing: 14) {
-          sectionHeader(title: "Artists", subtitle: "Sorted by name")
-          ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 12) {
-              ForEach(Array(albumViewModel.artists.prefix(5))) { artist in
-                NavigationLink { ArtistDetailView(artist: artist).environmentObject(albumViewModel).environmentObject(playerViewModel).environmentObject(downloadViewModel) } label: { VStack(spacing: 6) { Circle().fill(Color.gray.opacity(0.2)).frame(width: 72, height: 72).overlay { Text(String(artist.name.prefix(1))).customFont(.headline) }; Text(artist.name).customFont(.caption1).fontWeight(.bold).lineLimit(1).frame(width: 72) } }.buttonStyle(.plain)
-              }
-            }.padding(.horizontal)
-          }
-        }
-      }
-      if !albumViewModel.starredSongs.isEmpty {
-        VStack(alignment: .leading, spacing: 14) {
-          sectionHeader(title: "Liked Songs", subtitle: "Yeah, not this again")
-          Text("\(albumViewModel.starredSongs.count) songs").customFont(.caption1).foregroundColor(.gray).padding(.horizontal)
-        }
-      }
-      if !albumViewModel.playlists.isEmpty {
-        VStack(alignment: .leading, spacing: 14) {
-          sectionHeader(title: "Playlists", subtitle: "As usual?")
-          ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 12) {
-              ForEach(Array(albumViewModel.playlists.prefix(5))) { playlist in
-                VStack(alignment: .leading, spacing: 6) {
-                  RoundedRectangle(cornerRadius: 8).fill(Color.gray.opacity(0.12)).frame(width: 120, height: 80)
-                  Text(playlist.name).customFont(.caption1).fontWeight(.bold).lineLimit(1).frame(width: 120, alignment: .leading)
-                }.frame(width: 120).padding(6).background(Color.gray.opacity(0.04)).clipShape(RoundedRectangle(cornerRadius: 8))
-              }
-            }.padding(.horizontal)
-          }
-        }
-      }
-      if !albumViewModel.songs.isEmpty {
-        VStack(alignment: .leading, spacing: 14) {
-          sectionHeader(title: "Songs", subtitle: "Sorted by name")
-          Text("\(albumViewModel.songs.count) songs").customFont(.caption1).foregroundColor(.gray).padding(.horizontal)
-        }
-      }
-      if !radiosViewModel.radios.isEmpty {
-        VStack(alignment: .leading, spacing: 14) {
-          sectionHeader(title: "Radios", subtitle: "The good ol radio")
-          Text("\(radiosViewModel.radios.count) stations").customFont(.caption1).foregroundColor(.gray).padding(.horizontal)
-        }
-      }
-    }
-  }
-
-  private var filteredContent: some View {
-    VStack(alignment: .leading, spacing: 24) {
-      if !filteredAlbums.isEmpty {
-        VStack(alignment: .leading, spacing: 14) {
-          sectionHeader(title: "Albums", subtitle: "Sorted by name")
-          ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 12) { ForEach(filteredAlbums.prefix(10)) { album in NavigationLink { AlbumView(viewModel: albumViewModel).environmentObject(downloadViewModel).onAppear { albumViewModel.setActiveAlbum(album: album) } } label: { simpleAlbumCard(album) }.buttonStyle(.plain) } }.padding(.horizontal)
-          }
-        }
-      }
-      if !filteredArtists.isEmpty {
-        VStack(alignment: .leading, spacing: 14) {
-          sectionHeader(title: "Artists", subtitle: "Sorted by name")
-          Text("\(filteredArtists.count) artists").customFont(.caption1).foregroundColor(.gray).padding(.horizontal)
-        }
-      }
-      if !filteredSongs.isEmpty {
-        VStack(alignment: .leading, spacing: 14) {
-          sectionHeader(title: "Songs", subtitle: "Sorted by name")
-          Text("\(filteredSongs.count) songs").customFont(.caption1).foregroundColor(.gray).padding(.horizontal)
-        }
-      }
-    }
-  }
-
+  private var hasResults: Bool { !filteredAlbums.isEmpty || !filteredArtists.isEmpty || !filteredSongs.isEmpty }
   var body: some View {
     NavigationStack {
       ScrollView {
         if searchText.isEmpty {
-          emptyV2Content.padding(.top, 10).padding(.bottom, 12)
+          Group {
+            if #available(iOS 17.0, *) {
+              ContentUnavailableView("Search your library", systemImage: "magnifyingglass", description: Text("Albums, artists and songs — all in one place."))
+            } else {
+              VStack(spacing: 12) {
+                Image(systemName: "magnifyingglass").font(.largeTitle).foregroundColor(.secondary)
+                Text("Search your library").customFont(.headline)
+                Text("Albums, artists and songs — all in one place.").customFont(.subheadline).foregroundColor(.secondary)
+              }
+            }
+          }.padding(.top, 40)
         } else if !hasResults {
           Group {
             if #available(iOS 17.0, *) {
@@ -749,19 +609,71 @@ private struct LibrarySearchTabView: View {
             }
           }.padding(.top, 40)
         } else {
-          filteredContent.padding(.top, 10).padding(.bottom, 12)
+          LazyVStack(alignment: .leading, spacing: 20) {
+            if !filteredAlbums.isEmpty {
+              Section {
+                LazyVGrid(columns: columns, spacing: 12) {
+                  ForEach(filteredAlbums) { album in
+                    NavigationLink {
+                      AlbumView(viewModel: albumViewModel).environmentObject(downloadViewModel).onAppear { albumViewModel.setActiveAlbum(album: album) }
+                    } label: { AlbumsView(viewModel: albumViewModel, album: album) }
+                  }
+                }
+              } header: { Text("Albums").customFont(.headline).frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal) }
+            }
+            if !filteredArtists.isEmpty {
+              Section {
+                VStack(alignment: .leading, spacing: 8) {
+                  ForEach(filteredArtists.prefix(8)) { artist in
+                    NavigationLink {
+                      ArtistDetailView(artist: artist).environmentObject(albumViewModel).environmentObject(playerViewModel).environmentObject(downloadViewModel)
+                    } label: {
+                      HStack {
+                        ArtistImageView(artist: artist)
+                        Text(artist.name).customFont(.headline).padding(.leading, 8)
+                        Spacer()
+                        Image(systemName: "chevron.right").foregroundColor(.secondary).font(.caption)
+                      }.padding(.horizontal).padding(.vertical, 4)
+                    }
+                    Divider().padding(.leading, 56)
+                  }
+                }
+              } header: { Text("Artists").customFont(.headline).frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal) }
+            }
+            if !filteredSongs.isEmpty {
+              Section {
+                VStack(spacing: 0) {
+                  ForEach(filteredSongs.prefix(12), id: \.id) { song in
+                    HStack {
+                      if let img = UIImage(contentsOfFile: albumViewModel.getAlbumCoverArt(id: song.albumId)) {
+                        Image(uiImage: img).resizable().scaledToFill().frame(width: 44, height: 44).clipShape(RoundedRectangle(cornerRadius: 6))
+                      } else {
+                        RoundedRectangle(cornerRadius: 6).fill(Color.gray.opacity(0.15)).frame(width: 44, height: 44)
+                      }
+                      VStack(alignment: .leading, spacing: 2) {
+                        Text(song.title).customFont(.caption1).fontWeight(.bold).lineLimit(1)
+                        Text("\(song.artist) • \(timeString(for: song.duration))").customFont(.caption2).foregroundColor(.gray).lineLimit(1)
+                      }.padding(.leading, 8)
+                      Spacer()
+                    }.padding(.horizontal).padding(.vertical, 6).contentShape(Rectangle())
+                    .onTapGesture {
+                      if let idx = albumViewModel.songs.firstIndex(where: { $0.id == song.id }) {
+                        var pl = Playlist(name: "\"All Tracks\"")
+                        pl.songs = albumViewModel.songs
+                        playerViewModel.playBySong(idx: idx, item: pl, isFromLocal: false)
+                      }
+                    }
+                    Divider().padding(.leading, 60)
+                  }
+                }
+              } header: { Text("Songs").customFont(.headline).frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal) }
+            }
+          }.padding(.top, 8).padding(.bottom, 90)
         }
       }
       .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search Library")
       .navigationTitle("Search")
-      .onAppear {
-        albumViewModel.getArtists()
-        albumViewModel.fetchAllSongs()
-        albumViewModel.fetchRecentlyPlayedAlbums()
-        albumViewModel.fetchRecentlyAddedAlbums()
-        albumViewModel.getPlaylists()
-        radiosViewModel.fetchAllRadios()
-      }
+      .onAppear { albumViewModel.getArtists(); albumViewModel.fetchAllSongs() }
     }
   }
 }
