@@ -60,6 +60,7 @@ enum UserDefaultsKeys {
   static let saveLoginInfo = "saveLoginInfo"
   static let LRCLIBServerURL = "LRCLIBServerURL"
   static let streamCacheMaxSize = "streamCacheMaxSize"
+  static let libraryViewV2 = "libraryViewV2"
 }
 
 enum KeychainKeys {

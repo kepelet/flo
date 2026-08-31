@@ -5,6 +5,7 @@
 //  Created by rizaldy on 08/06/24.
 //
 
+import NukeUI
 import SwiftUI
 
 struct LibraryView: View {
@@ -14,6 +15,9 @@ struct LibraryView: View {
   @State private var forceShowQuickNavigation: Bool = false
 
   @ObservedObject var viewModel: AlbumViewModel
+  @StateObject private var radiosViewModel = RadiosViewModel()
+
+  @AppStorage(UserDefaultsKeys.libraryViewV2) private var libraryViewV2Enabled = false
 
   @EnvironmentObject var playerViewModel: PlayerViewModel
   @EnvironmentObject var downloadViewModel: DownloadViewModel
@@ -63,7 +67,18 @@ struct LibraryView: View {
     }
   }
 
+  @ViewBuilder
   var libraryContent: some View {
+    if libraryViewV2Enabled {
+      libraryV2ContentWrapper
+    } else {
+      libraryLegacyContent
+    }
+  }
+
+  // MARK: - Legacy (V1)
+
+  var libraryLegacyContent: some View {
     ScrollView {
       if viewModel.albums.isEmpty && viewModel.error != nil {
         VStack(alignment: .center) {
@@ -263,6 +278,672 @@ struct LibraryView: View {
       await viewModel.refreshAlbums()
       await viewModel.refreshArtists()
       await viewModel.refreshPlaylists()
+    }
+  }
+
+  // MARK: - V2
+
+  @ViewBuilder
+  private var libraryV2ContentWrapper: some View {
+    if #available(iOS 26.0, macOS 26.0, macCatalyst 26.0, *) {
+      libraryV2ScrollContent
+        .searchable(
+          text: $searchAlbum,
+          placement: .navigationBarDrawer(displayMode: .always),
+          prompt: "Search"
+        )
+        .searchToolbarBehavior(.minimize)
+        .sheet(isPresented: $showDownloadSheet) {
+          DownloadQueueView().environmentObject(downloadViewModel)
+        }
+        .toolbar {
+          if downloadViewModel.hasDownloadQueue() {
+            Button(action: {
+              showDownloadSheet.toggle()
+            }) {
+              Label("", systemImage: "icloud.and.arrow.down")
+            }
+          }
+        }
+        .navigationTitle("Library")
+        .refreshable {
+          await viewModel.refreshAlbums()
+          await viewModel.refreshArtists()
+          await viewModel.refreshPlaylists()
+          await viewModel.refreshAllSongs()
+          viewModel.fetchStarredSongs()
+          radiosViewModel.fetchAllRadios()
+        }
+        .onAppear {
+          viewModel.getArtists()
+          viewModel.getPlaylists()
+          viewModel.fetchAllSongs()
+          viewModel.fetchStarredSongs()
+          radiosViewModel.fetchAllRadios()
+        }
+    } else {
+      libraryV2ScrollContent
+        .searchable(
+          text: $searchAlbum,
+          placement: .navigationBarDrawer(displayMode: .always),
+          prompt: "Search"
+        )
+        .sheet(isPresented: $showDownloadSheet) {
+          DownloadQueueView().environmentObject(downloadViewModel)
+        }
+        .toolbar {
+          if downloadViewModel.hasDownloadQueue() {
+            Button(action: {
+              showDownloadSheet.toggle()
+            }) {
+              Label("", systemImage: "icloud.and.arrow.down")
+            }
+          }
+        }
+        .navigationTitle("Library")
+        .refreshable {
+          await viewModel.refreshAlbums()
+          await viewModel.refreshArtists()
+          await viewModel.refreshPlaylists()
+          await viewModel.refreshAllSongs()
+          viewModel.fetchStarredSongs()
+          radiosViewModel.fetchAllRadios()
+        }
+        .onAppear {
+          viewModel.getArtists()
+          viewModel.getPlaylists()
+          viewModel.fetchAllSongs()
+          viewModel.fetchStarredSongs()
+          radiosViewModel.fetchAllRadios()
+        }
+    }
+  }
+
+  private var libraryV2ScrollContent: some View {
+    ScrollView {
+      if viewModel.albums.isEmpty && viewModel.error != nil {
+        VStack(alignment: .center) {
+          Image("Home").resizable().aspectRatio(contentMode: .fit).frame(
+            maxWidth: .infinity, maxHeight: 300
+          ).padding()
+          Group {
+            Text("Your Navidrome session may have expired")
+              .customFont(.title1)
+              .fontWeight(.bold)
+              .multilineTextAlignment(.center)
+              .padding(.bottom, 10)
+            Text("The quickest action you can take is to log back in — for now.")
+              .customFont(.subheadline)
+              .multilineTextAlignment(.center)
+          }.padding(.horizontal, 20).foregroundColor(.accent)
+        }
+        .frame(maxWidth: .infinity)
+      } else {
+        VStack(alignment: .leading, spacing: 18) {
+          if searchAlbum.isEmpty {
+            if !viewModel.artists.isEmpty {
+              v2ArtistsSection
+            }
+            if !viewModel.starredSongs.isEmpty {
+              v2LikedSongsSection
+            }
+            if !viewModel.playlists.isEmpty {
+              v2PlaylistsSection
+            }
+            if !viewModel.songs.isEmpty {
+              v2SongsSection
+            }
+            if !radiosViewModel.radios.isEmpty {
+              v2RadiosSection
+            }
+          }
+
+          v2AlbumsGridSection
+        }
+        .padding(.top, 10)
+        .padding(.bottom, playerViewModel.hasNowPlaying() && !playerViewModel.shouldHidePlayer ? 100 : 0)
+      }
+    }
+  }
+
+  // MARK: V2 helpers
+
+  private func v2SectionHeader<Destination: View>(title: String, systemImage: String, destination: Destination) -> some View {
+    HStack {
+      HStack(spacing: 6) {
+        Image(systemName: systemImage)
+          .foregroundColor(.accent)
+          .font(.subheadline)
+        Text(title)
+          .customFont(.headline)
+      }
+      Spacer()
+      NavigationLink {
+        destination
+      } label: {
+        HStack(spacing: 4) {
+          Text("More")
+            .customFont(.subheadline)
+          Image(systemName: "chevron.right")
+            .font(.caption)
+            .foregroundColor(.gray)
+        }
+      }
+      .buttonStyle(.plain)
+    }
+    .padding(.horizontal)
+  }
+
+  private func tintColor(for key: String) -> Color {
+    let hash = abs(key.hashValue)
+    let hue = Double(hash % 360) / 360.0
+    return Color(hue: hue, saturation: 0.22, brightness: 0.94)
+  }
+
+  private func v2PlaceholderArtwork(key: String, systemImage: String = "music.note") -> some View {
+    ZStack {
+      RoundedRectangle(cornerRadius: 8, style: .continuous)
+        .fill(tintColor(for: key).opacity(0.85))
+      RoundedRectangle(cornerRadius: 8, style: .continuous)
+        .fill(Color.gray.opacity(0.08))
+      Image(systemName: systemImage)
+        .foregroundColor(.accent.opacity(0.7))
+        .font(.system(size: 22))
+    }
+  }
+
+  // MARK: Sections
+
+  private var v2ArtistsSection: some View {
+    VStack(alignment: .leading, spacing: 8) {
+      v2SectionHeader(title: "Artists", systemImage: "music.mic", destination:
+        ArtistsView(artists: viewModel.artists)
+          .environmentObject(viewModel)
+          .environmentObject(playerViewModel)
+          .environmentObject(downloadViewModel)
+          .onAppear { viewModel.getArtists() }
+      )
+      ScrollView(.horizontal, showsIndicators: false) {
+        HStack(spacing: 12) {
+          ForEach(Array(viewModel.artists.prefix(5))) { artist in
+            NavigationLink {
+              ArtistDetailView(artist: artist)
+                .environmentObject(viewModel)
+                .environmentObject(playerViewModel)
+                .environmentObject(downloadViewModel)
+            } label: {
+              VStack(spacing: 6) {
+                v2ArtistCircle(artist: artist)
+                Text(artist.name)
+                  .customFont(.caption1)
+                  .lineLimit(1)
+                  .frame(width: 72)
+              }
+            }
+            .buttonStyle(.plain)
+          }
+          NavigationLink {
+            ArtistsView(artists: viewModel.artists)
+              .environmentObject(viewModel)
+              .environmentObject(playerViewModel)
+              .environmentObject(downloadViewModel)
+              .onAppear { viewModel.getArtists() }
+          } label: {
+            VStack(spacing: 6) {
+              ZStack {
+                Circle().fill(Color.accentColor.opacity(0.12)).frame(width: 72, height: 72)
+                Image(systemName: "chevron.right.2")
+                  .foregroundColor(.accent)
+              }
+              Text("More")
+                .customFont(.caption1)
+            }
+          }
+          .buttonStyle(.plain)
+        }
+        .padding(.horizontal)
+      }
+    }
+  }
+
+  private func v2ArtistCircle(artist: Artist) -> some View {
+    let size: CGFloat = 72
+    let imageURL = artist.mediumImageURL ?? artist.smallImageURL ?? artist.largeImageURL ?? ""
+    let hasImageSource = !artist.id.isEmpty || !imageURL.isEmpty
+    return Group {
+      if hasImageSource {
+        LazyImage(url: URL(string: viewModel.getArtistCoverArt(id: artist.id, imageURL: imageURL))) { state in
+          if let image = state.image {
+            image
+              .resizable()
+              .aspectRatio(contentMode: .fill)
+              .frame(width: size, height: size)
+              .clipShape(Circle())
+          } else if state.error != nil {
+            ZStack {
+              Circle().fill(tintColor(for: artist.id.isEmpty ? artist.name : artist.id))
+              Image(systemName: "music.mic")
+                .foregroundColor(.white.opacity(0.9))
+            }
+            .frame(width: size, height: size)
+          } else {
+            ZStack {
+              Circle().fill(Color.gray.opacity(0.12))
+              ProgressView().scaleEffect(0.7)
+            }
+            .frame(width: size, height: size)
+          }
+        }
+      } else {
+        ZStack {
+          Circle().fill(tintColor(for: artist.name))
+          Image(systemName: "music.mic")
+            .foregroundColor(.white.opacity(0.9))
+        }
+        .frame(width: size, height: size)
+      }
+    }
+  }
+
+  private var v2LikedSongsSection: some View {
+    VStack(alignment: .leading, spacing: 8) {
+      v2SectionHeader(title: "Liked Songs", systemImage: "heart.fill", destination:
+        LikedSongsView()
+          .environmentObject(viewModel)
+          .environmentObject(playerViewModel)
+      )
+      ScrollView(.horizontal, showsIndicators: false) {
+        HStack(spacing: 12) {
+          ForEach(Array(viewModel.starredSongs.prefix(5)), id: \.id) { song in
+            VStack(spacing: 6) {
+              v2SongCoverSmall(song: song)
+              Text(song.title)
+                .customFont(.caption1)
+                .lineLimit(1)
+                .frame(width: 100)
+              Text(song.artist)
+                .customFont(.caption2)
+                .foregroundColor(.gray)
+                .lineLimit(1)
+                .frame(width: 100)
+            }
+            .onTapGesture {
+              if let idx = viewModel.starredSongs.firstIndex(where: { $0.id == song.id }) {
+                let liked = SongCollection(id: "starred-songs", name: "Liked Songs", songs: viewModel.starredSongs)
+                playerViewModel.playBySong(idx: idx, item: liked, isFromLocal: false)
+              }
+            }
+          }
+          NavigationLink {
+            LikedSongsView()
+              .environmentObject(viewModel)
+              .environmentObject(playerViewModel)
+          } label: {
+            VStack(spacing: 6) {
+              ZStack {
+                RoundedRectangle(cornerRadius: 8).fill(Color.accentColor.opacity(0.12)).frame(width: 100, height: 100)
+                Image(systemName: "chevron.right.2").foregroundColor(.accent)
+              }
+              Text("More")
+                .customFont(.caption1)
+            }
+          }
+          .buttonStyle(.plain)
+        }
+        .padding(.horizontal)
+      }
+    }
+  }
+
+  private var v2PlaylistsSection: some View {
+    VStack(alignment: .leading, spacing: 8) {
+      v2SectionHeader(title: "Playlists", systemImage: "music.note.list", destination:
+        PlaylistView()
+          .environmentObject(viewModel)
+          .environmentObject(playerViewModel)
+          .environmentObject(downloadViewModel)
+          .onAppear { viewModel.getPlaylists() }
+      )
+      ScrollView(.horizontal, showsIndicators: false) {
+        HStack(spacing: 12) {
+          ForEach(Array(viewModel.playlists.prefix(5))) { playlist in
+            NavigationLink {
+              PlaylistDetailView()
+                .environmentObject(viewModel)
+                .environmentObject(playerViewModel)
+                .environmentObject(downloadViewModel)
+                .onAppear { viewModel.setActivePlaylist(playlist: playlist) }
+            } label: {
+              VStack(alignment: .leading, spacing: 6) {
+                v2PlaylistCover(playlist: playlist)
+                Text(playlist.name)
+                  .customFont(.caption1)
+                  .lineLimit(1)
+                  .frame(width: 120, alignment: .leading)
+                Text(playlist.ownerName)
+                  .customFont(.caption2)
+                  .foregroundColor(.gray)
+                  .lineLimit(1)
+                  .frame(width: 120, alignment: .leading)
+              }
+            }
+            .buttonStyle(.plain)
+          }
+          NavigationLink {
+            PlaylistView()
+              .environmentObject(viewModel)
+              .environmentObject(playerViewModel)
+              .environmentObject(downloadViewModel)
+              .onAppear { viewModel.getPlaylists() }
+          } label: {
+            VStack(spacing: 6) {
+              ZStack {
+                RoundedRectangle(cornerRadius: 8).fill(Color.accentColor.opacity(0.12)).frame(width: 120, height: 120)
+                Image(systemName: "chevron.right.2").foregroundColor(.accent)
+              }
+              Text("More")
+                .customFont(.caption1)
+                .frame(width: 120)
+            }
+          }
+          .buttonStyle(.plain)
+        }
+        .padding(.horizontal)
+      }
+    }
+  }
+
+  private func v2PlaylistCover(playlist: Playlist) -> some View {
+    let key = playlist.id.isEmpty ? playlist.name : playlist.id
+    return Group {
+      if let local = UIImage(contentsOfFile: viewModel.getPlaylistCoverArt(id: playlist.id, coverArtId: playlist.coverArtId)) {
+        Image(uiImage: local)
+          .resizable()
+          .aspectRatio(contentMode: .fill)
+          .frame(width: 120, height: 120)
+          .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+      } else {
+        LazyImage(url: URL(string: viewModel.getPlaylistCoverArt(id: playlist.id, coverArtId: playlist.coverArtId))) { state in
+          if let image = state.image {
+            image
+              .resizable()
+              .aspectRatio(contentMode: .fill)
+              .frame(width: 120, height: 120)
+              .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+          } else if state.error != nil {
+            v2PlaceholderArtwork(key: key, systemImage: "music.note.list")
+              .frame(width: 120, height: 120)
+              .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+          } else {
+            ZStack {
+              RoundedRectangle(cornerRadius: 8).fill(Color.gray.opacity(0.12))
+              if state.isLoading {
+                ProgressView().scaleEffect(0.7)
+              } else {
+                Image(uiImage: UIImage(named: "placeholder") ?? UIImage())
+                  .resizable()
+                  .scaledToFit()
+                  .padding(16)
+                  .opacity(0.6)
+                  .overlay(
+                    RoundedRectangle(cornerRadius: 8).fill(tintColor(for: key).opacity(0.35))
+                  )
+              }
+            }
+            .frame(width: 120, height: 120)
+            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+          }
+        }
+      }
+    }
+  }
+
+  private var v2SongsSection: some View {
+    VStack(alignment: .leading, spacing: 8) {
+      v2SectionHeader(title: "Songs", systemImage: "music.note", destination:
+        SongsView()
+          .environmentObject(viewModel)
+          .environmentObject(playerViewModel)
+          .onAppear { viewModel.fetchAllSongs() }
+      )
+      ScrollView(.horizontal, showsIndicators: false) {
+        HStack(spacing: 12) {
+          ForEach(Array(viewModel.songs.prefix(5)), id: \.id) { song in
+            VStack(spacing: 6) {
+              v2SongCoverSmall(song: song)
+              Text(song.title)
+                .customFont(.caption1)
+                .lineLimit(1)
+                .frame(width: 100)
+              Text(song.artist)
+                .customFont(.caption2)
+                .foregroundColor(.gray)
+                .lineLimit(1)
+                .frame(width: 100)
+            }
+            .onTapGesture {
+              if let idx = viewModel.songs.firstIndex(where: { $0.id == song.id }) {
+                var playlist = Playlist(name: "\"All Tracks\"")
+                playlist.songs = viewModel.songs
+                playerViewModel.playBySong(idx: idx, item: playlist, isFromLocal: false)
+              }
+            }
+          }
+          NavigationLink {
+            SongsView()
+              .environmentObject(viewModel)
+              .environmentObject(playerViewModel)
+              .onAppear { viewModel.fetchAllSongs() }
+          } label: {
+            VStack(spacing: 6) {
+              ZStack {
+                RoundedRectangle(cornerRadius: 8).fill(Color.accentColor.opacity(0.12)).frame(width: 100, height: 100)
+                Image(systemName: "chevron.right.2").foregroundColor(.accent)
+              }
+              Text("More")
+                .customFont(.caption1)
+            }
+          }
+          .buttonStyle(.plain)
+        }
+        .padding(.horizontal)
+      }
+    }
+  }
+
+  private func v2SongCoverSmall(song: Song) -> some View {
+    let key = song.albumId.isEmpty ? song.id : song.albumId
+    return Group {
+      if let local = UIImage(contentsOfFile: viewModel.getAlbumCoverArt(id: song.albumId)) {
+        Image(uiImage: local)
+          .resizable()
+          .aspectRatio(contentMode: .fill)
+          .frame(width: 100, height: 100)
+          .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+      } else {
+        LazyImage(url: URL(string: viewModel.getAlbumCoverArt(id: song.albumId))) { state in
+          if let image = state.image {
+            image
+              .resizable()
+              .aspectRatio(contentMode: .fill)
+              .frame(width: 100, height: 100)
+              .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+          } else if state.error != nil {
+            v2PlaceholderArtwork(key: key)
+              .frame(width: 100, height: 100)
+              .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+          } else {
+            ZStack {
+              RoundedRectangle(cornerRadius: 8).fill(Color.gray.opacity(0.12))
+              if state.isLoading {
+                ProgressView().scaleEffect(0.7)
+              } else {
+                Image(uiImage: UIImage(named: "placeholder") ?? UIImage())
+                  .resizable()
+                  .scaledToFit()
+                  .padding(16)
+                  .opacity(0.6)
+                  .overlay(
+                    RoundedRectangle(cornerRadius: 8).fill(tintColor(for: key).opacity(0.35))
+                  )
+              }
+            }
+            .frame(width: 100, height: 100)
+            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+          }
+        }
+      }
+    }
+  }
+
+  private var v2RadiosSection: some View {
+    VStack(alignment: .leading, spacing: 8) {
+      v2SectionHeader(title: "Radios", systemImage: "radio", destination:
+        RadiosView()
+          .environmentObject(playerViewModel)
+      )
+      ScrollView(.horizontal, showsIndicators: false) {
+        HStack(spacing: 12) {
+          ForEach(Array(radiosViewModel.radios.prefix(5)), id: \.id) { radio in
+            VStack(spacing: 6) {
+              ZStack {
+                RoundedRectangle(cornerRadius: 8).fill(tintColor(for: radio.id))
+                RoundedRectangle(cornerRadius: 8).fill(Color.gray.opacity(0.08))
+                Image(systemName: "dot.radiowaves.up.forward")
+                  .foregroundColor(.accent.opacity(0.8))
+                  .font(.system(size: 24))
+              }
+              .frame(width: 100, height: 100)
+              .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+              Text(radio.name)
+                .customFont(.caption1)
+                .lineLimit(1)
+                .frame(width: 100)
+            }
+            .onTapGesture {
+              playerViewModel.playRadioItem(radio: radio)
+            }
+          }
+          NavigationLink {
+            RadiosView()
+              .environmentObject(playerViewModel)
+          } label: {
+            VStack(spacing: 6) {
+              ZStack {
+                RoundedRectangle(cornerRadius: 8).fill(Color.accentColor.opacity(0.12)).frame(width: 100, height: 100)
+                Image(systemName: "chevron.right.2").foregroundColor(.accent)
+              }
+              Text("More")
+                .customFont(.caption1)
+            }
+          }
+          .buttonStyle(.plain)
+        }
+        .padding(.horizontal)
+      }
+    }
+  }
+
+  private var v2AlbumsGridSection: some View {
+    VStack(alignment: .leading, spacing: 8) {
+      HStack {
+        HStack(spacing: 6) {
+          Image(systemName: "square.grid.2x2")
+            .foregroundColor(.accent)
+            .font(.subheadline)
+          Text("Albums")
+            .customFont(.headline)
+        }
+        Spacer()
+      }
+      .padding(.horizontal)
+      LazyVGrid(columns: columns) {
+        ForEach(filteredAlbums) { album in
+          NavigationLink {
+            AlbumView(viewModel: viewModel)
+              .environmentObject(downloadViewModel)
+              .onAppear {
+                viewModel.setActiveAlbum(album: album)
+              }
+          } label: {
+            v2AlbumGridItem(album: album)
+          }
+          .buttonStyle(.plain)
+        }
+      }
+      .padding(.horizontal, 4)
+    }
+  }
+
+  private func v2AlbumGridItem(album: Album) -> some View {
+    VStack(alignment: .leading, spacing: 4) {
+      v2AlbumCover(album: album)
+      HStack(alignment: .center, spacing: 4) {
+        Text(album.name)
+          .customFont(.caption1)
+          .fontWeight(.bold)
+          .foregroundColor(.primary)
+          .truncationMode(.tail)
+          .lineLimit(1)
+        if album.isExplicit {
+          ExplicitBadge(size: .compact)
+        }
+      }
+      .frame(maxWidth: .infinity, alignment: .leading)
+      Text(album.albumArtist)
+        .customFont(.caption2)
+        .foregroundColor(.gray)
+        .truncationMode(.tail)
+        .lineLimit(1)
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+    .padding(6)
+  }
+
+  private func v2AlbumCover(album: Album) -> some View {
+    let key = album.id.isEmpty ? album.name : album.id
+    return Group {
+      if let local = UIImage(contentsOfFile: viewModel.getAlbumCoverArt(id: album.id, albumCover: album.albumCover)) {
+        Image(uiImage: local)
+          .resizable()
+          .aspectRatio(contentMode: .fill)
+          .frame(maxWidth: .infinity)
+          .aspectRatio(1, contentMode: .fit)
+          .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+      } else {
+        LazyImage(url: URL(string: viewModel.getAlbumCoverArt(id: album.id, albumCover: album.albumCover))) { state in
+          if let image = state.image {
+            image
+              .resizable()
+              .aspectRatio(contentMode: .fill)
+              .frame(maxWidth: .infinity)
+              .aspectRatio(1, contentMode: .fit)
+              .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+          } else if state.error != nil {
+            v2PlaceholderArtwork(key: key)
+              .aspectRatio(1, contentMode: .fit)
+              .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+          } else {
+            ZStack {
+              RoundedRectangle(cornerRadius: 8).fill(Color.gray.opacity(0.12))
+              if state.isLoading {
+                ProgressView()
+              } else {
+                Image(uiImage: UIImage(named: "placeholder") ?? UIImage())
+                  .resizable()
+                  .scaledToFit()
+                  .padding(24)
+                  .opacity(0.6)
+                  .overlay(
+                    RoundedRectangle(cornerRadius: 8).fill(tintColor(for: key).opacity(0.35))
+                  )
+              }
+            }
+            .aspectRatio(1, contentMode: .fit)
+            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+          }
+        }
+      }
     }
   }
 }
