@@ -538,20 +538,24 @@ struct LibraryView: View {
 
   private var v2LikedSongsSection: some View {
     VStack(alignment: .leading, spacing: 14) {
-      v2SectionHeader(title: "Liked Songs", hasMore: viewModel.starredSongs.count > 10, destination:
+      v2SectionHeader(title: "Liked Songs", hasMore: viewModel.starredSongs.count > 16, destination:
         LikedSongsView()
           .environmentObject(viewModel)
           .environmentObject(playerViewModel)
       )
       ScrollView(.horizontal, showsIndicators: false) {
-        HStack(spacing: 12) {
-          ForEach(Array(viewModel.starredSongs.prefix(10)), id: \.id) { song in
-            v2SongHorizontalCard(song: song, onTap: {
-              if let idx = viewModel.starredSongs.firstIndex(where: { $0.id == song.id }) {
-                let liked = SongCollection(id: "starred-songs", name: "Liked Songs", songs: viewModel.starredSongs)
-                playerViewModel.playBySong(idx: idx, item: liked, isFromLocal: false)
+        HStack(alignment: .top, spacing: 16) {
+          ForEach(Array(chunkedSongs(Array(viewModel.starredSongs.prefix(16))).enumerated()), id: \.offset) { _, chunk in
+            VStack(spacing: 12) {
+              ForEach(chunk, id: \.id) { song in
+                v2SongHorizontalCard(song: song, onTap: {
+                  if let idx = viewModel.starredSongs.firstIndex(where: { $0.id == song.id }) {
+                    let liked = SongCollection(id: "starred-songs", name: "Liked Songs", songs: viewModel.starredSongs)
+                    playerViewModel.playBySong(idx: idx, item: liked, isFromLocal: false)
+                  }
+                })
               }
-            })
+            }
           }
         }
         .padding(.horizontal)
@@ -651,6 +655,7 @@ struct LibraryView: View {
         VStack(alignment: .leading, spacing: 3) {
           Text(song.title)
             .customFont(.caption1)
+            .fontWeight(.bold)
             .lineLimit(1)
             .frame(maxWidth: .infinity, alignment: .leading)
           Text("\(song.artist) • \(timeString(for: song.duration))")
@@ -660,31 +665,36 @@ struct LibraryView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
         }
       }
-      .frame(width: 220, alignment: .leading)
-      .padding(8)
-      .background(Color(.secondarySystemBackground))
-      .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+      .frame(width: 240, alignment: .leading)
       .contentShape(Rectangle())
     }
     .buttonStyle(.plain)
   }
 
+  private func chunkedSongs(_ songs: [Song], chunkSize: Int = 4) -> [[Song]] {
+    stride(from: 0, to: songs.count, by: chunkSize).map { Array(songs[$0..<min($0 + chunkSize, songs.count)]) }
+  }
+
   private var v2SongsSection: some View {
     VStack(alignment: .leading, spacing: 14) {
-      v2SectionHeader(title: "Songs", hasMore: viewModel.songs.count > 10, destination:
+      v2SectionHeader(title: "Songs", hasMore: viewModel.songs.count > 16, destination:
         SongsView()
           .environmentObject(viewModel)
           .environmentObject(playerViewModel)
           .onAppear { viewModel.fetchAllSongs() }
       )
       ScrollView(.horizontal, showsIndicators: false) {
-        HStack(spacing: 12) {
-          ForEach(Array(viewModel.songs.prefix(10)), id: \.id) { song in
-            v2SongHorizontalCard(song: song) {
-              if let idx = viewModel.songs.firstIndex(where: { $0.id == song.id }) {
-                var playlist = Playlist(name: "\"All Tracks\"")
-                playlist.songs = viewModel.songs
-                playerViewModel.playBySong(idx: idx, item: playlist, isFromLocal: false)
+        HStack(alignment: .top, spacing: 16) {
+          ForEach(Array(chunkedSongs(Array(viewModel.songs.prefix(16))).enumerated()), id: \.offset) { _, chunk in
+            VStack(spacing: 12) {
+              ForEach(chunk, id: \.id) { song in
+                v2SongHorizontalCard(song: song) {
+                  if let idx = viewModel.songs.firstIndex(where: { $0.id == song.id }) {
+                    var playlist = Playlist(name: "\"All Tracks\"")
+                    playlist.songs = viewModel.songs
+                    playerViewModel.playBySong(idx: idx, item: playlist, isFromLocal: false)
+                  }
+                }
               }
             }
           }
@@ -811,15 +821,9 @@ struct LibraryView: View {
         HStack(spacing: 12) {
           ForEach(Array(radiosViewModel.radios.prefix(5)), id: \.id) { radio in
             VStack(spacing: 6) {
-              ZStack {
-                RoundedRectangle(cornerRadius: 8).fill(tintColor(for: radio.id))
-                RoundedRectangle(cornerRadius: 8).fill(Color.gray.opacity(0.08))
-                Image(systemName: "dot.radiowaves.up.forward")
-                  .foregroundColor(.accent.opacity(0.8))
-                  .font(.system(size: 24))
-              }
-              .frame(width: 100, height: 100)
-              .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+              v2PlaceholderArtwork(key: radio.id, systemImage: "radio")
+                .frame(width: 100, height: 100)
+                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
               Text(radio.name)
                 .customFont(.caption1)
                 .lineLimit(1)
