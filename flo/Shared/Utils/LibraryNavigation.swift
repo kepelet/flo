@@ -16,6 +16,7 @@ enum AppTab: Hashable {
   case downloads
   case preferences
   case debug
+  case search
 }
 
 final class LibraryRouter: ObservableObject {

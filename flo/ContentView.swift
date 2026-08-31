@@ -78,63 +78,121 @@ struct ContentView: View {
   }
 
   private var baseTabView: some View {
-    TabView(selection: $libraryRouter.selectedTab) {
-      HomeView(viewModel: authViewModel).tabItem {
-        Label("Home", systemImage: "house")
-      }
-      .tag(AppTab.home)
-      .environmentObject(floooViewModel)
-      .environmentObject(albumViewModel)
-      .environmentObject(playerViewModel)
-      .environmentObject(downloadViewModel)
-      .environmentObject(libraryRouter)
-
-      if authViewModel.isLoggedIn || libraryViewV2Enabled {
-        LibraryView(viewModel: albumViewModel).tabItem {
-          Label("Library", systemImage: "square.grid.2x2")
+    Group {
+      if libraryViewV2Enabled {
+        if #available(iOS 26.0, *) {
+          TabView(selection: $libraryRouter.selectedTab) {
+            Tab("Home", systemImage: "house", value: AppTab.home) {
+              HomeView(viewModel: authViewModel)
+                .environmentObject(floooViewModel)
+                .environmentObject(albumViewModel)
+                .environmentObject(playerViewModel)
+                .environmentObject(downloadViewModel)
+                .environmentObject(libraryRouter)
+            }
+            Tab("Library", systemImage: "square.grid.2x2", value: AppTab.library) {
+              LibraryView(viewModel: albumViewModel)
+                .environmentObject(albumViewModel)
+                .environmentObject(playerViewModel)
+                .environmentObject(downloadViewModel)
+                .environmentObject(libraryRouter)
+                .environmentObject(authViewModel)
+                .onAppear { albumViewModel.fetchAlbums() }
+            }
+            Tab("Search", systemImage: "magnifyingglass", value: AppTab.search, role: .search) {
+              LibrarySearchTabView()
+                .environmentObject(albumViewModel)
+                .environmentObject(playerViewModel)
+                .environmentObject(downloadViewModel)
+            }
+            Tab("Preferences", systemImage: "gear", value: AppTab.preferences) {
+              PreferencesView(authViewModel: authViewModel)
+                .environmentObject(playerViewModel)
+                .environmentObject(floooViewModel)
+                .environmentObject(inAppPurchaseManager)
+            }
+            if UserDefaultsManager.enableDebug {
+              Tab("Debug", systemImage: "terminal", value: AppTab.debug) { ConsoleView() }
+            }
+          }
+        } else if #available(iOS 18.0, *) {
+          TabView(selection: $libraryRouter.selectedTab) {
+            Tab("Home", systemImage: "house", value: AppTab.home) {
+              HomeView(viewModel: authViewModel)
+                .environmentObject(floooViewModel)
+                .environmentObject(albumViewModel)
+                .environmentObject(playerViewModel)
+                .environmentObject(downloadViewModel)
+                .environmentObject(libraryRouter)
+            }
+            Tab("Library", systemImage: "square.grid.2x2", value: AppTab.library) {
+              LibraryView(viewModel: albumViewModel)
+                .environmentObject(albumViewModel)
+                .environmentObject(playerViewModel)
+                .environmentObject(downloadViewModel)
+                .environmentObject(libraryRouter)
+                .environmentObject(authViewModel)
+                .onAppear { albumViewModel.fetchAlbums() }
+            }
+            Tab("Search", systemImage: "magnifyingglass", value: AppTab.search) {
+              LibrarySearchTabView()
+                .environmentObject(albumViewModel)
+                .environmentObject(playerViewModel)
+                .environmentObject(downloadViewModel)
+            }
+            Tab("Preferences", systemImage: "gear", value: AppTab.preferences) {
+              PreferencesView(authViewModel: authViewModel)
+                .environmentObject(playerViewModel)
+                .environmentObject(floooViewModel)
+                .environmentObject(inAppPurchaseManager)
+            }
+            if UserDefaultsManager.enableDebug {
+              Tab("Debug", systemImage: "terminal", value: AppTab.debug) { ConsoleView() }
+            }
+          }
+        } else {
+          TabView(selection: $libraryRouter.selectedTab) {
+            HomeView(viewModel: authViewModel).tabItem { Label("Home", systemImage: "house") }
+              .tag(AppTab.home)
+              .environmentObject(floooViewModel).environmentObject(albumViewModel).environmentObject(playerViewModel).environmentObject(downloadViewModel).environmentObject(libraryRouter)
+            LibraryView(viewModel: albumViewModel).tabItem { Label("Library", systemImage: "square.grid.2x2") }
+              .tag(AppTab.library)
+              .environmentObject(albumViewModel).environmentObject(playerViewModel).environmentObject(downloadViewModel).environmentObject(libraryRouter).environmentObject(authViewModel)
+            LibrarySearchTabView().tabItem { Label("Search", systemImage: "magnifyingglass") }
+              .tag(AppTab.search)
+              .environmentObject(albumViewModel).environmentObject(playerViewModel).environmentObject(downloadViewModel)
+            PreferencesView(authViewModel: authViewModel).tabItem { Label("Preferences", systemImage: "gear") }
+              .tag(AppTab.preferences)
+              .environmentObject(playerViewModel).environmentObject(floooViewModel).environmentObject(inAppPurchaseManager)
+          }
         }
-        .tag(AppTab.library)
-        .environmentObject(albumViewModel)
-        .environmentObject(playerViewModel)
-        .environmentObject(downloadViewModel)
-        .environmentObject(libraryRouter)
-        .environmentObject(authViewModel)
-        .onAppear {
-          albumViewModel.fetchAlbums()
+      } else {
+        TabView(selection: $libraryRouter.selectedTab) {
+          HomeView(viewModel: authViewModel).tabItem { Label("Home", systemImage: "house") }
+            .tag(AppTab.home)
+            .environmentObject(floooViewModel).environmentObject(albumViewModel).environmentObject(playerViewModel).environmentObject(downloadViewModel).environmentObject(libraryRouter)
+          if authViewModel.isLoggedIn {
+            LibraryView(viewModel: albumViewModel).tabItem { Label("Library", systemImage: "square.grid.2x2") }
+              .tag(AppTab.library)
+              .environmentObject(albumViewModel).environmentObject(playerViewModel).environmentObject(downloadViewModel).environmentObject(libraryRouter)
+              .onAppear { albumViewModel.fetchAlbums() }
+          }
+          DownloadsView(viewModel: albumViewModel).tabItem { Label("Downloads", systemImage: "arrow.down.circle") }
+            .tag(AppTab.downloads)
+            .environmentObject(playerViewModel).environmentObject(downloadViewModel)
+            .onAppear { albumViewModel.fetchDownloadedAlbums() }
+            .badge(downloadViewModel.getRemainingDownloadItems())
+          PreferencesView(authViewModel: authViewModel).tabItem { Label("Preferences", systemImage: "gear") }
+            .tag(AppTab.preferences)
+            .environmentObject(playerViewModel).environmentObject(floooViewModel).environmentObject(inAppPurchaseManager)
+          if UserDefaultsManager.enableDebug {
+            ConsoleView().tabItem { Label("Debug", systemImage: "terminal") }.tag(AppTab.debug)
+          }
         }
-      }
-
-      if !libraryViewV2Enabled {
-        DownloadsView(viewModel: albumViewModel).tabItem {
-          Label("Downloads", systemImage: "arrow.down.circle")
-        }
-        .tag(AppTab.downloads)
-        .environmentObject(playerViewModel)
-        .environmentObject(downloadViewModel)
-        .onAppear {
-          albumViewModel.fetchDownloadedAlbums()
-        }.badge(downloadViewModel.getRemainingDownloadItems())
-      }
-
-      PreferencesView(authViewModel: authViewModel).tabItem {
-        Label("Preferences", systemImage: "gear")
-      }
-      .tag(AppTab.preferences)
-      .environmentObject(playerViewModel)
-      .environmentObject(floooViewModel)
-      .environmentObject(inAppPurchaseManager)
-
-      if UserDefaultsManager.enableDebug {
-        ConsoleView().tabItem {
-          Label("Debug", systemImage: "terminal")
-        }
-        .tag(AppTab.debug)
       }
     }
     .id(tabViewID)
-    .onChange(of: enableDebug) { _ in
-      tabViewID = UUID()
-    }
+    .onChange(of: enableDebug) { _ in tabViewID = UUID() }
     .onChange(of: libraryViewV2Enabled) { isEnabled in
       if isEnabled, libraryRouter.selectedTab == .downloads {
         libraryRouter.selectedTab = authViewModel.isLoggedIn ? .library : .home
@@ -292,6 +350,24 @@ struct ContentView: View {
           )
         }
         .badge(downloadViewModel.getRemainingDownloadItems())
+      }
+
+      if libraryViewV2Enabled {
+        if #available(iOS 26.0, *) {
+          Tab("Search", systemImage: "magnifyingglass", value: AppTab.search, role: .search) {
+            LibrarySearchTabView()
+              .environmentObject(albumViewModel)
+              .environmentObject(playerViewModel)
+              .environmentObject(downloadViewModel)
+          }
+        } else {
+          Tab("Search", systemImage: "magnifyingglass", value: AppTab.search) {
+            LibrarySearchTabView()
+              .environmentObject(albumViewModel)
+              .environmentObject(playerViewModel)
+              .environmentObject(downloadViewModel)
+          }
+        }
       }
 
       Tab("Preferences", systemImage: "gear", value: AppTab.preferences) {
@@ -479,6 +555,125 @@ struct ContentView: View {
       default:
         libraryRouter.homePath.append(destination)
       }
+    }
+  }
+}
+
+private struct LibrarySearchTabView: View {
+  @EnvironmentObject var albumViewModel: AlbumViewModel
+  @EnvironmentObject var playerViewModel: PlayerViewModel
+  @EnvironmentObject var downloadViewModel: DownloadViewModel
+  @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+  @State private var searchText = ""
+  private var columns: [GridItem] {
+    if horizontalSizeClass == .regular { return Array(repeating: GridItem(.flexible()), count: 4) }
+    else { return Array(repeating: GridItem(.flexible()), count: 2) }
+  }
+  private var filteredAlbums: [Album] {
+    if searchText.isEmpty { return [] }
+    return albumViewModel.albums.filter { $0.name.localizedCaseInsensitiveContains(searchText) || $0.artist.localizedCaseInsensitiveContains(searchText) }
+  }
+  private var filteredArtists: [Artist] {
+    if searchText.isEmpty { return [] }
+    return albumViewModel.artists.filter { $0.name.localizedCaseInsensitiveContains(searchText) }
+  }
+  private var filteredSongs: [Song] {
+    if searchText.isEmpty { return [] }
+    return albumViewModel.songs.filter { $0.title.localizedCaseInsensitiveContains(searchText) || $0.artist.localizedCaseInsensitiveContains(searchText) }
+  }
+  private var hasResults: Bool { !filteredAlbums.isEmpty || !filteredArtists.isEmpty || !filteredSongs.isEmpty }
+  var body: some View {
+    NavigationStack {
+      ScrollView {
+        if searchText.isEmpty {
+          Group {
+            if #available(iOS 17.0, *) {
+              ContentUnavailableView("Search your library", systemImage: "magnifyingglass", description: Text("Albums, artists and songs — all in one place."))
+            } else {
+              VStack(spacing: 12) {
+                Image(systemName: "magnifyingglass").font(.largeTitle).foregroundColor(.secondary)
+                Text("Search your library").customFont(.headline)
+                Text("Albums, artists and songs — all in one place.").customFont(.subheadline).foregroundColor(.secondary)
+              }
+            }
+          }.padding(.top, 40)
+        } else if !hasResults {
+          Group {
+            if #available(iOS 17.0, *) {
+              ContentUnavailableView.search(text: searchText)
+            } else {
+              VStack(spacing: 12) {
+                Image(systemName: "magnifyingglass").font(.largeTitle).foregroundColor(.secondary)
+                Text("No results for \"\(searchText)\"").customFont(.headline)
+              }
+            }
+          }.padding(.top, 40)
+        } else {
+          LazyVStack(alignment: .leading, spacing: 20) {
+            if !filteredAlbums.isEmpty {
+              Section {
+                LazyVGrid(columns: columns, spacing: 12) {
+                  ForEach(filteredAlbums) { album in
+                    NavigationLink {
+                      AlbumView(viewModel: albumViewModel).environmentObject(downloadViewModel).onAppear { albumViewModel.setActiveAlbum(album: album) }
+                    } label: { AlbumsView(viewModel: albumViewModel, album: album) }
+                  }
+                }
+              } header: { Text("Albums").customFont(.headline).frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal) }
+            }
+            if !filteredArtists.isEmpty {
+              Section {
+                VStack(alignment: .leading, spacing: 8) {
+                  ForEach(filteredArtists.prefix(8)) { artist in
+                    NavigationLink {
+                      ArtistDetailView(artist: artist).environmentObject(albumViewModel).environmentObject(playerViewModel).environmentObject(downloadViewModel)
+                    } label: {
+                      HStack {
+                        ArtistImageView(artist: artist)
+                        Text(artist.name).customFont(.headline).padding(.leading, 8)
+                        Spacer()
+                        Image(systemName: "chevron.right").foregroundColor(.secondary).font(.caption)
+                      }.padding(.horizontal).padding(.vertical, 4)
+                    }
+                    Divider().padding(.leading, 56)
+                  }
+                }
+              } header: { Text("Artists").customFont(.headline).frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal) }
+            }
+            if !filteredSongs.isEmpty {
+              Section {
+                VStack(spacing: 0) {
+                  ForEach(filteredSongs.prefix(12), id: \.id) { song in
+                    HStack {
+                      if let img = UIImage(contentsOfFile: albumViewModel.getAlbumCoverArt(id: song.albumId)) {
+                        Image(uiImage: img).resizable().scaledToFill().frame(width: 44, height: 44).clipShape(RoundedRectangle(cornerRadius: 6))
+                      } else {
+                        RoundedRectangle(cornerRadius: 6).fill(Color.gray.opacity(0.15)).frame(width: 44, height: 44)
+                      }
+                      VStack(alignment: .leading, spacing: 2) {
+                        Text(song.title).customFont(.caption1).fontWeight(.bold).lineLimit(1)
+                        Text("\(song.artist) • \(timeString(for: song.duration))").customFont(.caption2).foregroundColor(.gray).lineLimit(1)
+                      }.padding(.leading, 8)
+                      Spacer()
+                    }.padding(.horizontal).padding(.vertical, 6).contentShape(Rectangle())
+                    .onTapGesture {
+                      if let idx = albumViewModel.songs.firstIndex(where: { $0.id == song.id }) {
+                        var pl = Playlist(name: "\"All Tracks\"")
+                        pl.songs = albumViewModel.songs
+                        playerViewModel.playBySong(idx: idx, item: pl, isFromLocal: false)
+                      }
+                    }
+                    Divider().padding(.leading, 60)
+                  }
+                }
+              } header: { Text("Songs").customFont(.headline).frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal) }
+            }
+          }.padding(.top, 8).padding(.bottom, 90)
+        }
+      }
+      .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search Library")
+      .navigationTitle("Search")
+      .onAppear { albumViewModel.getArtists(); albumViewModel.fetchAllSongs() }
     }
   }
 }
