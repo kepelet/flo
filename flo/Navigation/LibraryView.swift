@@ -352,6 +352,7 @@ struct LibraryView: View {
         }
     } else {
       libraryV2ScrollContent
+        .searchable(text: activeSearchBinding, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search")
         .sheet(isPresented: $showDownloadSheet) {
           DownloadQueueView().environmentObject(downloadViewModel)
         }
@@ -1016,7 +1017,7 @@ struct LibraryView: View {
 
   private var v2RecentlyPlayedSection: some View {
     VStack(alignment: .leading, spacing: 14) {
-      v2SectionHeaderStatic(title: "Recently Played", subtitle: "I think you will like thid?")
+      v2SectionHeaderStatic(title: "Recently Played", subtitle: "I think you will like this?")
       ScrollView(.horizontal, showsIndicators: false) {
         HStack(spacing: 12) {
           ForEach(Array(viewModel.recentlyPlayedAlbums.prefix(16))) { album in
