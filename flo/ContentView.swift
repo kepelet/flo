@@ -89,7 +89,7 @@ struct ContentView: View {
       .environmentObject(downloadViewModel)
       .environmentObject(libraryRouter)
 
-      if authViewModel.isLoggedIn {
+      if authViewModel.isLoggedIn || libraryViewV2Enabled {
         LibraryView(viewModel: albumViewModel).tabItem {
           Label("Library", systemImage: "square.grid.2x2")
         }
@@ -98,6 +98,7 @@ struct ContentView: View {
         .environmentObject(playerViewModel)
         .environmentObject(downloadViewModel)
         .environmentObject(libraryRouter)
+        .environmentObject(authViewModel)
         .onAppear {
           albumViewModel.fetchAlbums()
         }
@@ -192,7 +193,7 @@ struct ContentView: View {
         )
       }
 
-      if authViewModel.isLoggedIn {
+      if authViewModel.isLoggedIn || libraryViewV2Enabled {
         TabSection("Library") {
           Tab("Albums", systemImage: "square.grid.2x2", value: AppTab.library) {
             sidebarTabContent(
@@ -201,6 +202,7 @@ struct ContentView: View {
                 .environmentObject(playerViewModel)
                 .environmentObject(downloadViewModel)
                 .environmentObject(libraryRouter)
+                .environmentObject(authViewModel)
                 .onAppear {
                   albumViewModel.fetchAlbums()
                 }

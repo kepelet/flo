@@ -32,6 +32,10 @@ struct LibraryView: View {
   @EnvironmentObject var downloadViewModel: DownloadViewModel
   @EnvironmentObject var libraryRouter: LibraryRouter
 
+  private var isUserLoggedIn: Bool {
+    !AuthService.shared.getCreds(key: "NDToken").isEmpty
+  }
+
   @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
   private var columns: [GridItem] {
@@ -400,7 +404,6 @@ struct LibraryView: View {
   }
 
   private var libraryV2SegmentedControl: some View {
-    // HIG segmented control: 2 equal-width segments, icons optional, persistent selection
     Picker("Library section", selection: $selectedSegment) {
       Label("Library", systemImage: "square.grid.2x2")
         .tag(LibraryV2Segment.library)
@@ -414,69 +417,86 @@ struct LibraryView: View {
     .padding(.bottom, 4)
   }
 
+  private var libraryV2NotLoggedInView: some View {
+    VStack(alignment: .center) {
+      Image("Downloads").resizable().aspectRatio(contentMode: .fit).frame(width: 300)
+        .padding().padding(.bottom, 10)
+      Group {
+        Text("Going off the grid?")
+          .customFont(.title1)
+          .fontWeight(.bold)
+          .multilineTextAlignment(.center)
+          .padding(.bottom, 10)
+        Text("Bring your music anywhere, even when you're offline. Your downloaded music will be here.")
+          .customFont(.subheadline)
+          .multilineTextAlignment(.center)
+      }.padding(.horizontal, 20).foregroundColor(.accent)
+    }.frame(maxWidth: .infinity).padding(.top, 20)
+  }
+
   private var libraryV2ScrollContent: some View {
-    VStack(spacing: 0) {
-      libraryV2SegmentedControl
-      Divider().opacity(0.6)
-      if selectedSegment == .downloads {
-        v2DownloadsScrollContent
+    Group {
+      if !isUserLoggedIn {
+        ScrollView {
+          VStack(alignment: .leading, spacing: 24) {
+            libraryV2SegmentedControl
+            if selectedSegment == .downloads {
+              v2DownloadsBody
+            } else {
+              libraryV2NotLoggedInView
+            }
+          }
+          .padding(.top, 10)
+          .padding(.bottom, playerViewModel.hasNowPlaying() && !playerViewModel.shouldHidePlayer ? 90 : 12)
+        }
+      } else if selectedSegment == .downloads {
+        ScrollView {
+          VStack(alignment: .leading, spacing: 24) {
+            libraryV2SegmentedControl
+            v2DownloadsBody
+          }
+          .padding(.top, 10)
+          .padding(.bottom, playerViewModel.hasNowPlaying() && !playerViewModel.shouldHidePlayer ? 90 : 12)
+        }
       } else {
         ScrollView {
-          if viewModel.albums.isEmpty && viewModel.error != nil {
-            VStack(alignment: .center) {
-              Image("Home").resizable().aspectRatio(contentMode: .fit).frame(
-                maxWidth: .infinity, maxHeight: 300
-              ).padding()
-              Group {
-                Text("Your Navidrome session may have expired")
-                  .customFont(.title1)
-                  .fontWeight(.bold)
-                  .multilineTextAlignment(.center)
-                  .padding(.bottom, 10)
-                Text("The quickest action you can take is to log back in — for now.")
-                  .customFont(.subheadline)
-                  .multilineTextAlignment(.center)
-              }.padding(.horizontal, 20).foregroundColor(.accent)
+          VStack(alignment: .leading, spacing: 24) {
+            libraryV2SegmentedControl
+            if !viewModel.recentlyPlayedAlbums.isEmpty {
+              v2RecentlyPlayedSection
             }
-            .frame(maxWidth: .infinity)
-          } else {
-            VStack(alignment: .leading, spacing: 24) {
-              if !viewModel.recentlyPlayedAlbums.isEmpty {
-                v2RecentlyPlayedSection
-              }
-              v2AlbumsHorizontalSection
-              if !viewModel.recentlyAddedAlbums.isEmpty {
-                v2RecentlyAddedSection
-              }
+            v2AlbumsHorizontalSection
+            if !viewModel.recentlyAddedAlbums.isEmpty {
+              v2RecentlyAddedSection
+            }
 
-              if searchAlbum.isEmpty {
-                if !viewModel.artists.isEmpty {
-                  v2ArtistsSection
-                }
-                if !viewModel.starredSongs.isEmpty {
-                  v2LikedSongsSection
-                }
-                if !viewModel.playlists.isEmpty {
-                  v2PlaylistsSection
-                }
-                if !viewModel.songs.isEmpty {
-                  v2SongsSection
-                }
-                if !radiosViewModel.radios.isEmpty {
-                  v2RadiosSection
-                }
+            if searchAlbum.isEmpty {
+              if !viewModel.artists.isEmpty {
+                v2ArtistsSection
+              }
+              if !viewModel.starredSongs.isEmpty {
+                v2LikedSongsSection
+              }
+              if !viewModel.playlists.isEmpty {
+                v2PlaylistsSection
+              }
+              if !viewModel.songs.isEmpty {
+                v2SongsSection
+              }
+              if !radiosViewModel.radios.isEmpty {
+                v2RadiosSection
               }
             }
-            .padding(.top, 10)
-            .padding(.bottom, playerViewModel.hasNowPlaying() && !playerViewModel.shouldHidePlayer ? 90 : 12)
           }
+          .padding(.top, 10)
+          .padding(.bottom, playerViewModel.hasNowPlaying() && !playerViewModel.shouldHidePlayer ? 90 : 12)
         }
       }
     }
   }
 
-  private var v2DownloadsScrollContent: some View {
-    ScrollView {
+  private var v2DownloadsBody: some View {
+    Group {
       if viewModel.downloadedAlbums.isEmpty && cachedSongs.isEmpty {
         VStack(alignment: .center) {
           Image("Downloads").resizable().aspectRatio(contentMode: .fit).frame(width: 300)
@@ -520,8 +540,18 @@ struct LibraryView: View {
             }
           }.padding(.horizontal, 4).padding(.top, 10)
         }
-        .padding(.bottom, playerViewModel.hasNowPlaying() && !playerViewModel.shouldHidePlayer ? 90 : 12)
       }
+    }
+  }
+
+  private var v2DownloadsScrollContent: some View {
+    ScrollView {
+      VStack(alignment: .leading, spacing: 24) {
+        libraryV2SegmentedControl
+        v2DownloadsBody
+      }
+      .padding(.top, 10)
+      .padding(.bottom, playerViewModel.hasNowPlaying() && !playerViewModel.shouldHidePlayer ? 90 : 12)
     }
     .onAppear {
       cachedSongs = StreamCacheManager.shared.getCachedSongs()
