@@ -379,7 +379,7 @@ struct LibraryView: View {
         }
         .frame(maxWidth: .infinity)
       } else {
-        VStack(alignment: .leading, spacing: 32) {
+        VStack(alignment: .leading, spacing: 24) {
           // Albums now first and horizontal
           v2AlbumsHorizontalSection
 
@@ -402,7 +402,7 @@ struct LibraryView: View {
           }
         }
         .padding(.top, 10)
-        .padding(.bottom, (playerViewModel.hasNowPlaying() && !playerViewModel.shouldHidePlayer ? 100 : 24) + 16)
+        .padding(.bottom, playerViewModel.hasNowPlaying() && !playerViewModel.shouldHidePlayer ? 90 : 12)
       }
     }
   }
@@ -660,17 +660,17 @@ struct LibraryView: View {
             .fontWeight(.bold)
             .lineLimit(1)
             .frame(maxWidth: .infinity, alignment: .leading)
-          HStack(spacing: 6) {
+          HStack(spacing: 3) {
             Text(song.artist)
               .customFont(.caption2)
               .foregroundColor(.gray)
               .lineLimit(1)
             Text("•")
-              .customFont(.caption2)
-              .foregroundColor(.gray.opacity(0.6))
+              .font(.system(size: 8, weight: .regular))
+              .foregroundColor(.gray.opacity(0.5))
             Text(timeString(for: song.duration))
               .font(.system(size: 10, weight: .regular))
-              .foregroundColor(.gray.opacity(0.7))
+              .foregroundColor(.gray.opacity(0.65))
               .lineLimit(1)
           }
           .frame(maxWidth: .infinity, alignment: .leading)
