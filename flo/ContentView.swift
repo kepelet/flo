@@ -683,15 +683,24 @@ private struct LibrarySearchTabView: View {
   }
 
   private func genreCell(_ genre: Genre) -> some View {
-    Text(genre.name)
-      .customFont(.subheadline)
-      .fontWeight(.semibold)
-      .lineLimit(1)
-      .frame(maxWidth: .infinity, minHeight: 56)
-      .padding(.horizontal, 12)
-      .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
-      .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).stroke(Color.accentColor.opacity(0.10), lineWidth: 1))
-      .foregroundColor(.primary)
+    ZStack(alignment: .bottomLeading) {
+      RoundedRectangle(cornerRadius: 12, style: .continuous)
+        .fill(tintColor(for: genre.name))
+      LinearGradient(colors: [Color.black.opacity(0.30), Color.black.opacity(0.0)], startPoint: .bottom, endPoint: .top)
+        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+      Text(genre.name)
+        .customFont(.headline)
+        .fontWeight(.bold)
+        .foregroundColor(.white)
+        .shadow(color: Color.black.opacity(0.25), radius: 1, x: 0, y: 1)
+        .lineLimit(1)
+        .padding(.horizontal, 14)
+        .padding(.vertical, 12)
+        .frame(maxWidth: .infinity, alignment: .bottomLeading)
+    }
+    .frame(maxWidth: .infinity, minHeight: 110)
+    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+    .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(Color.white.opacity(0.12), lineWidth: 1))
   }
 
   private func chunked(_ songs: [Song], size: Int = 4) -> [[Song]] {
@@ -786,41 +795,6 @@ private struct LibrarySearchTabView: View {
     NavigationStack {
       ScrollView {
         if searchText.isEmpty {
-          if let genre = selectedGenre {
-            VStack(alignment: .leading, spacing: 14) {
-              HStack {
-                Button { selectedGenre = nil; genreAlbums = [] } label: {
-                  HStack(spacing: 6) {
-                    Image(systemName: "chevron.left").font(.caption.weight(.semibold))
-                    Text("Genres").customFont(.subheadline)
-                  }.foregroundColor(.accent)
-                }
-                Spacer()
-                Text("Genre: \(genre.name)").customFont(.headline).lineLimit(1)
-                Spacer()
-                Button { selectedGenre = nil; genreAlbums = [] } label: {
-                  Image(systemName: "xmark.circle.fill").foregroundColor(.secondary).font(.title3)
-                }
-              }.padding(.horizontal)
-              if isLoadingGenreAlbums {
-                ProgressView().frame(maxWidth: .infinity).padding(.top, 40)
-              } else if genreAlbums.isEmpty {
-                Text("No albums for this genre").customFont(.subheadline).foregroundColor(.secondary).frame(maxWidth: .infinity).padding(.top, 40)
-              } else {
-                ScrollView(.horizontal, showsIndicators: false) {
-                  HStack(spacing: 12) {
-                    ForEach(Array(genreAlbums.prefix(16))) { album in
-                      NavigationLink {
-                        AlbumView(viewModel: albumViewModel).environmentObject(downloadViewModel).onAppear { albumViewModel.setActiveAlbum(album: album) }
-                      } label: {
-                        albumCard(album)
-                      }.buttonStyle(.plain)
-                    }
-                  }.padding(.horizontal)
-                }
-              }
-            }.padding(.top, 10).padding(.bottom, 12)
-          } else {
             if isLoadingGenres {
               ProgressView().frame(maxWidth: .infinity).padding(.top, 40)
             } else if genres.isEmpty {
@@ -828,11 +802,12 @@ private struct LibrarySearchTabView: View {
             } else {
               LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)], spacing: 10) {
                 ForEach(genres) { genre in
-                  Button { fetchGenreAlbums(genre) } label: { genreCell(genre) }.buttonStyle(.plain)
+                  NavigationLink(value: genre) {
+                    genreCell(genre)
+                  }.buttonStyle(.plain)
                 }
               }.padding(.horizontal).padding(.top, 10).padding(.bottom, 12)
             }
-          }
         } else if !hasResults {
           Group {
             if #available(iOS 17.0, *) {
@@ -998,6 +973,11 @@ private struct LibrarySearchTabView: View {
       }
       .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search Library")
       .navigationTitle("Search")
+      .navigationDestination(for: Genre.self) { genre in
+        GenreAlbumsView(genre: genre)
+          .environmentObject(albumViewModel)
+          .environmentObject(downloadViewModel)
+      }
       .onAppear {
         albumViewModel.getArtists()
         albumViewModel.fetchAllSongs()
@@ -1016,6 +996,63 @@ private struct LibrarySearchTabView: View {
   }
 }
 
+private struct GenreAlbumsView: View {
+  let genre: Genre
+  @EnvironmentObject var albumViewModel: AlbumViewModel
+  @EnvironmentObject var downloadViewModel: DownloadViewModel
+  @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+  @State private var albums: [Album] = []
+  @State private var isLoading = true
+
+  private var columns: [GridItem] {
+    if horizontalSizeClass == .regular { return Array(repeating: GridItem(.flexible(), spacing: 12), count: 4) }
+    else { return Array(repeating: GridItem(.flexible(), spacing: 12), count: 2) }
+  }
+
+  var body: some View {
+    Group {
+      if isLoading {
+        ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity).padding(.top, 40)
+      } else if albums.isEmpty {
+        Text("No albums for this genre").customFont(.subheadline).foregroundColor(.secondary).frame(maxWidth: .infinity, maxHeight: .infinity).padding(.top, 40)
+      } else {
+        ScrollView {
+          LazyVGrid(columns: columns, spacing: 12) {
+            ForEach(albums) { album in
+              NavigationLink {
+                AlbumView(viewModel: albumViewModel).environmentObject(downloadViewModel).onAppear { albumViewModel.setActiveAlbum(album: album) }
+              } label: {
+                AlbumsView(viewModel: albumViewModel, album: album)
+              }.buttonStyle(.plain)
+            }
+          }.padding()
+        }
+      }
+    }
+    .navigationTitle(genre.name)
+    .navigationBarTitleDisplayMode(.large)
+    .onAppear { load() }
+  }
+
+  private func load() {
+    if ProcessInfo.processInfo.arguments.contains("-UITestMockGenres") {
+      let base = genre.name
+      albums = (1...6).map { i in Album(id: "mock-\(base)-\(i)", name: "\(base) Album \(i)", albumArtist: "\(base) Artist", artist: "\(base) Artist") }
+      isLoading = false
+      return
+    }
+    isLoading = true
+    AlbumService.shared.getAlbumsByGenre(genre: genre.name) { result in
+      DispatchQueue.main.async {
+        isLoading = false
+        switch result {
+        case .success(let fetched): albums = fetched
+        case .failure: albums = []
+        }
+      }
+    }
+  }
+}
 
 struct ContentView_Previews: PreviewProvider {
   static var previews: some View {
