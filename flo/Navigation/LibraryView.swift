@@ -315,12 +315,6 @@ struct LibraryView: View {
   private var libraryV2ContentWrapper: some View {
     if #available(iOS 26.0, macOS 26.0, macCatalyst 26.0, *) {
       libraryV2ScrollContent
-        .searchable(
-          text: activeSearchBinding,
-          placement: .navigationBarDrawer(displayMode: .always),
-          prompt: selectedSegment == .downloads ? "Search Downloads" : "Search"
-        )
-        .searchToolbarBehavior(.minimize)
         .sheet(isPresented: $showDownloadSheet) {
           DownloadQueueView().environmentObject(downloadViewModel)
         }
@@ -333,7 +327,6 @@ struct LibraryView: View {
             }
           }
         }
-        .navigationTitle("Library")
         .refreshable {
           await viewModel.refreshAlbums()
           await viewModel.refreshArtists()
@@ -359,11 +352,6 @@ struct LibraryView: View {
         }
     } else {
       libraryV2ScrollContent
-        .searchable(
-          text: activeSearchBinding,
-          placement: .navigationBarDrawer(displayMode: .always),
-          prompt: selectedSegment == .downloads ? "Search Downloads" : "Search"
-        )
         .sheet(isPresented: $showDownloadSheet) {
           DownloadQueueView().environmentObject(downloadViewModel)
         }
@@ -376,7 +364,6 @@ struct LibraryView: View {
             }
           }
         }
-        .navigationTitle("Library")
         .refreshable {
           await viewModel.refreshAlbums()
           await viewModel.refreshArtists()
@@ -1029,7 +1016,7 @@ struct LibraryView: View {
 
   private var v2RecentlyPlayedSection: some View {
     VStack(alignment: .leading, spacing: 14) {
-      v2SectionHeaderStatic(title: "Recently Played", subtitle: "I think you like this?")
+      v2SectionHeaderStatic(title: "Recently Played", subtitle: "I think you will like thid?")
       ScrollView(.horizontal, showsIndicators: false) {
         HStack(spacing: 12) {
           ForEach(Array(viewModel.recentlyPlayedAlbums.prefix(16))) { album in

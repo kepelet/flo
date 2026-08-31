@@ -463,7 +463,7 @@ struct PreferencesView: View {
                 set: { UserDefaultsManager.libraryViewV2 = $0 }
               ))
 
-            Text("Revamped library with inline sections and horizontal rows.").font(.caption)
+            Text("Unified library").font(.caption)
               .foregroundColor(.gray)
           }
         }
