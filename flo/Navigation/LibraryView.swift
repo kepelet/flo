@@ -379,7 +379,7 @@ struct LibraryView: View {
         }
         .frame(maxWidth: .infinity)
       } else {
-        VStack(alignment: .leading, spacing: 18) {
+        VStack(alignment: .leading, spacing: 32) {
           if searchAlbum.isEmpty {
             if !viewModel.artists.isEmpty {
               v2ArtistsSection
@@ -408,15 +408,11 @@ struct LibraryView: View {
 
   // MARK: V2 helpers
 
-  private func v2SectionHeader<Destination: View>(title: String, systemImage: String, destination: Destination) -> some View {
+  private func v2SectionHeader<Destination: View>(title: String, destination: Destination) -> some View {
     HStack {
-      HStack(spacing: 6) {
-        Image(systemName: systemImage)
-          .foregroundColor(.accent)
-          .font(.subheadline)
-        Text(title)
-          .customFont(.headline)
-      }
+      Text(title)
+        .customFont(.title3)
+        .fontWeight(.bold)
       Spacer()
       NavigationLink {
         destination
@@ -426,7 +422,7 @@ struct LibraryView: View {
             .customFont(.subheadline)
           Image(systemName: "chevron.right")
             .font(.caption)
-            .foregroundColor(.gray)
+            .foregroundColor(.accent)
         }
       }
       .buttonStyle(.plain)
@@ -455,8 +451,8 @@ struct LibraryView: View {
   // MARK: Sections
 
   private var v2ArtistsSection: some View {
-    VStack(alignment: .leading, spacing: 8) {
-      v2SectionHeader(title: "Artists", systemImage: "music.mic", destination:
+    VStack(alignment: .leading, spacing: 14) {
+      v2SectionHeader(title: "Artists", destination:
         ArtistsView(artists: viewModel.artists)
           .environmentObject(viewModel)
           .environmentObject(playerViewModel)
@@ -546,8 +542,8 @@ struct LibraryView: View {
   }
 
   private var v2LikedSongsSection: some View {
-    VStack(alignment: .leading, spacing: 8) {
-      v2SectionHeader(title: "Liked Songs", systemImage: "heart.fill", destination:
+    VStack(alignment: .leading, spacing: 14) {
+      v2SectionHeader(title: "Liked Songs", destination:
         LikedSongsView()
           .environmentObject(viewModel)
           .environmentObject(playerViewModel)
@@ -596,8 +592,8 @@ struct LibraryView: View {
   }
 
   private var v2PlaylistsSection: some View {
-    VStack(alignment: .leading, spacing: 8) {
-      v2SectionHeader(title: "Playlists", systemImage: "music.note.list", destination:
+    VStack(alignment: .leading, spacing: 14) {
+      v2SectionHeader(title: "Playlists", destination:
         PlaylistView()
           .environmentObject(viewModel)
           .environmentObject(playerViewModel)
@@ -699,8 +695,8 @@ struct LibraryView: View {
   }
 
   private var v2SongsSection: some View {
-    VStack(alignment: .leading, spacing: 8) {
-      v2SectionHeader(title: "Songs", systemImage: "music.note", destination:
+    VStack(alignment: .leading, spacing: 14) {
+      v2SectionHeader(title: "Songs", destination:
         SongsView()
           .environmentObject(viewModel)
           .environmentObject(playerViewModel)
@@ -751,17 +747,44 @@ struct LibraryView: View {
     }
   }
 
+  private func songCoverURL(for song: Song) -> String {
+    // Navidrome docs: mediafile artwork via mf- falls back embedded -> disc -> album
+    let mediaId = song.mediaFileId.isEmpty ? song.id : song.mediaFileId
+    if !mediaId.isEmpty {
+      return "\(UserDefaultsManager.serverBaseURL)\(API.SubsonicEndpoint.coverArt)\(AuthService.shared.getCreds(key: "subsonicToken"))&id=mf-\(mediaId)&size=300"
+    }
+    return viewModel.getAlbumCoverArt(id: song.albumId)
+  }
+
+  private func songLocalCoverPath(for song: Song) -> String {
+    let mediaId = song.mediaFileId.isEmpty ? song.id : song.mediaFileId
+    return AlbumService.shared.getAlbumCover(
+      artistName: song.artist,
+      albumName: song.albumName,
+      albumId: song.albumId,
+      trackId: mediaId
+    )
+  }
+
   private func v2SongCoverSmall(song: Song) -> some View {
     let key = song.albumId.isEmpty ? song.id : song.albumId
+    let remoteURL = songCoverURL(for: song)
+    let localPath = songLocalCoverPath(for: song)
     return Group {
-      if let local = UIImage(contentsOfFile: viewModel.getAlbumCoverArt(id: song.albumId)) {
+      if let local = UIImage(contentsOfFile: localPath) {
         Image(uiImage: local)
           .resizable()
           .aspectRatio(contentMode: .fill)
           .frame(width: 100, height: 100)
           .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+      } else if let cached = UIImage(contentsOfFile: viewModel.getAlbumCoverArt(id: song.albumId)), remoteURL == viewModel.getAlbumCoverArt(id: song.albumId) {
+        Image(uiImage: cached)
+          .resizable()
+          .aspectRatio(contentMode: .fill)
+          .frame(width: 100, height: 100)
+          .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
       } else {
-        LazyImage(url: URL(string: viewModel.getAlbumCoverArt(id: song.albumId))) { state in
+        LazyImage(url: URL(string: remoteURL)) { state in
           if let image = state.image {
             image
               .resizable()
@@ -797,8 +820,8 @@ struct LibraryView: View {
   }
 
   private var v2RadiosSection: some View {
-    VStack(alignment: .leading, spacing: 8) {
-      v2SectionHeader(title: "Radios", systemImage: "radio", destination:
+    VStack(alignment: .leading, spacing: 14) {
+      v2SectionHeader(title: "Radios", destination:
         RadiosView()
           .environmentObject(playerViewModel)
       )
@@ -845,20 +868,16 @@ struct LibraryView: View {
   }
 
   private var v2AlbumsGridSection: some View {
-    VStack(alignment: .leading, spacing: 8) {
+    VStack(alignment: .leading, spacing: 14) {
       HStack {
-        HStack(spacing: 6) {
-          Image(systemName: "square.grid.2x2")
-            .foregroundColor(.accent)
-            .font(.subheadline)
-          Text("Albums")
-            .customFont(.headline)
-        }
+        Text("Albums")
+          .customFont(.title3)
+          .fontWeight(.bold)
         Spacer()
       }
       .padding(.horizontal)
       LazyVGrid(columns: columns) {
-        ForEach(filteredAlbums) { album in
+        ForEach(Array(filteredAlbums.prefix(10))) { album in
           NavigationLink {
             AlbumView(viewModel: viewModel)
               .environmentObject(downloadViewModel)
