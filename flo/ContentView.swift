@@ -687,12 +687,12 @@ private struct LibrarySearchTabView: View {
     ZStack(alignment: .bottomLeading) {
       RoundedRectangle(cornerRadius: 12, style: .continuous)
         .fill(tintColor(for: genre.name))
-      LinearGradient(colors: [Color.black.opacity(0.30), Color.black.opacity(0.0)], startPoint: .bottom, endPoint: .top)
+      LinearGradient(colors: [Color.black.opacity(0.58), Color.black.opacity(0.0)], startPoint: .bottom, endPoint: .top)
         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
       Text(genre.name)
         .font(.custom("Plus Jakarta Sans", size: 17).weight(.bold))
         .foregroundColor(.white)
-        .shadow(color: Color.black.opacity(0.35), radius: 1, x: 0, y: 1)
+        .shadow(color: Color.black.opacity(0.50), radius: 2, x: 0, y: 1)
         .lineLimit(1)
         .padding(.horizontal, 14)
         .padding(.vertical, 12)
@@ -1010,8 +1010,8 @@ private struct GenreAlbumsView: View {
   @State private var isLoading = true
 
   private var columns: [GridItem] {
-    if horizontalSizeClass == .regular { return Array(repeating: GridItem(.flexible(), spacing: 12), count: 4) }
-    else { return Array(repeating: GridItem(.flexible(), spacing: 12), count: 2) }
+    if horizontalSizeClass == .regular { return Array(repeating: GridItem(.flexible(), spacing: 10), count: 4) }
+    else { return Array(repeating: GridItem(.flexible(), spacing: 10), count: 2) }
   }
 
   var body: some View {
@@ -1022,7 +1022,7 @@ private struct GenreAlbumsView: View {
         Text("No albums for this genre").customFont(.subheadline).foregroundColor(.secondary).frame(maxWidth: .infinity, maxHeight: .infinity).padding(.top, 40)
       } else {
         ScrollView {
-          LazyVGrid(columns: columns, spacing: 12) {
+          LazyVGrid(columns: columns, spacing: 10) {
             ForEach(albums) { album in
               NavigationLink {
                 AlbumView(viewModel: albumViewModel).environmentObject(downloadViewModel).onAppear { albumViewModel.setActiveAlbum(album: album) }
@@ -1030,7 +1030,10 @@ private struct GenreAlbumsView: View {
                 AlbumsView(viewModel: albumViewModel, album: album)
               }.buttonStyle(.plain)
             }
-          }.padding()
+          }
+          .padding(.horizontal, 10)
+          .padding(.top, 8)
+          .padding(.bottom, 12)
         }
       }
     }
