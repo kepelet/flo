@@ -409,25 +409,26 @@ struct LibraryView: View {
 
   // MARK: V2 helpers
 
-  private func v2SectionHeader<Destination: View>(title: String, destination: Destination) -> some View {
+  private func v2SectionHeader<Destination: View>(title: String, hasMore: Bool = true, destination: Destination) -> some View {
     HStack(alignment: .center) {
       Text(title)
         .customFont(.title3)
         .fontWeight(.bold)
       Spacer()
-      NavigationLink {
-        destination
-      } label: {
-        HStack(alignment: .center, spacing: 4) {
-          Text("More")
-            .customFont(.subheadline)
-          Image(systemName: "chevron.right")
-            .font(.caption2.weight(.semibold))
-            .foregroundColor(.accent)
+      if hasMore {
+        NavigationLink {
+          destination
+        } label: {
+          HStack(alignment: .center, spacing: 8) {
+            Text("More")
+              .customFont(.subheadline)
+            Image(systemName: "chevron.right")
+              .font(.caption2.weight(.semibold))
+              .foregroundColor(.accent)
+          }
         }
-        .alignmentGuide(.firstTextBaseline) { d in d[.firstTextBaseline] }
+        .buttonStyle(.plain)
       }
-      .buttonStyle(.plain)
     }
     .padding(.horizontal)
   }
@@ -464,7 +465,7 @@ struct LibraryView: View {
 
   private var v2ArtistsSection: some View {
     VStack(alignment: .leading, spacing: 14) {
-      v2SectionHeader(title: "Artists", destination:
+      v2SectionHeader(title: "Artists", hasMore: viewModel.artists.count > 5, destination:
         ArtistsView(artists: viewModel.artists)
           .environmentObject(viewModel)
           .environmentObject(playerViewModel)
@@ -537,32 +538,20 @@ struct LibraryView: View {
 
   private var v2LikedSongsSection: some View {
     VStack(alignment: .leading, spacing: 14) {
-      v2SectionHeader(title: "Liked Songs", destination:
+      v2SectionHeader(title: "Liked Songs", hasMore: viewModel.starredSongs.count > 10, destination:
         LikedSongsView()
           .environmentObject(viewModel)
           .environmentObject(playerViewModel)
       )
       ScrollView(.horizontal, showsIndicators: false) {
         HStack(spacing: 12) {
-          ForEach(Array(viewModel.starredSongs.prefix(5)), id: \.id) { song in
-            VStack(spacing: 6) {
-              v2SongCoverSmall(song: song)
-              Text(song.title)
-                .customFont(.caption1)
-                .lineLimit(1)
-                .frame(width: 100)
-              Text(song.artist)
-                .customFont(.caption2)
-                .foregroundColor(.gray)
-                .lineLimit(1)
-                .frame(width: 100)
-            }
-            .onTapGesture {
+          ForEach(Array(viewModel.starredSongs.prefix(10)), id: \.id) { song in
+            v2SongHorizontalCard(song: song, onTap: {
               if let idx = viewModel.starredSongs.firstIndex(where: { $0.id == song.id }) {
                 let liked = SongCollection(id: "starred-songs", name: "Liked Songs", songs: viewModel.starredSongs)
                 playerViewModel.playBySong(idx: idx, item: liked, isFromLocal: false)
               }
-            }
+            })
           }
         }
         .padding(.horizontal)
@@ -572,7 +561,7 @@ struct LibraryView: View {
 
   private var v2PlaylistsSection: some View {
     VStack(alignment: .leading, spacing: 14) {
-      v2SectionHeader(title: "Playlists", destination:
+      v2SectionHeader(title: "Playlists", hasMore: viewModel.playlists.count > 5, destination:
         PlaylistView()
           .environmentObject(viewModel)
           .environmentObject(playerViewModel)
@@ -655,52 +644,53 @@ struct LibraryView: View {
     }
   }
 
-  private var v2SongsGridColumns: [GridItem] {
-    Array(repeating: GridItem(.flexible(), spacing: 12), count: 5)
+  private func v2SongHorizontalCard(song: Song, onTap: @escaping () -> Void) -> some View {
+    Button(action: onTap) {
+      HStack(spacing: 10) {
+        v2SongCoverTiny(song: song)
+        VStack(alignment: .leading, spacing: 3) {
+          Text(song.title)
+            .customFont(.caption1)
+            .lineLimit(1)
+            .frame(maxWidth: .infinity, alignment: .leading)
+          Text("\(song.artist) • \(timeString(for: song.duration))")
+            .customFont(.caption2)
+            .foregroundColor(.gray)
+            .lineLimit(1)
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+      }
+      .frame(width: 220, alignment: .leading)
+      .padding(8)
+      .background(Color(.secondarySystemBackground))
+      .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+      .contentShape(Rectangle())
+    }
+    .buttonStyle(.plain)
   }
 
   private var v2SongsSection: some View {
     VStack(alignment: .leading, spacing: 14) {
-      v2SectionHeader(title: "Songs", destination:
+      v2SectionHeader(title: "Songs", hasMore: viewModel.songs.count > 10, destination:
         SongsView()
           .environmentObject(viewModel)
           .environmentObject(playerViewModel)
           .onAppear { viewModel.fetchAllSongs() }
       )
-      LazyVGrid(columns: v2SongsGridColumns, spacing: 12) {
-        ForEach(Array(viewModel.songs.prefix(20)), id: \.id) { song in
-          Button {
-            if let idx = viewModel.songs.firstIndex(where: { $0.id == song.id }) {
-              var playlist = Playlist(name: "\"All Tracks\"")
-              playlist.songs = viewModel.songs
-              playerViewModel.playBySong(idx: idx, item: playlist, isFromLocal: false)
-            }
-          } label: {
-            HStack(spacing: 8) {
-              v2SongCoverTiny(song: song)
-              VStack(alignment: .leading, spacing: 2) {
-                Text(song.title)
-                  .customFont(.caption1)
-                  .lineLimit(1)
-                  .frame(maxWidth: .infinity, alignment: .leading)
-                HStack(spacing: 4) {
-                  Text(song.artist)
-                    .customFont(.caption2)
-                    .foregroundColor(.gray)
-                    .lineLimit(1)
-                  Spacer(minLength: 4)
-                  Text(timeString(for: song.duration))
-                    .customFont(.caption2)
-                    .foregroundColor(.gray)
-                }
+      ScrollView(.horizontal, showsIndicators: false) {
+        HStack(spacing: 12) {
+          ForEach(Array(viewModel.songs.prefix(10)), id: \.id) { song in
+            v2SongHorizontalCard(song: song) {
+              if let idx = viewModel.songs.firstIndex(where: { $0.id == song.id }) {
+                var playlist = Playlist(name: "\"All Tracks\"")
+                playlist.songs = viewModel.songs
+                playerViewModel.playBySong(idx: idx, item: playlist, isFromLocal: false)
               }
             }
-            .contentShape(Rectangle())
           }
-          .buttonStyle(.plain)
         }
+        .padding(.horizontal)
       }
-      .padding(.horizontal)
     }
   }
 
@@ -813,7 +803,7 @@ struct LibraryView: View {
 
   private var v2RadiosSection: some View {
     VStack(alignment: .leading, spacing: 14) {
-      v2SectionHeader(title: "Radios", destination:
+      v2SectionHeader(title: "Radios", hasMore: radiosViewModel.radios.count > 5, destination:
         RadiosView()
           .environmentObject(playerViewModel)
       )
@@ -847,8 +837,22 @@ struct LibraryView: View {
 
   private var v2AlbumsHorizontalSection: some View {
     VStack(alignment: .leading, spacing: 14) {
-      // Albums header - no More square, title only (horizontal scroll replaces grid)
-      v2SectionHeaderNoMore(title: "Albums")
+      v2SectionHeader(title: "Albums", hasMore: filteredAlbums.count > 10, destination:
+        // Expand to grid view for all albums when More tapped
+        ScrollView {
+          LazyVGrid(columns: columns, spacing: 12) {
+            ForEach(filteredAlbums) { album in
+              NavigationLink {
+                AlbumView(viewModel: viewModel)
+                  .environmentObject(downloadViewModel)
+                  .onAppear { viewModel.setActiveAlbum(album: album) }
+              } label: {
+                v2AlbumGridItem(album: album)
+              }.buttonStyle(.plain)
+            }
+          }.padding()
+        }.navigationTitle("Albums")
+      )
       ScrollView(.horizontal, showsIndicators: false) {
         HStack(spacing: 12) {
           ForEach(Array(filteredAlbums.prefix(10))) { album in
