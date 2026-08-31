@@ -577,7 +577,8 @@ private struct LibrarySearchTabView: View {
   }
 
   private var isLoggedIn: Bool {
-    !AuthService.shared.getCreds(key: "NDToken").isEmpty && albumViewModel.error == nil
+    if ProcessInfo.processInfo.arguments.contains("-UITestForceLoggedIn") { return true }
+    return !AuthService.shared.getCreds(key: "NDToken").isEmpty
   }
 
   private func tintColor(for key: String) -> Color {
