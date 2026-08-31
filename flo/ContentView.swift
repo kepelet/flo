@@ -576,23 +576,23 @@ private struct LibrarySearchTabView: View {
   @State private var searchText = ""
   @State private var cachedSongs: [Song] = []
 
-  private var columns: [GridItem] {
+  var columns: [GridItem] {
     if horizontalSizeClass == .regular { return Array(repeating: GridItem(.flexible()), count: 4) }
     else { return Array(repeating: GridItem(.flexible()), count: 2) }
   }
 
-  private var isLoggedIn: Bool {
+  var isLoggedIn: Bool {
     if ProcessInfo.processInfo.arguments.contains("-UITestForceLoggedIn") { return true }
     return !AuthService.shared.getCreds(key: "NDToken").isEmpty
   }
 
-  private func tintColor(for key: String) -> Color {
+  func tintColor(for key: String) -> Color {
     let hash = abs(key.hashValue)
     let hue = Double(hash % 360) / 360.0
     return Color(hue: hue, saturation: 0.22, brightness: 0.94)
   }
 
-  private func placeholderArtwork(key: String, systemImage: String = "music.note") -> some View {
+  func placeholderArtwork(key: String, systemImage: String = "music.note") -> some View {
     ZStack {
       RoundedRectangle(cornerRadius: 8, style: .continuous).fill(tintColor(for: key).opacity(0.85))
       RoundedRectangle(cornerRadius: 8, style: .continuous).fill(Color.gray.opacity(0.08))
@@ -600,7 +600,7 @@ private struct LibrarySearchTabView: View {
     }
   }
 
-  private func songCoverTiny(_ song: Song) -> some View {
+  func songCoverTiny(_ song: Song) -> some View {
     let key = song.albumId.isEmpty ? song.id : song.albumId
     let mediaId = song.mediaFileId.isEmpty ? song.id : song.mediaFileId
     let cover = AlbumService.shared.getAlbumCover(artistName: song.artist, albumName: song.albumName, albumId: song.albumId, trackId: mediaId)
@@ -622,7 +622,7 @@ private struct LibrarySearchTabView: View {
     }
   }
 
-  private func songCard(_ song: Song, onTap: @escaping () -> Void) -> some View {
+  func songCard(_ song: Song, onTap: @escaping () -> Void) -> some View {
     Button(action: onTap) {
       HStack(spacing: 10) {
         songCoverTiny(song)
@@ -638,22 +638,22 @@ private struct LibrarySearchTabView: View {
     }.buttonStyle(.plain)
   }
 
-  private func chunked(_ songs: [Song], size: Int = 4) -> [[Song]] {
+  func chunked(_ songs: [Song], size: Int = 4) -> [[Song]] {
     stride(from: 0, to: songs.count, by: size).map { Array(songs[$0..<min($0+size, songs.count)]) }
   }
 
-  private var filteredAlbums: [Album] {
+  var filteredAlbums: [Album] {
     guard !searchText.isEmpty else { return [] }
     let source = isLoggedIn ? albumViewModel.albums : albumViewModel.downloadedAlbums
     return source.filter { $0.name.localizedCaseInsensitiveContains(searchText) || $0.artist.localizedCaseInsensitiveContains(searchText) }
   }
 
-  private var filteredArtists: [Artist] {
+  var filteredArtists: [Artist] {
     guard isLoggedIn, !searchText.isEmpty else { return [] }
     return albumViewModel.artists.filter { $0.name.localizedCaseInsensitiveContains(searchText) }
   }
 
-  private var filteredSongs: [Song] {
+  var filteredSongs: [Song] {
     guard !searchText.isEmpty else { return [] }
     if isLoggedIn {
       return albumViewModel.songs.filter { $0.title.localizedCaseInsensitiveContains(searchText) || $0.artist.localizedCaseInsensitiveContains(searchText) }
@@ -666,32 +666,32 @@ private struct LibrarySearchTabView: View {
     }
   }
 
-  private var filteredPlaylists: [Playlist] {
+  var filteredPlaylists: [Playlist] {
     guard isLoggedIn, !searchText.isEmpty else { return [] }
     return albumViewModel.playlists.filter { $0.name.localizedCaseInsensitiveContains(searchText) }
   }
 
-  private var filteredRadios: [Radio] {
+  var filteredRadios: [Radio] {
     guard isLoggedIn, !searchText.isEmpty else { return [] }
     return radiosViewModel.radios.filter { $0.name.localizedCaseInsensitiveContains(searchText) }
   }
 
-  private var filteredLiked: [Song] {
+  var filteredLiked: [Song] {
     guard isLoggedIn, !searchText.isEmpty else { return [] }
     return albumViewModel.starredSongs.filter { $0.title.localizedCaseInsensitiveContains(searchText) || $0.artist.localizedCaseInsensitiveContains(searchText) }
   }
 
-  private var filteredRecentPlayed: [Album] {
+  var filteredRecentPlayed: [Album] {
     guard isLoggedIn, !searchText.isEmpty else { return [] }
     return albumViewModel.recentlyPlayedAlbums.filter { $0.name.localizedCaseInsensitiveContains(searchText) }
   }
 
-  private var filteredRecentAdded: [Album] {
+  var filteredRecentAdded: [Album] {
     guard isLoggedIn, !searchText.isEmpty else { return [] }
     return albumViewModel.recentlyAddedAlbums.filter { $0.name.localizedCaseInsensitiveContains(searchText) }
   }
 
-  private var hasResults: Bool {
+  var hasResults: Bool {
     !filteredAlbums.isEmpty || !filteredArtists.isEmpty || !filteredSongs.isEmpty || !filteredPlaylists.isEmpty || !filteredRadios.isEmpty || !filteredLiked.isEmpty || !filteredRecentPlayed.isEmpty || !filteredRecentAdded.isEmpty
   }
 
