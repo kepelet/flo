@@ -626,6 +626,34 @@ class AlbumService {
     }
   }
 
+  // MARK: - Recently Played / Added (Subsonic getAlbumList2)
+
+  func getRecentlyPlayedAlbums(limit: Int = 16, completion: @escaping (Result<[Album], Error>) -> Void) {
+    let params: [String: Any] = ["type": "recent", "size": limit]
+    APIManager.shared.SubsonicEndpointRequest(endpoint: API.SubsonicEndpoint.getAlbumList2, parameters: params) {
+      (response: DataResponse<AlbumList2Response, AFError>) in
+      switch response.result {
+      case .success(let body):
+        completion(.success(body.albums))
+      case .failure(let error):
+        completion(.failure(error))
+      }
+    }
+  }
+
+  func getRecentlyAddedAlbums(limit: Int = 16, completion: @escaping (Result<[Album], Error>) -> Void) {
+    let params: [String: Any] = ["type": "newest", "size": limit]
+    APIManager.shared.SubsonicEndpointRequest(endpoint: API.SubsonicEndpoint.getAlbumList2, parameters: params) {
+      (response: DataResponse<AlbumList2Response, AFError>) in
+      switch response.result {
+      case .success(let body):
+        completion(.success(body.albums))
+      case .failure(let error):
+        completion(.failure(error))
+      }
+    }
+  }
+
   func removeDownloadedSong(
     albumId: String, songId: String, completion: @escaping (Result<Bool, Error>) -> Void
   ) {
@@ -652,4 +680,59 @@ class AlbumService {
       }
     }
   }
+}
+
+// MARK: - Subsonic AlbumList2
+
+struct SubsonicAlbumID3: Codable {
+  let id: String
+  let name: String?
+  let title: String?
+  let artist: String?
+  let albumArtist: String?
+  let coverArt: String?
+  let year: Int?
+  let genre: String?
+  let playCount: Int?
+  let starred: String?
+
+  enum CodingKeys: String, CodingKey {
+    case id, name, title, artist, coverArt, year, genre, playCount, starred
+    case albumArtist
+  }
+
+  func toAlbum() -> Album {
+    let resolvedName = name ?? title ?? "Unknown Album"
+    let resolvedArtist = artist ?? albumArtist ?? "Unknown Artist"
+    let resolvedAlbumArtist = albumArtist ?? artist ?? resolvedArtist
+    return Album(
+      id: id,
+      name: resolvedName,
+      albumArtist: resolvedAlbumArtist,
+      artist: resolvedArtist,
+      songs: [],
+      genre: genre ?? "", 
+      minYear: year ?? 0
+    )
+  }
+}
+
+struct AlbumList2Data: Codable {
+  let album: [SubsonicAlbumID3]?
+}
+
+struct AlbumList2Response: Codable {
+  let subsonicResponse: SubsonicResponse<AlbumList2Data>
+
+  enum CodingKeys: String, CodingKey {
+    case subsonicResponse = "subsonic-response"
+  }
+
+  var albums: [Album] {
+    return subsonicResponse.data?.album?.map { $0.toAlbum() } ?? []
+  }
+}
+
+extension AlbumList2Data: SubsonicResponseData {
+  static var key: String { "albumList2" }
 }

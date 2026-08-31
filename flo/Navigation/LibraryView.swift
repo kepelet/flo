@@ -311,6 +311,8 @@ struct LibraryView: View {
           await viewModel.refreshArtists()
           await viewModel.refreshPlaylists()
           await viewModel.refreshAllSongs()
+          await viewModel.refreshRecentlyPlayedAlbums()
+          await viewModel.refreshRecentlyAddedAlbums()
           viewModel.fetchStarredSongs()
           radiosViewModel.fetchAllRadios()
         }
@@ -319,6 +321,8 @@ struct LibraryView: View {
           viewModel.getPlaylists()
           viewModel.fetchAllSongs()
           viewModel.fetchStarredSongs()
+          viewModel.fetchRecentlyPlayedAlbums()
+          viewModel.fetchRecentlyAddedAlbums()
           radiosViewModel.fetchAllRadios()
         }
     } else {
@@ -346,6 +350,8 @@ struct LibraryView: View {
           await viewModel.refreshArtists()
           await viewModel.refreshPlaylists()
           await viewModel.refreshAllSongs()
+          await viewModel.refreshRecentlyPlayedAlbums()
+          await viewModel.refreshRecentlyAddedAlbums()
           viewModel.fetchStarredSongs()
           radiosViewModel.fetchAllRadios()
         }
@@ -354,6 +360,8 @@ struct LibraryView: View {
           viewModel.getPlaylists()
           viewModel.fetchAllSongs()
           viewModel.fetchStarredSongs()
+          viewModel.fetchRecentlyPlayedAlbums()
+          viewModel.fetchRecentlyAddedAlbums()
           radiosViewModel.fetchAllRadios()
         }
     }
@@ -380,8 +388,13 @@ struct LibraryView: View {
         .frame(maxWidth: .infinity)
       } else {
         VStack(alignment: .leading, spacing: 24) {
-          // Albums now first and horizontal
+          if !viewModel.recentlyPlayedAlbums.isEmpty {
+            v2RecentlyPlayedSection
+          }
           v2AlbumsHorizontalSection
+          if !viewModel.recentlyAddedAlbums.isEmpty {
+            v2RecentlyAddedSection
+          }
 
           if searchAlbum.isEmpty {
             if !viewModel.artists.isEmpty {
@@ -409,11 +422,18 @@ struct LibraryView: View {
 
   // MARK: V2 helpers
 
-  private func v2SectionHeader<Destination: View>(title: String, hasMore: Bool = true, destination: Destination) -> some View {
+  private func v2SectionHeader<Destination: View>(title: String, subtitle: String? = nil, hasMore: Bool = true, destination: Destination) -> some View {
     HStack(alignment: .center) {
-      Text(title)
-        .customFont(.title3)
-        .fontWeight(.bold)
+      VStack(alignment: .leading, spacing: 2) {
+        Text(title)
+          .customFont(.title3)
+          .fontWeight(.bold)
+        if let subtitle, !subtitle.isEmpty {
+          Text(subtitle)
+            .customFont(.caption1)
+            .foregroundColor(.gray)
+        }
+      }
       Spacer()
       if hasMore {
         NavigationLink {
@@ -429,6 +449,23 @@ struct LibraryView: View {
         }
         .buttonStyle(.plain)
       }
+    }
+    .padding(.horizontal)
+  }
+
+  private func v2SectionHeaderStatic(title: String, subtitle: String? = nil) -> some View {
+    HStack(alignment: .center) {
+      VStack(alignment: .leading, spacing: 2) {
+        Text(title)
+          .customFont(.title3)
+          .fontWeight(.bold)
+        if let subtitle, !subtitle.isEmpty {
+          Text(subtitle)
+            .customFont(.caption1)
+            .foregroundColor(.gray)
+        }
+      }
+      Spacer()
     }
     .padding(.horizontal)
   }
@@ -465,7 +502,7 @@ struct LibraryView: View {
 
   private var v2ArtistsSection: some View {
     VStack(alignment: .leading, spacing: 14) {
-      v2SectionHeader(title: "Artists", hasMore: viewModel.artists.count > 5, destination:
+      v2SectionHeader(title: "Artists", subtitle: "Sorted by name", hasMore: viewModel.artists.count > 5, destination:
         ArtistsView(artists: viewModel.artists)
           .environmentObject(viewModel)
           .environmentObject(playerViewModel)
@@ -485,6 +522,7 @@ struct LibraryView: View {
                 v2ArtistCircle(artist: artist)
                 Text(artist.name)
                   .customFont(.caption1)
+                  .fontWeight(.bold)
                   .lineLimit(1)
                   .frame(width: 72)
               }
@@ -538,7 +576,7 @@ struct LibraryView: View {
 
   private var v2LikedSongsSection: some View {
     VStack(alignment: .leading, spacing: 14) {
-      v2SectionHeader(title: "Liked Songs", hasMore: viewModel.starredSongs.count > 16, destination:
+      v2SectionHeader(title: "Liked Songs", subtitle: "Yeah, not this again", hasMore: viewModel.starredSongs.count > 16, destination:
         LikedSongsView()
           .environmentObject(viewModel)
           .environmentObject(playerViewModel)
@@ -565,7 +603,7 @@ struct LibraryView: View {
 
   private var v2PlaylistsSection: some View {
     VStack(alignment: .leading, spacing: 14) {
-      v2SectionHeader(title: "Playlists", hasMore: viewModel.playlists.count > 5, destination:
+      v2SectionHeader(title: "Playlists", subtitle: "As usual?", hasMore: viewModel.playlists.count > 5, destination:
         PlaylistView()
           .environmentObject(viewModel)
           .environmentObject(playerViewModel)
@@ -688,7 +726,7 @@ struct LibraryView: View {
 
   private var v2SongsSection: some View {
     VStack(alignment: .leading, spacing: 14) {
-      v2SectionHeader(title: "Songs", hasMore: viewModel.songs.count > 16, destination:
+      v2SectionHeader(title: "Songs", subtitle: "Sorted by name", hasMore: viewModel.songs.count > 16, destination:
         SongsView()
           .environmentObject(viewModel)
           .environmentObject(playerViewModel)
@@ -824,7 +862,7 @@ struct LibraryView: View {
 
   private var v2RadiosSection: some View {
     VStack(alignment: .leading, spacing: 14) {
-      v2SectionHeader(title: "Radios", hasMore: radiosViewModel.radios.count > 5, destination:
+      v2SectionHeader(title: "Radios", subtitle: "The good ol radio", hasMore: radiosViewModel.radios.count > 5, destination:
         RadiosView()
           .environmentObject(playerViewModel)
       )
@@ -850,9 +888,75 @@ struct LibraryView: View {
     }
   }
 
+  private var v2RecentlyPlayedSection: some View {
+    VStack(alignment: .leading, spacing: 14) {
+      v2SectionHeaderStatic(title: "Recently Played", subtitle: "I think you like this?")
+      ScrollView(.horizontal, showsIndicators: false) {
+        HStack(spacing: 12) {
+          ForEach(Array(viewModel.recentlyPlayedAlbums.prefix(16))) { album in
+            NavigationLink {
+              AlbumView(viewModel: viewModel)
+                .environmentObject(downloadViewModel)
+                .onAppear { viewModel.setActiveAlbum(album: album) }
+            } label: {
+              VStack(alignment: .leading, spacing: 6) {
+                v2AlbumCoverSmall(album: album)
+                Text(album.name)
+                  .customFont(.caption1)
+                  .fontWeight(.bold)
+                  .foregroundColor(.primary)
+                  .lineLimit(1)
+                  .frame(width: 120, alignment: .leading)
+                Text(album.albumArtist.isEmpty ? album.artist : album.albumArtist)
+                  .customFont(.caption2)
+                  .foregroundColor(.gray)
+                  .lineLimit(1)
+                  .frame(width: 120, alignment: .leading)
+              }
+            }.buttonStyle(.plain)
+          }
+        }
+        .padding(.horizontal)
+      }
+    }
+  }
+
+  private var v2RecentlyAddedSection: some View {
+    VStack(alignment: .leading, spacing: 14) {
+      v2SectionHeaderStatic(title: "Recently Added", subtitle: "Let's try this one or two, maybe?")
+      ScrollView(.horizontal, showsIndicators: false) {
+        HStack(spacing: 12) {
+          ForEach(Array(viewModel.recentlyAddedAlbums.prefix(16))) { album in
+            NavigationLink {
+              AlbumView(viewModel: viewModel)
+                .environmentObject(downloadViewModel)
+                .onAppear { viewModel.setActiveAlbum(album: album) }
+            } label: {
+              VStack(alignment: .leading, spacing: 6) {
+                v2AlbumCoverSmall(album: album)
+                Text(album.name)
+                  .customFont(.caption1)
+                  .fontWeight(.bold)
+                  .foregroundColor(.primary)
+                  .lineLimit(1)
+                  .frame(width: 120, alignment: .leading)
+                Text(album.albumArtist.isEmpty ? album.artist : album.albumArtist)
+                  .customFont(.caption2)
+                  .foregroundColor(.gray)
+                  .lineLimit(1)
+                  .frame(width: 120, alignment: .leading)
+              }
+            }.buttonStyle(.plain)
+          }
+        }
+        .padding(.horizontal)
+      }
+    }
+  }
+
   private var v2AlbumsHorizontalSection: some View {
     VStack(alignment: .leading, spacing: 14) {
-      v2SectionHeader(title: "Albums", hasMore: filteredAlbums.count > 10, destination:
+      v2SectionHeader(title: "Albums", subtitle: "Sorted by name", hasMore: filteredAlbums.count > 10, destination:
         // Expand to grid view for all albums when More tapped
         ScrollView {
           LazyVGrid(columns: columns, spacing: 12) {
