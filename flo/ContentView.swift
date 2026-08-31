@@ -682,6 +682,18 @@ private struct LibrarySearchTabView: View {
     }.frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal)
   }
 
+  private func genreCell(_ genre: Genre) -> some View {
+    Text(genre.name)
+      .customFont(.subheadline)
+      .fontWeight(.semibold)
+      .lineLimit(1)
+      .frame(maxWidth: .infinity, minHeight: 56)
+      .padding(.horizontal, 12)
+      .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+      .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).stroke(Color.accentColor.opacity(0.10), lineWidth: 1))
+      .foregroundColor(.primary)
+  }
+
   private func chunked(_ songs: [Song], size: Int = 4) -> [[Song]] {
     stride(from: 0, to: songs.count, by: size).map { Array(songs[$0..<min($0+size, songs.count)]) }
   }
@@ -814,25 +826,11 @@ private struct LibrarySearchTabView: View {
             } else if genres.isEmpty {
               Color.clear.frame(height: 1).padding(.top, 40)
             } else {
-              VStack(alignment: .leading, spacing: 14) {
-                sectionHeader(title: "Genres", subtitle: "Browse by genre")
-                LazyVGrid(columns: [GridItem(.adaptive(minimum: 110), spacing: 8)], spacing: 8) {
-                  ForEach(genres) { genre in
-                    Button { fetchGenreAlbums(genre) } label: {
-                      Text(genre.name)
-                        .customFont(.caption1)
-                        .fontWeight(.medium)
-                        .lineLimit(1)
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 10)
-                        .frame(maxWidth: .infinity)
-                        .background(Capsule().fill(Color.accentColor.opacity(0.12)))
-                        .foregroundColor(.accent)
-                        .overlay(Capsule().stroke(Color.accentColor.opacity(0.18), lineWidth: 1))
-                    }.buttonStyle(.plain)
-                  }
-                }.padding(.horizontal)
-              }.padding(.top, 10).padding(.bottom, 12)
+              LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)], spacing: 10) {
+                ForEach(genres) { genre in
+                  Button { fetchGenreAlbums(genre) } label: { genreCell(genre) }.buttonStyle(.plain)
+                }
+              }.padding(.horizontal).padding(.top, 10).padding(.bottom, 12)
             }
           }
         } else if !hasResults {
@@ -850,7 +848,7 @@ private struct LibrarySearchTabView: View {
           VStack(alignment: .leading, spacing: 24) {
             if !filteredAlbums.isEmpty {
               VStack(alignment: .leading, spacing: 14) {
-                sectionHeader(title: "Albums", subtitle: "Sorted by name")
+                sectionHeader(title: "Albums")
                 ScrollView(.horizontal, showsIndicators: false) {
                   HStack(spacing: 12) {
                     ForEach(filteredAlbums.prefix(10)) { album in
@@ -864,7 +862,7 @@ private struct LibrarySearchTabView: View {
             }
             if !filteredRecentPlayed.isEmpty {
               VStack(alignment: .leading, spacing: 14) {
-                sectionHeader(title: "Recently Played", subtitle: "I think you will like this?")
+                sectionHeader(title: "Recently Played")
                 ScrollView(.horizontal, showsIndicators: false) {
                   HStack(spacing: 12) {
                     ForEach(filteredRecentPlayed.prefix(10)) { album in
@@ -878,7 +876,7 @@ private struct LibrarySearchTabView: View {
             }
             if !filteredRecentAdded.isEmpty {
               VStack(alignment: .leading, spacing: 14) {
-                sectionHeader(title: "Recently Added", subtitle: "Let's try this one or two, maybe?")
+                sectionHeader(title: "Recently Added")
                 ScrollView(.horizontal, showsIndicators: false) {
                   HStack(spacing: 12) {
                     ForEach(filteredRecentAdded.prefix(10)) { album in
@@ -892,7 +890,7 @@ private struct LibrarySearchTabView: View {
             }
             if !filteredArtists.isEmpty {
               VStack(alignment: .leading, spacing: 14) {
-                sectionHeader(title: "Artists", subtitle: "Sorted by name")
+                sectionHeader(title: "Artists")
                 ScrollView(.horizontal, showsIndicators: false) {
                   HStack(spacing: 12) {
                     ForEach(filteredArtists.prefix(5)) { artist in
@@ -911,7 +909,7 @@ private struct LibrarySearchTabView: View {
             }
             if !filteredLiked.isEmpty {
               VStack(alignment: .leading, spacing: 14) {
-                sectionHeader(title: "Liked Songs", subtitle: "Yeah, not this again")
+                sectionHeader(title: "Liked Songs")
                 ScrollView(.horizontal, showsIndicators: false) {
                   HStack(alignment: .top, spacing: 16) {
                     ForEach(Array(chunked(Array(filteredLiked.prefix(16))).enumerated()), id: \.offset) { _, chunk in
@@ -932,7 +930,7 @@ private struct LibrarySearchTabView: View {
             }
             if !filteredPlaylists.isEmpty {
               VStack(alignment: .leading, spacing: 14) {
-                sectionHeader(title: "Playlists", subtitle: "As usual?")
+                sectionHeader(title: "Playlists")
                 ScrollView(.horizontal, showsIndicators: false) {
                   HStack(spacing: 12) {
                     ForEach(filteredPlaylists.prefix(5)) { playlist in
@@ -960,7 +958,7 @@ private struct LibrarySearchTabView: View {
             }
             if !filteredSongs.isEmpty {
               VStack(alignment: .leading, spacing: 14) {
-                sectionHeader(title: "Songs", subtitle: "Sorted by name")
+                sectionHeader(title: "Songs")
                 ScrollView(.horizontal, showsIndicators: false) {
                   HStack(alignment: .top, spacing: 16) {
                     ForEach(Array(chunked(Array(filteredSongs.prefix(16))).enumerated()), id: \.offset) { _, chunk in
@@ -982,7 +980,7 @@ private struct LibrarySearchTabView: View {
             }
             if !filteredRadios.isEmpty {
               VStack(alignment: .leading, spacing: 14) {
-                sectionHeader(title: "Radios", subtitle: "The good ol radio")
+                sectionHeader(title: "Radios")
                 ScrollView(.horizontal, showsIndicators: false) {
                   HStack(spacing: 12) {
                     ForEach(filteredRadios.prefix(5), id: \.id) { radio in
