@@ -254,24 +254,24 @@ struct ContentView: View {
         )
       }
 
-      if libraryViewV2Enabled {
-        Tab("Library", systemImage: "square.grid.2x2", value: AppTab.library) {
-          sidebarTabContent(
-            LibraryView(viewModel: albumViewModel)
-              .environmentObject(albumViewModel)
-              .environmentObject(playerViewModel)
-              .environmentObject(downloadViewModel)
-              .environmentObject(libraryRouter)
-              .environmentObject(authViewModel)
-              .onAppear {
-                albumViewModel.fetchAlbums()
-              }
-          )
-        }
-      }
-
       if authViewModel.isLoggedIn || libraryViewV2Enabled {
         TabSection("Library") {
+          if libraryViewV2Enabled {
+            Tab("Library", systemImage: "square.grid.2x2", value: AppTab.library) {
+              sidebarTabContent(
+                LibraryView(viewModel: albumViewModel)
+                  .environmentObject(albumViewModel)
+                  .environmentObject(playerViewModel)
+                  .environmentObject(downloadViewModel)
+                  .environmentObject(libraryRouter)
+                  .environmentObject(authViewModel)
+                  .onAppear {
+                    albumViewModel.fetchAlbums()
+                  }
+              )
+            }
+          }
+
           Tab("Albums", systemImage: "square.grid.2x2", value: AppTab.libraryAlbums) {
             sidebarTabContent(
               NavigationStack {
