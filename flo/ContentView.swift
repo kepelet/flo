@@ -100,7 +100,7 @@ struct ContentView: View {
                 .environmentObject(authViewModel)
                 .onAppear { albumViewModel.fetchAlbums() }
             }
-            Tab("Search", systemImage: "magnifyingglass", value: AppTab.search, role: .search) {
+            Tab("Search", systemImage: "magnifyingglass", value: AppTab.search) {
               LibrarySearchTabView()
                 .environmentObject(albumViewModel)
                 .environmentObject(playerViewModel)
@@ -254,19 +254,51 @@ struct ContentView: View {
         )
       }
 
+      if libraryViewV2Enabled {
+        Tab("Library", systemImage: "square.grid.2x2", value: AppTab.library) {
+          sidebarTabContent(
+            LibraryView(viewModel: albumViewModel)
+              .environmentObject(albumViewModel)
+              .environmentObject(playerViewModel)
+              .environmentObject(downloadViewModel)
+              .environmentObject(libraryRouter)
+              .environmentObject(authViewModel)
+              .onAppear {
+                albumViewModel.fetchAlbums()
+              }
+          )
+        }
+      }
+
       if authViewModel.isLoggedIn || libraryViewV2Enabled {
         TabSection("Library") {
-          Tab("Albums", systemImage: "square.grid.2x2", value: AppTab.library) {
+          Tab("Albums", systemImage: "square.grid.2x2", value: AppTab.libraryAlbums) {
             sidebarTabContent(
-              LibraryView(viewModel: albumViewModel, showQuickNavigation: false)
-                .environmentObject(albumViewModel)
-                .environmentObject(playerViewModel)
-                .environmentObject(downloadViewModel)
-                .environmentObject(libraryRouter)
-                .environmentObject(authViewModel)
-                .onAppear {
-                  albumViewModel.fetchAlbums()
+              NavigationStack {
+                ScrollView {
+                  LazyVGrid(columns: horizontalSizeClass == .regular ? Array(repeating: GridItem(.flexible(), spacing: 10), count: 4) : Array(repeating: GridItem(.flexible(), spacing: 10), count: 2), spacing: 10) {
+                    ForEach(albumViewModel.albums) { album in
+                      NavigationLink {
+                        AlbumView(viewModel: albumViewModel)
+                          .environmentObject(downloadViewModel)
+                          .onAppear { albumViewModel.setActiveAlbum(album: album) }
+                      } label: {
+                        AlbumsView(viewModel: albumViewModel, album: album)
+                      }.buttonStyle(.plain)
+                    }
+                  }
+                  .padding(.horizontal, 10)
+                  .padding(.top, 8)
+                  .padding(.bottom, 12)
                 }
+                .navigationTitle("Albums")
+                .onAppear { albumViewModel.fetchAlbums() }
+              }
+              .environmentObject(albumViewModel)
+              .environmentObject(playerViewModel)
+              .environmentObject(downloadViewModel)
+              .environmentObject(libraryRouter)
+              .environmentObject(authViewModel)
             )
           }
 
@@ -356,20 +388,14 @@ struct ContentView: View {
       }
 
       if libraryViewV2Enabled {
-        if #available(iOS 26.0, *) {
-          Tab("Search", systemImage: "magnifyingglass", value: AppTab.search, role: .search) {
+        Tab("Search", systemImage: "magnifyingglass", value: AppTab.search) {
+          sidebarTabContent(
             LibrarySearchTabView()
               .environmentObject(albumViewModel)
               .environmentObject(playerViewModel)
               .environmentObject(downloadViewModel)
-          }
-        } else {
-          Tab("Search", systemImage: "magnifyingglass", value: AppTab.search) {
-            LibrarySearchTabView()
-              .environmentObject(albumViewModel)
-              .environmentObject(playerViewModel)
-              .environmentObject(downloadViewModel)
-          }
+              .environmentObject(authViewModel)
+          )
         }
       }
 
@@ -594,8 +620,7 @@ private struct LibrarySearchTabView: View {
   }
 
   private func tintColor(for key: String) -> Color {
-    let hash = abs(key.hashValue)
-    let hue = Double(hash % 360) / 360.0
+    let hue = Double(UInt(bitPattern: key.hashValue) % 360) / 360.0
     return Color(hue: hue, saturation: 0.22, brightness: 0.94)
   }
 
@@ -800,7 +825,7 @@ private struct LibrarySearchTabView: View {
             } else if genres.isEmpty {
               Color.clear.frame(height: 1).padding(.top, 40)
             } else {
-              LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)], spacing: 10) {
+              LazyVGrid(columns: columns, spacing: 10) {
                 ForEach(genres) { genre in
                   NavigationLink(value: genre) {
                     genreCell(genre)

@@ -8,6 +8,7 @@ import SwiftUI
 enum AppTab: Hashable {
   case home
   case library
+  case libraryAlbums
   case libraryArtists
   case likedSongs
   case playlists
