@@ -402,7 +402,7 @@ struct LibraryView: View {
           }
         }
         .padding(.top, 10)
-        .padding(.bottom, playerViewModel.hasNowPlaying() && !playerViewModel.shouldHidePlayer ? 100 : 0)
+        .padding(.bottom, (playerViewModel.hasNowPlaying() && !playerViewModel.shouldHidePlayer ? 100 : 24) + 16)
       }
     }
   }
@@ -586,6 +586,8 @@ struct LibraryView: View {
                 v2PlaylistCover(playlist: playlist)
                 Text(playlist.name)
                   .customFont(.caption1)
+                  .fontWeight(.bold)
+                  .foregroundColor(.primary)
                   .lineLimit(1)
                   .frame(width: 120, alignment: .leading)
                 Text(playlist.ownerName)
@@ -658,11 +660,20 @@ struct LibraryView: View {
             .fontWeight(.bold)
             .lineLimit(1)
             .frame(maxWidth: .infinity, alignment: .leading)
-          Text("\(song.artist) • \(timeString(for: song.duration))")
-            .customFont(.caption2)
-            .foregroundColor(.gray)
-            .lineLimit(1)
-            .frame(maxWidth: .infinity, alignment: .leading)
+          HStack(spacing: 6) {
+            Text(song.artist)
+              .customFont(.caption2)
+              .foregroundColor(.gray)
+              .lineLimit(1)
+            Text("•")
+              .customFont(.caption2)
+              .foregroundColor(.gray.opacity(0.6))
+            Text(timeString(for: song.duration))
+              .font(.system(size: 10, weight: .regular))
+              .foregroundColor(.gray.opacity(0.7))
+              .lineLimit(1)
+          }
+          .frame(maxWidth: .infinity, alignment: .leading)
         }
       }
       .frame(width: 240, alignment: .leading)
