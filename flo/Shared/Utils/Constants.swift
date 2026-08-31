@@ -16,6 +16,7 @@ enum API {
     static let getArtists = "/api/artist"
     static let getPlaylists = "/api/playlist"
     static let getSong = "/api/song"
+    static let getGenre = "/api/genre"
     static let shareAlbum = "/api/share"
     static let listenBrainzLink = "/api/listenbrainz/link"
     static let lastFMLink = "/api/lastfm/link"

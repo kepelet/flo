@@ -654,6 +654,36 @@ class AlbumService {
     }
   }
 
+  func getGenres(completion: @escaping (Result<[Genre], Error>) -> Void) {
+    let params: [String: Any] = ["_start": 0, "_end": 0, "_order": "ASC", "_sort": "name"]
+    APIManager.shared.NDEndpointRequest(endpoint: API.NDEndpoint.getGenre, parameters: params) {
+      (response: DataResponse<[Genre], AFError>) in
+      switch response.result {
+      case .success(let genres): completion(.success(genres))
+      case .failure(let error): completion(.failure(error))
+      }
+    }
+  }
+
+  func getAlbumsByGenre(genre: String, limit: Int = 16, completion: @escaping (Result<[Album], Error>) -> Void) {
+    let params: [String: Any] = ["type": "byGenre", "genre": genre, "size": limit]
+    APIManager.shared.SubsonicEndpointRequest(endpoint: API.SubsonicEndpoint.getAlbumList2, parameters: params) {
+      (response: DataResponse<AlbumList2Response, AFError>) in
+      switch response.result {
+      case .success(let body): completion(.success(body.albums))
+      case .failure(let error):
+        let fallback: [String: Any] = ["_start": 0, "_end": limit, "_order": "ASC", "_sort": "name", "genre": genre]
+        APIManager.shared.NDEndpointRequest(endpoint: API.NDEndpoint.getAlbum, parameters: fallback) {
+          (fallbackResponse: DataResponse<[Album], AFError>) in
+          switch fallbackResponse.result {
+          case .success(let albums): completion(.success(albums))
+          case .failure: completion(.failure(error))
+          }
+        }
+      }
+    }
+  }
+
   func removeDownloadedSong(
     albumId: String, songId: String, completion: @escaping (Result<Bool, Error>) -> Void
   ) {
@@ -736,3 +766,44 @@ struct AlbumList2Response: Codable {
 extension AlbumList2Data: SubsonicResponseData {
   static var key: String { "albumList2" }
 }
+
+//
+//  Genre.swift
+//  flo
+//
+
+import Foundation
+
+struct Genre: Codable, Identifiable, Hashable {
+  let id: String
+  let name: String
+  let songCount: Int?
+  let albumCount: Int?
+
+  enum CodingKeys: String, CodingKey {
+    case id, name, songCount, albumCount
+  }
+
+  init(from decoder: Decoder) throws {
+    let c = try decoder.container(keyedBy: CodingKeys.self)
+    // Navidrome may return id as string or not; handle both
+    if let idStr = try? c.decode(String.self, forKey: .id) {
+      id = idStr
+    } else if let idInt = try? c.decode(Int.self, forKey: .id) {
+      id = String(idInt)
+    } else {
+      id = UUID().uuidString
+    }
+    name = (try? c.decode(String.self, forKey: .name)) ?? "Unknown"
+    songCount = try? c.decode(Int.self, forKey: .songCount)
+    albumCount = try? c.decode(Int.self, forKey: .albumCount)
+  }
+
+  init(id: String = UUID().uuidString, name: String, songCount: Int? = nil, albumCount: Int? = nil) {
+    self.id = id
+    self.name = name
+    self.songCount = songCount
+    self.albumCount = albumCount
+  }
+}
+

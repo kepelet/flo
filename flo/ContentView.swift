@@ -566,7 +566,6 @@ private struct LibrarySearchTabView: View {
   @EnvironmentObject var albumViewModel: AlbumViewModel
   @EnvironmentObject var playerViewModel: PlayerViewModel
   @EnvironmentObject var downloadViewModel: DownloadViewModel
-  @EnvironmentObject var authViewModel: AuthViewModel
   @StateObject private var radiosViewModel = RadiosViewModel()
   @Environment(\.horizontalSizeClass) private var horizontalSizeClass
   @State private var searchText = ""
@@ -578,7 +577,7 @@ private struct LibrarySearchTabView: View {
   }
 
   private var isLoggedIn: Bool {
-    authViewModel.isLoggedIn
+    !AuthService.shared.getCreds(key: "NDToken").isEmpty && albumViewModel.error == nil
   }
 
   private func tintColor(for key: String) -> Color {
@@ -656,7 +655,7 @@ private struct LibrarySearchTabView: View {
       let downloaded = albumViewModel.downloadedAlbums.flatMap { album in
         AlbumService.shared.getSongsByAlbumId(albumId: album.id)
       }
-      let combined = (cachedSongs + downloaded)
+      let combined = Array(Set(cachedSongs + downloaded))
       return combined.filter { $0.title.localizedCaseInsensitiveContains(searchText) || $0.artist.localizedCaseInsensitiveContains(searchText) }
     }
   }
@@ -896,5 +895,12 @@ private struct LibrarySearchTabView: View {
         cachedSongs = StreamCacheManager.shared.getCachedSongs()
       }
     }
+  }
+}
+
+
+struct ContentView_Previews: PreviewProvider {
+  static var previews: some View {
+    ContentView()
   }
 }
