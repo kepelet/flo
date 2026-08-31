@@ -333,7 +333,7 @@ struct LibraryView: View {
             }
           }
         }
-        .navigationTitle(selectedSegment == .downloads ? "Library • Downloads" : "Library")
+        .navigationTitle("Library")
         .refreshable {
           await viewModel.refreshAlbums()
           await viewModel.refreshArtists()
@@ -376,7 +376,7 @@ struct LibraryView: View {
             }
           }
         }
-        .navigationTitle(selectedSegment == .downloads ? "Library • Downloads" : "Library")
+        .navigationTitle("Library")
         .refreshable {
           await viewModel.refreshAlbums()
           await viewModel.refreshArtists()
