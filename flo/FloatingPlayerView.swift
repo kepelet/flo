@@ -347,12 +347,6 @@ struct PadFloatingPlayerView: View {
       // Hover overlay — expanded seekable bar covering the content area (Catalyst only)
       if isCenterHovering {
         VStack(spacing: 6) {
-          Text(viewModel.nowPlaying.songName ?? "")
-            .customFont(.caption1)
-            .fontWeight(.semibold)
-            .foregroundColor(.primary.opacity(0.85))
-            .lineLimit(1)
-            .frame(maxWidth: .infinity, alignment: .center)
           PadProgressBar(viewModel: viewModel, height: 6, thumbVisible: true, useIsSeeking: true)
             .frame(height: 16)
           HStack {

@@ -7,8 +7,37 @@ import NukeUI
 import SwiftUI
 
 struct PlayerSidePanelView: View {
+  @Environment(\.colorScheme) private var colorScheme
   @Binding var activePanel: FloatingPlayerPanel?
   @ObservedObject var viewModel: PlayerViewModel
+
+  // MARK: - Lyrics font (bypass customFont accent injection)
+  private func lyricsFont(_ style: TextStyle) -> Font {
+    switch style {
+    case .largeTitle:
+      return .custom("Plus Jakarta Sans", size: 34)
+    case .title, .title1:
+      return .custom("Plus Jakarta Sans", size: 28)
+    case .title2:
+      return .custom("Plus Jakarta Sans", size: 22)
+    case .title3:
+      return .custom("Plus Jakarta Sans", size: 20)
+    case .headline:
+      return .custom("Plus Jakarta Sans", size: 17).weight(.bold)
+    case .body:
+      return .custom("Plus Jakarta Sans", size: 17)
+    case .callout:
+      return .custom("Plus Jakarta Sans", size: 16)
+    case .subheadline:
+      return .custom("Plus Jakarta Sans", size: 15)
+    case .footnote:
+      return .custom("Plus Jakarta Sans", size: 13)
+    case .caption1:
+      return .custom("Plus Jakarta Sans", size: 12)
+    case .caption2:
+      return .custom("Plus Jakarta Sans", size: 11)
+    }
+  }
 
   var body: some View {
     ZStack(alignment: .topLeading) {
@@ -39,79 +68,109 @@ struct PlayerSidePanelView: View {
     .transition(.move(edge: .trailing).combined(with: .opacity))
   }
 
-  // MARK: Lyrics — white text on systemBackground forced dark (no PlayerColor)
+  // MARK: Lyrics — systemBackground, explicit scheme label colors (no accent)
 
   private var lyricsContent: some View {
-    Group {
-      if viewModel.isLoadingLyrics && viewModel.lyrics.isEmpty && (viewModel.lyricsError == nil || viewModel.lyricsError!.isEmpty) {
-        VStack {
-          Spacer()
-          ProgressView().scaleEffect(1.1).tint(.white)
-          Text("Loading lyrics…").customFont(.caption1).foregroundColor(.white.opacity(0.6)).padding(.top, 8)
-          Spacer()
+    VStack(alignment: .leading, spacing: 0) {
+      // Header pinned above ScrollView — solid surface so lyrics don't bleed through
+      HStack(alignment: .center, spacing: 10) {
+        if let sourceName = viewModel.lyricsSourceName {
+          Text("Lyrics from: \(sourceName)")
+            .font(lyricsFont(.subheadline))
+            .fontWeight(.medium)
+            .lineLimit(1)
+            .foregroundColor(colorScheme == .dark ? Color.white : Color.black)
+        } else {
+          Text("")
+            .font(lyricsFont(.subheadline))
+            .foregroundColor(colorScheme == .dark ? Color.white : Color.black)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-      } else if viewModel.lyrics.isEmpty {
-        VStack(spacing: 10) {
-          Spacer()
-          Text("No lyrics available").customFont(.callout).foregroundColor(.white.opacity(0.6))
-          Spacer()
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-      } else if viewModel.lyrics.count == 1 {
-        // Plain (unsynced) lyrics — single block, white
-        ScrollView {
-          Text(viewModel.lyrics[0].text)
-            .customFont(.callout)
-            .foregroundColor(.white.opacity(0.88))
-            .multilineTextAlignment(.leading)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(16)
-        }
-      } else {
-        ScrollViewReader { proxy in
+        Spacer()
+      }
+      .padding(.horizontal, 14)
+      .padding(.vertical, 8)
+      .background(Color(.secondarySystemBackground))
+
+      Divider().opacity(0.15)
+
+      Group {
+        if viewModel.isLoadingLyrics && viewModel.lyrics.isEmpty && (viewModel.lyricsError == nil || viewModel.lyricsError!.isEmpty) {
+          VStack {
+            Spacer()
+            ProgressView()
+              .scaleEffect(1.1)
+              .tint(colorScheme == .dark ? Color.white : Color.black)
+            Text("Loading lyrics…")
+              .font(lyricsFont(.caption1))
+              .padding(.top, 8)
+              .foregroundColor(.secondary)
+            Spacer()
+          }
+          .frame(maxWidth: .infinity, maxHeight: .infinity)
+        } else if viewModel.lyrics.isEmpty {
+          VStack(spacing: 10) {
+            Spacer()
+            Text("No lyrics available")
+              .font(lyricsFont(.callout))
+              .foregroundColor(.secondary)
+            Spacer()
+          }
+          .frame(maxWidth: .infinity, maxHeight: .infinity)
+        } else if viewModel.lyrics.count == 1 {
+          // Plain (unsynced) lyrics — single block, explicit scheme color
           ScrollView {
-            LazyVStack(spacing: 14) {
-              ForEach(Array(viewModel.lyrics.enumerated()), id: \.element.id) { idx, line in
-                let isCurrent = idx == viewModel.currentLyricsLineIndex
-                Text(line.text)
-                  .customFont(isCurrent ? .title3 : .body)
-                  .fontWeight(isCurrent ? .semibold : .regular)
-                  .foregroundColor(isCurrent ? Color.white : Color.white.opacity(0.45))
-                  .multilineTextAlignment(.leading)
-                  .frame(maxWidth: .infinity, minHeight: 40, alignment: .leading)
-                  .lineSpacing(6)
-                  .padding(.horizontal, 14)
-                  .padding(.vertical, 3)
-                  .animation(.easeInOut(duration: 0.22), value: viewModel.currentLyricsLineIndex)
-                  .id(idx)
-                  .onTapGesture {
-                    let progress = line.timestamp / max(viewModel.nowPlaying.duration, 0.1)
-                    let clamped = min(max(progress, 0), 1)
-                    viewModel.seek(to: clamped)
-                    viewModel.play()
-                  }
+            Text(viewModel.lyrics[0].text)
+              .font(lyricsFont(.callout))
+              .multilineTextAlignment(.leading)
+              .frame(maxWidth: .infinity, alignment: .leading)
+              .padding(16)
+              .foregroundColor(colorScheme == .dark ? Color.white : Color.black)
+          }
+        } else {
+          ScrollViewReader { proxy in
+            ScrollView {
+              LazyVStack(spacing: 14) {
+                ForEach(Array(viewModel.lyrics.enumerated()), id: \.element.id) { idx, line in
+                  let isCurrent = idx == viewModel.currentLyricsLineIndex
+                  Text(line.text)
+                    .font(lyricsFont(isCurrent ? .title3 : .body))
+                    .fontWeight(isCurrent ? .semibold : .regular)
+                    .multilineTextAlignment(.leading)
+                    .frame(maxWidth: .infinity, minHeight: 40, alignment: .leading)
+                    .lineSpacing(6)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 3)
+                    .foregroundColor(isCurrent ? (colorScheme == .dark ? Color.white : Color.black) : (colorScheme == .dark ? Color.white.opacity(0.45) : Color.black.opacity(0.45)))
+                    .animation(.easeInOut(duration: 0.22), value: viewModel.currentLyricsLineIndex)
+                    .id(idx)
+                    .onTapGesture {
+                      let progress = line.timestamp / max(viewModel.nowPlaying.duration, 0.1)
+                      let clamped = min(max(progress, 0), 1)
+                      viewModel.seek(to: clamped)
+                      viewModel.play()
+                    }
+                }
+                Spacer().frame(height: 120)
               }
-              Spacer().frame(height: 120)
+              .padding(.vertical, 12)
             }
-            .padding(.vertical, 12)
-          }
-          .onAppear {
-            guard viewModel.currentLyricsLineIndex >= 0 else { return }
-            proxy.scrollTo(viewModel.currentLyricsLineIndex, anchor: .center)
-          }
-          .onChange(of: viewModel.currentLyricsLineIndex) { newIndex in
-            guard newIndex >= 0 else { return }
-            withAnimation(.easeInOut(duration: 0.45)) {
-              proxy.scrollTo(newIndex, anchor: .center)
+            .onAppear {
+              guard viewModel.currentLyricsLineIndex >= 0 else { return }
+              proxy.scrollTo(viewModel.currentLyricsLineIndex, anchor: .center)
+            }
+            .onChange(of: viewModel.currentLyricsLineIndex) { newIndex in
+              guard newIndex >= 0 else { return }
+              withAnimation(.easeInOut(duration: 0.45)) {
+                proxy.scrollTo(newIndex, anchor: .center)
+              }
             }
           }
         }
       }
+      .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-    .background(Color(.systemBackground).ignoresSafeArea())
-    .environment(\.colorScheme, .dark)
+    .background(Color(.systemBackground))
   }
 
   // MARK: Queue — mirror PlayerView "Playing Next" list (no header, sub-row aligned, no leading bar)

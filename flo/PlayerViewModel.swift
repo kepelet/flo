@@ -93,6 +93,10 @@ class PlayerViewModel: ObservableObject {
     return UserDefaultsManager.LRCLIBServerURL != ""
   }
 
+  var lyricsSourceName: String? {
+    LRCLIBSource.displayName(for: UserDefaultsManager.LRCLIBServerURL)
+  }
+
   var isLiveRadio: Bool {
     guard hasNowPlaying() else { return false }
 

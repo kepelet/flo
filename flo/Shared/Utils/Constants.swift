@@ -97,6 +97,20 @@ enum PlayerBackground {
   static let translucent = "translucent"
 }
 
+enum LRCLIBSource {
+  static func displayName(for urlString: String) -> String? {
+    guard !urlString.isEmpty else { return nil }
+    switch urlString {
+    case "https://lrclib.net":
+      return "lrclib.net"
+    case "https://lrclib.flooo.club":
+      return "lrclib.flooo.club"
+    default:
+      return "Custom"
+    }
+  }
+}
+
 // MARK: - Pad-aware bottom padding helper (pad/mac floating player is ~68pt tall)
 // Returns 140 when now-playing on pad/mac (iPadOS 18+ / macCatalyst 18+), otherwise iPhone values unchanged.
 var isPadOrMacLayout: Bool {
