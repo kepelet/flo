@@ -33,41 +33,20 @@ struct PlayerSidePanelView: View {
     // Fixed height: fill window height minus floating player + safe area, but clamp to avoid infinite.
     .frame(maxHeight: .infinity)
     .transition(.move(edge: .trailing).combined(with: .opacity))
-    .overlay {
-      // Escape closes panel (same pattern as PlayerView)
-      if activePanel != nil {
-        Button {
-          withAnimation(.spring(duration: 0.22)) { activePanel = nil }
-        } label: { EmptyView() }
-        .keyboardShortcut(.escape, modifiers: [])
-        .frame(width: 0, height: 0)
-        .opacity(0)
-      }
-    }
   }
 
   private var header: some View {
     HStack(spacing: 10) {
       if activePanel == .lyrics {
-        Image(systemName: "quote.bubble.fill").foregroundColor(.accentColor).font(.system(size: 14, weight: .semibold))
+        Image(systemName: "quote.bubble.fill").foregroundColor(.accentColor)
+          .font(.system(size: 14, weight: .semibold))
         Text("Lyrics").customFont(.headline)
       } else {
-        Image(systemName: "list.bullet").foregroundColor(.accentColor).font(.system(size: 14, weight: .semibold))
+        Image(systemName: "list.bullet").foregroundColor(.accentColor)
+          .font(.system(size: 14, weight: .semibold))
         Text("Playing Next").customFont(.headline)
       }
       Spacer()
-      Button {
-        withAnimation(.spring(duration: 0.22)) { activePanel = nil }
-      } label: {
-        Image(systemName: "xmark")
-          .font(.system(size: 11, weight: .bold))
-          .foregroundColor(.secondary)
-          .frame(width: 28, height: 28)
-          .background(Color.primary.opacity(0.08))
-          .clipShape(Circle())
-      }
-      .buttonStyle(.plain)
-      .keyboardShortcut(.escape, modifiers: [])
     }
     .padding(.horizontal, 14)
     .padding(.vertical, 10)
@@ -117,19 +96,17 @@ struct PlayerSidePanelView: View {
             LazyVStack(spacing: 14) {
               ForEach(Array(viewModel.lyrics.enumerated()), id: \.element.id) { idx, line in
                 let isCurrent = idx == viewModel.currentLyricsLineIndex
-                let isPast = idx < viewModel.currentLyricsLineIndex
                 Text(line.text)
-                  .customFont(isCurrent ? .body : .callout)
-                  .fontWeight(isCurrent ? .bold : .regular)
-                  .foregroundColor(isCurrent ? Color.accentColor : (isPast ? Color.primary.opacity(0.38) : Color.primary.opacity(0.72)))
+                  .customFont(isCurrent ? .title3 : .body)
+                  .fontWeight(isCurrent ? .semibold : .regular)
+                  .foregroundColor(
+                    isCurrent ? Color.accentColor : Color.primary.opacity(0.62)
+                  )
                   .multilineTextAlignment(.leading)
                   .frame(maxWidth: .infinity, alignment: .leading)
+                  .lineSpacing(6)
                   .padding(.horizontal, 14)
                   .padding(.vertical, 3)
-                  .background(
-                    RoundedRectangle(cornerRadius: 8, style: .continuous)
-                      .fill(isCurrent ? Color.accentColor.opacity(0.10) : Color.clear)
-                  )
                   .scaleEffect(isCurrent ? 1.02 : 1.0)
                   .animation(.easeInOut(duration: 0.22), value: viewModel.currentLyricsLineIndex)
                   .id(idx)
