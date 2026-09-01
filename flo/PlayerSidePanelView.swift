@@ -13,14 +13,16 @@ struct PlayerSidePanelView: View {
   var body: some View {
     ZStack(alignment: .topLeading) {
       Color(.systemBackground).ignoresSafeArea()
-      // Leading-edge border only — 1pt primary opacity 0.15
+      // Leading-edge separator — 1pt primary 0.35, full height, above background
       HStack(spacing: 0) {
         Rectangle()
-          .fill(Color.primary.opacity(0.15))
+          .fill(Color.primary.opacity(0.35))
           .frame(width: 1)
         Spacer()
       }
+      .frame(maxHeight: .infinity)
       .allowsHitTesting(false)
+      .zIndex(1)
 
       VStack(spacing: 0) {
         if activePanel == .lyrics {
