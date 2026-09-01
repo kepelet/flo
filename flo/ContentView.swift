@@ -300,6 +300,9 @@ struct ContentView: View {
       }
     }
     .id(tabViewID)
+#if targetEnvironment(macCatalyst)
+    .toolbar(.hidden, for: .tabBar)
+#endif
     .onChange(of: enableDebug) { _ in
       tabViewID = UUID()
     }
