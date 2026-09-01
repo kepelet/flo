@@ -213,6 +213,7 @@ struct ContentView: View {
             .padding(.bottom, 20)
             .opacity(playerViewModel.hasNowPlaying() ? 1 : 0)
             .offset(x: floatingPlayerOffsetX)
+            .zIndex(10)
             .gesture(
               DragGesture()
                 .onChanged { value in
@@ -448,12 +449,13 @@ struct ContentView: View {
 
         if isPadSidebar {
           let sidePanelWidth: CGFloat = 380
+          let panelGutter: CGFloat = 10
           let isPanelVisible =
             floatingSidePanel != nil && playerViewModel.hasNowPlaying()
             && !playerViewModel.shouldHidePlayer
           ZStack(alignment: .trailing) {
             rootTabView
-              .padding(.trailing, isPanelVisible ? sidePanelWidth : 0)
+              .padding(.trailing, isPanelVisible ? sidePanelWidth + panelGutter : 0)
               .animation(
                 .spring(duration: 0.26, bounce: 0.08), value: floatingSidePanel
               )
@@ -465,7 +467,6 @@ struct ContentView: View {
               )
               .frame(width: sidePanelWidth)
               .frame(maxHeight: .infinity, alignment: .top)
-              .padding(.trailing, 12)
               .transition(.move(edge: .trailing).combined(with: .opacity))
               .zIndex(2)
             }
