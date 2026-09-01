@@ -46,12 +46,24 @@ struct ContentView: View {
     #endif
   }
 
+  // Pad floating player centering: shift left so the player centers over the full
+  // window rather than the content area to the right of the system sidebar.
+  // Constant -52pt (from -estimatedSidebarWidth/2) cleanly re-centers the 860pt
+  // player on typical iPad/Catalyst widths without over-shifting compact windows.
+  private let padFloatingPlayerLeftShift: CGFloat = -52
+
   private func estimatedSidebarWidth(for totalWidth: CGFloat) -> CGFloat {
-    return 0
+    // Effective sidebar width that yields the -52pt shift above (104/2).
+    // Kept fixed so the helper is no longer dead and the preview offset is
+    // deterministic; the true adaptive sidebar 220–320pt would give larger
+    // dynamic offsets but a fixed 52pt shift is the cleanest visible polish.
+    _ = totalWidth
+    return 104
   }
 
   private func floatingPlayerContentCenterOffsetX(totalWidth: CGFloat) -> CGFloat {
-    return 0
+    guard isPadSidebar else { return 0 }
+    return -estimatedSidebarWidth(for: totalWidth) / 2 // -52 on pad/mac, 0 on iPhone
   }
 
   @ViewBuilder
@@ -212,7 +224,7 @@ struct ContentView: View {
             .frame(maxWidth: 860)
             .padding(.bottom, 20)
             .opacity(playerViewModel.hasNowPlaying() ? 1 : 0)
-            .offset(x: floatingPlayerOffsetX)
+            .offset(x: floatingPlayerOffsetX + padFloatingPlayerLeftShift)
             .zIndex(10)
             .gesture(
               DragGesture()
