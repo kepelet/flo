@@ -90,7 +90,7 @@ struct ContentView: View {
 
       if authViewModel.isLoggedIn {
         LibraryView(viewModel: albumViewModel).tabItem {
-          Label("Library", systemImage: "square.grid.2x2")
+          Label("Library", systemImage: "circle.grid.2x2")
         }
         .tag(AppTab.library)
         .environmentObject(albumViewModel)
