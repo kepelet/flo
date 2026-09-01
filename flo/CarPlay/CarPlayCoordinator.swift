@@ -88,7 +88,7 @@ import Combine
 
       let section = CPListSection(items: [albumsItem, artistsItem, songsItem, likedSongsItem])
       let template = CPListTemplate(title: String(localized: "Library"), sections: [section])
-      template.tabImage = UIImage(systemName: "square.grid.2x2")
+      template.tabImage = UIImage(systemName: "circle.grid.2x2")
 
       return template
     }

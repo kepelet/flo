@@ -68,7 +68,7 @@
               )
             } label: {
               HStack(spacing: 6) {
-                Image(systemName: "square.grid.2x2")
+                Image(systemName: "circle.grid.2x2")
                   .foregroundColor(.accentColor)
                 Text("Albums")
               }

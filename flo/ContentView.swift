@@ -32,6 +32,9 @@ struct ContentView: View {
 
   private var isPadSidebar: Bool {
     #if targetEnvironment(macCatalyst)
+      if #available(iOS 18.0, *) {
+        return true
+      }
       return false
     #else
       guard UIDevice.current.userInterfaceIdiom == .pad else { return false }
@@ -87,7 +90,7 @@ struct ContentView: View {
                 .environmentObject(downloadViewModel)
                 .environmentObject(libraryRouter)
             }
-            Tab("Library", systemImage: "square.grid.2x2", value: AppTab.library) {
+            Tab("Library", systemImage: "circle.grid.2x2", value: AppTab.library) {
               LibraryView(viewModel: albumViewModel)
                 .environmentObject(albumViewModel)
                 .environmentObject(playerViewModel)
@@ -123,7 +126,7 @@ struct ContentView: View {
                 .environmentObject(downloadViewModel)
                 .environmentObject(libraryRouter)
             }
-            Tab("Library", systemImage: "square.grid.2x2", value: AppTab.library) {
+            Tab("Library", systemImage: "circle.grid.2x2", value: AppTab.library) {
               LibraryView(viewModel: albumViewModel)
                 .environmentObject(albumViewModel)
                 .environmentObject(playerViewModel)
@@ -154,7 +157,7 @@ struct ContentView: View {
             HomeView(viewModel: authViewModel).tabItem { Label("Home", systemImage: "house") }
               .tag(AppTab.home)
               .environmentObject(floooViewModel).environmentObject(albumViewModel).environmentObject(playerViewModel).environmentObject(downloadViewModel).environmentObject(libraryRouter)
-            LibraryView(viewModel: albumViewModel).tabItem { Label("Library", systemImage: "square.grid.2x2") }
+            LibraryView(viewModel: albumViewModel).tabItem { Label("Library", systemImage: "circle.grid.2x2") }
               .tag(AppTab.library)
               .environmentObject(albumViewModel).environmentObject(playerViewModel).environmentObject(downloadViewModel).environmentObject(libraryRouter).environmentObject(authViewModel)
             LibrarySearchTabView().tabItem { Label("Search", systemImage: "magnifyingglass") }
@@ -171,7 +174,7 @@ struct ContentView: View {
             .tag(AppTab.home)
             .environmentObject(floooViewModel).environmentObject(albumViewModel).environmentObject(playerViewModel).environmentObject(downloadViewModel).environmentObject(libraryRouter)
           if authViewModel.isLoggedIn {
-            LibraryView(viewModel: albumViewModel).tabItem { Label("Library", systemImage: "square.grid.2x2") }
+            LibraryView(viewModel: albumViewModel).tabItem { Label("Library", systemImage: "circle.grid.2x2") }
               .tag(AppTab.library)
               .environmentObject(albumViewModel).environmentObject(playerViewModel).environmentObject(downloadViewModel).environmentObject(libraryRouter)
               .onAppear { albumViewModel.fetchAlbums() }
@@ -251,7 +254,7 @@ struct ContentView: View {
       }
 
       if libraryViewV2Enabled {
-        Tab("Library", systemImage: "square.grid.2x2", value: AppTab.library) {
+        Tab("Library", systemImage: "circle.grid.2x2", value: AppTab.library) {
           sidebarTabContent(
             LibraryView(viewModel: albumViewModel)
               .environmentObject(albumViewModel)
@@ -416,6 +419,9 @@ struct ContentView: View {
       }
     }
     .id(tabViewID)
+#if targetEnvironment(macCatalyst)
+    .toolbar(.hidden, for: .tabBar)
+#endif
     .onChange(of: enableDebug) { _ in
       tabViewID = UUID()
     }
@@ -432,7 +438,10 @@ struct ContentView: View {
         #if targetEnvironment(macCatalyst)
           geometry.size.height
         #else
-          UIScreen.main.bounds.height
+          // Use geometry height when available; falls back to screen height for initial layout.
+          // Prevents mismatch during iPad multitasking/window resize where screen height != window height.
+          let h = geometry.size.height
+          return (h.isFinite && h > 0) ? h : UIScreen.main.bounds.height
         #endif
       }()
 

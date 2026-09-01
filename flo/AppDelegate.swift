@@ -17,6 +17,19 @@ class AppDelegate: NSObject, UIApplicationDelegate {
             print(error)
         }
 
+        #if targetEnvironment(macCatalyst)
+        // Disable "Show Tab Bar" (Window tabbing) on Mac Catalyst.
+        // NSWindow is unavailable directly in Catalyst SDK, so use dynamic dispatch.
+        if let windowClass = NSClassFromString("NSWindow") as? NSObjectProtocol {
+            // KVC on the class object; selector is setAllowsAutomaticWindowTabbing:
+            let sel = NSSelectorFromString("setAllowsAutomaticWindowTabbing:")
+            if windowClass.responds(to: sel) {
+                // perform with NSNumber boxing for BOOL
+                _ = windowClass.perform(sel, with: NSNumber(value: false))
+            }
+        }
+        #endif
+
         #if os(iOS)
         WatchConnectivityManager.shared.start()
         #endif
