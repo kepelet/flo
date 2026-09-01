@@ -5,6 +5,7 @@
 //  Created by rizaldy on 06/06/24.
 //
 
+import Combine
 import Foundation
 import SwiftUI
 import UIKit
@@ -135,4 +136,34 @@ func playerContentBottomPadding(hasNowPlaying: Bool, iPhoneActive: CGFloat, iPho
 func playerContentBottomPadding(viewModel: PlayerViewModel, iPhoneActive: CGFloat, iPhoneInactive: CGFloat) -> CGFloat {
   let hasNow = viewModel.hasNowPlaying() && !viewModel.shouldHidePlayer
   return playerContentBottomPadding(hasNowPlaying: hasNow, iPhoneActive: iPhoneActive, iPhoneInactive: iPhoneInactive)
+}
+
+// MARK: - Isolated player presence (prevents progress storms)
+// Observes only queue + shouldHidePlayer so parent views don't rebuild on every 1s progress tick.
+final class PlayerPresenceObserver: ObservableObject {
+  @Published var hasNowPlaying: Bool = PlayerViewModel.shared.hasNowPlaying() && !PlayerViewModel.shared.shouldHidePlayer
+  private var cancellables = Set<AnyCancellable>()
+  init() {
+    Publishers.CombineLatest(PlayerViewModel.shared.$queue, PlayerViewModel.shared.$shouldHidePlayer)
+      .map { queue, hide in !queue.isEmpty && !hide }
+      .removeDuplicates()
+      .receive(on: DispatchQueue.main)
+      .sink { [weak self] has in self?.hasNowPlaying = has }
+      .store(in: &cancellables)
+  }
+}
+
+struct PlayerBottomPadding: ViewModifier {
+  @StateObject private var presence = PlayerPresenceObserver()
+  var active: CGFloat
+  var inactive: CGFloat
+  func body(content: Content) -> some View {
+    content.padding(.bottom, playerContentBottomPadding(hasNowPlaying: presence.hasNowPlaying, iPhoneActive: active, iPhoneInactive: inactive))
+  }
+}
+
+extension View {
+  func playerBottomPadding(active: CGFloat, inactive: CGFloat) -> some View {
+    modifier(PlayerBottomPadding(active: active, inactive: inactive))
+  }
 }

@@ -27,7 +27,7 @@ struct LibraryView: View {
 
   @AppStorage(UserDefaultsKeys.libraryViewV2) private var libraryViewV2Enabled = false
 
-  @EnvironmentObject var playerViewModel: PlayerViewModel
+  private let playerViewModel = PlayerViewModel.shared
   @EnvironmentObject var downloadViewModel: DownloadViewModel
   @EnvironmentObject var libraryRouter: LibraryRouter
 
@@ -267,9 +267,7 @@ struct LibraryView: View {
           }
         }
         .padding(.top, 10)
-        .padding(
-          .bottom, playerContentBottomPadding(viewModel: playerViewModel, iPhoneActive: 100, iPhoneInactive: 0)
-        )
+        .playerBottomPadding(active: 100, inactive: 0)
         .searchable(
           text: $searchAlbum,
           placement: .navigationBarDrawer(displayMode: .always),
@@ -422,7 +420,7 @@ struct LibraryView: View {
             }
           }
           .padding(.top, 10)
-          .padding(.bottom, playerContentBottomPadding(viewModel: playerViewModel, iPhoneActive: 90, iPhoneInactive: 12))
+          .playerBottomPadding(active: 90, inactive: 12)
         }
       } else if selectedSegment == .downloads {
         ScrollView {
@@ -431,7 +429,7 @@ struct LibraryView: View {
             v2DownloadsBody
           }
           .padding(.top, 10)
-          .padding(.bottom, playerContentBottomPadding(viewModel: playerViewModel, iPhoneActive: 90, iPhoneInactive: 12))
+          .playerBottomPadding(active: 90, inactive: 12)
         }
       } else {
         ScrollView {
@@ -464,7 +462,7 @@ struct LibraryView: View {
             }
           }
           .padding(.top, 10)
-          .padding(.bottom, playerContentBottomPadding(viewModel: playerViewModel, iPhoneActive: 90, iPhoneInactive: 12))
+          .playerBottomPadding(active: 90, inactive: 12)
         }
       }
     }
@@ -526,7 +524,7 @@ struct LibraryView: View {
         v2DownloadsBody
       }
       .padding(.top, 10)
-      .padding(.bottom, playerContentBottomPadding(viewModel: playerViewModel, iPhoneActive: 90, iPhoneInactive: 12))
+      .playerBottomPadding(active: 90, inactive: 12)
     }
     .onAppear {
       cachedSongs = StreamCacheManager.shared.getCachedSongs()

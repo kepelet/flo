@@ -19,7 +19,8 @@ struct ContentView: View {
 
   @StateObject private var authViewModel = AuthViewModel()
   @StateObject private var libraryRouter = LibraryRouter()
-  @ObservedObject private var playerViewModel = PlayerViewModel.shared
+  private let playerViewModel = PlayerViewModel.shared
+  @StateObject private var playerPresence = PlayerPresenceObserver()
   @StateObject private var albumViewModel = AlbumViewModel()
   @StateObject private var floooViewModel = FloooViewModel()
   @StateObject private var downloadViewModel = DownloadViewModel()
@@ -225,11 +226,11 @@ struct ContentView: View {
   func sidebarTabContent<Content: View>(_ content: Content) -> some View {
     content
       .overlay(alignment: .bottom) {
-        if playerViewModel.hasNowPlaying() && !playerViewModel.shouldHidePlayer {
+        if playerPresence.hasNowPlaying {
           PadFloatingPlayerView(viewModel: playerViewModel, activePanel: $floatingSidePanel)
             .frame(maxWidth: 860)
             .padding(.bottom, 20)
-            .opacity(playerViewModel.hasNowPlaying() ? 1 : 0)
+            .opacity(playerPresence.hasNowPlaying ? 1 : 0)
             .offset(x: floatingPlayerOffsetX)
             .zIndex(10)
             .gesture(
@@ -306,7 +307,7 @@ struct ContentView: View {
                   }
                   .padding(.horizontal, 10)
                   .padding(.top, 8)
-                  .padding(.bottom, playerContentBottomPadding(viewModel: playerViewModel, iPhoneActive: 90, iPhoneInactive: 12))
+                  .playerBottomPadding(active: 90, inactive: 12)
                 }
                 .navigationTitle("Albums")
                 .onAppear { albumViewModel.fetchAlbums() }
@@ -469,8 +470,7 @@ struct ContentView: View {
           let sidePanelWidth: CGFloat = 380
           let panelGutter: CGFloat = 10
           let isPanelVisible =
-            floatingSidePanel != nil && playerViewModel.hasNowPlaying()
-            && !playerViewModel.shouldHidePlayer
+            floatingSidePanel != nil && playerPresence.hasNowPlaying
           ZStack(alignment: .trailing) {
             rootTabView
               .padding(.trailing, isPanelVisible ? sidePanelWidth + panelGutter : 0)
@@ -497,7 +497,7 @@ struct ContentView: View {
         tabKeyboardShortcuts
 
         // Full-screen PlayerView — iPhone/non-pad only. Pad path never renders it (fixes bottom-visibility + resize crash).
-        if !isPadSidebar, playerViewModel.hasNowPlaying(), !playerViewModel.shouldHidePlayer {
+        if !isPadSidebar, playerPresence.hasNowPlaying {
           PlayerView(
             isExpanded: $isPlayerExpanded,
             viewModel: playerViewModel,
@@ -517,7 +517,7 @@ struct ContentView: View {
           VStack {
             Spacer()
 
-            if playerViewModel.hasNowPlaying() && !playerViewModel.shouldHidePlayer {
+            if playerPresence.hasNowPlaying {
               let isSmallScreen = UIScreen.main.bounds.width <= 390
               let isPad = UIDevice.current.userInterfaceIdiom == .pad
               let bottomPadding: CGFloat = isSmallScreen ? 32 : 0
@@ -539,7 +539,7 @@ struct ContentView: View {
               FloatingPlayerView(viewModel: playerViewModel)
                 .frame(maxWidth: playerWidth ?? .infinity)
                 .padding(.bottom, playerBottomPadding)
-                .opacity(playerViewModel.hasNowPlaying() ? 1 : 0)
+                .opacity(playerPresence.hasNowPlaying ? 1 : 0)
                 .offset(
                   x: playerCenterOffsetX + self.floatingPlayerOffsetX,
                   y: isPlayerExpanded ? offScreenY : 0
@@ -721,9 +721,9 @@ struct ContentView: View {
 
 private struct LibrarySearchTabView: View {
   @EnvironmentObject var albumViewModel: AlbumViewModel
-  @EnvironmentObject var playerViewModel: PlayerViewModel
   @EnvironmentObject var downloadViewModel: DownloadViewModel
   @EnvironmentObject var authViewModel: AuthViewModel
+  private let playerViewModel = PlayerViewModel.shared
   @StateObject private var radiosViewModel = RadiosViewModel()
   @Environment(\.horizontalSizeClass) private var horizontalSizeClass
   @State private var searchText = ""
@@ -968,7 +968,7 @@ private struct LibrarySearchTabView: View {
                     genreCell(genre)
                   }.buttonStyle(.plain)
                 }
-              }.padding(.horizontal).padding(.top, 10).padding(.bottom, playerContentBottomPadding(viewModel: playerViewModel, iPhoneActive: 90, iPhoneInactive: 12))
+              }.padding(.horizontal).padding(.top, 10).playerBottomPadding(active: 90, inactive: 12)
             }
         } else if !hasResults {
           Group {
@@ -1130,7 +1130,7 @@ private struct LibrarySearchTabView: View {
                 }
               }
             }
-          }.padding(.top, 10).padding(.bottom, playerContentBottomPadding(viewModel: playerViewModel, iPhoneActive: 90, iPhoneInactive: 12))
+          }.padding(.top, 10).playerBottomPadding(active: 90, inactive: 12)
         }
       }
       .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search Library")
@@ -1167,8 +1167,8 @@ private struct LibrarySearchTabView: View {
 private struct GenreAlbumsView: View {
   let genre: Genre
   @EnvironmentObject var albumViewModel: AlbumViewModel
-  @EnvironmentObject var playerViewModel: PlayerViewModel
   @EnvironmentObject var downloadViewModel: DownloadViewModel
+  private let playerViewModel = PlayerViewModel.shared
   @Environment(\.horizontalSizeClass) private var horizontalSizeClass
   @State private var albums: [Album] = []
   @State private var isLoading = true
@@ -1197,7 +1197,7 @@ private struct GenreAlbumsView: View {
           }
           .padding(.horizontal, 10)
           .padding(.top, 8)
-          .padding(.bottom, playerContentBottomPadding(viewModel: playerViewModel, iPhoneActive: 90, iPhoneInactive: 12))
+          .playerBottomPadding(active: 90, inactive: 12)
         }
       }
     }
