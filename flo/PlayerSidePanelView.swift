@@ -11,81 +11,63 @@ struct PlayerSidePanelView: View {
   @ObservedObject var viewModel: PlayerViewModel
 
   var body: some View {
-    let shape = RoundedRectangle(cornerRadius: 16, style: .continuous)
-    ZStack(alignment: .top) {
-      shape
-        .fill(Color(.systemBackground))
-        .shadow(color: .black.opacity(0.14), radius: 18, x: -6, y: 8)
-        .overlay(shape.stroke(Color.primary.opacity(0.08), lineWidth: 0.8))
+    ZStack(alignment: .topLeading) {
+      Color(.systemBackground)
+      // Leading-edge border only — 1pt primary opacity 0.15
+      HStack(spacing: 0) {
+        Rectangle()
+          .fill(Color.primary.opacity(0.15))
+          .frame(width: 1)
+        Spacer()
+      }
+      .allowsHitTesting(false)
 
       VStack(spacing: 0) {
-        header
-        Divider().opacity(0.08)
         if activePanel == .lyrics {
           lyricsContent
         } else if activePanel == .queue {
           queueContent
         }
       }
-      .clipShape(shape)
     }
     .frame(width: 380)
-    // Fixed height: fill window height minus floating player + safe area, but clamp to avoid infinite.
     .frame(maxHeight: .infinity)
     .transition(.move(edge: .trailing).combined(with: .opacity))
   }
 
-  private var header: some View {
-    HStack(spacing: 10) {
-      if activePanel == .lyrics {
-        Image(systemName: "quote.bubble.fill").foregroundColor(.accentColor)
-          .font(.system(size: 14, weight: .semibold))
-        Text("Lyrics").customFont(.headline)
-      } else {
-        Image(systemName: "list.bullet").foregroundColor(.accentColor)
-          .font(.system(size: 14, weight: .semibold))
-        Text("Playing Next").customFont(.headline)
-      }
-      Spacer()
-    }
-    .padding(.horizontal, 14)
-    .padding(.vertical, 10)
-    .background(Color(.secondarySystemBackground).opacity(0.6))
-  }
-
-  // MARK: Lyrics — readable list with current line highlighted
+  // MARK: Lyrics — white text on dark PlayerColor background
 
   private var lyricsContent: some View {
     Group {
       if viewModel.isLoadingLyrics {
         VStack {
           Spacer()
-          ProgressView().scaleEffect(1.1)
-          Text("Loading lyrics…").customFont(.caption1).foregroundColor(.secondary).padding(.top, 8)
+          ProgressView().scaleEffect(1.1).tint(.white)
+          Text("Loading lyrics…").customFont(.caption1).foregroundColor(.white.opacity(0.6)).padding(.top, 8)
           Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
       } else if let error = viewModel.lyricsError, !error.isEmpty {
         VStack(spacing: 10) {
           Spacer()
-          Image(systemName: "music.note.list").font(.title2).foregroundColor(.secondary.opacity(0.6))
-          Text(error).customFont(.callout).foregroundColor(.secondary).multilineTextAlignment(.center).padding(.horizontal, 16)
+          Image(systemName: "music.note.list").font(.title2).foregroundColor(.white.opacity(0.5))
+          Text(error).customFont(.callout).foregroundColor(.white.opacity(0.7)).multilineTextAlignment(.center).padding(.horizontal, 16)
           Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
       } else if viewModel.lyrics.isEmpty {
         VStack(spacing: 10) {
           Spacer()
-          Text("No lyrics available").customFont(.callout).foregroundColor(.secondary)
+          Text("No lyrics available").customFont(.callout).foregroundColor(.white.opacity(0.6))
           Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
       } else if viewModel.lyrics.count == 1 {
-        // Plain (unsynced) lyrics — single block
+        // Plain (unsynced) lyrics — single block, white
         ScrollView {
           Text(viewModel.lyrics[0].text)
             .customFont(.callout)
-            .foregroundColor(.primary.opacity(0.88))
+            .foregroundColor(.white.opacity(0.88))
             .multilineTextAlignment(.leading)
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(16)
@@ -99,9 +81,7 @@ struct PlayerSidePanelView: View {
                 Text(line.text)
                   .customFont(isCurrent ? .title3 : .body)
                   .fontWeight(isCurrent ? .semibold : .regular)
-                  .foregroundColor(
-                    isCurrent ? Color.accentColor : Color.primary.opacity(0.62)
-                  )
+                  .foregroundColor(isCurrent ? Color.white : Color.white.opacity(0.45))
                   .multilineTextAlignment(.leading)
                   .frame(maxWidth: .infinity, alignment: .leading)
                   .lineSpacing(6)
@@ -135,14 +115,15 @@ struct PlayerSidePanelView: View {
       }
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+    .background(Color("PlayerColor"))
   }
 
-  // MARK: Queue — mirror PlayerView "Playing Next" list
+  // MARK: Queue — mirror PlayerView "Playing Next" list (no header, sub-row aligned, no leading bar)
 
   private var queueContent: some View {
     VStack(alignment: .leading, spacing: 0) {
-      // Subheader: context name + shuffle/repeat (like PlayerView)
-      HStack(alignment: .bottom, spacing: 10) {
+      // Single subheader row: "From <context>" leading + shuffle/repeat trailing on one HStack
+      HStack(alignment: .center, spacing: 10) {
         if viewModel.queue.isEmpty {
           Text("").customFont(.subheadline)
         } else {
@@ -152,37 +133,41 @@ struct PlayerSidePanelView: View {
             .lineLimit(1)
         }
         Spacer()
-        Button {
-          viewModel.shuffleCurrentQueue()
-        } label: {
-          Image(systemName: "shuffle")
-            .foregroundColor(Color.accentColor)
-            .fontWeight(.bold)
-            .padding(6)
-            .background(viewModel.isShuffling ? Color.gray.opacity(0.18) : Color(.systemBackground))
-            .cornerRadius(6)
+        HStack(spacing: 8) {
+          Button {
+            viewModel.shuffleCurrentQueue()
+          } label: {
+            Image(systemName: "shuffle")
+              .foregroundColor(Color.accentColor)
+              .fontWeight(.bold)
+              .padding(6)
+              .background(viewModel.isShuffling ? Color.gray.opacity(0.18) : Color(.systemBackground))
+              .cornerRadius(6)
+          }
+          .buttonStyle(.plain)
+          Button {
+            viewModel.setPlaybackMode()
+          } label: {
+            Image(systemName: "repeat")
+              .foregroundColor(Color.accentColor)
+              .fontWeight(.bold)
+              .overlay(
+                Group {
+                  Text("1").font(.caption).clipShape(Circle()).offset(x: 10, y: -5).fontWeight(.bold)
+                }.opacity(viewModel.playbackMode == PlaybackMode.repeatOnce ? 1 : 0)
+              )
+              .padding(6)
+              .background(viewModel.playbackMode == PlaybackMode.defaultPlayback ? Color(.systemBackground) : Color.gray.opacity(0.18))
+              .cornerRadius(6)
+          }
+          .buttonStyle(.plain)
         }
-        .buttonStyle(.plain)
-        Button {
-          viewModel.setPlaybackMode()
-        } label: {
-          Image(systemName: "repeat")
-            .foregroundColor(Color.accentColor)
-            .fontWeight(.bold)
-            .overlay(
-              Group {
-                Text("1").font(.caption).clipShape(Circle()).offset(x: 10, y: -5).fontWeight(.bold)
-              }.opacity(viewModel.playbackMode == PlaybackMode.repeatOnce ? 1 : 0)
-            )
-            .padding(6)
-            .background(viewModel.playbackMode == PlaybackMode.defaultPlayback ? Color(.systemBackground) : Color.gray.opacity(0.18))
-            .cornerRadius(6)
-        }
-        .buttonStyle(.plain)
       }
       .padding(.horizontal, 14)
       .padding(.vertical, 8)
       .background(Color(.secondarySystemBackground).opacity(0.45))
+
+      Divider().opacity(0.06)
 
       ScrollView {
         LazyVStack(alignment: .leading, spacing: 0) {
@@ -213,11 +198,6 @@ struct PlayerSidePanelView: View {
             .padding(.vertical, 8)
             .padding(.horizontal, 14)
             .background(viewModel.activeQueueIdx == idx ? Color.accentColor.opacity(0.10) : Color.clear)
-            .overlay(
-              Rectangle().fill(viewModel.activeQueueIdx == idx ? Color.accentColor.opacity(0.85) : Color.clear)
-                .frame(width: 3),
-              alignment: .leading
-            )
             .contentShape(Rectangle())
             .onTapGesture {
               viewModel.playFromQueue(idx: idx)
@@ -228,5 +208,6 @@ struct PlayerSidePanelView: View {
       }
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+    .background(Color(.systemBackground))
   }
 }

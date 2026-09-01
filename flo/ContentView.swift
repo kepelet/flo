@@ -210,7 +210,7 @@ struct ContentView: View {
         if playerViewModel.hasNowPlaying() && !playerViewModel.shouldHidePlayer {
           PadFloatingPlayerView(viewModel: playerViewModel, activePanel: $floatingSidePanel)
             .frame(maxWidth: 860)
-            .padding(.bottom, 16)
+            .padding(.bottom, 20)
             .opacity(playerViewModel.hasNowPlaying() ? 1 : 0)
             .offset(x: floatingPlayerOffsetX)
             .gesture(
@@ -466,8 +466,6 @@ struct ContentView: View {
               .frame(width: sidePanelWidth)
               .frame(maxHeight: .infinity, alignment: .top)
               .padding(.trailing, 12)
-              .padding(.vertical, 16)
-              .padding(.bottom, 88)
               .transition(.move(edge: .trailing).combined(with: .opacity))
               .zIndex(2)
             }

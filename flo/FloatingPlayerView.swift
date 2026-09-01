@@ -189,6 +189,24 @@ struct PadFloatingPlayerView: View {
     .shadow(color: .black.opacity(0.15), radius: 16, x: 0, y: 6)
     .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 2)
     .padding(.horizontal, 16)
+    .padding(.top, 6)
+    .overlay(alignment: .topTrailing) {
+      Button {
+        viewModel.destroyPlayerAndQueue()
+      } label: {
+        Image(systemName: "xmark")
+          .font(.system(size: 10, weight: .bold))
+          .foregroundColor(.primary.opacity(0.75))
+          .frame(width: 24, height: 24)
+          .background(Color.primary.opacity(0.08))
+          .clipShape(Circle())
+          .overlay(Circle().stroke(Color.primary.opacity(0.12), lineWidth: 0.6))
+      }
+      .buttonStyle(.plain)
+      .contentShape(Circle())
+      .offset(x: 6, y: -6)
+      .accessibilityLabel("Stop playback")
+    }
   }
 
   // MARK: Column 1 — Transport
@@ -360,28 +378,22 @@ struct PadFloatingPlayerView: View {
   private var rightColumn: some View {
     ZStack {
       if isVolumeOverlayVisible {
-        // Volume overlay covers whole third column
+        // Volume overlay: slider LEFT of speaker so speaker stays in place
         HStack(spacing: 8) {
+          PadVolumeSlider(viewModel: viewModel)
+            .frame(maxWidth: .infinity)
+
           Button {
             viewModel.toggleMute()
           } label: {
             Image(systemName: volumeIconName)
               .font(.system(size: 15, weight: .semibold))
               .foregroundColor(volumeIconColor)
-              .frame(width: 28, height: 28)
-              .background(Color.primary.opacity(0.08))
+              .frame(width: 32, height: 32)
+              .background(Color.primary.opacity(0.04))
               .clipShape(Circle())
           }
           .buttonStyle(.plain)
-
-          PadVolumeSlider(viewModel: viewModel)
-            .frame(maxWidth: .infinity)
-
-          // Small hint that unhover hides
-          Image(systemName: "xmark")
-            .font(.system(size: 10, weight: .bold))
-            .foregroundColor(.secondary.opacity(0.6))
-            .frame(width: 16, height: 16)
         }
         .transition(.opacity.combined(with: .scale(scale: 0.98)))
       } else {
