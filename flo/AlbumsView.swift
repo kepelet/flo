@@ -74,6 +74,7 @@ struct AlbumsView: View {
           .lineLimit(1)
           .frame(maxWidth: .infinity, alignment: .leading)
       }.padding()
+      .padding(.bottom, 8)
     }
   }
 
