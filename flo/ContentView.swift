@@ -27,6 +27,7 @@ struct ContentView: View {
 
   @State private var floatingPlayerOffsetX: CGFloat = .zero
   @State private var isSwipping = false
+  @State private var floatingSidePanel: FloatingPlayerPanel?
 
   var swipeThreshold: CGFloat = 150.0
 
@@ -207,14 +208,11 @@ struct ContentView: View {
     content
       .overlay(alignment: .bottom) {
         if playerViewModel.hasNowPlaying() && !playerViewModel.shouldHidePlayer {
-          FloatingPlayerView(viewModel: playerViewModel)
+          PadFloatingPlayerView(viewModel: playerViewModel, activePanel: $floatingSidePanel)
             .frame(maxWidth: 720)
             .padding(.bottom, 16)
             .opacity(playerViewModel.hasNowPlaying() ? 1 : 0)
             .offset(x: floatingPlayerOffsetX)
-            .onTapGesture {
-              self.isPlayerExpanded = true
-            }
             .gesture(
               DragGesture()
                 .onChanged { value in
@@ -452,7 +450,22 @@ struct ContentView: View {
 
         tabKeyboardShortcuts
 
-        if playerViewModel.hasNowPlaying() && !playerViewModel.shouldHidePlayer {
+        // Pad/mac side panel — lyrics or queue anchored to the trailing edge (replaces full-screen PlayerView on this path)
+        if isPadSidebar, let _ = floatingSidePanel, playerViewModel.hasNowPlaying(), !playerViewModel.shouldHidePlayer {
+          HStack(spacing: 0) {
+            Spacer(minLength: 0)
+            PlayerSidePanelView(activePanel: $floatingSidePanel, viewModel: playerViewModel)
+              .padding(.trailing, 12)
+              .padding(.vertical, 16)
+              // Avoid covering the floating player; keep panel above bottom bar area
+              .padding(.bottom, 88)
+          }
+          .transition(.move(edge: .trailing).combined(with: .opacity))
+          .zIndex(2)
+        }
+
+        // Full-screen PlayerView — iPhone/non-pad only. Pad path never renders it (fixes bottom-visibility + resize crash).
+        if !isPadSidebar, playerViewModel.hasNowPlaying(), !playerViewModel.shouldHidePlayer {
           PlayerView(
             isExpanded: $isPlayerExpanded,
             viewModel: playerViewModel,
