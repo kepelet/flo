@@ -20,7 +20,6 @@ struct LibraryView: View {
   @State private var showDownloadSheet: Bool = false
   @State private var forceShowQuickNavigation: Bool = false
   @State private var selectedSegment: LibraryV2Segment = .library
-  @State private var downloadsSearch = ""
   @State private var cachedSongs: [Song] = []
 
   @ObservedObject var viewModel: AlbumViewModel
@@ -63,11 +62,7 @@ struct LibraryView: View {
   }
 
   private var filteredDownloadedAlbums: [Album] {
-    if downloadsSearch.isEmpty {
-      return viewModel.downloadedAlbums
-    } else {
-      return viewModel.downloadedAlbums.filter { $0.name.localizedCaseInsensitiveContains(downloadsSearch) }
-    }
+    viewModel.downloadedAlbums
   }
 
   private var shouldShowQuickNavigation: Bool {
@@ -304,13 +299,6 @@ struct LibraryView: View {
 
   // MARK: - V2
 
-  private var activeSearchBinding: Binding<String> {
-    Binding(
-      get: { selectedSegment == .downloads ? downloadsSearch : searchAlbum },
-      set: { if selectedSegment == .downloads { downloadsSearch = $0 } else { searchAlbum = $0 } }
-    )
-  }
-
   @ViewBuilder
   private var libraryV2ContentWrapper: some View {
     if #available(iOS 26.0, macOS 26.0, macCatalyst 26.0, *) {
@@ -352,7 +340,6 @@ struct LibraryView: View {
         }
     } else {
       libraryV2ScrollContent
-        .searchable(text: activeSearchBinding, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search")
         .sheet(isPresented: $showDownloadSheet) {
           DownloadQueueView().environmentObject(downloadViewModel)
         }
