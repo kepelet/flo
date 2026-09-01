@@ -75,11 +75,11 @@ struct PlayerSidePanelView: View {
               ForEach(Array(viewModel.lyrics.enumerated()), id: \.element.id) { idx, line in
                 let isCurrent = idx == viewModel.currentLyricsLineIndex
                 Text(line.text)
-                  .customFont(.body)
+                  .customFont(isCurrent ? .title3 : .body)
                   .fontWeight(isCurrent ? .semibold : .regular)
                   .foregroundColor(isCurrent ? Color.white : Color.white.opacity(0.45))
                   .multilineTextAlignment(.leading)
-                  .frame(maxWidth: .infinity, minHeight: 32, alignment: .leading)
+                  .frame(maxWidth: .infinity, minHeight: 40, alignment: .leading)
                   .lineSpacing(6)
                   .padding(.horizontal, 14)
                   .padding(.vertical, 3)
