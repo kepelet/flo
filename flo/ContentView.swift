@@ -562,11 +562,19 @@ struct ContentView: View {
         tabShortcut(.downloads, key: "8")
         tabShortcut(.preferences, key: "9")
         tabShortcut(.debug, key: "0")
+        searchShortcut(key: "f")
+        fontScaleShortcut(key: "-", increase: false)
+        fontScaleShortcut(key: "+", increase: true)
+        fontScaleShortcut(key: "=", increase: true)
       } else {
         tabShortcut(.home, key: "1")
         tabShortcut(.library, key: "2")
         tabShortcut(.downloads, key: "3")
         tabShortcut(.preferences, key: "4")
+        searchShortcut(key: "f")
+        fontScaleShortcut(key: "-", increase: false)
+        fontScaleShortcut(key: "+", increase: true)
+        fontScaleShortcut(key: "=", increase: true)
       }
     }
     .frame(width: 0, height: 0)
@@ -576,6 +584,25 @@ struct ContentView: View {
   func tabShortcut(_ tab: AppTab, key: KeyEquivalent) -> some View {
     Button {
       libraryRouter.selectedTab = tab
+    } label: {
+      EmptyView()
+    }
+    .keyboardShortcut(key, modifiers: .command)
+  }
+
+  func searchShortcut(key: KeyEquivalent) -> some View {
+    Button {
+      libraryRouter.selectedTab = .search
+    } label: {
+      EmptyView()
+    }
+    .keyboardShortcut(key, modifiers: .command)
+  }
+
+  func fontScaleShortcut(key: KeyEquivalent, increase: Bool) -> some View {
+    Button {
+      let delta: Float = increase ? 0.05 : -0.05
+      UserDefaultsManager.uiFontScale = UserDefaultsManager.uiFontScale + delta
     } label: {
       EmptyView()
     }
