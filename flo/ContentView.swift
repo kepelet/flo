@@ -369,7 +369,7 @@ struct ContentView: View {
             )
           }
         } header: {
-          Text("").frame(width: 0, height: 0)
+          Text("Collections")
         }
       }
 
