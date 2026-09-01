@@ -299,29 +299,6 @@ struct PreferencesView: View {
           }
         }
 
-        Section(header: Text("Make it yours")) {
-          ColorPicker("Accent color", selection: $accentColor).disabled(true)
-          ColorPicker("Player color", selection: $playerColor).disabled(true)
-
-          Picker(selection: $customFontFamily, label: Text("Font Family")) {
-            ForEach(
-              ["Plus Jakarta Sans", "System", "JetBrains Mono", "Comic Sans MS"], id: \.self
-            ) {
-              Text($0)
-            }
-          }.disabled(true)
-
-          Picker("Text size", selection: $uiFontScale) {
-            Text("Small").tag(Double(0.85))
-            Text("Default").tag(Double(1.0))
-            Text("Large").tag(Double(1.15))
-            Text("Extra Large").tag(Double(1.3))
-          }
-          .onChange(of: uiFontScale) { newValue in
-            UserDefaultsManager.uiFontScale = Float(newValue)
-          }
-        }
-
         Section(header: Text("App Icon")) {
           if UIApplication.shared.supportsAlternateIcons {
             ScrollView(.horizontal, showsIndicators: false) {
