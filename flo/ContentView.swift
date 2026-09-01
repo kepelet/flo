@@ -494,7 +494,10 @@ struct ContentView: View {
           )
           .environmentObject(downloadViewModel)
           .ignoresSafeArea()
-          .offset(y: isPlayerExpanded ? 0 : offScreenY)
+          .opacity(isPlayerExpanded ? 1 : 0)
+          .allowsHitTesting(isPlayerExpanded)
+          .accessibilityHidden(!isPlayerExpanded)
+          .offset(y: isPlayerExpanded ? 0 : offScreenY + geometry.safeAreaInsets.bottom + 40)
           .animation(.spring(duration: 0.2), value: isPlayerExpanded)
         }
 
@@ -573,14 +576,12 @@ struct ContentView: View {
     Group {
       if isPadSidebar {
         tabShortcut(.home, key: "1")
-        tabShortcut(.library, key: "2")
-        tabShortcut(.libraryArtists, key: "3")
+        libraryOrAlbumsShortcut(key: "2")
+        albumsOrArtistsShortcut(key: "3")
         tabShortcut(.likedSongs, key: "4")
         tabShortcut(.playlists, key: "5")
         tabShortcut(.songs, key: "6")
         tabShortcut(.radios, key: "7")
-        tabShortcut(.downloads, key: "8")
-        tabShortcut(.preferences, key: "9")
         tabShortcut(.debug, key: "0")
         tabShortcut(.preferences, key: ",")
         searchShortcut(key: "f")
@@ -606,6 +607,24 @@ struct ContentView: View {
   func tabShortcut(_ tab: AppTab, key: KeyEquivalent) -> some View {
     Button {
       libraryRouter.selectedTab = tab
+    } label: {
+      EmptyView()
+    }
+    .keyboardShortcut(key, modifiers: .command)
+  }
+
+  func libraryOrAlbumsShortcut(key: KeyEquivalent) -> some View {
+    Button {
+      libraryRouter.selectedTab = libraryViewV2Enabled ? .library : .libraryAlbums
+    } label: {
+      EmptyView()
+    }
+    .keyboardShortcut(key, modifiers: .command)
+  }
+
+  func albumsOrArtistsShortcut(key: KeyEquivalent) -> some View {
+    Button {
+      libraryRouter.selectedTab = libraryViewV2Enabled ? .libraryAlbums : .libraryArtists
     } label: {
       EmptyView()
     }
@@ -859,13 +878,24 @@ private struct LibrarySearchTabView: View {
       isLoadingGenres = false
       return
     }
-    isLoadingGenres = true
+    let cacheKey = "search_genres"
+    if let cached: [Genre] = LibraryCacheManager.shared.load([Genre].self, forKey: cacheKey), !cached.isEmpty {
+      genres = cached
+    }
+    isLoadingGenres = genres.isEmpty
     AlbumService.shared.getGenres { result in
       DispatchQueue.main.async {
         isLoadingGenres = false
         switch result {
-        case .success(let g): genres = g
-        case .failure: genres = []
+        case .success(let g):
+          genres = g
+          if !g.isEmpty {
+            DispatchQueue.global(qos: .utility).async {
+              LibraryCacheManager.shared.save(g, forKey: cacheKey)
+            }
+          }
+        case .failure:
+          if genres.isEmpty { genres = [] }
         }
       }
     }
