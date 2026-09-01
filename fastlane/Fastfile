@@ -48,7 +48,7 @@ platform :ios do
     repo_build_number = get_build_number.to_i
     next_build_number = [latest_build_number, repo_build_number].max + 1
     require "xcodeproj"
-    proj = Xcodeproj::Project.open("flo.xcodeproj")
+    proj = Xcodeproj::Project.open(File.expand_path("../flo.xcodeproj", __dir__))
     proj.build_configurations.each { |c| c.build_settings["CURRENT_PROJECT_VERSION"] = next_build_number.to_s }
     proj.targets.each do |target|
       target.build_configurations.each { |c| c.build_settings["CURRENT_PROJECT_VERSION"] = next_build_number.to_s }
@@ -137,7 +137,7 @@ platform :mac do
     repo_build_number = get_build_number.to_i
     next_build_number = [latest_build_number, repo_build_number].max + 1
     require "xcodeproj"
-    proj = Xcodeproj::Project.open("flo.xcodeproj")
+    proj = Xcodeproj::Project.open(File.expand_path("../flo.xcodeproj", __dir__))
     proj.build_configurations.each { |c| c.build_settings["CURRENT_PROJECT_VERSION"] = next_build_number.to_s }
     proj.targets.each do |target|
       target.build_configurations.each { |c| c.build_settings["CURRENT_PROJECT_VERSION"] = next_build_number.to_s }
