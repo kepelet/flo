@@ -294,7 +294,7 @@ struct ContentView: View {
                   }
                   .padding(.horizontal, 10)
                   .padding(.top, 8)
-                  .padding(.bottom, 12)
+                  .padding(.bottom, playerContentBottomPadding(viewModel: playerViewModel, iPhoneActive: 90, iPhoneInactive: 12))
                 }
                 .navigationTitle("Albums")
                 .onAppear { albumViewModel.fetchAlbums() }
@@ -576,12 +576,13 @@ struct ContentView: View {
     Group {
       if isPadSidebar {
         tabShortcut(.home, key: "1")
-        libraryOrAlbumsShortcut(key: "2")
-        albumsOrArtistsShortcut(key: "3")
-        tabShortcut(.likedSongs, key: "4")
-        tabShortcut(.playlists, key: "5")
-        tabShortcut(.songs, key: "6")
-        tabShortcut(.radios, key: "7")
+        conditionalShortcut(v2Tab: .library, legacyTab: .libraryAlbums, key: "2")
+        conditionalShortcut(v2Tab: .libraryAlbums, legacyTab: .libraryArtists, key: "3")
+        conditionalShortcut(v2Tab: .libraryArtists, legacyTab: .likedSongs, key: "4")
+        conditionalShortcut(v2Tab: .likedSongs, legacyTab: .playlists, key: "5")
+        conditionalShortcut(v2Tab: .playlists, legacyTab: .songs, key: "6")
+        conditionalShortcut(v2Tab: .songs, legacyTab: .radios, key: "7")
+        conditionalShortcut(v2Tab: .radios, legacyTab: nil, key: "8")
         tabShortcut(.debug, key: "0")
         tabShortcut(.preferences, key: ",")
         searchShortcut(key: "f")
@@ -607,6 +608,19 @@ struct ContentView: View {
   func tabShortcut(_ tab: AppTab, key: KeyEquivalent) -> some View {
     Button {
       libraryRouter.selectedTab = tab
+    } label: {
+      EmptyView()
+    }
+    .keyboardShortcut(key, modifiers: .command)
+  }
+
+  func conditionalShortcut(v2Tab: AppTab, legacyTab: AppTab?, key: KeyEquivalent) -> some View {
+    Button {
+      if libraryViewV2Enabled {
+        libraryRouter.selectedTab = v2Tab
+      } else if let legacyTab {
+        libraryRouter.selectedTab = legacyTab
+      }
     } label: {
       EmptyView()
     }
@@ -931,7 +945,7 @@ private struct LibrarySearchTabView: View {
                     genreCell(genre)
                   }.buttonStyle(.plain)
                 }
-              }.padding(.horizontal).padding(.top, 10).padding(.bottom, 12)
+              }.padding(.horizontal).padding(.top, 10).padding(.bottom, playerContentBottomPadding(viewModel: playerViewModel, iPhoneActive: 90, iPhoneInactive: 12))
             }
         } else if !hasResults {
           Group {
@@ -1093,7 +1107,7 @@ private struct LibrarySearchTabView: View {
                 }
               }
             }
-          }.padding(.top, 10).padding(.bottom, 12)
+          }.padding(.top, 10).padding(.bottom, playerContentBottomPadding(viewModel: playerViewModel, iPhoneActive: 90, iPhoneInactive: 12))
         }
       }
       .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search Library")
@@ -1101,6 +1115,7 @@ private struct LibrarySearchTabView: View {
       .navigationDestination(for: Genre.self) { genre in
         GenreAlbumsView(genre: genre)
           .environmentObject(albumViewModel)
+          .environmentObject(playerViewModel)
           .environmentObject(downloadViewModel)
       }
       .onAppear {
@@ -1129,6 +1144,7 @@ private struct LibrarySearchTabView: View {
 private struct GenreAlbumsView: View {
   let genre: Genre
   @EnvironmentObject var albumViewModel: AlbumViewModel
+  @EnvironmentObject var playerViewModel: PlayerViewModel
   @EnvironmentObject var downloadViewModel: DownloadViewModel
   @Environment(\.horizontalSizeClass) private var horizontalSizeClass
   @State private var albums: [Album] = []
@@ -1158,7 +1174,7 @@ private struct GenreAlbumsView: View {
           }
           .padding(.horizontal, 10)
           .padding(.top, 8)
-          .padding(.bottom, 12)
+          .padding(.bottom, playerContentBottomPadding(viewModel: playerViewModel, iPhoneActive: 90, iPhoneInactive: 12))
         }
       }
     }
