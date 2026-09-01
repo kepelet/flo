@@ -29,13 +29,22 @@ platform :ios do
     app_identifier = CredentialsManager::AppfileConfig.try_fetch_value(:app_identifier).first
     api_key = lane_context[SharedValues::APP_STORE_CONNECT_API_KEY]
 
+    # Race-proof: latest_testflight_build_number omits PROCESSING builds, so a
+    # just-uploaded build (e.g. 303 still PROCESSING) would return 302 and
+    # cause a duplicate 303 (409 ENTITY_ERROR.ATTRIBUTE.INVALID.DUPLICATE).
+    # Take the max of ASC latest and the repo's CURRENT_PROJECT_VERSION.
+    # Must pass xcodeproj: "flo.xcodeproj" so the bump updates the flo target's
+    # Debug/Release configs (C4E8D967/C4E8D968) which override project-level
+    # (C4E8D953); without it agvtool only bumps project-level and gym still
+    # builds the stale target-level 304 (409 "must be higher than 304").
     latest_build_number = latest_testflight_build_number(
       api_key: api_key,
       version: get_version_number(target: "flo"),
       app_identifier: app_identifier
     )
-
-    increment_build_number(build_number: (latest_build_number + 1))
+    repo_build_number = get_build_number.to_i
+    next_build_number = [latest_build_number, repo_build_number].max + 1
+    increment_build_number(build_number: next_build_number, xcodeproj: "flo.xcodeproj")
   end
 
   desc "build app"
@@ -100,13 +109,22 @@ platform :mac do
     app_identifier = CredentialsManager::AppfileConfig.try_fetch_value(:app_identifier).first
     api_key = lane_context[SharedValues::APP_STORE_CONNECT_API_KEY]
 
+    # Race-proof: latest_testflight_build_number omits PROCESSING builds, so a
+    # just-uploaded build (e.g. 303 still PROCESSING) would return 302 and
+    # cause a duplicate 303 (409 ENTITY_ERROR.ATTRIBUTE.INVALID.DUPLICATE).
+    # Take the max of ASC latest and the repo's CURRENT_PROJECT_VERSION.
+    # Must pass xcodeproj: "flo.xcodeproj" so the bump updates the flo target's
+    # Debug/Release configs (C4E8D967/C4E8D968) which override project-level
+    # (C4E8D953); without it agvtool only bumps project-level and gym still
+    # builds the stale target-level 304 (409 "must be higher than 304").
     latest_build_number = latest_testflight_build_number(
       api_key: api_key,
       version: get_version_number(target: "flo"),
       app_identifier: app_identifier
     )
-
-    increment_build_number(build_number: (latest_build_number + 1))
+    repo_build_number = get_build_number.to_i
+    next_build_number = [latest_build_number, repo_build_number].max + 1
+    increment_build_number(build_number: next_build_number, xcodeproj: "flo.xcodeproj")
   end
 
   desc "build the Mac Catalyst app"
