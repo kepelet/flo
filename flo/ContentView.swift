@@ -28,6 +28,7 @@ struct ContentView: View {
   @State private var floatingPlayerOffsetX: CGFloat = .zero
   @State private var isSwipping = false
   @State private var floatingSidePanel: FloatingPlayerPanel?
+  @State private var lastSidePanel: FloatingPlayerPanel = .lyrics
 
   var swipeThreshold: CGFloat = 150.0
 
@@ -58,6 +59,17 @@ struct ContentView: View {
   private func floatingPlayerContentCenterOffsetX(totalWidth: CGFloat) -> CGFloat {
     guard isPadSidebar else { return 0 }
     return -estimatedSidebarWidth(for: totalWidth) / 2 // -52 on pad/mac, 0 on iPhone
+  }
+
+  private func toggleSidePanel() {
+    withAnimation(.spring(duration: 0.26, bounce: 0.08)) {
+      if floatingSidePanel != nil {
+        lastSidePanel = floatingSidePanel ?? .lyrics
+        floatingSidePanel = nil
+      } else {
+        floatingSidePanel = lastSidePanel
+      }
+    }
   }
 
   @ViewBuilder
@@ -561,6 +573,11 @@ struct ContentView: View {
         }
       }
     }
+    .onChange(of: floatingSidePanel) { _ in
+      if let panel = floatingSidePanel {
+        lastSidePanel = panel
+      }
+    }
     .onAppear {
       PlaybackCoordinator.shared.attach(playerViewModel: playerViewModel)
       if CommandLine.arguments.contains("-UITestSearchTab") {
@@ -586,6 +603,12 @@ struct ContentView: View {
         tabShortcut(.debug, key: "0")
         tabShortcut(.preferences, key: ",")
         searchShortcut(key: "f")
+        Button {
+          toggleSidePanel()
+        } label: {
+          EmptyView()
+        }
+        .keyboardShortcut("b", modifiers: .command)
         fontScaleShortcut(key: "-", increase: false)
         fontScaleShortcut(key: "+", increase: true)
         fontScaleShortcut(key: "=", increase: true)
