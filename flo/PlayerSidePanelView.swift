@@ -12,7 +12,7 @@ struct PlayerSidePanelView: View {
 
   var body: some View {
     ZStack(alignment: .topLeading) {
-      Color(.systemBackground)
+      Color(.systemBackground).ignoresSafeArea()
       // Leading-edge border only — 1pt primary opacity 0.15
       HStack(spacing: 0) {
         Rectangle()
@@ -32,26 +32,20 @@ struct PlayerSidePanelView: View {
     }
     .frame(width: 380)
     .frame(maxHeight: .infinity)
+    .background(Color(.systemBackground).ignoresSafeArea())
+    .ignoresSafeArea()
     .transition(.move(edge: .trailing).combined(with: .opacity))
   }
 
-  // MARK: Lyrics — white text on dark PlayerColor background
+  // MARK: Lyrics — white text on systemBackground forced dark (no PlayerColor)
 
   private var lyricsContent: some View {
     Group {
-      if viewModel.isLoadingLyrics {
+      if viewModel.isLoadingLyrics && viewModel.lyrics.isEmpty && (viewModel.lyricsError == nil || viewModel.lyricsError!.isEmpty) {
         VStack {
           Spacer()
           ProgressView().scaleEffect(1.1).tint(.white)
           Text("Loading lyrics…").customFont(.caption1).foregroundColor(.white.opacity(0.6)).padding(.top, 8)
-          Spacer()
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-      } else if let error = viewModel.lyricsError, !error.isEmpty {
-        VStack(spacing: 10) {
-          Spacer()
-          Image(systemName: "music.note.list").font(.title2).foregroundColor(.white.opacity(0.5))
-          Text(error).customFont(.callout).foregroundColor(.white.opacity(0.7)).multilineTextAlignment(.center).padding(.horizontal, 16)
           Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -115,7 +109,8 @@ struct PlayerSidePanelView: View {
       }
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-    .background(Color("PlayerColor"))
+    .background(Color(.systemBackground).ignoresSafeArea())
+    .environment(\.colorScheme, .dark)
   }
 
   // MARK: Queue — mirror PlayerView "Playing Next" list (no header, sub-row aligned, no leading bar)

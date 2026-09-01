@@ -204,9 +204,11 @@ struct PadFloatingPlayerView: View {
       }
       .buttonStyle(.plain)
       .contentShape(Circle())
-      .offset(x: 6, y: -6)
+      .offset(x: -2, y: -4)
+      .zIndex(999)
       .accessibilityLabel("Stop playback")
     }
+    .zIndex(999)
   }
 
   // MARK: Column 1 — Transport
