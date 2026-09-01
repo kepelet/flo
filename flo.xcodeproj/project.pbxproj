@@ -137,6 +137,7 @@
 		C4A4BF372C14442F00363290 /* DownloadsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4A4BF362C14442F00363290 /* DownloadsView.swift */; };
 		C4A4BF392C14445000363290 /* PreferencesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4A4BF382C14445000363290 /* PreferencesView.swift */; };
 		C4A4BF3D2C1455A100363290 /* FloatingPlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4A4BF3C2C1455A100363290 /* FloatingPlayerView.swift */; };
+		C9F1A2B32D4E5F60718293AAC /* PlayerSidePanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9F1A2B32D4E5F60718293AAB /* PlayerSidePanelView.swift */; };
 		C4B232EF2F44809F006A5044 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C4E8D95F2B763BAB00C2353E /* Assets.xcassets */; };
 		C4B7E6A42F3C1001001D9A01 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = C4B7E6A32F3C0FFF001D9A01 /* PrivacyInfo.xcprivacy */; };
 		C4CACHE012D7B0000003B9C4F /* StreamCacheManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4CACHE002D7B0000003B9C4F /* StreamCacheManager.swift */; };
@@ -312,6 +313,7 @@
 		C4A4BF362C14442F00363290 /* DownloadsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadsView.swift; sourceTree = "<group>"; };
 		C4A4BF382C14445000363290 /* PreferencesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesView.swift; sourceTree = "<group>"; };
 		C4A4BF3C2C1455A100363290 /* FloatingPlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloatingPlayerView.swift; sourceTree = "<group>"; };
+		C9F1A2B32D4E5F60718293AAB /* PlayerSidePanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerSidePanelView.swift; sourceTree = "<group>"; };
 		C4B7E6A32F3C0FFF001D9A01 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		C4CACHE002D7B0000003B9C4F /* StreamCacheManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreamCacheManager.swift; sourceTree = "<group>"; };
 		C4CBBA732FBA223C00F0DE75 /* floIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = floIcon.icon; sourceTree = "<group>"; };
@@ -634,6 +636,7 @@
 				B0BAAAA72F32139D002A5FBB /* Radios */,
 				C4824D262CE908DA003EAB52 /* SongsView.swift */,
 				C4A4BF3C2C1455A100363290 /* FloatingPlayerView.swift */,
+				C9F1A2B32D4E5F60718293AAB /* PlayerSidePanelView.swift */,
 				C42E7E172CE7EF4D00505B4E /* PlaylistDetailView.swift */,
 				C4F870CF2CEFD24D00312F8A /* StatCardView.swift */,
 				C47876012C2BF15900184A33 /* AlbumsView.swift */,
@@ -911,6 +914,7 @@
 				C456D8F82F2FBD64002AAB8B /* LRCLIBService.swift in Sources */,
 				C4289F512C139B2E00C3A4FD /* AlbumView.swift in Sources */,
 				C4A4BF3D2C1455A100363290 /* FloatingPlayerView.swift in Sources */,
+				C9F1A2B32D4E5F60718293AAC /* PlayerSidePanelView.swift in Sources */,
 				C415F54E2C11908100E3E1D2 /* AuthViewModel.swift in Sources */,
 				C42B25842F44551B00E62008 /* PlaybackCoordinator.swift in Sources */,
 				50C912912F5DD9990087EE61 /* IAPLoginView.swift in Sources */,
