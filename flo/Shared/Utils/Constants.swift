@@ -64,6 +64,7 @@ enum UserDefaultsKeys {
   static let streamCacheMaxSize = "streamCacheMaxSize"
   static let libraryViewV2 = "libraryViewV2"
   static let playbackVolume = "playbackVolume"
+  static let uiFontScale = "uiFontScale"
 }
 
 enum KeychainKeys {

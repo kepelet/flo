@@ -92,6 +92,7 @@ struct PreferencesView: View {
   @State private var accentColor = Color(.accent)
   @State private var playerColor = Color(.player)
   @State private var customFontFamily = "Plus Jakarta Sans"
+  @AppStorage(UserDefaultsKeys.uiFontScale) private var uiFontScale: Double = 1.0
 
   @EnvironmentObject var floooViewModel: FloooViewModel
   @EnvironmentObject var playerViewModel: PlayerViewModel
@@ -298,19 +299,26 @@ struct PreferencesView: View {
           }
         }
 
-        // TODO: finish this later
-        if false {
-          Section(header: Text("Make it yours")) {
-            ColorPicker("Accent color", selection: $accentColor).disabled(true)
-            ColorPicker("Player color", selection: $playerColor).disabled(true)
+        Section(header: Text("Make it yours")) {
+          ColorPicker("Accent color", selection: $accentColor).disabled(true)
+          ColorPicker("Player color", selection: $playerColor).disabled(true)
 
-            Picker(selection: $customFontFamily, label: Text("Font Family")) {
-              ForEach(
-                ["Plus Jakarta Sans", "System", "JetBrains Mono", "Comic Sans MS"], id: \.self
-              ) {
-                Text($0)
-              }
-            }.disabled(true)
+          Picker(selection: $customFontFamily, label: Text("Font Family")) {
+            ForEach(
+              ["Plus Jakarta Sans", "System", "JetBrains Mono", "Comic Sans MS"], id: \.self
+            ) {
+              Text($0)
+            }
+          }.disabled(true)
+
+          Picker("Text size", selection: $uiFontScale) {
+            Text("Small").tag(Double(0.85))
+            Text("Default").tag(Double(1.0))
+            Text("Large").tag(Double(1.15))
+            Text("Extra Large").tag(Double(1.3))
+          }
+          .onChange(of: uiFontScale) { newValue in
+            UserDefaultsManager.uiFontScale = Float(newValue)
           }
         }
 
