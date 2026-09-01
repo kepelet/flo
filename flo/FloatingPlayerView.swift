@@ -204,7 +204,8 @@ struct PadFloatingPlayerView: View {
       }
       .buttonStyle(.plain)
       .contentShape(Circle())
-      .offset(x: -2, y: -4)
+      .padding(.top, 3)
+      .padding(.trailing, 8)
       .zIndex(999)
       .accessibilityLabel("Stop playback")
     }

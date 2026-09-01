@@ -16,7 +16,7 @@ struct PlayerSidePanelView: View {
       // Leading-edge separator — 1pt primary 0.35, full height, above background
       HStack(spacing: 0) {
         Rectangle()
-          .fill(Color.primary.opacity(0.35))
+          .fill(Color.primary.opacity(0.20))
           .frame(width: 1)
         Spacer()
       }
