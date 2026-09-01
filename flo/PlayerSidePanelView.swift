@@ -7,6 +7,7 @@ import NukeUI
 import SwiftUI
 
 struct PlayerSidePanelView: View {
+  @Environment(\.colorScheme) private var colorScheme
   @Binding var activePanel: FloatingPlayerPanel?
   @ObservedObject var viewModel: PlayerViewModel
 
@@ -39,26 +40,27 @@ struct PlayerSidePanelView: View {
     .transition(.move(edge: .trailing).combined(with: .opacity))
   }
 
-  // MARK: Lyrics — systemBackground, primary label colors (matches queue panel)
+  // MARK: Lyrics — systemBackground, explicit scheme label colors (no accent)
 
   private var lyricsContent: some View {
     VStack(alignment: .leading, spacing: 0) {
-      // Header mirroring queue panel but without shuffle/repeat buttons
+      // Header pinned above ScrollView — solid surface so lyrics don't bleed through
       HStack(alignment: .center, spacing: 10) {
-        let source = viewModel.nowPlaying.contextName ?? viewModel.nowPlaying.albumName ?? ""
-        if source.isEmpty {
-          Text("").customFont(.subheadline)
+        if let sourceName = viewModel.lyricsSourceName {
+          Text("Lyrics from: \(sourceName)")
+            .customFont(.subheadline)
+            .lineLimit(1)
+            .foregroundColor(.secondary)
         } else {
-          Text("Lyrics from: \(source)")
+          Text("")
             .customFont(.subheadline)
             .foregroundColor(.secondary)
-            .lineLimit(1)
         }
         Spacer()
       }
       .padding(.horizontal, 14)
       .padding(.vertical, 8)
-      .background(Color(.secondarySystemBackground).opacity(0.45))
+      .background(Color(.secondarySystemBackground))
 
       Divider().opacity(0.06)
 
@@ -66,27 +68,34 @@ struct PlayerSidePanelView: View {
         if viewModel.isLoadingLyrics && viewModel.lyrics.isEmpty && (viewModel.lyricsError == nil || viewModel.lyricsError!.isEmpty) {
           VStack {
             Spacer()
-            ProgressView().scaleEffect(1.1)
-            Text("Loading lyrics…").customFont(.caption1).foregroundColor(.secondary).padding(.top, 8)
+            ProgressView()
+              .scaleEffect(1.1)
+              .tint(colorScheme == .dark ? Color.white : Color.black)
+            Text("Loading lyrics…")
+              .customFont(.caption1)
+              .padding(.top, 8)
+              .foregroundColor(.secondary)
             Spacer()
           }
           .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else if viewModel.lyrics.isEmpty {
           VStack(spacing: 10) {
             Spacer()
-            Text("No lyrics available").customFont(.callout).foregroundColor(.secondary)
+            Text("No lyrics available")
+              .customFont(.callout)
+              .foregroundColor(.secondary)
             Spacer()
           }
           .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else if viewModel.lyrics.count == 1 {
-          // Plain (unsynced) lyrics — single block, primary
+          // Plain (unsynced) lyrics — single block, explicit scheme color
           ScrollView {
             Text(viewModel.lyrics[0].text)
               .customFont(.callout)
-              .foregroundColor(.primary)
               .multilineTextAlignment(.leading)
               .frame(maxWidth: .infinity, alignment: .leading)
               .padding(16)
+              .foregroundColor(colorScheme == .dark ? Color.white : Color.black)
           }
         } else {
           ScrollViewReader { proxy in
@@ -97,12 +106,12 @@ struct PlayerSidePanelView: View {
                   Text(line.text)
                     .customFont(isCurrent ? .title3 : .body)
                     .fontWeight(isCurrent ? .semibold : .regular)
-                    .foregroundColor(isCurrent ? Color.primary : Color.primary.opacity(0.45))
                     .multilineTextAlignment(.leading)
                     .frame(maxWidth: .infinity, minHeight: 40, alignment: .leading)
                     .lineSpacing(6)
                     .padding(.horizontal, 14)
                     .padding(.vertical, 3)
+                    .foregroundColor(isCurrent ? (colorScheme == .dark ? Color.white : Color.black) : (colorScheme == .dark ? Color.white.opacity(0.45) : Color.black.opacity(0.45)))
                     .animation(.easeInOut(duration: 0.22), value: viewModel.currentLyricsLineIndex)
                     .id(idx)
                     .onTapGesture {
