@@ -11,6 +11,34 @@ struct PlayerSidePanelView: View {
   @Binding var activePanel: FloatingPlayerPanel?
   @ObservedObject var viewModel: PlayerViewModel
 
+  // MARK: - Lyrics font (bypass customFont accent injection)
+  private func lyricsFont(_ style: TextStyle) -> Font {
+    switch style {
+    case .largeTitle:
+      return .custom("Plus Jakarta Sans", size: 34)
+    case .title, .title1:
+      return .custom("Plus Jakarta Sans", size: 28)
+    case .title2:
+      return .custom("Plus Jakarta Sans", size: 22)
+    case .title3:
+      return .custom("Plus Jakarta Sans", size: 20)
+    case .headline:
+      return .custom("Plus Jakarta Sans", size: 17).weight(.bold)
+    case .body:
+      return .custom("Plus Jakarta Sans", size: 17)
+    case .callout:
+      return .custom("Plus Jakarta Sans", size: 16)
+    case .subheadline:
+      return .custom("Plus Jakarta Sans", size: 15)
+    case .footnote:
+      return .custom("Plus Jakarta Sans", size: 13)
+    case .caption1:
+      return .custom("Plus Jakarta Sans", size: 12)
+    case .caption2:
+      return .custom("Plus Jakarta Sans", size: 11)
+    }
+  }
+
   var body: some View {
     ZStack(alignment: .topLeading) {
       Color(.systemBackground).ignoresSafeArea()
@@ -48,13 +76,14 @@ struct PlayerSidePanelView: View {
       HStack(alignment: .center, spacing: 10) {
         if let sourceName = viewModel.lyricsSourceName {
           Text("Lyrics from: \(sourceName)")
-            .customFont(.subheadline)
+            .font(lyricsFont(.subheadline))
+            .fontWeight(.medium)
             .lineLimit(1)
-            .foregroundColor(.secondary)
+            .foregroundColor(colorScheme == .dark ? Color.white : Color.black)
         } else {
           Text("")
-            .customFont(.subheadline)
-            .foregroundColor(.secondary)
+            .font(lyricsFont(.subheadline))
+            .foregroundColor(colorScheme == .dark ? Color.white : Color.black)
         }
         Spacer()
       }
@@ -62,7 +91,7 @@ struct PlayerSidePanelView: View {
       .padding(.vertical, 8)
       .background(Color(.secondarySystemBackground))
 
-      Divider().opacity(0.06)
+      Divider().opacity(0.15)
 
       Group {
         if viewModel.isLoadingLyrics && viewModel.lyrics.isEmpty && (viewModel.lyricsError == nil || viewModel.lyricsError!.isEmpty) {
@@ -72,7 +101,7 @@ struct PlayerSidePanelView: View {
               .scaleEffect(1.1)
               .tint(colorScheme == .dark ? Color.white : Color.black)
             Text("Loading lyrics…")
-              .customFont(.caption1)
+              .font(lyricsFont(.caption1))
               .padding(.top, 8)
               .foregroundColor(.secondary)
             Spacer()
@@ -82,7 +111,7 @@ struct PlayerSidePanelView: View {
           VStack(spacing: 10) {
             Spacer()
             Text("No lyrics available")
-              .customFont(.callout)
+              .font(lyricsFont(.callout))
               .foregroundColor(.secondary)
             Spacer()
           }
@@ -91,7 +120,7 @@ struct PlayerSidePanelView: View {
           // Plain (unsynced) lyrics — single block, explicit scheme color
           ScrollView {
             Text(viewModel.lyrics[0].text)
-              .customFont(.callout)
+              .font(lyricsFont(.callout))
               .multilineTextAlignment(.leading)
               .frame(maxWidth: .infinity, alignment: .leading)
               .padding(16)
@@ -104,7 +133,7 @@ struct PlayerSidePanelView: View {
                 ForEach(Array(viewModel.lyrics.enumerated()), id: \.element.id) { idx, line in
                   let isCurrent = idx == viewModel.currentLyricsLineIndex
                   Text(line.text)
-                    .customFont(isCurrent ? .title3 : .body)
+                    .font(lyricsFont(isCurrent ? .title3 : .body))
                     .fontWeight(isCurrent ? .semibold : .regular)
                     .multilineTextAlignment(.leading)
                     .frame(maxWidth: .infinity, minHeight: 40, alignment: .leading)
