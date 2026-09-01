@@ -273,7 +273,7 @@ struct LibraryView: View {
         }
         .padding(.top, 10)
         .padding(
-          .bottom, playerViewModel.hasNowPlaying() && !playerViewModel.shouldHidePlayer ? 100 : 0
+          .bottom, playerContentBottomPadding(viewModel: playerViewModel, iPhoneActive: 100, iPhoneInactive: 0)
         )
         .searchable(
           text: $searchAlbum,
@@ -435,7 +435,7 @@ struct LibraryView: View {
             }
           }
           .padding(.top, 10)
-          .padding(.bottom, playerViewModel.hasNowPlaying() && !playerViewModel.shouldHidePlayer ? 90 : 12)
+          .padding(.bottom, playerContentBottomPadding(viewModel: playerViewModel, iPhoneActive: 90, iPhoneInactive: 12))
         }
       } else if selectedSegment == .downloads {
         ScrollView {
@@ -444,7 +444,7 @@ struct LibraryView: View {
             v2DownloadsBody
           }
           .padding(.top, 10)
-          .padding(.bottom, playerViewModel.hasNowPlaying() && !playerViewModel.shouldHidePlayer ? 90 : 12)
+          .padding(.bottom, playerContentBottomPadding(viewModel: playerViewModel, iPhoneActive: 90, iPhoneInactive: 12))
         }
       } else {
         ScrollView {
@@ -477,7 +477,7 @@ struct LibraryView: View {
             }
           }
           .padding(.top, 10)
-          .padding(.bottom, playerViewModel.hasNowPlaying() && !playerViewModel.shouldHidePlayer ? 90 : 12)
+          .padding(.bottom, playerContentBottomPadding(viewModel: playerViewModel, iPhoneActive: 90, iPhoneInactive: 12))
         }
       }
     }
@@ -539,7 +539,7 @@ struct LibraryView: View {
         v2DownloadsBody
       }
       .padding(.top, 10)
-      .padding(.bottom, playerViewModel.hasNowPlaying() && !playerViewModel.shouldHidePlayer ? 90 : 12)
+      .padding(.bottom, playerContentBottomPadding(viewModel: playerViewModel, iPhoneActive: 90, iPhoneInactive: 12))
     }
     .onAppear {
       cachedSongs = StreamCacheManager.shared.getCachedSongs()

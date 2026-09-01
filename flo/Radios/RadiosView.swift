@@ -65,6 +65,7 @@ struct RadiosView: View {
           }
         }
         .padding(.top, 10)
+        .padding(.bottom, playerContentBottomPadding(viewModel: playerViewModel, iPhoneActive: 100, iPhoneInactive: 12))
       }
     }
     .navigationTitle("Radios")

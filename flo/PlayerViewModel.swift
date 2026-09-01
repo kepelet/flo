@@ -41,6 +41,18 @@ class PlayerViewModel: ObservableObject {
   @Published var shouldHidePlayer: Bool = false
   @Published var externalOutputName: String?
   @Published var isStarred: Bool = false
+  @Published var playbackVolume: Float = UserDefaultsManager.playbackVolume {
+    didSet {
+      let clamped = min(max(playbackVolume, 0), 1)
+      if clamped != playbackVolume {
+        playbackVolume = clamped
+        return
+      }
+      UserDefaultsManager.playbackVolume = clamped
+      player?.volume = clamped
+    }
+  }
+  private var volumeBeforeMute: Float = UserDefaultsManager.playbackVolume
 
   // FIXME: this make confusion with `isDownloaded` and/or `isPlayingFromLocal`
   @Published var _playFromLocal: Bool = false
@@ -89,6 +101,8 @@ class PlayerViewModel: ObservableObject {
 
   init() {
     self.player = AVPlayer()
+    self.player?.volume = UserDefaultsManager.playbackVolume
+    self.volumeBeforeMute = UserDefaultsManager.playbackVolume > 0 ? UserDefaultsManager.playbackVolume : 1.0
     self.observeInterruptionNotifications()
     self.observeRouteChangeNotifications()
     self.updateAudioRoute()
@@ -446,6 +460,7 @@ class PlayerViewModel: ObservableObject {
       self.setupPlayerItemObservers(for: item)
     }
     self.player?.automaticallyWaitsToMinimizeStalling = false
+    self.player?.volume = playbackVolume
     self.player?.replaceCurrentItem(with: self.playerItem)
 
     let duration = CMTime(
@@ -686,6 +701,7 @@ class PlayerViewModel: ObservableObject {
       self.updateNowPlayingInfo(progress: self.progress, rate: 0.0)
     }
 
+    player?.volume = playbackVolume
     player?.play()
 
     self.isFinished = false
@@ -793,6 +809,7 @@ class PlayerViewModel: ObservableObject {
       self.setupPlayerItemObservers(for: item)
     }
     self.player?.automaticallyWaitsToMinimizeStalling = false
+    self.player?.volume = playbackVolume
     self.player?.replaceCurrentItem(with: self.playerItem)
 
     self.playerItemObservation = self.playerItem?.publisher(for: \.status)
@@ -1104,6 +1121,24 @@ class PlayerViewModel: ObservableObject {
         }
       }
     }
+  }
+
+  func toggleMute() {
+    if playbackVolume > 0.01 {
+      volumeBeforeMute = playbackVolume
+      playbackVolume = 0
+    } else {
+      let restore = volumeBeforeMute > 0.01 ? volumeBeforeMute : 1.0
+      playbackVolume = restore
+    }
+  }
+
+  func setPlaybackVolume(_ volume: Float) {
+    let clamped = min(max(volume, 0), 1)
+    if clamped > 0.01 {
+      volumeBeforeMute = clamped
+    }
+    playbackVolume = clamped
   }
 
   func toggleStar() {

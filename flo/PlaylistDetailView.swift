@@ -251,7 +251,7 @@ struct PlaylistDetailView: View {
           downloadViewModel.downloadWatcher = false  // uh anti pattern
         }
       }
-      .padding(.bottom, 100)
+      .padding(.bottom, playerContentBottomPadding(viewModel: playerViewModel, iPhoneActive: 100, iPhoneInactive: 12))
     }
   }
 }

@@ -27,6 +27,7 @@ struct ContentView: View {
 
   @State private var floatingPlayerOffsetX: CGFloat = .zero
   @State private var isSwipping = false
+  @State private var floatingSidePanel: FloatingPlayerPanel?
 
   var swipeThreshold: CGFloat = 150.0
 
@@ -46,11 +47,17 @@ struct ContentView: View {
   }
 
   private func estimatedSidebarWidth(for totalWidth: CGFloat) -> CGFloat {
-    return 0
+    // Effective sidebar width that yields the -52pt shift above (104/2).
+    // Kept fixed so the helper is no longer dead and the preview offset is
+    // deterministic; the true adaptive sidebar 220–320pt would give larger
+    // dynamic offsets but a fixed 52pt shift is the cleanest visible polish.
+    _ = totalWidth
+    return 104
   }
 
   private func floatingPlayerContentCenterOffsetX(totalWidth: CGFloat) -> CGFloat {
-    return 0
+    guard isPadSidebar else { return 0 }
+    return -estimatedSidebarWidth(for: totalWidth) / 2 // -52 on pad/mac, 0 on iPhone
   }
 
   @ViewBuilder
@@ -207,14 +214,12 @@ struct ContentView: View {
     content
       .overlay(alignment: .bottom) {
         if playerViewModel.hasNowPlaying() && !playerViewModel.shouldHidePlayer {
-          FloatingPlayerView(viewModel: playerViewModel)
-            .frame(maxWidth: 720)
-            .padding(.bottom, 16)
+          PadFloatingPlayerView(viewModel: playerViewModel, activePanel: $floatingSidePanel)
+            .frame(maxWidth: 860)
+            .padding(.bottom, 20)
             .opacity(playerViewModel.hasNowPlaying() ? 1 : 0)
             .offset(x: floatingPlayerOffsetX)
-            .onTapGesture {
-              self.isPlayerExpanded = true
-            }
+            .zIndex(10)
             .gesture(
               DragGesture()
                 .onChanged { value in
@@ -371,7 +376,7 @@ struct ContentView: View {
             )
           }
         } header: {
-          Text("").frame(width: 0, height: 0)
+          Text("Collections")
         }
       }
 
@@ -448,11 +453,39 @@ struct ContentView: View {
       ZStack {
         baseBackgroundView
 
-        rootTabView
+        if isPadSidebar {
+          let sidePanelWidth: CGFloat = 380
+          let panelGutter: CGFloat = 10
+          let isPanelVisible =
+            floatingSidePanel != nil && playerViewModel.hasNowPlaying()
+            && !playerViewModel.shouldHidePlayer
+          ZStack(alignment: .trailing) {
+            rootTabView
+              .padding(.trailing, isPanelVisible ? sidePanelWidth + panelGutter : 0)
+              .animation(
+                .spring(duration: 0.26, bounce: 0.08), value: floatingSidePanel
+              )
+              .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+            if isPanelVisible {
+              PlayerSidePanelView(
+                activePanel: $floatingSidePanel, viewModel: playerViewModel
+              )
+              .frame(width: sidePanelWidth)
+              .frame(maxHeight: .infinity, alignment: .top)
+              .transition(.move(edge: .trailing).combined(with: .opacity))
+              .zIndex(2)
+            }
+          }
+          .animation(.spring(duration: 0.26, bounce: 0.08), value: floatingSidePanel)
+        } else {
+          rootTabView
+        }
 
         tabKeyboardShortcuts
 
-        if playerViewModel.hasNowPlaying() && !playerViewModel.shouldHidePlayer {
+        // Full-screen PlayerView — iPhone/non-pad only. Pad path never renders it (fixes bottom-visibility + resize crash).
+        if !isPadSidebar, playerViewModel.hasNowPlaying(), !playerViewModel.shouldHidePlayer {
           PlayerView(
             isExpanded: $isPlayerExpanded,
             viewModel: playerViewModel,
@@ -549,11 +582,21 @@ struct ContentView: View {
         tabShortcut(.downloads, key: "8")
         tabShortcut(.preferences, key: "9")
         tabShortcut(.debug, key: "0")
+        tabShortcut(.preferences, key: ",")
+        searchShortcut(key: "f")
+        fontScaleShortcut(key: "-", increase: false)
+        fontScaleShortcut(key: "+", increase: true)
+        fontScaleShortcut(key: "=", increase: true)
       } else {
         tabShortcut(.home, key: "1")
         tabShortcut(.library, key: "2")
         tabShortcut(.downloads, key: "3")
         tabShortcut(.preferences, key: "4")
+        tabShortcut(.preferences, key: ",")
+        searchShortcut(key: "f")
+        fontScaleShortcut(key: "-", increase: false)
+        fontScaleShortcut(key: "+", increase: true)
+        fontScaleShortcut(key: "=", increase: true)
       }
     }
     .frame(width: 0, height: 0)
@@ -563,6 +606,25 @@ struct ContentView: View {
   func tabShortcut(_ tab: AppTab, key: KeyEquivalent) -> some View {
     Button {
       libraryRouter.selectedTab = tab
+    } label: {
+      EmptyView()
+    }
+    .keyboardShortcut(key, modifiers: .command)
+  }
+
+  func searchShortcut(key: KeyEquivalent) -> some View {
+    Button {
+      libraryRouter.selectedTab = .search
+    } label: {
+      EmptyView()
+    }
+    .keyboardShortcut(key, modifiers: .command)
+  }
+
+  func fontScaleShortcut(key: KeyEquivalent, increase: Bool) -> some View {
+    Button {
+      let delta: Float = increase ? 0.05 : -0.05
+      UserDefaultsManager.uiFontScale = UserDefaultsManager.uiFontScale + delta
     } label: {
       EmptyView()
     }

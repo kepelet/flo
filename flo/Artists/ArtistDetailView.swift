@@ -134,7 +134,7 @@ struct ArtistDetailView: View {
             AlbumsView(viewModel: viewModel, album: album)
           }
         }
-      }.padding(.bottom, 100)
+      }.padding(.bottom, playerContentBottomPadding(viewModel: playerViewModel, iPhoneActive: 100, iPhoneInactive: 12))
     }
     .onReceive(artistDetailViewModel.playableSongs) { songs in
       if songs.isEmpty {

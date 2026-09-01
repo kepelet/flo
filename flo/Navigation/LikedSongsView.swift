@@ -68,7 +68,7 @@ struct LikedSongsView: View {
         }
       }
       .padding(.top, 10)
-      .padding(.bottom, 100)
+      .padding(.bottom, playerContentBottomPadding(viewModel: playerViewModel, iPhoneActive: 100, iPhoneInactive: 12))
       .navigationTitle("Liked Songs")
     }
     .onAppear {

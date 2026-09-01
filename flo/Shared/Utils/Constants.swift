@@ -6,6 +6,8 @@
 //
 
 import Foundation
+import SwiftUI
+import UIKit
 
 enum API {
   static let NDAuthHeader = "X-ND-Authorization"
@@ -63,6 +65,8 @@ enum UserDefaultsKeys {
   static let LRCLIBServerURL = "LRCLIBServerURL"
   static let streamCacheMaxSize = "streamCacheMaxSize"
   static let libraryViewV2 = "libraryViewV2"
+  static let playbackVolume = "playbackVolume"
+  static let uiFontScale = "uiFontScale"
 }
 
 enum KeychainKeys {
@@ -91,4 +95,30 @@ enum PlayerBackground {
   static let availablePlayerBackground = ["solid", "translucent"]
   static let solid = "solid"
   static let translucent = "translucent"
+}
+
+// MARK: - Pad-aware bottom padding helper (pad/mac floating player is ~68pt tall)
+// Returns 140 when now-playing on pad/mac (iPadOS 18+ / macCatalyst 18+), otherwise iPhone values unchanged.
+var isPadOrMacLayout: Bool {
+  #if targetEnvironment(macCatalyst)
+    if #available(iOS 18.0, *) { return true }
+    return false
+  #else
+    guard UIDevice.current.userInterfaceIdiom == .pad else { return false }
+    if #available(iOS 18.0, *) { return true }
+    return false
+  #endif
+}
+
+func playerContentBottomPadding(hasNowPlaying: Bool, iPhoneActive: CGFloat, iPhoneInactive: CGFloat) -> CGFloat {
+  if hasNowPlaying {
+    return isPadOrMacLayout ? 140 : iPhoneActive
+  } else {
+    return iPhoneInactive
+  }
+}
+
+func playerContentBottomPadding(viewModel: PlayerViewModel, iPhoneActive: CGFloat, iPhoneInactive: CGFloat) -> CGFloat {
+  let hasNow = viewModel.hasNowPlaying() && !viewModel.shouldHidePlayer
+  return playerContentBottomPadding(hasNowPlaying: hasNow, iPhoneActive: iPhoneActive, iPhoneInactive: iPhoneInactive)
 }

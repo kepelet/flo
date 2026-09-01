@@ -137,6 +137,33 @@ class UserDefaultsManager {
     }
   }
 
+  static var playbackVolume: Float {
+    get {
+      if UserDefaults.standard.object(forKey: UserDefaultsKeys.playbackVolume) == nil {
+        return 1.0
+      }
+      return UserDefaults.standard.float(forKey: UserDefaultsKeys.playbackVolume)
+    }
+    set {
+      UserDefaults.standard.set(newValue, forKey: UserDefaultsKeys.playbackVolume)
+    }
+  }
+
+  static var uiFontScale: Float {
+    get {
+      if UserDefaults.standard.object(forKey: UserDefaultsKeys.uiFontScale) == nil {
+        return 1.0
+      }
+      let raw = UserDefaults.standard.float(forKey: UserDefaultsKeys.uiFontScale)
+      // Clamp on read so out-of-bounds values persisted externally are normalized
+      return min(max(raw, 0.8), 1.4)
+    }
+    set {
+      let clamped = min(max(newValue, 0.8), 1.4)
+      UserDefaults.standard.set(clamped, forKey: UserDefaultsKeys.uiFontScale)
+    }
+  }
+
   /// Number of times the user has tipped a given product. Stored per product so
   /// it survives relaunch, and recoverable from StoreKit history on reinstall.
   static func tipCount(for productID: String) -> Int {
