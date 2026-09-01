@@ -20,6 +20,22 @@ struct PlayerCustomSlider: View {
 
   var body: some View {
     GeometryReader { geometry in
+      let clampedValue = min(max(self.value, self.range.lowerBound), self.range.upperBound)
+      let clampedTemp = min(max(self.tempValue, self.range.lowerBound), self.range.upperBound)
+      let span = self.range.upperBound - self.range.lowerBound
+      let normalized: CGFloat = {
+        guard span.isFinite, span != 0 else { return 0 }
+        let v = (clampedValue - self.range.lowerBound) / span
+        guard v.isFinite else { return 0 }
+        return CGFloat(min(max(v, 0), 1))
+      }()
+      let normalizedTemp: CGFloat = {
+        guard span.isFinite, span != 0 else { return 0 }
+        let v = (clampedTemp - self.range.lowerBound) / span
+        guard v.isFinite else { return 0 }
+        return CGFloat(min(max(v, 0), 1))
+      }()
+      let safeWidth: CGFloat = (geometry.size.width.isFinite && geometry.size.width > 0) ? geometry.size.width : 0
       ZStack(alignment: .leading) {
         Rectangle()
           .foregroundColor(Color.gray.opacity(0.8))
@@ -29,9 +45,7 @@ struct PlayerCustomSlider: View {
         Rectangle()
           .foregroundColor(Color.white)
           .frame(
-            width: CGFloat(
-              (self.value - self.range.lowerBound) / (self.range.upperBound - self.range.lowerBound)
-            ) * geometry.size.width, height: 4
+            width: normalized * safeWidth, height: 4
           )
           .opacity(isMediaLoading ? 0 : 1)
           .cornerRadius(2)
@@ -42,18 +56,14 @@ struct PlayerCustomSlider: View {
             .frame(width: 12, height: 12)
             .opacity(0.8)
             .offset(
-              x: CGFloat(
-                (self.tempValue - self.range.lowerBound)
-                  / (self.range.upperBound - self.range.lowerBound)) * geometry.size.width - 6)
+              x: normalizedTemp * safeWidth - 6)
         }
 
         Circle()
           .fill(Color.white)
           .frame(width: 12, height: 12)
           .offset(
-            x: CGFloat(
-              (self.value - self.range.lowerBound) / (self.range.upperBound - self.range.lowerBound)
-            ) * geometry.size.width - 6
+            x: normalized * safeWidth - 6
           )
           .opacity(isMediaLoading ? 0 : 1)
           .animation(.easeInOut(duration: 0.3), value: self.value)
@@ -61,19 +71,21 @@ struct PlayerCustomSlider: View {
             DragGesture()
               .onChanged { gesture in
                 self.isSeeking = true
-
-                let newValue =
-                  self.range.lowerBound + Double(gesture.location.x / geometry.size.width)
-                  * (self.range.upperBound - self.range.lowerBound)
-
-                self.tempValue = newValue
+                guard safeWidth > 0 else { return }
+                let raw = Double(gesture.location.x / safeWidth)
+                guard raw.isFinite else { return }
+                let newValue = self.range.lowerBound + raw * span
+                let clamped = min(max(newValue, self.range.lowerBound), self.range.upperBound)
+                guard clamped.isFinite else { return }
+                self.tempValue = clamped
               }.onEnded { gesture in
-                let newValue =
-                  self.range.lowerBound + Double(gesture.location.x / geometry.size.width)
-                  * (self.range.upperBound - self.range.lowerBound)
-
+                guard safeWidth > 0 else { self.isSeeking = false; return }
+                let raw = Double(gesture.location.x / safeWidth)
+                guard raw.isFinite else { self.isSeeking = false; return }
+                var newValue = self.range.lowerBound + raw * span
+                newValue = min(max(newValue, self.range.lowerBound), self.range.upperBound)
+                guard newValue.isFinite else { self.isSeeking = false; return }
                 onEnded(newValue)
-
                 self.isSeeking = false
               }
           )

@@ -32,9 +32,22 @@ struct PlayerView: View {
       let size = proxy.size
       let topSafeInset = max(proxy.safeAreaInsets.top, windowTopSafeInset)
       let bottomSafeInset = proxy.safeAreaInsets.bottom
-      let imageSize: CGFloat = horizontalSizeClass == .regular ? min(400, size.width * 0.4) : 300
+      let imageSize: CGFloat = {
+        guard size.width.isFinite, size.width > 0 else { return 0 }
+        if horizontalSizeClass == .regular {
+          return min(400, size.width * 0.4)
+        } else {
+          // Compact / narrow window (iPad vertical / Slide Over): clamp to available width
+          return max(0, min(300, size.width - 32))
+        }
+      }()
       let isIPadPortrait = UIDevice.current.userInterfaceIdiom == .pad && size.height > size.width
-      let queueSheetHeight = isIPadPortrait ? min(700, max(500, size.height * 0.62)) : 500
+      let queueSheetHeight: CGFloat = {
+        guard size.height.isFinite, size.height > 0 else { return 500 }
+        let raw: CGFloat = isIPadPortrait ? min(700, max(500, size.height * 0.62)) : 500
+        // Never exceed container height (prevents sheet taller than window on compact height)
+        return min(raw, max(0, size.height - 16))
+      }()
 
       ZStack {
         playerBackground()
@@ -116,28 +129,28 @@ struct PlayerView: View {
 
               ScrollView {
                 LazyVStack(alignment: .leading) {
-                  ForEach(viewModel.queue.indices, id: \.self) { idx in
+                  ForEach(Array(viewModel.queue.enumerated()), id: \.offset) { idx, song in
                     HStack(alignment: .top) {
                       VStack(alignment: .leading) {
                         HStack(alignment: .center, spacing: 6) {
-                          Text(viewModel.queue[idx].songName ?? "")
+                          Text(song.songName ?? "")
                             .customFont(.callout)
                             .fontWeight(.medium)
 
-                          if ExplicitStatus(from: viewModel.queue[idx].explicitStatus).isExplicit {
+                          if ExplicitStatus(from: song.explicitStatus).isExplicit {
                             ExplicitBadge(size: .compact)
                           }
                         }
                         .padding(.bottom, 3)
 
-                        Text(viewModel.queue[idx].artistName ?? "")
+                        Text(song.artistName ?? "")
                           .customFont(.caption1)
                       }
                       .frame(maxWidth: .infinity, alignment: .leading)
 
                       Spacer()
 
-                      Text(timeString(for: viewModel.queue[idx].duration)).customFont(.caption1)
+                      Text(timeString(for: song.duration)).customFont(.caption1)
                         .padding(.top, 4)
                     }
                     .padding(.vertical, 5)
@@ -320,7 +333,10 @@ struct PlayerView: View {
           Spacer()
         }
       } else {
-        HStack(spacing: size.width * 0.15) {
+        HStack(spacing: {
+          guard size.width.isFinite, size.width > 0 else { return 16 }
+          return max(12, min(32, size.width * 0.12))
+        }()) {
           Button {
             viewModel.prevSong()
           } label: {
@@ -395,7 +411,9 @@ struct PlayerView: View {
         .padding(.bottom, max(bottomSafeInset, 12))
     }
     .frame(maxWidth: horizontalSizeClass == .regular ? 500 : .infinity)
-    .frame(maxWidth: .infinity)
+    .frame(maxWidth: .infinity, alignment: .center)
+    // Clamp content so compact narrow windows never propose non-finite frames
+    .frame(minWidth: 0)
   }
 
   @ViewBuilder

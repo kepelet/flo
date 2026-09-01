@@ -311,7 +311,10 @@ struct ContentView: View {
         #if targetEnvironment(macCatalyst)
           geometry.size.height
         #else
-          UIScreen.main.bounds.height
+          // Use geometry height when available; falls back to screen height for initial layout.
+          // Prevents mismatch during iPad multitasking/window resize where screen height != window height.
+          let h = geometry.size.height
+          return (h.isFinite && h > 0) ? h : UIScreen.main.bounds.height
         #endif
       }()
 
