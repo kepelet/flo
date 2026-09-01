@@ -58,7 +58,7 @@ struct ArtistsView: View {
             }
           }
         }
-      }.padding(.bottom, 100)
+      }.padding(.bottom, playerContentBottomPadding(viewModel: playerViewModel, iPhoneActive: 100, iPhoneInactive: 12))
     }
     .navigationTitle("Artists")
     .refreshable {

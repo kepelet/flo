@@ -156,7 +156,7 @@ struct HomeView: View {
           }
           .frame(maxWidth: .infinity, alignment: .leading)
           .padding(.horizontal, horizontalInset)
-          .padding(.bottom, 100)
+          .padding(.bottom, playerContentBottomPadding(viewModel: playerViewModel, iPhoneActive: 100, iPhoneInactive: 12))
         }
       }
       .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)

@@ -179,7 +179,7 @@ struct AlbumView: View {
         .environmentObject(downloadViewModel)
 
       }.padding(
-        .bottom, playerViewModel.hasNowPlaying() && !playerViewModel.shouldHidePlayer ? 100 : 10)
+        .bottom, playerContentBottomPadding(viewModel: playerViewModel, iPhoneActive: 100, iPhoneInactive: 10))
     }
     .toolbar {
       if !isDownloadScreen {
