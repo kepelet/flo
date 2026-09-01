@@ -209,7 +209,7 @@ struct ContentView: View {
       .overlay(alignment: .bottom) {
         if playerViewModel.hasNowPlaying() && !playerViewModel.shouldHidePlayer {
           PadFloatingPlayerView(viewModel: playerViewModel, activePanel: $floatingSidePanel)
-            .frame(maxWidth: 720)
+            .frame(maxWidth: 860)
             .padding(.bottom, 16)
             .opacity(playerViewModel.hasNowPlaying() ? 1 : 0)
             .offset(x: floatingPlayerOffsetX)
@@ -446,23 +446,38 @@ struct ContentView: View {
       ZStack {
         baseBackgroundView
 
-        rootTabView
+        if isPadSidebar {
+          let sidePanelWidth: CGFloat = 380
+          let isPanelVisible =
+            floatingSidePanel != nil && playerViewModel.hasNowPlaying()
+            && !playerViewModel.shouldHidePlayer
+          ZStack(alignment: .trailing) {
+            rootTabView
+              .padding(.trailing, isPanelVisible ? sidePanelWidth : 0)
+              .animation(
+                .spring(duration: 0.26, bounce: 0.08), value: floatingSidePanel
+              )
+              .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-        tabKeyboardShortcuts
-
-        // Pad/mac side panel — lyrics or queue anchored to the trailing edge (replaces full-screen PlayerView on this path)
-        if isPadSidebar, let _ = floatingSidePanel, playerViewModel.hasNowPlaying(), !playerViewModel.shouldHidePlayer {
-          HStack(spacing: 0) {
-            Spacer(minLength: 0)
-            PlayerSidePanelView(activePanel: $floatingSidePanel, viewModel: playerViewModel)
+            if isPanelVisible {
+              PlayerSidePanelView(
+                activePanel: $floatingSidePanel, viewModel: playerViewModel
+              )
+              .frame(width: sidePanelWidth)
+              .frame(maxHeight: .infinity, alignment: .top)
               .padding(.trailing, 12)
               .padding(.vertical, 16)
-              // Avoid covering the floating player; keep panel above bottom bar area
               .padding(.bottom, 88)
+              .transition(.move(edge: .trailing).combined(with: .opacity))
+              .zIndex(2)
+            }
           }
-          .transition(.move(edge: .trailing).combined(with: .opacity))
-          .zIndex(2)
+          .animation(.spring(duration: 0.26, bounce: 0.08), value: floatingSidePanel)
+        } else {
+          rootTabView
         }
+
+        tabKeyboardShortcuts
 
         // Full-screen PlayerView — iPhone/non-pad only. Pad path never renders it (fixes bottom-visibility + resize crash).
         if !isPadSidebar, playerViewModel.hasNowPlaying(), !playerViewModel.shouldHidePlayer {
@@ -562,6 +577,7 @@ struct ContentView: View {
         tabShortcut(.downloads, key: "8")
         tabShortcut(.preferences, key: "9")
         tabShortcut(.debug, key: "0")
+        tabShortcut(.preferences, key: ",")
         searchShortcut(key: "f")
         fontScaleShortcut(key: "-", increase: false)
         fontScaleShortcut(key: "+", increase: true)
@@ -571,6 +587,7 @@ struct ContentView: View {
         tabShortcut(.library, key: "2")
         tabShortcut(.downloads, key: "3")
         tabShortcut(.preferences, key: "4")
+        tabShortcut(.preferences, key: ",")
         searchShortcut(key: "f")
         fontScaleShortcut(key: "-", increase: false)
         fontScaleShortcut(key: "+", increase: true)
