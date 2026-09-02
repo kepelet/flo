@@ -16,6 +16,18 @@ private struct SidePanelHeaderModifier: ViewModifier {
   }
 }
 
+// Catalyst: SceneDelegate hides the titlebar and ContentView collapses the top
+// safe area, so panel content starts at y=0 — flush with the window's rounded
+// top corner and the (invisible) titlebar strip. Give the header breathing room
+// so it can never be composited over or clipped by window chrome.
+private let panelTopInset: CGFloat = {
+  #if targetEnvironment(macCatalyst)
+    return 12
+  #else
+    return 0
+  #endif
+}()
+
 private extension View {
   func sidePanelHeader() -> some View { modifier(SidePanelHeaderModifier()) }
 }
@@ -74,6 +86,7 @@ struct PlayerSidePanelView: View {
           queueContent
         }
       }
+      .padding(.top, panelTopInset)
     }
     .frame(width: 380)
     .frame(maxHeight: .infinity)
@@ -102,7 +115,7 @@ struct PlayerSidePanelView: View {
       }
       .sidePanelHeader()
 
-      Divider().opacity(0.06)
+      Divider().opacity(0.15)
 
       Group {
         if viewModel.isLoadingLyrics && viewModel.lyrics.isEmpty && (viewModel.lyricsError == nil || viewModel.lyricsError!.isEmpty) {
@@ -234,7 +247,7 @@ struct PlayerSidePanelView: View {
       }
       .sidePanelHeader()
 
-      Divider().opacity(0.06)
+      Divider().opacity(0.15)
 
       ScrollView {
         LazyVStack(alignment: .leading, spacing: 0) {

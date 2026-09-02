@@ -451,7 +451,7 @@ struct ContentView: View {
           .customFont(.headline)
       }
       .padding(.top, 2)
-      .padding(.bottom, 10)
+      .padding(.bottom, 16)
     }
 #endif
     .id(tabViewID)
