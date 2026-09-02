@@ -95,7 +95,7 @@ struct PlayerView: View {
                       .fontWeight(.bold)
                       .padding(5)
                       .background(
-                        viewModel.isShuffling ? Color.gray.opacity(0.2) : Color(.systemBackground)
+                        viewModel.isShuffling ? Color.gray.opacity(0.2) : Color.clear
                       )
                       .cornerRadius(5)
                   }
@@ -118,7 +118,7 @@ struct PlayerView: View {
                       .padding(5)
                       .background(
                         viewModel.playbackMode == PlaybackMode.defaultPlayback
-                          ? Color(.systemBackground) : Color.gray.opacity(0.2)
+                          ? Color.clear : Color.gray.opacity(0.2)
                       )
                       .cornerRadius(5)
                   }

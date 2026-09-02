@@ -225,7 +225,7 @@ struct PlayerSidePanelView: View {
               .foregroundColor(Color.accentColor)
               .fontWeight(.bold)
               .padding(6)
-              .background(viewModel.isShuffling ? Color.gray.opacity(0.18) : Color(.systemBackground))
+              .background(viewModel.isShuffling ? Color.gray.opacity(0.18) : Color.clear)
               .cornerRadius(6)
           }
           .buttonStyle(.plain)
@@ -241,7 +241,7 @@ struct PlayerSidePanelView: View {
                 }.opacity(viewModel.playbackMode == PlaybackMode.repeatOnce ? 1 : 0)
               )
               .padding(6)
-              .background(viewModel.playbackMode == PlaybackMode.defaultPlayback ? Color(.systemBackground) : Color.gray.opacity(0.18))
+              .background(viewModel.playbackMode == PlaybackMode.defaultPlayback ? Color.clear : Color.gray.opacity(0.18))
               .cornerRadius(6)
           }
           .buttonStyle(.plain)
