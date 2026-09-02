@@ -10,7 +10,10 @@ private struct SidePanelHeaderModifier: ViewModifier {
   func body(content: Content) -> some View {
     content
       .padding(.horizontal, 14)
-      .padding(.vertical, 8)
+      // Top = base 8 + window-chrome clearance so the label sits vertically
+      // centered within the full visible header band (clearance included).
+      .padding(.top, 8 + panelTopInset)
+      .padding(.bottom, 8)
       .background(Color(.secondarySystemBackground).ignoresSafeArea(edges: .top))
       .zIndex(1)
   }
@@ -86,7 +89,6 @@ struct PlayerSidePanelView: View {
           queueContent
         }
       }
-      .padding(.top, panelTopInset)
     }
     .frame(width: 380)
     .frame(maxHeight: .infinity)
