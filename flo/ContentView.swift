@@ -327,31 +327,12 @@ struct ContentView: View {
 
           Tab("Albums", systemImage: "square.grid.2x2", value: AppTab.libraryAlbums) {
             sidebarTabContent(
-              NavigationStack {
-                ScrollView {
-                  LazyVGrid(columns: horizontalSizeClass == .regular ? Array(repeating: GridItem(.flexible(), spacing: 10), count: 4) : Array(repeating: GridItem(.flexible(), spacing: 10), count: 2), spacing: 10) {
-                    ForEach(albumViewModel.albums) { album in
-                      NavigationLink {
-                        AlbumView(viewModel: albumViewModel)
-                          .environmentObject(downloadViewModel)
-                          .onAppear { albumViewModel.setActiveAlbum(album: album) }
-                      } label: {
-                        AlbumsView(viewModel: albumViewModel, album: album)
-                      }.buttonStyle(.plain)
-                    }
-                  }
-                  .padding(.horizontal, 10)
-                  .padding(.top, 8)
-                  .playerBottomPadding(active: 90, inactive: 12)
-                }
-                .navigationTitle("Albums")
-                .onAppear { albumViewModel.fetchAlbums() }
-              }
-              .environmentObject(albumViewModel)
-              .environmentObject(playerViewModel)
-              .environmentObject(downloadViewModel)
-              .environmentObject(libraryRouter)
-              .environmentObject(authViewModel)
+              AlbumsGridView()
+                .environmentObject(albumViewModel)
+                .environmentObject(playerViewModel)
+                .environmentObject(downloadViewModel)
+                .environmentObject(libraryRouter)
+                .environmentObject(authViewModel)
             )
           }
 

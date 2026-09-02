@@ -145,7 +145,7 @@ struct AlbumsGridView: View {
         }
         .padding(.horizontal, 10)
         .padding(.top, 8)
-        .padding(.bottom, 12)
+        .playerBottomPadding(active: 90, inactive: 12)
       }
       .navigationTitle("Albums")
       .searchable(
