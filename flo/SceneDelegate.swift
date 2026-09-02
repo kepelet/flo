@@ -21,6 +21,9 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         titlebar.titleVisibility = .hidden
         titlebar.toolbar = nil
         titlebar.toolbarStyle = .unifiedCompact
+        if #available(macCatalyst 16.0, *) {
+          titlebar.separatorStyle = .none
+        }
       }
     #endif
 

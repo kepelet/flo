@@ -49,17 +49,24 @@ struct ContentView: View {
   }
 
   private func estimatedSidebarWidth(for totalWidth: CGFloat) -> CGFloat {
-    // Effective sidebar width that yields the -52pt shift above (104/2).
-    // Kept fixed so the helper is no longer dead and the preview offset is
-    // deterministic; the true adaptive sidebar 220–320pt would give larger
-    // dynamic offsets but a fixed 52pt shift is the cleanest visible polish.
-    _ = totalWidth
-    return 104
+    guard totalWidth.isFinite, totalWidth > 0 else { return 0 }
+    // Sidebar collapses to overlay / hidden below ~600pt (Stage Manager narrow
+    // or iPad Slide Over). No shift when collapsed to avoid offset artifacts.
+    guard totalWidth >= 600 else { return 0 }
+    // Fixed 104 yields the polished -52pt shift; cap to 15% of window so
+    // very narrow/tall windows never over-shift and the value stays finite.
+    let raw: CGFloat = 104
+    let capped = min(raw, max(0, totalWidth * 0.15))
+    return capped.isFinite ? capped : 0
   }
 
   private func floatingPlayerContentCenterOffsetX(totalWidth: CGFloat) -> CGFloat {
     guard isPadSidebar else { return 0 }
-    return -estimatedSidebarWidth(for: totalWidth) / 2 // -52 on pad/mac, 0 on iPhone
+    guard totalWidth.isFinite, totalWidth > 0 else { return 0 }
+    let w = estimatedSidebarWidth(for: totalWidth)
+    guard w.isFinite, w > 0 else { return 0 }
+    let off = -w / 2
+    return off.isFinite ? off : 0
   }
 
   private func toggleSidePanel() {
@@ -231,13 +238,15 @@ struct ContentView: View {
             .frame(maxWidth: 860)
             .padding(.bottom, 20)
             .opacity(playerPresence.hasNowPlaying ? 1 : 0)
-            .offset(x: floatingPlayerOffsetX)
+            .offset(x: floatingPlayerOffsetX.isFinite ? floatingPlayerOffsetX : 0)
             .zIndex(10)
             .gesture(
               DragGesture()
                 .onChanged { value in
-                  if value.translation.width < .zero {
-                    floatingPlayerOffsetX = value.translation.width
+                  let tx = value.translation.width
+                  guard tx.isFinite else { return }
+                  if tx < .zero {
+                    floatingPlayerOffsetX = tx
                   }
 
                   if abs(floatingPlayerOffsetX) > swipeThreshold, !isSwipping {
@@ -260,6 +269,31 @@ struct ContentView: View {
   @available(iOS 18.0, *)
   var sidebarTabView: some View {
     TabView(selection: $libraryRouter.selectedTab) {
+#if targetEnvironment(macCatalyst)
+      TabSection {
+        Tab("Home", systemImage: "house", value: AppTab.home) {
+          sidebarTabContent(
+            HomeView(viewModel: authViewModel)
+              .environmentObject(floooViewModel)
+              .environmentObject(albumViewModel)
+              .environmentObject(playerViewModel)
+              .environmentObject(downloadViewModel)
+              .environmentObject(libraryRouter)
+          )
+        }
+      } header: {
+        HStack(spacing: 8) {
+          Image("logo")
+            .resizable()
+            .scaledToFit()
+            .frame(width: 28, height: 28)
+            .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+          Text("flo")
+            .customFont(.headline)
+        }
+        .padding(.vertical, 4)
+      }
+#else
       Tab("Home", systemImage: "house", value: AppTab.home) {
         sidebarTabContent(
           HomeView(viewModel: authViewModel)
@@ -270,6 +304,7 @@ struct ContentView: View {
             .environmentObject(libraryRouter)
         )
       }
+#endif
 
       if libraryViewV2Enabled {
         Tab("Library", systemImage: "circle.grid.2x2", value: AppTab.library) {
@@ -439,6 +474,7 @@ struct ContentView: View {
     .id(tabViewID)
 #if targetEnvironment(macCatalyst)
     .toolbar(.hidden, for: .tabBar)
+    .toolbarBackground(.hidden, for: .tabBar)
 #endif
     .onChange(of: enableDebug) { _ in
       tabViewID = UUID()
@@ -452,14 +488,21 @@ struct ContentView: View {
 
   var body: some View {
     GeometryReader { geometry in
+      // Centralized safe geometry — all downstream math must use these,
+      // never raw geometry.size or UIScreen directly (Stage Manager can
+      // produce non-finite / zero / very short heights mid-resize).
+      let safeWidth: CGFloat = (geometry.size.width.isFinite && geometry.size.width > 0) ? geometry.size.width : 0
+      let safeHeight: CGFloat = (geometry.size.height.isFinite && geometry.size.height > 0) ? geometry.size.height : 0
+      let safeBottom: CGFloat = geometry.safeAreaInsets.bottom.isFinite ? geometry.safeAreaInsets.bottom : 0
       let offScreenY: CGFloat = {
         #if targetEnvironment(macCatalyst)
-          geometry.size.height
+          return safeHeight.isFinite && safeHeight > 0 ? safeHeight : 0
         #else
           // Use geometry height when available; falls back to screen height for initial layout.
           // Prevents mismatch during iPad multitasking/window resize where screen height != window height.
-          let h = geometry.size.height
-          return (h.isFinite && h > 0) ? h : UIScreen.main.bounds.height
+          if safeHeight > 0 { return safeHeight }
+          let fb = UIScreen.main.bounds.height
+          return (fb.isFinite && fb > 0) ? fb : 800
         #endif
       }()
 
@@ -467,13 +510,23 @@ struct ContentView: View {
         baseBackgroundView
 
         if isPadSidebar {
-          let sidePanelWidth: CGFloat = 380
+          let rawPanelWidth: CGFloat = 380
           let panelGutter: CGFloat = 10
+          // Clamp panel to window so very narrow Stage Manager windows never
+          // overflow (panel + gutter capped to 45% of width, min 0).
+          let sidePanelWidth: CGFloat = {
+            guard safeWidth > 0 else { return rawPanelWidth }
+            return min(rawPanelWidth, max(0, safeWidth * 0.45 - panelGutter))
+          }()
+          let trailingInset: CGFloat = {
+            let v = sidePanelWidth + panelGutter
+            return (v.isFinite && v >= 0) ? v : 0
+          }()
           let isPanelVisible =
             floatingSidePanel != nil && playerPresence.hasNowPlaying
           ZStack(alignment: .trailing) {
             rootTabView
-              .padding(.trailing, isPanelVisible ? sidePanelWidth + panelGutter : 0)
+              .padding(.trailing, isPanelVisible ? trailingInset : 0)
               .animation(
                 .spring(duration: 0.26, bounce: 0.08), value: floatingSidePanel
               )
@@ -509,7 +562,7 @@ struct ContentView: View {
           .opacity(isPlayerExpanded ? 1 : 0)
           .allowsHitTesting(isPlayerExpanded)
           .accessibilityHidden(!isPlayerExpanded)
-          .offset(y: isPlayerExpanded ? 0 : offScreenY + geometry.safeAreaInsets.bottom + 40)
+          .offset(y: isPlayerExpanded ? 0 : offScreenY + safeBottom + 40)
           .animation(.spring(duration: 0.2), value: isPlayerExpanded)
         }
 
@@ -518,16 +571,15 @@ struct ContentView: View {
             Spacer()
 
             if playerPresence.hasNowPlaying {
-              let isSmallScreen = UIScreen.main.bounds.width <= 390
+              let isSmallScreen = safeWidth > 0 ? safeWidth <= 390 : UIScreen.main.bounds.width <= 390
               let isPad = UIDevice.current.userInterfaceIdiom == .pad
               let bottomPadding: CGFloat = isSmallScreen ? 32 : 0
               let playerWidth: CGFloat? =
                 isPad
-                ? 720
+                ? (safeWidth > 0 ? min(720, max(0, safeWidth - 32)) : 720)
                 : (horizontalSizeClass == .regular ? 500 : nil)
-              let playerCenterOffsetX = floatingPlayerContentCenterOffsetX(
-                totalWidth: geometry.size.width
-              )
+              let rawCenterX = floatingPlayerContentCenterOffsetX(totalWidth: safeWidth)
+              let playerCenterOffsetX: CGFloat = rawCenterX.isFinite ? rawCenterX : 0
               let playerBottomPadding: CGFloat = {
                 #if targetEnvironment(macCatalyst)
                   24
@@ -541,7 +593,10 @@ struct ContentView: View {
                 .padding(.bottom, playerBottomPadding)
                 .opacity(playerPresence.hasNowPlaying ? 1 : 0)
                 .offset(
-                  x: playerCenterOffsetX + self.floatingPlayerOffsetX,
+                  x: {
+                    let x = playerCenterOffsetX + self.floatingPlayerOffsetX
+                    return x.isFinite ? x : 0
+                  }(),
                   y: isPlayerExpanded ? offScreenY : 0
                 )
                 .animation(.spring(duration: 0.2), value: isPlayerExpanded)
@@ -551,8 +606,10 @@ struct ContentView: View {
                 .gesture(
                   DragGesture()
                     .onChanged { value in
-                      if value.translation.width < .zero {
-                        floatingPlayerOffsetX = value.translation.width
+                      let tx = value.translation.width
+                      guard tx.isFinite else { return }
+                      if tx < .zero {
+                        floatingPlayerOffsetX = tx
                       }
 
                       if abs(floatingPlayerOffsetX) > swipeThreshold, !isSwipping {
@@ -572,6 +629,13 @@ struct ContentView: View {
           }
         }
       }
+#if targetEnvironment(macCatalyst)
+      // macOS: aggressively trim the big empty strip above content.
+      // SceneDelegate hides the titlebar; also collapse the top safe area
+      // so detail content starts near the window top. Navigation titles
+      // and search remain functional (they are inside NavigationStack).
+      .ignoresSafeArea(edges: .top)
+#endif
     }
     .onChange(of: floatingSidePanel) { _ in
       if let panel = floatingSidePanel {
