@@ -25,6 +25,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
           titlebar.separatorStyle = .none
         }
       }
+      windowScene.sizeRestrictions?.minimumSize = CGSize(width: 900, height: 500)
     #endif
 
     let window = UIWindow(windowScene: windowScene)
