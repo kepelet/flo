@@ -19,7 +19,7 @@ struct LibraryView: View {
   @State private var searchAlbum = ""
   @State private var showDownloadSheet: Bool = false
   @State private var forceShowQuickNavigation: Bool = false
-  @State private var selectedSegment: LibraryV2Segment = .library
+  @State private var selectedSegment: LibraryV2Segment
   @State private var cachedSongs: [Song] = []
 
   @ObservedObject var viewModel: AlbumViewModel
@@ -49,6 +49,7 @@ struct LibraryView: View {
     self.viewModel = viewModel
     self.showQuickNavigation = showQuickNavigation
     _forceShowQuickNavigation = State(initialValue: !showQuickNavigation)
+    _selectedSegment = State(initialValue: LibraryV2Segment(rawValue: UserDefaultsManager.libraryV2Segment) ?? .library)
   }
 
   var filteredAlbums: [Album] {
@@ -326,6 +327,7 @@ struct LibraryView: View {
           cachedSongs = StreamCacheManager.shared.getCachedSongs()
         }
         .onAppear {
+          selectedSegment = LibraryV2Segment(rawValue: UserDefaultsManager.libraryV2Segment) ?? .library
           viewModel.getArtists()
           viewModel.getPlaylists()
           viewModel.fetchAllSongs()
@@ -335,6 +337,9 @@ struct LibraryView: View {
           viewModel.fetchDownloadedAlbums()
           cachedSongs = StreamCacheManager.shared.getCachedSongs()
           radiosViewModel.fetchAllRadios()
+        }
+        .onChange(of: selectedSegment) { newValue in
+          UserDefaultsManager.libraryV2Segment = newValue.rawValue
         }
     } else {
       libraryV2ScrollContent
@@ -363,6 +368,7 @@ struct LibraryView: View {
           cachedSongs = StreamCacheManager.shared.getCachedSongs()
         }
         .onAppear {
+          selectedSegment = LibraryV2Segment(rawValue: UserDefaultsManager.libraryV2Segment) ?? .library
           viewModel.getArtists()
           viewModel.getPlaylists()
           viewModel.fetchAllSongs()
@@ -372,6 +378,9 @@ struct LibraryView: View {
           viewModel.fetchDownloadedAlbums()
           cachedSongs = StreamCacheManager.shared.getCachedSongs()
           radiosViewModel.fetchAllRadios()
+        }
+        .onChange(of: selectedSegment) { newValue in
+          UserDefaultsManager.libraryV2Segment = newValue.rawValue
         }
     }
   }
@@ -633,10 +642,10 @@ struct LibraryView: View {
               VStack(spacing: 6) {
                 v2ArtistCircle(artist: artist)
                 Text(artist.name)
-                  .customFont(.caption1)
+                  .customFont(.footnote)
                   .fontWeight(.bold)
                   .lineLimit(1)
-                  .frame(width: 72)
+                  .frame(width: 86)
               }
             }
             .buttonStyle(.plain)
@@ -648,7 +657,7 @@ struct LibraryView: View {
   }
 
   private func v2ArtistCircle(artist: Artist) -> some View {
-    let size: CGFloat = 72
+    let size: CGFloat = 86
     let imageURL = artist.mediumImageURL ?? artist.smallImageURL ?? artist.largeImageURL ?? ""
     let hasImageSource = !artist.id.isEmpty || !imageURL.isEmpty
     return Group {
@@ -802,31 +811,31 @@ struct LibraryView: View {
 
   private func v2SongHorizontalCard(song: Song, onTap: @escaping () -> Void) -> some View {
     Button(action: onTap) {
-      HStack(spacing: 10) {
+      HStack(spacing: 12) {
         v2SongCoverTiny(song: song)
-        VStack(alignment: .leading, spacing: 3) {
+        VStack(alignment: .leading, spacing: 4) {
           Text(song.title)
-            .customFont(.caption1)
+            .customFont(.subheadline)
             .fontWeight(.bold)
             .lineLimit(1)
             .frame(maxWidth: .infinity, alignment: .leading)
           HStack(spacing: 3) {
             Text(song.artist)
-              .customFont(.caption2)
+              .customFont(.caption1)
               .foregroundColor(.gray)
               .lineLimit(1)
             Text("•")
-              .font(.system(size: 8, weight: .regular))
+              .font(.system(size: 9, weight: .regular))
               .foregroundColor(.gray.opacity(0.5))
             Text(timeString(for: song.duration))
-              .font(.system(size: 10, weight: .regular))
+              .font(.system(size: 11, weight: .regular))
               .foregroundColor(.gray.opacity(0.65))
               .lineLimit(1)
           }
           .frame(maxWidth: .infinity, alignment: .leading)
         }
       }
-      .frame(width: 240, alignment: .leading)
+      .frame(width: 272, alignment: .leading)
       .contentShape(Rectangle())
     }
     .buttonStyle(.plain)
@@ -874,19 +883,19 @@ struct LibraryView: View {
         Image(uiImage: local)
           .resizable()
           .aspectRatio(contentMode: .fill)
-          .frame(width: 44, height: 44)
-          .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+          .frame(width: 56, height: 56)
+          .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
       } else {
         LazyImage(url: URL(string: remoteURL)) { state in
           if let image = state.image {
             image
               .resizable()
               .aspectRatio(contentMode: .fill)
-              .frame(width: 44, height: 44)
-              .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+              .frame(width: 56, height: 56)
+              .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
           } else if state.error != nil {
             ZStack {
-              RoundedRectangle(cornerRadius: 6, style: .continuous)
+              RoundedRectangle(cornerRadius: 8, style: .continuous)
                 .fill(Color.gray.opacity(0.12))
               Image(uiImage: UIImage(named: "placeholder") ?? UIImage())
                 .resizable()
@@ -894,18 +903,18 @@ struct LibraryView: View {
                 .padding(8)
                 .opacity(0.6)
                 .overlay(
-                  RoundedRectangle(cornerRadius: 6, style: .continuous)
+                  RoundedRectangle(cornerRadius: 8, style: .continuous)
                     .fill(tintColor(for: key).opacity(0.35))
                 )
             }
-            .frame(width: 44, height: 44)
-            .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+            .frame(width: 56, height: 56)
+            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
           } else {
             ZStack {
-              RoundedRectangle(cornerRadius: 6).fill(Color.gray.opacity(0.12))
+              RoundedRectangle(cornerRadius: 8).fill(Color.gray.opacity(0.12))
               if state.isLoading { ProgressView().scaleEffect(0.6) }
             }
-            .frame(width: 44, height: 44)
+            .frame(width: 56, height: 56)
           }
         }
       }
@@ -940,13 +949,13 @@ struct LibraryView: View {
         Image(uiImage: local)
           .resizable()
           .aspectRatio(contentMode: .fill)
-          .frame(width: 100, height: 100)
+          .frame(width: 120, height: 120)
           .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
       } else if let cached = UIImage(contentsOfFile: viewModel.getAlbumCoverArt(id: song.albumId)), remoteURL == viewModel.getAlbumCoverArt(id: song.albumId) {
         Image(uiImage: cached)
           .resizable()
           .aspectRatio(contentMode: .fill)
-          .frame(width: 100, height: 100)
+          .frame(width: 120, height: 120)
           .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
       } else {
         LazyImage(url: URL(string: remoteURL)) { state in
@@ -954,7 +963,7 @@ struct LibraryView: View {
             image
               .resizable()
               .aspectRatio(contentMode: .fill)
-              .frame(width: 100, height: 100)
+              .frame(width: 120, height: 120)
               .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
           } else if state.error != nil {
             ZStack {
@@ -970,7 +979,7 @@ struct LibraryView: View {
                     .fill(tintColor(for: key).opacity(0.35))
                 )
             }
-            .frame(width: 100, height: 100)
+            .frame(width: 120, height: 120)
             .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
           } else {
             ZStack {
@@ -988,7 +997,7 @@ struct LibraryView: View {
                   )
               }
             }
-            .frame(width: 100, height: 100)
+            .frame(width: 120, height: 120)
             .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
           }
         }
@@ -1036,7 +1045,7 @@ struct LibraryView: View {
     VStack(alignment: .leading, spacing: 14) {
       v2SectionHeaderStatic(title: "Recently Played", subtitle: "I think you will like this?")
       ScrollView(.horizontal, showsIndicators: false) {
-        HStack(spacing: 12) {
+        HStack(spacing: 14) {
           ForEach(Array(viewModel.recentlyPlayedAlbums.prefix(16))) { album in
             NavigationLink {
               AlbumView(viewModel: viewModel)
@@ -1047,7 +1056,7 @@ struct LibraryView: View {
                 v2AlbumCoverSmall(album: album)
                 HStack(alignment: .center, spacing: 4) {
                   Text(album.name)
-                    .customFont(.caption1)
+                    .customFont(.subheadline)
                     .fontWeight(.bold)
                     .foregroundColor(.primary)
                     .lineLimit(1)
@@ -1055,12 +1064,12 @@ struct LibraryView: View {
                     ExplicitBadge(size: .compact)
                   }
                 }
-                .frame(width: 120, alignment: .leading)
+                .frame(width: 148, alignment: .leading)
                 Text(album.albumArtist.isEmpty ? album.artist : album.albumArtist)
-                  .customFont(.caption2)
+                  .customFont(.caption1)
                   .foregroundColor(.gray)
                   .lineLimit(1)
-                  .frame(width: 120, alignment: .leading)
+                  .frame(width: 148, alignment: .leading)
               }
             }.buttonStyle(.plain)
           }
@@ -1074,7 +1083,7 @@ struct LibraryView: View {
     VStack(alignment: .leading, spacing: 14) {
       v2SectionHeaderStatic(title: "Recently Added", subtitle: "Let's try this one or two, maybe?")
       ScrollView(.horizontal, showsIndicators: false) {
-        HStack(spacing: 12) {
+        HStack(spacing: 14) {
           ForEach(Array(viewModel.recentlyAddedAlbums.prefix(16))) { album in
             NavigationLink {
               AlbumView(viewModel: viewModel)
@@ -1085,7 +1094,7 @@ struct LibraryView: View {
                 v2AlbumCoverSmall(album: album)
                 HStack(alignment: .center, spacing: 4) {
                   Text(album.name)
-                    .customFont(.caption1)
+                    .customFont(.subheadline)
                     .fontWeight(.bold)
                     .foregroundColor(.primary)
                     .lineLimit(1)
@@ -1093,12 +1102,12 @@ struct LibraryView: View {
                     ExplicitBadge(size: .compact)
                   }
                 }
-                .frame(width: 120, alignment: .leading)
+                .frame(width: 148, alignment: .leading)
                 Text(album.albumArtist.isEmpty ? album.artist : album.albumArtist)
-                  .customFont(.caption2)
+                  .customFont(.caption1)
                   .foregroundColor(.gray)
                   .lineLimit(1)
-                  .frame(width: 120, alignment: .leading)
+                  .frame(width: 148, alignment: .leading)
               }
             }.buttonStyle(.plain)
           }
@@ -1127,7 +1136,7 @@ struct LibraryView: View {
         }.navigationTitle("Albums")
       )
       ScrollView(.horizontal, showsIndicators: false) {
-        HStack(spacing: 12) {
+        HStack(spacing: 14) {
           ForEach(Array(filteredAlbums.prefix(10))) { album in
             NavigationLink {
               AlbumView(viewModel: viewModel)
@@ -1140,7 +1149,7 @@ struct LibraryView: View {
                 v2AlbumCoverSmall(album: album)
                 HStack(alignment: .center, spacing: 4) {
                   Text(album.name)
-                    .customFont(.caption1)
+                    .customFont(.subheadline)
                     .fontWeight(.bold)
                     .foregroundColor(.primary)
                     .lineLimit(1)
@@ -1148,12 +1157,12 @@ struct LibraryView: View {
                     ExplicitBadge(size: .compact)
                   }
                 }
-                .frame(width: 120, alignment: .leading)
+                .frame(width: 148, alignment: .leading)
                 Text(album.albumArtist)
-                  .customFont(.caption2)
+                  .customFont(.caption1)
                   .foregroundColor(.gray)
                   .lineLimit(1)
-                  .frame(width: 120, alignment: .leading)
+                  .frame(width: 148, alignment: .leading)
               }
             }
             .buttonStyle(.plain)
@@ -1193,26 +1202,26 @@ struct LibraryView: View {
         Image(uiImage: local)
           .resizable()
           .aspectRatio(contentMode: .fill)
-          .frame(width: 120, height: 120)
-          .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+          .frame(width: 148, height: 148)
+          .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
       } else {
         LazyImage(url: URL(string: viewModel.getAlbumCoverArt(id: album.id, albumCover: album.albumCover))) { state in
           if let image = state.image {
             image
               .resizable()
               .aspectRatio(contentMode: .fill)
-              .frame(width: 120, height: 120)
-              .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+              .frame(width: 148, height: 148)
+              .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
           } else if state.error != nil {
             v2PlaceholderArtwork(key: key)
-              .frame(width: 120, height: 120)
-              .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+              .frame(width: 148, height: 148)
+              .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
           } else {
             ZStack {
-              RoundedRectangle(cornerRadius: 8).fill(Color.gray.opacity(0.12))
+              RoundedRectangle(cornerRadius: 10).fill(Color.gray.opacity(0.12))
               if state.isLoading { ProgressView().scaleEffect(0.7) }
             }
-            .frame(width: 120, height: 120)
+            .frame(width: 148, height: 148)
           }
         }
       }
@@ -1220,11 +1229,11 @@ struct LibraryView: View {
   }
 
   private func v2AlbumGridItem(album: Album) -> some View {
-    VStack(alignment: .leading, spacing: 4) {
+    VStack(alignment: .leading, spacing: 5) {
       v2AlbumCover(album: album)
       HStack(alignment: .center, spacing: 4) {
         Text(album.name)
-          .customFont(.caption1)
+          .customFont(.subheadline)
           .fontWeight(.bold)
           .foregroundColor(.primary)
           .truncationMode(.tail)
@@ -1235,7 +1244,7 @@ struct LibraryView: View {
       }
       .frame(maxWidth: .infinity, alignment: .leading)
       Text(album.albumArtist)
-        .customFont(.caption2)
+        .customFont(.caption1)
         .foregroundColor(.gray)
         .truncationMode(.tail)
         .lineLimit(1)
@@ -1253,7 +1262,7 @@ struct LibraryView: View {
           .aspectRatio(contentMode: .fill)
           .frame(maxWidth: .infinity)
           .aspectRatio(1, contentMode: .fit)
-          .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+          .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
       } else {
         LazyImage(url: URL(string: viewModel.getAlbumCoverArt(id: album.id, albumCover: album.albumCover))) { state in
           if let image = state.image {
@@ -1262,14 +1271,14 @@ struct LibraryView: View {
               .aspectRatio(contentMode: .fill)
               .frame(maxWidth: .infinity)
               .aspectRatio(1, contentMode: .fit)
-              .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+              .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
           } else if state.error != nil {
             v2PlaceholderArtwork(key: key)
               .aspectRatio(1, contentMode: .fit)
-              .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+              .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
           } else {
             ZStack {
-              RoundedRectangle(cornerRadius: 8).fill(Color.gray.opacity(0.12))
+              RoundedRectangle(cornerRadius: 10).fill(Color.gray.opacity(0.12))
               if state.isLoading {
                 ProgressView()
               } else {
@@ -1279,12 +1288,12 @@ struct LibraryView: View {
                   .padding(24)
                   .opacity(0.6)
                   .overlay(
-                    RoundedRectangle(cornerRadius: 8).fill(tintColor(for: key).opacity(0.35))
+                    RoundedRectangle(cornerRadius: 10).fill(tintColor(for: key).opacity(0.35))
                   )
               }
             }
             .aspectRatio(1, contentMode: .fit)
-            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
           }
         }
       }

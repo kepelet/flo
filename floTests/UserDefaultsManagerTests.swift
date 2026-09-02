@@ -25,6 +25,7 @@ final class UserDefaultsManagerTests: XCTestCase {
       UserDefaultsKeys.streamCacheMaxSize,
       UserDefaultsKeys.libraryViewV2,
       UserDefaultsKeys.uiFontScale,
+      UserDefaultsKeys.libraryV2Segment,
     ]
 
     for key in keys {
@@ -47,6 +48,7 @@ final class UserDefaultsManagerTests: XCTestCase {
       UserDefaultsKeys.streamCacheMaxSize,
       UserDefaultsKeys.libraryViewV2,
       UserDefaultsKeys.uiFontScale,
+      UserDefaultsKeys.libraryV2Segment,
     ]
 
     for key in keys {
@@ -246,5 +248,30 @@ final class UserDefaultsManagerTests: XCTestCase {
     XCTAssertEqual(UserDefaultsManager.uiFontScale, 0.8, accuracy: 0.001)
     UserDefaults.standard.set(Float(5.0), forKey: UserDefaultsKeys.uiFontScale)
     XCTAssertEqual(UserDefaultsManager.uiFontScale, 1.4, accuracy: 0.001)
+  }
+
+  // MARK: - libraryV2Segment
+
+  func testLibraryV2Segment_getDefault() {
+    XCTAssertEqual(UserDefaultsManager.libraryV2Segment, LibraryV2Segment.library.rawValue)
+  }
+
+  func testLibraryV2Segment_setAndGet_library() {
+    UserDefaultsManager.libraryV2Segment = LibraryV2Segment.library.rawValue
+    XCTAssertEqual(UserDefaultsManager.libraryV2Segment, LibraryV2Segment.library.rawValue)
+  }
+
+  func testLibraryV2Segment_setAndGet_downloads() {
+    UserDefaultsManager.libraryV2Segment = LibraryV2Segment.downloads.rawValue
+    XCTAssertEqual(UserDefaultsManager.libraryV2Segment, LibraryV2Segment.downloads.rawValue)
+  }
+
+  func testLibraryV2Segment_persistenceRoundTrip() {
+    UserDefaultsManager.libraryV2Segment = LibraryV2Segment.downloads.rawValue
+    XCTAssertEqual(UserDefaultsManager.libraryV2Segment, "Downloads")
+    let raw = UserDefaults.standard.string(forKey: UserDefaultsKeys.libraryV2Segment)
+    XCTAssertEqual(raw, "Downloads")
+    UserDefaultsManager.libraryV2Segment = LibraryV2Segment.library.rawValue
+    XCTAssertEqual(UserDefaultsManager.libraryV2Segment, "Library")
   }
 }
