@@ -92,6 +92,136 @@ struct AlbumsView: View {
   }
 }
 
+/// Searchable wrapper for the Albums tab.
+///
+/// ContentView.swift owns the Albums NavigationStack (around line 312) and currently builds
+/// its LazyVGrid inline. Because that file is off-limits for this thread, this view
+/// provides the searchable grid here inside AlbumsView.swift's surface. To wire it,
+/// replace the inline ScrollView/LazyVGrid in ContentView's "Albums" Tab with:
+/// ```swift
+/// AlbumsGridView()
+///   .environmentObject(albumViewModel)
+///   .environmentObject(downloadViewModel)
+/// ```
+/// The filtering logic (name + artist/albumArtist, case-insensitive) and the
+/// `.searchable` placement match LibraryView's classic style
+/// (`navigationBarDrawer(displayMode: .always)`).
+struct AlbumsGridView: View {
+  @EnvironmentObject var albumViewModel: AlbumViewModel
+  @EnvironmentObject var downloadViewModel: DownloadViewModel
+  @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+  @State private var searchText = ""
+
+  private var columns: [GridItem] {
+    if horizontalSizeClass == .regular {
+      return Array(repeating: GridItem(.flexible(), spacing: 10), count: 4)
+    }
+    return Array(repeating: GridItem(.flexible(), spacing: 10), count: 2)
+  }
+
+  private var filteredAlbums: [Album] {
+    if searchText.isEmpty { return albumViewModel.albums }
+    return albumViewModel.albums.filter { album in
+      album.name.localizedCaseInsensitiveContains(searchText)
+        || album.artist.localizedCaseInsensitiveContains(searchText)
+        || album.albumArtist.localizedCaseInsensitiveContains(searchText)
+    }
+  }
+
+  var body: some View {
+    NavigationStack {
+      ScrollView {
+        LazyVGrid(columns: columns, spacing: 10) {
+          ForEach(filteredAlbums) { album in
+            NavigationLink {
+              AlbumView(viewModel: albumViewModel)
+                .environmentObject(downloadViewModel)
+                .onAppear { albumViewModel.setActiveAlbum(album: album) }
+            } label: {
+              AlbumsView(viewModel: albumViewModel, album: album)
+            }
+            .buttonStyle(.plain)
+          }
+        }
+        .padding(.horizontal, 10)
+        .padding(.top, 8)
+        .padding(.bottom, 12)
+      }
+      .navigationTitle("Albums")
+      .searchable(
+        text: $searchText,
+        placement: .navigationBarDrawer(displayMode: .always),
+        prompt: "Search"
+      )
+      .onAppear { albumViewModel.fetchAlbums() }
+    }
+  }
+}
+
+/// Fallback inline search when the surrounding NavigationStack cannot host
+/// `.searchable` (e.g. preview or non-navigation context). Not used by
+/// AlbumsGridView but kept as an in-surface TextField alternative that
+/// lives entirely inside AlbumsView.swift.
+struct AlbumsInlineSearchGridView: View {
+  @EnvironmentObject var albumViewModel: AlbumViewModel
+  @EnvironmentObject var downloadViewModel: DownloadViewModel
+  @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+  @State private var searchText = ""
+
+  private var columns: [GridItem] {
+    if horizontalSizeClass == .regular {
+      return Array(repeating: GridItem(.flexible(), spacing: 10), count: 4)
+    }
+    return Array(repeating: GridItem(.flexible(), spacing: 10), count: 2)
+  }
+
+  private var filteredAlbums: [Album] {
+    if searchText.isEmpty { return albumViewModel.albums }
+    return albumViewModel.albums.filter { album in
+      album.name.localizedCaseInsensitiveContains(searchText)
+        || album.artist.localizedCaseInsensitiveContains(searchText)
+        || album.albumArtist.localizedCaseInsensitiveContains(searchText)
+    }
+  }
+
+  var body: some View {
+    VStack(spacing: 0) {
+      HStack {
+        Image(systemName: "magnifyingglass").foregroundColor(.gray)
+        TextField("Search", text: $searchText)
+          .autocorrectionDisabled()
+        if !searchText.isEmpty {
+          Button { searchText = "" } label: { Image(systemName: "xmark.circle.fill").foregroundColor(.gray) }
+        }
+      }
+      .padding(8)
+      .background(Color(UIColor.secondarySystemBackground))
+      .clipShape(RoundedRectangle(cornerRadius: 10))
+      .padding(.horizontal, 10)
+      .padding(.vertical, 8)
+
+      ScrollView {
+        LazyVGrid(columns: columns, spacing: 10) {
+          ForEach(filteredAlbums) { album in
+            NavigationLink {
+              AlbumView(viewModel: albumViewModel)
+                .environmentObject(downloadViewModel)
+                .onAppear { albumViewModel.setActiveAlbum(album: album) }
+            } label: {
+              AlbumsView(viewModel: albumViewModel, album: album)
+            }
+            .buttonStyle(.plain)
+          }
+        }
+        .padding(.horizontal, 10)
+        .padding(.top, 8)
+        .padding(.bottom, 12)
+      }
+    }
+    .onAppear { albumViewModel.fetchAlbums() }
+  }
+}
+
 struct AlbumsView_Preview: PreviewProvider {
   @StateObject static private var viewModel: AlbumViewModel = AlbumViewModel()
 

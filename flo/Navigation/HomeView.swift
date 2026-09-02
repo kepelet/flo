@@ -136,6 +136,12 @@ struct HomeView: View {
               topAlbumCard
             }
 
+            if floooViewModel.stats?.hasTopGenre == true {
+              HStack(alignment: .top, spacing: 16) {
+                topGenreCard
+              }
+            }
+
             HStack(spacing: 16) {
               StatCard(
                 title: "Experimental",
@@ -203,6 +209,18 @@ struct HomeView: View {
         color: .blue
       )
     }
+  }
+
+  @ViewBuilder
+  private var topGenreCard: some View {
+    let genre = floooViewModel.stats?.topGenre ?? "N/A"
+    StatCard(
+      title: "Top Genre",
+      value: genre,
+      icon: "guitars",
+      color: .orange,
+      isWide: true
+    )
   }
 
   @ViewBuilder
