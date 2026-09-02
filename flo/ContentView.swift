@@ -36,6 +36,8 @@ struct ContentView: View {
   @State private var lastSidePanel: FloatingPlayerPanel = .lyrics
   @State private var sidePanelDragStartWidth: CGFloat?
   @State private var isResizingSidePanel = false
+  @Environment(\.dynamicTypeSize) private var systemDynamicTypeSize
+  @State private var forcedDynamicTypeSize: DynamicTypeSize?
 
   var swipeThreshold: CGFloat = 150.0
 
@@ -702,6 +704,7 @@ struct ContentView: View {
 #if targetEnvironment(macCatalyst)
     .frame(minWidth: 640)
 #endif
+    .dynamicTypeSize(forcedDynamicTypeSize ?? systemDynamicTypeSize)
     .onChange(of: floatingSidePanel) { _ in
       if let panel = floatingSidePanel {
         lastSidePanel = panel
@@ -741,6 +744,7 @@ struct ContentView: View {
         fontScaleShortcut(key: "-", increase: false)
         fontScaleShortcut(key: "+", increase: true)
         fontScaleShortcut(key: "=", increase: true)
+        fontResetShortcut()
       } else {
         tabShortcut(.home, key: "1")
         tabShortcut(.library, key: "2")
@@ -751,6 +755,7 @@ struct ContentView: View {
         fontScaleShortcut(key: "-", increase: false)
         fontScaleShortcut(key: "+", increase: true)
         fontScaleShortcut(key: "=", increase: true)
+        fontResetShortcut()
       }
     }
     .frame(width: 0, height: 0)
@@ -814,6 +819,16 @@ struct ContentView: View {
       EmptyView()
     }
     .keyboardShortcut(key, modifiers: .command)
+  }
+
+  func fontResetShortcut() -> some View {
+    Button {
+      UserDefaultsManager.uiFontScale = 1.0
+      forcedDynamicTypeSize = .large
+    } label: {
+      EmptyView()
+    }
+    .keyboardShortcut("0", modifiers: [.command, .shift])
   }
 
   func openLibraryDestinationFromPlayer(_ destination: LibraryDestination) {
