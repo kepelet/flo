@@ -3,11 +3,15 @@
 //  flo
 //
 
+import Darwin
 import SwiftUI
 import UIKit
 
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
   var window: UIWindow?
+  #if targetEnvironment(macCatalyst)
+    var catalystResizeObserver: Any?
+  #endif
 
   func scene(
     _ scene: UIScene,
@@ -50,7 +54,18 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     #endif
   }
 
-  func sceneDidDisconnect(_: UIScene) {}
+  func sceneDidDisconnect(_: UIScene) {
+    #if targetEnvironment(macCatalyst)
+      if let token = catalystResizeObserver {
+        NotificationCenter.default.removeObserver(token)
+        catalystResizeObserver = nil
+        #if DEBUG
+          print("[Catalyst] removed resize observer")
+          fflush(stdout)
+        #endif
+      }
+    #endif
+  }
 
   func sceneDidBecomeActive(_ scene: UIScene) {
     #if targetEnvironment(macCatalyst)
@@ -95,14 +110,49 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 #if targetEnvironment(macCatalyst)
   private extension SceneDelegate {
     func enforceCatalystMinSize() {
-      guard let nsAppClass = NSClassFromString("NSApplication") as? NSObjectProtocol else { return }
-      guard let nsAppValue = nsAppClass.perform(NSSelectorFromString("sharedApplication")) else { return }
-      guard let nsApp = nsAppValue.takeUnretainedValue() as? NSObject else { return }
-      guard let windowsValue = nsApp.perform(NSSelectorFromString("windows")) else { return }
-      guard let candidates = windowsValue.takeUnretainedValue() as? [NSObject], !candidates.isEmpty else { return }
+      guard let nsAppClass = NSClassFromString("NSApplication") as? NSObjectProtocol else {
+        #if DEBUG
+          print("[Catalyst] enforce: NSApplication class not found")
+          fflush(stdout)
+        #endif
+        return
+      }
+      guard let nsAppValue = nsAppClass.perform(NSSelectorFromString("sharedApplication")) else {
+        #if DEBUG
+          print("[Catalyst] enforce: sharedApplication selector failed")
+          fflush(stdout)
+        #endif
+        return
+      }
+      guard let nsApp = nsAppValue.takeUnretainedValue() as? NSObject else {
+        #if DEBUG
+          print("[Catalyst] enforce: sharedApplication not NSObject")
+          fflush(stdout)
+        #endif
+        return
+      }
+      guard let windowsValue = nsApp.perform(NSSelectorFromString("windows")) else {
+        #if DEBUG
+          print("[Catalyst] enforce: windows selector failed")
+          fflush(stdout)
+        #endif
+        return
+      }
+      guard let candidates = windowsValue.takeUnretainedValue() as? [NSObject], !candidates.isEmpty else {
+        #if DEBUG
+          print("[Catalyst] enforce: no candidate NSWindows (empty or not [NSObject])")
+          fflush(stdout)
+        #endif
+        return
+      }
+
+      let uiFrame = window?.frame ?? .zero
+      #if DEBUG
+        print("[Catalyst] enforce: candidates=\(candidates.count) uiFrame=\(uiFrame)")
+        fflush(stdout)
+      #endif
 
       // Resolve the NSWindow backing this UIWindowScene/UIWindow.
-      let uiFrame = window?.frame ?? .zero
       var target: NSObject?
 
       if uiFrame != .zero {
@@ -140,13 +190,96 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         })
       }
 
-      guard let win = target else { return }
+      guard let win = target else {
+        #if DEBUG
+          print("[Catalyst] enforce: no target matched — candidates=\(candidates.count) uiFrame=\(uiFrame) keyWindow=\(String(describing: nsApp.value(forKey: "keyWindow")))")
+          for (i, c) in candidates.enumerated() {
+            print("[Catalyst] enforce: candidate[\(i)] frame=\(String(describing: _catalystFrame(of: c))) hasContentView=\(c.value(forKey: "contentView") != nil)")
+          }
+          fflush(stdout)
+        #endif
+        return
+      }
+
+      #if DEBUG
+        print("[Catalyst] enforce: matched target frame=\(String(describing: _catalystFrame(of: win))) uiFrame=\(uiFrame)")
+        fflush(stdout)
+      #endif
 
       // Enforce minimum via KVC (Foundation auto-unboxes NSValue for typed setters).
       var minSize = CGSize(width: 900, height: 500)
       let minValue = NSValue(bytes: &minSize, objCType: "{CGSize=dd}")
       win.setValue(minValue, forKey: "contentMinSize")
       win.setValue(minValue, forKey: "minSize")
+
+      #if DEBUG
+        if let rb = win.value(forKey: "contentMinSize") {
+          print("[Catalyst] enforce: contentMinSize after set = \(rb) (expected 900x500)")
+        } else {
+          print("[Catalyst] enforce: contentMinSize after set = nil (KVC readback failed)")
+        }
+        if let rb2 = win.value(forKey: "minSize") {
+          print("[Catalyst] enforce: minSize after set = \(rb2)")
+        } else {
+          print("[Catalyst] enforce: minSize after set = nil")
+        }
+        fflush(stdout)
+      #endif
+
+      // Register resize observer to clamp EVERY resize below minimum (drag, AX, restore).
+      if catalystResizeObserver == nil {
+        catalystResizeObserver = NotificationCenter.default.addObserver(
+          forName: NSNotification.Name("NSWindowDidResizeNotification"),
+          object: win,
+          queue: .main
+        ) { [weak self] _ in
+          guard let self else { return }
+          guard let frame = self._catalystFrame(of: win) else { return }
+          guard frame.width < 900 || frame.height < 500 else { return }
+          #if DEBUG
+            print("[Catalyst] clamp: window resized below minimum frame=\(frame) — clamping to 900x500")
+            fflush(stdout)
+          #endif
+          let newWidth = max(frame.width, 900)
+          let newHeight = max(frame.height, 500)
+          var newFrame = CGRect(x: frame.origin.x, y: frame.origin.y, width: newWidth, height: newHeight)
+
+          // Keep on screen — prefer AppKit visibleFrame via runtime, fallback to UIKit bounds.
+          var screenFrame: CGRect?
+          if let screen = win.value(forKey: "screen") as? NSObject {
+            if let vf = screen.value(forKey: "visibleFrame") as? NSValue {
+              screenFrame = vf.cgRectValue
+            } else if let vfRect = screen.value(forKey: "visibleFrame") as? CGRect {
+              screenFrame = vfRect
+            }
+          }
+          if screenFrame == nil {
+            screenFrame = self.window?.windowScene?.screen.bounds ?? self.window?.screen.bounds ?? UIScreen.main.bounds
+          }
+          if let sf = screenFrame, sf != .zero {
+            if newFrame.maxX > sf.maxX {
+              newFrame.origin.x = max(sf.minX, sf.maxX - newFrame.width - 16)
+            }
+            if newFrame.maxY > sf.maxY {
+              newFrame.origin.y = max(sf.minY, sf.maxY - newFrame.height - 16)
+            }
+            if newFrame.minX < sf.minX { newFrame.origin.x = sf.minX + 16 }
+            if newFrame.minY < sf.minY { newFrame.origin.y = sf.minY + 16 }
+          }
+
+          var rect = newFrame
+          let rectValue = NSValue(bytes: &rect, objCType: "{CGRect={CGPoint=dd}{CGSize=dd}}")
+          win.setValue(rectValue, forKey: "frame")
+          #if DEBUG
+            print("[Catalyst] clamp: applied clamped frame \(newFrame)")
+            fflush(stdout)
+          #endif
+        }
+        #if DEBUG
+          print("[Catalyst] enforce: resize observer registered for window frame=\(String(describing: _catalystFrame(of: win)))")
+          fflush(stdout)
+        #endif
+      }
 
       // Retro-clamp restored sub-minimum frame (e.g. 693×768) — expands right/up,
       // nudging only if the enlarged frame would overflow the screen.
@@ -182,6 +315,10 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
       var rect = newFrame
       let rectValue = NSValue(bytes: &rect, objCType: "{CGRect={CGPoint=dd}{CGSize=dd}}")
       win.setValue(rectValue, forKey: "frame")
+      #if DEBUG
+        print("[Catalyst] enforce: retro-clamped frame from \(frame) to \(newFrame)")
+        fflush(stdout)
+      #endif
     }
 
     func _catalystFrame(of win: NSObject) -> CGRect? {
