@@ -10,10 +10,10 @@ private struct SidePanelHeaderModifier: ViewModifier {
   func body(content: Content) -> some View {
     content
       .padding(.horizontal, 14)
-      // Top = base 8 + window-chrome clearance so the label sits vertically
-      // centered within the full visible header band (clearance included).
+      // Top/bottom both include the window-chrome clearance so the label is
+      // vertically centered within the full visible header band.
       .padding(.top, 8 + panelTopInset)
-      .padding(.bottom, 8)
+      .padding(.bottom, 8 + panelTopInset)
       .background(Color(.secondarySystemBackground).ignoresSafeArea(edges: .top))
       .zIndex(1)
   }
