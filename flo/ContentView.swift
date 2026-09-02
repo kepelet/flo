@@ -461,7 +461,7 @@ struct ContentView: View {
     }
 #if targetEnvironment(macCatalyst)
     .tabViewSidebarHeader {
-      HStack(spacing: 12) {
+      HStack(spacing: 20) {
         Image("logo")
           .resizable()
           .scaledToFit()

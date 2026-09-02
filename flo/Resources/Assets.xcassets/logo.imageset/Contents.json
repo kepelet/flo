@@ -1,6 +1,17 @@
 {
   "images" : [
     {
+      "appearances" : [
+        {
+          "appearance" : "luminosity",
+          "value" : "light"
+        }
+      ],
+      "filename" : "logo-dark.png",
+      "idiom" : "universal",
+      "scale" : "1x"
+    },
+    {
       "filename" : "logo.png",
       "idiom" : "universal",
       "scale" : "1x"
