@@ -15,6 +15,9 @@ struct ContentView: View {
   @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
   @State private var isPlayerExpanded: Bool = false
+  // Legacy: tabViewID previously drove `.id(tabViewID)` forced recreation.
+  // Retained (unused) to keep git history / ABI stable; TabViews no longer use
+  // .id — see defensive comment in baseTabView/sidebarTabView.
   @State private var tabViewID = UUID()
 
   @StateObject private var authViewModel = AuthViewModel()
@@ -33,6 +36,17 @@ struct ContentView: View {
 
   var swipeThreshold: CGFloat = 150.0
 
+  // MARK: iPad sidebar adaptation — intentional stability
+  // isPadSidebar is intentionally STABLE (device idiom + OS version only).
+  // It does NOT observe horizontalSizeClass / geometry width. Swapping the
+  // entire TabView between `sidebarTabView` (.sidebarAdaptable) and
+  // `baseTabView` mid-resize recreates the UITabBarController while its
+  // internal _UITabSidebar transitionCoordinator is in-flight, which is the
+  // suspected EXC_BAD_ACCESS during Stage Manager / Slide Over resize.
+  // iOS 18's .sidebarAdaptable already collapses internally (sidebar ↔ top
+  // bar) without swapping view identity; the floating-player offset helper
+  // `estimatedSidebarWidth` already returns 0 below 600pt to follow that
+  // collapse. Keeping this bool stable avoids the cross-identity crash.
   private var isPadSidebar: Bool {
     #if targetEnvironment(macCatalyst)
       if #available(iOS 18.0, *) {
@@ -220,8 +234,11 @@ struct ContentView: View {
         }
       }
     }
-    .id(tabViewID)
-    .onChange(of: enableDebug) { _ in tabViewID = UUID() }
+    // Defensive: removed .id(tabViewID) forced recreation.
+    // The previous `.id(tabViewID)` + `tabViewID = UUID()` on every
+    // enableDebug/library toggle nuked the TabView's UIKit controller
+    // (UITabBarController/_UITabSidebar) mid-transition. SwiftUI can diff
+    // the conditional Debug tab without destroying the container.
     .onChange(of: libraryViewV2Enabled) { isEnabled in
       if isEnabled, libraryRouter.selectedTab == .downloads {
         libraryRouter.selectedTab = authViewModel.isLoggedIn ? .library : .home
@@ -454,14 +471,11 @@ struct ContentView: View {
       .padding(.bottom, 24)
     }
 #endif
-    .id(tabViewID)
+    // Defensive: same removal as baseTabView — no .id(tabViewID) recreation.
 #if targetEnvironment(macCatalyst)
     .toolbar(.hidden, for: .tabBar)
     .toolbarBackground(.hidden, for: .tabBar)
 #endif
-    .onChange(of: enableDebug) { _ in
-      tabViewID = UUID()
-    }
     .onChange(of: libraryViewV2Enabled) { isEnabled in
       if isEnabled, libraryRouter.selectedTab == .downloads {
         libraryRouter.selectedTab = authViewModel.isLoggedIn ? .library : .home
@@ -507,12 +521,24 @@ struct ContentView: View {
           }()
           let isPanelVisible =
             floatingSidePanel != nil && playerPresence.hasNowPlaying
+          // Defensive: use isPanelVisible (Bool) as animation value — the
+          // previous `value: floatingSidePanel` (enum) + duplicated outer &
+          // inner spring both firing during geometry/WINDOW_RESIZE collided
+          // with TabView's internal sidebarAdaptable animation. Single source
+          // + transaction that suppresses animation when geometry is
+          // non-finite/zero keeps the UITabSideBar coordinator stable.
           ZStack(alignment: .trailing) {
             rootTabView
               .padding(.trailing, isPanelVisible ? trailingInset : 0)
               .animation(
-                .spring(duration: 0.26, bounce: 0.08), value: floatingSidePanel
+                .spring(duration: 0.26, bounce: 0.08), value: isPanelVisible
               )
+              .transaction { t in
+                if !safeWidth.isFinite || safeWidth == 0 {
+                  t.animation = nil
+                  t.disablesAnimations = true
+                }
+              }
               .frame(maxWidth: .infinity, maxHeight: .infinity)
 
             if isPanelVisible {
@@ -525,7 +551,7 @@ struct ContentView: View {
               .zIndex(2)
             }
           }
-          .animation(.spring(duration: 0.26, bounce: 0.08), value: floatingSidePanel)
+          .animation(.spring(duration: 0.26, bounce: 0.08), value: isPanelVisible)
         } else {
           rootTabView
         }
