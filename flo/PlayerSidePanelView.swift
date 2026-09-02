@@ -11,7 +11,8 @@ private struct SidePanelHeaderModifier: ViewModifier {
     content
       .padding(.horizontal, 14)
       .padding(.vertical, 8)
-      .background(Color(.secondarySystemBackground))
+      .background(Color(.secondarySystemBackground).ignoresSafeArea(edges: .top))
+      .zIndex(1)
   }
 }
 
@@ -178,6 +179,7 @@ struct PlayerSidePanelView: View {
         }
       }
       .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+      .clipped()
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
     .background(Color(.systemBackground))
@@ -271,6 +273,7 @@ struct PlayerSidePanelView: View {
           }
         }
       }
+      .clipped()
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
     .background(Color(.systemBackground))
