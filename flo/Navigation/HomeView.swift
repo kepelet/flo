@@ -213,14 +213,34 @@ struct HomeView: View {
 
   @ViewBuilder
   private var topGenreCard: some View {
-    let genre = floooViewModel.stats?.topGenre ?? "N/A"
-    StatCard(
-      title: "Top Genre",
-      value: genre,
-      icon: "guitars",
-      color: .orange,
-      isWide: true
-    )
+    let genreName = floooViewModel.stats?.topGenre ?? "N/A"
+    let canNavigate = viewModel.isLoggedIn && floooViewModel.stats?.hasTopGenre == true && !genreName.isEmpty && genreName != "N/A"
+    if canNavigate {
+      NavigationLink {
+        GenreAlbumsView(genre: Genre(name: genreName))
+          .environmentObject(albumViewModel)
+          .environmentObject(playerViewModel)
+          .environmentObject(downloadViewModel)
+      } label: {
+        StatCard(
+          title: "Top Genre",
+          value: genreName,
+          icon: "guitars",
+          color: .orange,
+          isWide: true,
+          showArrow: true
+        )
+      }
+      .buttonStyle(.plain)
+    } else {
+      StatCard(
+        title: "Top Genre",
+        value: genreName,
+        icon: "guitars",
+        color: .orange,
+        isWide: true
+      )
+    }
   }
 
   @ViewBuilder
@@ -300,6 +320,12 @@ struct HomeView: View {
           playerViewModel: playerViewModel,
           downloadViewModel: downloadViewModel
         )
+      }
+      .navigationDestination(for: Genre.self) { genre in
+        GenreAlbumsView(genre: genre)
+          .environmentObject(albumViewModel)
+          .environmentObject(playerViewModel)
+          .environmentObject(downloadViewModel)
       }
     }
   }

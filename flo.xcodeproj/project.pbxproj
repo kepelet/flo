@@ -159,6 +159,7 @@
 		C4F0B0A22F3A111100ABC002 /* AirPlayRoutePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4F0B0A12F3A111100ABC002 /* AirPlayRoutePicker.swift */; };
 		C4F1A0012F4A000100AAAAAA /* InAppPurchaseManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4F1A0022F4A000100AAAAAA /* InAppPurchaseManager.swift */; };
 		C5F2B0042F5C000200BBCCDD /* ConfettiView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5F2B0032F5C000200BBCCDD /* ConfettiView.swift */; };
+		C5F2B0062F5C000200BBCCDD /* GenreAlbumsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5F2B0052F5C000200BBCCDD /* GenreAlbumsView.swift */; };
 		C4F870CE2CEFCC5E00312F8A /* FloooService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4F870CD2CEFCC5B00312F8A /* FloooService.swift */; };
 		C4F870D02CEFD25900312F8A /* StatCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4F870CF2CEFD24D00312F8A /* StatCardView.swift */; };
 		C4FE524B2C14E1F70053763A /* UserDefaultsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4FE524A2C14E1F70053763A /* UserDefaultsManager.swift */; };
@@ -333,6 +334,7 @@
 		C4F0B0A12F3A111100ABC002 /* AirPlayRoutePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AirPlayRoutePicker.swift; sourceTree = "<group>"; };
 		C4F1A0022F4A000100AAAAAA /* InAppPurchaseManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InAppPurchaseManager.swift; sourceTree = "<group>"; };
 		C5F2B0032F5C000200BBCCDD /* ConfettiView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views/ConfettiView.swift; sourceTree = "<group>"; };
+		C5F2B0052F5C000200BBCCDD /* GenreAlbumsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views/GenreAlbumsView.swift; sourceTree = "<group>"; };
 		C4F870CD2CEFCC5B00312F8A /* FloooService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloooService.swift; sourceTree = "<group>"; };
 		C4F870CF2CEFD24D00312F8A /* StatCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatCardView.swift; sourceTree = "<group>"; };
 		C4FE524A2C14E1F70053763A /* UserDefaultsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserDefaultsManager.swift; sourceTree = "<group>"; };
@@ -464,6 +466,7 @@
 				C4289F4D2C1253EB00C3A4FD /* Utils */,
 				C4289F4C2C1253BE00C3A4FD /* Models */,
 				C5F2B0032F5C000200BBCCDD /* ConfettiView.swift */,
+				C5F2B0052F5C000200BBCCDD /* GenreAlbumsView.swift */,
 			);
 			path = Shared;
 			sourceTree = "<group>";
@@ -890,6 +893,7 @@
 				C4DFFA212D32E76E003B9C4E /* DownloadViewModel.swift in Sources */,
 				C4F1A0012F4A000100AAAAAA /* InAppPurchaseManager.swift in Sources */,
 				C5F2B0042F5C000200BBCCDD /* ConfettiView.swift in Sources */,
+				C5F2B0062F5C000200BBCCDD /* GenreAlbumsView.swift in Sources */,
 				C4120FD92C15D58E00E712BE /* Errors.swift in Sources */,
 				C415F55A2C11953000E3E1D2 /* Constants.swift in Sources */,
 				C46B8DDB2CF4B89200B40644 /* LibraryNavigation.swift in Sources */,

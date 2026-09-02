@@ -270,28 +270,15 @@ struct ContentView: View {
   var sidebarTabView: some View {
     TabView(selection: $libraryRouter.selectedTab) {
 #if targetEnvironment(macCatalyst)
-      TabSection {
-        Tab("Home", systemImage: "house", value: AppTab.home) {
-          sidebarTabContent(
-            HomeView(viewModel: authViewModel)
-              .environmentObject(floooViewModel)
-              .environmentObject(albumViewModel)
-              .environmentObject(playerViewModel)
-              .environmentObject(downloadViewModel)
-              .environmentObject(libraryRouter)
-          )
-        }
-      } header: {
-        HStack(spacing: 8) {
-          Image("logo")
-            .resizable()
-            .scaledToFit()
-            .frame(width: 28, height: 28)
-            .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
-          Text("flo")
-            .customFont(.headline)
-        }
-        .padding(.vertical, 4)
+      Tab("Home", systemImage: "house", value: AppTab.home) {
+        sidebarTabContent(
+          HomeView(viewModel: authViewModel)
+            .environmentObject(floooViewModel)
+            .environmentObject(albumViewModel)
+            .environmentObject(playerViewModel)
+            .environmentObject(downloadViewModel)
+            .environmentObject(libraryRouter)
+        )
       }
 #else
       Tab("Home", systemImage: "house", value: AppTab.home) {
@@ -452,6 +439,20 @@ struct ContentView: View {
         }
       }
     }
+#if targetEnvironment(macCatalyst)
+    .tabViewSidebarHeader {
+      HStack(spacing: 8) {
+        Image("logo")
+          .resizable()
+          .scaledToFit()
+          .frame(width: 28, height: 28)
+          .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+        Text("flo")
+          .customFont(.headline)
+      }
+      .padding(.vertical, 4)
+    }
+#endif
     .id(tabViewID)
 #if targetEnvironment(macCatalyst)
     .toolbar(.hidden, for: .tabBar)
@@ -1204,68 +1205,6 @@ private struct LibrarySearchTabView: View {
       }
       .onChange(of: searchText) { _ in
         if searchText.isEmpty { selectedGenre = nil; genreAlbums = [] }
-      }
-    }
-  }
-}
-
-private struct GenreAlbumsView: View {
-  let genre: Genre
-  @EnvironmentObject var albumViewModel: AlbumViewModel
-  @EnvironmentObject var downloadViewModel: DownloadViewModel
-  private let playerViewModel = PlayerViewModel.shared
-  @Environment(\.horizontalSizeClass) private var horizontalSizeClass
-  @State private var albums: [Album] = []
-  @State private var isLoading = true
-
-  private var columns: [GridItem] {
-    if horizontalSizeClass == .regular { return Array(repeating: GridItem(.flexible(), spacing: 10), count: 4) }
-    else { return Array(repeating: GridItem(.flexible(), spacing: 10), count: 2) }
-  }
-
-  var body: some View {
-    Group {
-      if isLoading {
-        ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity).padding(.top, 40)
-      } else if albums.isEmpty {
-        Text("No albums for this genre").customFont(.subheadline).foregroundColor(.secondary).frame(maxWidth: .infinity, maxHeight: .infinity).padding(.top, 40)
-      } else {
-        ScrollView {
-          LazyVGrid(columns: columns, spacing: 10) {
-            ForEach(albums) { album in
-              NavigationLink {
-                AlbumView(viewModel: albumViewModel).environmentObject(downloadViewModel).onAppear { albumViewModel.setActiveAlbum(album: album) }
-              } label: {
-                AlbumsView(viewModel: albumViewModel, album: album)
-              }.buttonStyle(.plain)
-            }
-          }
-          .padding(.horizontal, 10)
-          .padding(.top, 8)
-          .playerBottomPadding(active: 90, inactive: 12)
-        }
-      }
-    }
-    .navigationTitle(genre.name)
-    .navigationBarTitleDisplayMode(.large)
-    .onAppear { load() }
-  }
-
-  private func load() {
-    if ProcessInfo.processInfo.arguments.contains("-UITestMockGenres") {
-      let base = genre.name
-      albums = (1...6).map { i in Album(id: "mock-\(base)-\(i)", name: "\(base) Album \(i)", albumArtist: "\(base) Artist", artist: "\(base) Artist") }
-      isLoading = false
-      return
-    }
-    isLoading = true
-    AlbumService.shared.getAlbumsByGenre(genre: genre.name) { result in
-      DispatchQueue.main.async {
-        isLoading = false
-        switch result {
-        case .success(let fetched): albums = fetched
-        case .failure: albums = []
-        }
       }
     }
   }
