@@ -146,6 +146,38 @@ struct PadFloatingPlayerView: View {
 
   @State private var isCenterHovering = false
   @State private var isVolumeOverlayVisible = false
+  @State private var centerHoverDismissTask: Task<Void, Never>?
+  @State private var volumeDismissTask: Task<Void, Never>?
+
+  private func scheduleCenterHoverDismiss() {
+    centerHoverDismissTask?.cancel()
+    centerHoverDismissTask = Task { @MainActor in
+      try? await Task.sleep(nanoseconds: 5_000_000_000)
+      guard !Task.isCancelled else { return }
+      isCenterHovering = false
+    }
+  }
+
+  private func cancelCenterHoverDismiss() {
+    centerHoverDismissTask?.cancel()
+    centerHoverDismissTask = nil
+  }
+
+  private func scheduleVolumeDismiss() {
+    volumeDismissTask?.cancel()
+    volumeDismissTask = Task { @MainActor in
+      try? await Task.sleep(nanoseconds: 5_000_000_000)
+      guard !Task.isCancelled else { return }
+      withAnimation(.easeInOut(duration: 0.18)) {
+        isVolumeOverlayVisible = false
+      }
+    }
+  }
+
+  private func cancelVolumeDismiss() {
+    volumeDismissTask?.cancel()
+    volumeDismissTask = nil
+  }
 
   var body: some View {
     let shape = RoundedRectangle(cornerRadius: 24, style: .continuous)
@@ -165,6 +197,18 @@ struct PadFloatingPlayerView: View {
           .padding(.horizontal, 12)
           .onHover { hovering in
             isCenterHovering = hovering
+            if hovering {
+              scheduleCenterHoverDismiss()
+            } else {
+              cancelCenterHoverDismiss()
+            }
+          }
+          .onChange(of: isCenterHovering) { hovering in
+            if hovering {
+              scheduleCenterHoverDismiss()
+            } else {
+              cancelCenterHoverDismiss()
+            }
           }
 
         Divider().opacity(0.12).frame(height: 44)
@@ -176,7 +220,19 @@ struct PadFloatingPlayerView: View {
           .padding(.trailing, 14)
           .onHover { hovering in
             if !hovering {
-              isVolumeOverlayVisible = false
+              withAnimation(.easeInOut(duration: 0.18)) {
+                isVolumeOverlayVisible = false
+              }
+              cancelVolumeDismiss()
+            } else if isVolumeOverlayVisible {
+              scheduleVolumeDismiss()
+            }
+          }
+          .onChange(of: isVolumeOverlayVisible) { visible in
+            if visible {
+              scheduleVolumeDismiss()
+            } else {
+              cancelVolumeDismiss()
             }
           }
       }
@@ -196,9 +252,9 @@ struct PadFloatingPlayerView: View {
       } label: {
         Image(systemName: "xmark")
           .font(.system(size: 10, weight: .bold))
-          .foregroundColor(.primary.opacity(0.75))
+          .foregroundColor(.primary.opacity(0.85))
           .frame(width: 24, height: 24)
-          .background(Color.primary.opacity(0.08))
+          .background(Color(.secondarySystemBackground))
           .clipShape(Circle())
           .overlay(Circle().stroke(Color.primary.opacity(0.12), lineWidth: 0.6))
       }
@@ -210,6 +266,20 @@ struct PadFloatingPlayerView: View {
       .accessibilityLabel("Stop playback")
     }
     .zIndex(999)
+    .onDisappear {
+      cancelCenterHoverDismiss()
+      cancelVolumeDismiss()
+    }
+    .onChange(of: viewModel.isSeeking) { seeking in
+      if seeking && isCenterHovering {
+        scheduleCenterHoverDismiss()
+      }
+    }
+    .onChange(of: viewModel.playbackVolume) { _ in
+      if isVolumeOverlayVisible {
+        scheduleVolumeDismiss()
+      }
+    }
   }
 
   // MARK: Column 1 — Transport

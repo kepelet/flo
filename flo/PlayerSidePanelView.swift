@@ -6,6 +6,19 @@
 import NukeUI
 import SwiftUI
 
+private struct SidePanelHeaderModifier: ViewModifier {
+  func body(content: Content) -> some View {
+    content
+      .padding(.horizontal, 14)
+      .padding(.vertical, 8)
+      .background(Color(.secondarySystemBackground).opacity(0.45))
+  }
+}
+
+private extension View {
+  func sidePanelHeader() -> some View { modifier(SidePanelHeaderModifier()) }
+}
+
 struct PlayerSidePanelView: View {
   @Environment(\.colorScheme) private var colorScheme
   @Binding var activePanel: FloatingPlayerPanel?
@@ -72,26 +85,23 @@ struct PlayerSidePanelView: View {
 
   private var lyricsContent: some View {
     VStack(alignment: .leading, spacing: 0) {
-      // Header pinned above ScrollView — solid surface so lyrics don't bleed through
+      // Header pinned above ScrollView — unified with queue header (same height/background/metrics)
       HStack(alignment: .center, spacing: 10) {
         if let sourceName = viewModel.lyricsSourceName {
           Text("Lyrics from: \(sourceName)")
             .font(lyricsFont(.subheadline))
-            .fontWeight(.medium)
+            .foregroundColor(.secondary)
             .lineLimit(1)
-            .foregroundColor(colorScheme == .dark ? Color.white : Color.black)
         } else {
           Text("")
             .font(lyricsFont(.subheadline))
-            .foregroundColor(colorScheme == .dark ? Color.white : Color.black)
+            .foregroundColor(.secondary)
         }
         Spacer()
       }
-      .padding(.horizontal, 14)
-      .padding(.vertical, 8)
-      .background(Color(.secondarySystemBackground))
+      .sidePanelHeader()
 
-      Divider().opacity(0.15)
+      Divider().opacity(0.06)
 
       Group {
         if viewModel.isLoadingLyrics && viewModel.lyrics.isEmpty && (viewModel.lyricsError == nil || viewModel.lyricsError!.isEmpty) {
@@ -180,10 +190,12 @@ struct PlayerSidePanelView: View {
       // Single subheader row: "From <context>" leading + shuffle/repeat trailing on one HStack
       HStack(alignment: .center, spacing: 10) {
         if viewModel.queue.isEmpty {
-          Text("").customFont(.subheadline)
+          Text("")
+            .font(lyricsFont(.subheadline))
+            .foregroundColor(.secondary)
         } else {
           Text("From \(viewModel.nowPlaying.contextName ?? viewModel.nowPlaying.albumName ?? "")")
-            .customFont(.subheadline)
+            .font(lyricsFont(.subheadline))
             .foregroundColor(.secondary)
             .lineLimit(1)
         }
@@ -218,9 +230,7 @@ struct PlayerSidePanelView: View {
           .buttonStyle(.plain)
         }
       }
-      .padding(.horizontal, 14)
-      .padding(.vertical, 8)
-      .background(Color(.secondarySystemBackground).opacity(0.45))
+      .sidePanelHeader()
 
       Divider().opacity(0.06)
 
