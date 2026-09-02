@@ -11,7 +11,7 @@ private struct SidePanelHeaderModifier: ViewModifier {
     content
       .padding(.horizontal, 14)
       .padding(.vertical, 8)
-      .background(Color(.secondarySystemBackground).opacity(0.45))
+      .background(Color(.secondarySystemBackground))
   }
 }
 
