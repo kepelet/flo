@@ -699,6 +699,9 @@ struct ContentView: View {
       .ignoresSafeArea(edges: .top)
 #endif
     }
+#if targetEnvironment(macCatalyst)
+    .frame(minWidth: 640)
+#endif
     .onChange(of: floatingSidePanel) { _ in
       if let panel = floatingSidePanel {
         lastSidePanel = panel
