@@ -702,7 +702,9 @@ struct ContentView: View {
 #endif
     }
 #if targetEnvironment(macCatalyst)
-    .frame(minWidth: 640)
+    // Catalyst minimum width: 900pt = 520pt max side panel + 10pt gutter + ~370pt main content.
+    // Prevents the trailing panel from collapsing below its usable width on macOS; iPad unchanged.
+    .frame(minWidth: 900)
 #endif
     .dynamicTypeSize(forcedDynamicTypeSize ?? systemDynamicTypeSize)
     .onChange(of: floatingSidePanel) { _ in
