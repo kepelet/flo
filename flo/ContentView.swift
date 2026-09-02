@@ -29,10 +29,13 @@ struct ContentView: View {
   @StateObject private var downloadViewModel = DownloadViewModel()
   @StateObject private var inAppPurchaseManager = InAppPurchaseManager()
 
+  @AppStorage("floatingSidePanelWidth") private var persistedPanelWidth: Double = 380
   @State private var floatingPlayerOffsetX: CGFloat = .zero
   @State private var isSwipping = false
   @State private var floatingSidePanel: FloatingPlayerPanel?
   @State private var lastSidePanel: FloatingPlayerPanel = .lyrics
+  @State private var sidePanelDragStartWidth: CGFloat?
+  @State private var isResizingSidePanel = false
 
   var swipeThreshold: CGFloat = 150.0
 
@@ -507,13 +510,26 @@ struct ContentView: View {
         baseBackgroundView
 
         if isPadSidebar {
-          let rawPanelWidth: CGFloat = 380
           let panelGutter: CGFloat = 10
-          // Clamp panel to window so very narrow Stage Manager windows never
-          // overflow (panel + gutter capped to 45% of width, min 0).
+          let minPanelWidth: CGFloat = 280
+          let maxPanelWidthCap: CGFloat = 520
+          // Window-capped upper bound: min(520, 45% of width - gutter), plus safeWidth guards.
+          let upperBound: CGFloat = {
+            guard safeWidth > 0, safeWidth.isFinite else { return maxPanelWidthCap }
+            return min(maxPanelWidthCap, max(0, safeWidth * 0.45 - panelGutter))
+          }()
+          // Persisted width (AppStorage Double) drives display; clamp between 280 and upperBound.
+          // When window is narrower than 280, upperBound < 280 — allow shrinking below 280 to avoid overflow.
+          let rawPersistedWidth: CGFloat = {
+            let v = CGFloat(persistedPanelWidth)
+            return v.isFinite ? v : 380
+          }()
           let sidePanelWidth: CGFloat = {
-            guard safeWidth > 0 else { return rawPanelWidth }
-            return min(rawPanelWidth, max(0, safeWidth * 0.45 - panelGutter))
+            if upperBound < minPanelWidth {
+              // Narrow window forces below-min width — clamp to window max.
+              return min(max(rawPersistedWidth, 0), upperBound)
+            }
+            return min(max(rawPersistedWidth, minPanelWidth), upperBound)
           }()
           let trailingInset: CGFloat = {
             let v = sidePanelWidth + panelGutter
@@ -526,15 +542,15 @@ struct ContentView: View {
           // inner spring both firing during geometry/WINDOW_RESIZE collided
           // with TabView's internal sidebarAdaptable animation. Single source
           // + transaction that suppresses animation when geometry is
-          // non-finite/zero keeps the UITabSideBar coordinator stable.
+          // non-finite/zero or during drag keeps the UITabSideBar coordinator stable.
           ZStack(alignment: .trailing) {
             rootTabView
               .padding(.trailing, isPanelVisible ? trailingInset : 0)
               .animation(
-                .spring(duration: 0.26, bounce: 0.08), value: isPanelVisible
+                isResizingSidePanel ? nil : .spring(duration: 0.26, bounce: 0.08), value: isPanelVisible
               )
               .transaction { t in
-                if !safeWidth.isFinite || safeWidth == 0 {
+                if !safeWidth.isFinite || safeWidth == 0 || isResizingSidePanel {
                   t.animation = nil
                   t.disablesAnimations = true
                 }
@@ -549,9 +565,46 @@ struct ContentView: View {
               .frame(maxHeight: .infinity, alignment: .top)
               .transition(.move(edge: .trailing).combined(with: .opacity))
               .zIndex(2)
+              // Leading-edge grab zone — thin overlay INSIDE ContentView's ZStack
+              // (not inside PlayerSidePanelView per spec). Dragging left expands,
+              // right shrinks. Clamped to [280, min(520, 45% width)] respecting
+              // safeWidth guards; updates persistedPanelWidth (@AppStorage) so
+              // width survives relaunch. Existing spring animations stay working
+              // (disabled only during live drag).
+              .overlay(alignment: .leading) {
+                Color.clear
+                  .frame(width: 12)
+                  .contentShape(Rectangle())
+                  .gesture(
+                    DragGesture(minimumDistance: 2, coordinateSpace: .global)
+                      .onChanged { value in
+                        if sidePanelDragStartWidth == nil {
+                          sidePanelDragStartWidth = sidePanelWidth
+                        }
+                        guard let start = sidePanelDragStartWidth else { return }
+                        let tx = value.translation.width
+                        guard tx.isFinite else { return }
+                        var proposed = start - tx
+                        let upper = upperBound
+                        if upper < minPanelWidth {
+                          proposed = min(max(proposed, 0), upper)
+                        } else {
+                          proposed = min(max(proposed, minPanelWidth), upper)
+                        }
+                        proposed = min(proposed, maxPanelWidthCap)
+                        guard proposed.isFinite else { return }
+                        isResizingSidePanel = true
+                        persistedPanelWidth = Double(proposed)
+                      }
+                      .onEnded { _ in
+                        sidePanelDragStartWidth = nil
+                        isResizingSidePanel = false
+                      }
+                  )
+              }
             }
           }
-          .animation(.spring(duration: 0.26, bounce: 0.08), value: isPanelVisible)
+          .animation(isResizingSidePanel ? nil : .spring(duration: 0.26, bounce: 0.08), value: isPanelVisible)
         } else {
           rootTabView
         }
