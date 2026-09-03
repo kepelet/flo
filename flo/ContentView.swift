@@ -78,6 +78,21 @@ struct ContentView: View {
     libraryRouter.clampSelection(to: availableTabs)
   }
 
+  // MARK: - FLO-36 render-time clamp
+  // The TabView selection binding normalizes on read, so the TabView never
+  // observes a selection that isn't rendered — not even for the single diff
+  // pass between a tab-removing state change (v2 toggle, logout, debug
+  // toggle) and its `onChange` repair, during which a live-resize UIKit
+  // rebuild (`_tabs_rebuildTabBarItemsAnimated:`) would insert nil and abort.
+  // The `onChange` clamps below are kept as belt-and-braces: they persist the
+  // correction back into the router so state converges, not just the view.
+  private var clampedSelection: Binding<AppTab> {
+    Binding(
+      get: { clampedSelectionValue(libraryRouter.selectedTab, available: availableTabs) },
+      set: { libraryRouter.selectedTab = $0 }
+    )
+  }
+
   private func estimatedSidebarWidth(for totalWidth: CGFloat) -> CGFloat {
     guard totalWidth.isFinite, totalWidth > 0 else { return 0 }
     // Sidebar collapses to overlay / hidden below ~600pt (Stage Manager narrow
@@ -138,7 +153,7 @@ struct ContentView: View {
     Group {
       if libraryViewV2Enabled {
         if #available(iOS 26.0, *) {
-          TabView(selection: $libraryRouter.selectedTab) {
+          TabView(selection: clampedSelection) {
             Tab("Home", systemImage: "house", value: AppTab.home) {
               HomeView(viewModel: authViewModel)
                 .environmentObject(floooViewModel)
@@ -174,7 +189,7 @@ struct ContentView: View {
             }
           }
         } else if #available(iOS 18.0, *) {
-          TabView(selection: $libraryRouter.selectedTab) {
+          TabView(selection: clampedSelection) {
             Tab("Home", systemImage: "house", value: AppTab.home) {
               HomeView(viewModel: authViewModel)
                 .environmentObject(floooViewModel)
@@ -210,7 +225,7 @@ struct ContentView: View {
             }
           }
         } else {
-          TabView(selection: $libraryRouter.selectedTab) {
+          TabView(selection: clampedSelection) {
             HomeView(viewModel: authViewModel).tabItem { Label("Home", systemImage: "house") }
               .tag(AppTab.home)
               .environmentObject(floooViewModel).environmentObject(albumViewModel).environmentObject(playerViewModel).environmentObject(downloadViewModel).environmentObject(libraryRouter)
@@ -226,7 +241,7 @@ struct ContentView: View {
           }
         }
       } else {
-        TabView(selection: $libraryRouter.selectedTab) {
+        TabView(selection: clampedSelection) {
           HomeView(viewModel: authViewModel).tabItem { Label("Home", systemImage: "house") }
             .tag(AppTab.home)
             .environmentObject(floooViewModel).environmentObject(albumViewModel).environmentObject(playerViewModel).environmentObject(downloadViewModel).environmentObject(libraryRouter)
@@ -255,12 +270,9 @@ struct ContentView: View {
     // enableDebug/library toggle nuked the TabView's UIKit controller
     // (UITabBarController/_UITabSidebar) mid-transition. SwiftUI can diff
     // the conditional Debug tab without destroying the container.
-    .onChange(of: libraryViewV2Enabled) { isEnabled in
-      if isEnabled, libraryRouter.selectedTab == .downloads {
-        libraryRouter.selectedTab = authViewModel.isLoggedIn ? .library : .home
-      }
-      clampSelection()
-    }
+    // No manual downloads fallback here: clampSelection() already covers it
+    // via the availableTabs single source of truth (FLO-36).
+    .onChange(of: libraryViewV2Enabled) { _ in clampSelection() }
     .onChange(of: authViewModel.isLoggedIn) { _ in clampSelection() }
     .onChange(of: enableDebug) { _ in clampSelection() }
   }
@@ -304,7 +316,7 @@ struct ContentView: View {
 
   @available(iOS 18.0, *)
   var sidebarTabView: some View {
-    TabView(selection: $libraryRouter.selectedTab) {
+    TabView(selection: clampedSelection) {
 #if targetEnvironment(macCatalyst)
       Tab("Home", systemImage: "house", value: AppTab.home) {
         sidebarTabContent(
@@ -495,12 +507,9 @@ struct ContentView: View {
     .toolbar(.hidden, for: .tabBar)
     .toolbarBackground(.hidden, for: .tabBar)
 #endif
-    .onChange(of: libraryViewV2Enabled) { isEnabled in
-      if isEnabled, libraryRouter.selectedTab == .downloads {
-        libraryRouter.selectedTab = authViewModel.isLoggedIn ? .library : .home
-      }
-      clampSelection()
-    }
+    // No manual downloads fallback here: clampSelection() already covers it
+    // via the availableTabs single source of truth (FLO-36).
+    .onChange(of: libraryViewV2Enabled) { _ in clampSelection() }
     .onChange(of: authViewModel.isLoggedIn) { _ in clampSelection() }
     .onChange(of: enableDebug) { _ in clampSelection() }
   }
@@ -683,7 +692,11 @@ struct ContentView: View {
       PlaybackCoordinator.shared.attach(playerViewModel: playerViewModel)
       if CommandLine.arguments.contains("-UITestSearchTab") {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-          libraryRouter.selectedTab = .search
+          // Guard: Search only exists with Library v2 on; never set a
+          // selection the active TabView doesn't render (FLO-36).
+          if availableTabs.contains(.search) {
+            libraryRouter.selectedTab = .search
+          }
         }
       }
       // FLO-36: clamp on appear in case persisted selection is stale after update.

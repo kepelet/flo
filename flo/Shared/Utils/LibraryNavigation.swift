@@ -76,6 +76,14 @@ func availableTabs(
   }
 }
 
+/// Pure helper backing ContentView's render-time clamped `TabView(selection:)` binding.
+/// The binding getter normalizes through this so the TabView never observes a
+/// selection outside `available` — not even for a single diff pass between a
+/// tab-removing state change and its `onChange` repair (FLO-36).
+func clampedSelectionValue(_ selected: AppTab, available: Set<AppTab>, fallback: AppTab = .home) -> AppTab {
+  normalizedTab(selected, available: available, fallback: fallback)
+}
+
 extension LibraryRouter {
   /// Clamps `selectedTab` to `available`, using `fallback` when the current selection has vanished.
   /// No-op when already valid. Pure logic aside from the final assignment.

@@ -264,6 +264,70 @@ final class TabSelectionClampingTests: XCTestCase {
     XCTAssertEqual(normalizedTab(.downloads, available: baseV2Off), .downloads)
   }
 
+  // MARK: - clampedSelectionValue (render-time binding getter)
+
+  func testClampedSelectionValue_keepsValidSelection() {
+    let available: Set<AppTab> = [.home, .preferences, .search]
+    XCTAssertEqual(clampedSelectionValue(.home, available: available), .home)
+    XCTAssertEqual(clampedSelectionValue(.search, available: available), .search)
+  }
+
+  func testClampedSelectionValue_invalidFallsBack() {
+    let available: Set<AppTab> = [.home, .preferences]
+    XCTAssertEqual(clampedSelectionValue(.search, available: available), .home)
+    XCTAssertEqual(clampedSelectionValue(.debug, available: available), .home)
+    XCTAssertEqual(clampedSelectionValue(.libraryAlbums, available: available), .home)
+  }
+
+  func testClampedSelectionValue_exhaustiveMatrixNeverDangles() {
+    // Every tab × every flag combo: the binding getter must always return a
+    // tab the active TabView variant actually renders (FLO-36 render-time clamp).
+    let allTabs: [AppTab] = [
+      .home, .library, .libraryAlbums, .libraryArtists, .likedSongs,
+      .playlists, .songs, .radios, .downloads, .preferences, .debug, .search
+    ]
+    for isSidebar in [false, true] {
+      for isLoggedIn in [false, true] {
+        for v2 in [false, true] {
+          for debug in [false, true] {
+            let tabs = availableTabs(
+              isPadSidebar: isSidebar, isLoggedIn: isLoggedIn,
+              libraryViewV2Enabled: v2, isDebugEnabled: debug)
+            for tab in allTabs {
+              let result = clampedSelectionValue(tab, available: tabs)
+              XCTAssertTrue(
+                tabs.contains(result),
+                "dangling binding value \(result) for selected=\(tab) " +
+                "sidebar=\(isSidebar) loggedIn=\(isLoggedIn) v2=\(v2) debug=\(debug)")
+            }
+          }
+        }
+      }
+    }
+  }
+
+  func testClampedSelectionValue_v2OffSearchNeverSurvives() {
+    // Cmd+F / UITest hook must never surface .search when v2 is off, either variant.
+    for isSidebar in [false, true] {
+      let tabs = availableTabs(
+        isPadSidebar: isSidebar, isLoggedIn: true,
+        libraryViewV2Enabled: false, isDebugEnabled: false)
+      XCTAssertFalse(tabs.contains(.search))
+      XCTAssertEqual(clampedSelectionValue(.search, available: tabs), .home)
+    }
+  }
+
+  func testClampedSelectionValue_loggedOutCollectionsNeverSurviveV2Off() {
+    // Logout while on a Collections tab (v2 off, sidebar): binding must clamp.
+    let tabs = availableTabs(
+      isPadSidebar: true, isLoggedIn: false,
+      libraryViewV2Enabled: false, isDebugEnabled: false)
+    for tab in [AppTab.libraryAlbums, .libraryArtists, .likedSongs, .playlists, .songs, .radios] {
+      XCTAssertFalse(tabs.contains(tab))
+      XCTAssertEqual(clampedSelectionValue(tab, available: tabs), .home)
+    }
+  }
+
   // MARK: - exhaustive debug toggle matrix
 
   func testMatrix_v2TogglesCoverAllCollectionsAndSearch() {
