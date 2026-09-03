@@ -119,20 +119,23 @@ class AuthViewModel: ObservableObject {
       result in
       switch result {
       case .success(let data):
-        self.persistAuthData(data)
-
-        if self.experimentalSaveLoginInfo {
-          do {
-            try KeychainManager.setAuthPassword(newValue: self.password)
-            UserDefaultsManager.saveLoginInfo = true
-
-            self.experimentalSaveLoginInfo = false
-          } catch {
-            print("error saving password to Keychain: \(error)")
-          }
-        }
-
+        // persistAuthData mutates @Published state ("user"), so make sure the
+        // whole success path runs on the main actor regardless of which queue
+        // Alamofire delivered the response on.
         DispatchQueue.main.async {
+          self.persistAuthData(data)
+
+          if self.experimentalSaveLoginInfo {
+            do {
+              try KeychainManager.setAuthPassword(newValue: self.password)
+              UserDefaultsManager.saveLoginInfo = true
+
+              self.experimentalSaveLoginInfo = false
+            } catch {
+              print("error saving password to Keychain: \(error)")
+            }
+          }
+
           self.isSubmitting = false
           self.isLoggedIn = true
           self.username = ""
