@@ -15,6 +15,7 @@
 		34BF3A1DC0B124BA46364F05 /* SubsonicResponseTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E02B26D29AEC94518678820D /* SubsonicResponseTests.swift */; };
 		3D4F22CBDB6FE7B5DC2ACA7D /* LRCParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75FD47BBDA4C5304FD735BB6 /* LRCParserTests.swift */; };
 		48ADEC12F9F42A971F3E1BEC /* UserDefaultsManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D5CDC0FFBED576BEE3A0C01 /* UserDefaultsManagerTests.swift */; };
+		F1A2B3C4D5E6F07182A3B4C6 /* TabSelectionClampingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1A2B3C4D5E6F07182A3B4C5 /* TabSelectionClampingTests.swift */; };
 		4EF6639A35569AEC92BD1D9D /* ExplicitStatusTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 432B409E97B302AF6CFFC31C /* ExplicitStatusTests.swift */; };
 		50C912892F5DD9280087EE61 /* AuthMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50C912872F5DD9280087EE61 /* AuthMode.swift */; };
 		50C912912F5DD9990087EE61 /* IAPLoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50C9128A2F5DD9990087EE61 /* IAPLoginView.swift */; };
@@ -215,6 +216,7 @@
 		3EE4FB43F0E12E4292BAD138 /* SongDecodingTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SongDecodingTests.swift; sourceTree = "<group>"; };
 		432B409E97B302AF6CFFC31C /* ExplicitStatusTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ExplicitStatusTests.swift; sourceTree = "<group>"; };
 		4D5CDC0FFBED576BEE3A0C01 /* UserDefaultsManagerTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = UserDefaultsManagerTests.swift; sourceTree = "<group>"; };
+		F1A2B3C4D5E6F07182A3B4C5 /* TabSelectionClampingTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TabSelectionClampingTests.swift; sourceTree = "<group>"; };
 		50C912872F5DD9280087EE61 /* AuthMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthMode.swift; sourceTree = "<group>"; };
 		50C9128A2F5DD9990087EE61 /* IAPLoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IAPLoginView.swift; sourceTree = "<group>"; };
 		50C912A32F648A440087EE61 /* IAPWebAuthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IAPWebAuthView.swift; sourceTree = "<group>"; };
@@ -423,6 +425,7 @@
 				F17FAD2FB5BF6F9E62F05842 /* RadioURLNormalizationTests.swift */,
 				3EE4FB43F0E12E4292BAD138 /* SongDecodingTests.swift */,
 				E02B26D29AEC94518678820D /* SubsonicResponseTests.swift */,
+				F1A2B3C4D5E6F07182A3B4C5 /* TabSelectionClampingTests.swift */,
 				610783432ED4ED3D44204F4C /* UserAuthDecodingTests.swift */,
 				4D5CDC0FFBED576BEE3A0C01 /* UserDefaultsManagerTests.swift */,
 			);
@@ -978,6 +981,7 @@
 				6BEC73D6E3EF95D46B740883 /* SongDecodingTests.swift in Sources */,
 				34BF3A1DC0B124BA46364F05 /* SubsonicResponseTests.swift in Sources */,
 				D8A2EFEBC9CEAC6809CF726F /* UserAuthDecodingTests.swift in Sources */,
+				F1A2B3C4D5E6F07182A3B4C6 /* TabSelectionClampingTests.swift in Sources */,
 				48ADEC12F9F42A971F3E1BEC /* UserDefaultsManagerTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

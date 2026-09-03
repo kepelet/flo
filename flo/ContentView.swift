@@ -64,6 +64,20 @@ struct ContentView: View {
     #endif
   }
 
+  // MARK: - FLO-36 tab clamp (single source of truth, mirrors TabView gates)
+  private var availableTabs: Set<AppTab> {
+    flo.availableTabs(
+      isPadSidebar: isPadSidebar,
+      isLoggedIn: authViewModel.isLoggedIn,
+      libraryViewV2Enabled: libraryViewV2Enabled,
+      isDebugEnabled: enableDebug
+    )
+  }
+
+  private func clampSelection() {
+    libraryRouter.clampSelection(to: availableTabs)
+  }
+
   private func estimatedSidebarWidth(for totalWidth: CGFloat) -> CGFloat {
     guard totalWidth.isFinite, totalWidth > 0 else { return 0 }
     // Sidebar collapses to overlay / hidden below ~600pt (Stage Manager narrow
@@ -245,7 +259,10 @@ struct ContentView: View {
       if isEnabled, libraryRouter.selectedTab == .downloads {
         libraryRouter.selectedTab = authViewModel.isLoggedIn ? .library : .home
       }
+      clampSelection()
     }
+    .onChange(of: authViewModel.isLoggedIn) { _ in clampSelection() }
+    .onChange(of: enableDebug) { _ in clampSelection() }
   }
 
   @available(iOS 18.0, *)
@@ -482,7 +499,10 @@ struct ContentView: View {
       if isEnabled, libraryRouter.selectedTab == .downloads {
         libraryRouter.selectedTab = authViewModel.isLoggedIn ? .library : .home
       }
+      clampSelection()
     }
+    .onChange(of: authViewModel.isLoggedIn) { _ in clampSelection() }
+    .onChange(of: enableDebug) { _ in clampSelection() }
   }
 
   var body: some View {
@@ -666,7 +686,12 @@ struct ContentView: View {
           libraryRouter.selectedTab = .search
         }
       }
+      // FLO-36: clamp on appear in case persisted selection is stale after update.
+      clampSelection()
     }
+    .onChange(of: authViewModel.isLoggedIn) { _ in clampSelection() }
+    .onChange(of: libraryViewV2Enabled) { _ in clampSelection() }
+    .onChange(of: enableDebug) { _ in clampSelection() }
   }
 
   @ViewBuilder
@@ -713,7 +738,11 @@ struct ContentView: View {
 
   func tabShortcut(_ tab: AppTab, key: KeyEquivalent) -> some View {
     Button {
-      libraryRouter.selectedTab = tab
+      if availableTabs.contains(tab) {
+        libraryRouter.selectedTab = tab
+      } else {
+        libraryRouter.clampSelection(to: availableTabs)
+      }
     } label: {
       EmptyView()
     }
@@ -722,10 +751,13 @@ struct ContentView: View {
 
   func conditionalShortcut(v2Tab: AppTab, legacyTab: AppTab?, key: KeyEquivalent) -> some View {
     Button {
-      if libraryViewV2Enabled {
-        libraryRouter.selectedTab = v2Tab
-      } else if let legacyTab {
-        libraryRouter.selectedTab = legacyTab
+      let target: AppTab? = libraryViewV2Enabled ? v2Tab : legacyTab
+      if let t = target {
+        if availableTabs.contains(t) {
+          libraryRouter.selectedTab = t
+        } else {
+          libraryRouter.clampSelection(to: availableTabs)
+        }
       }
     } label: {
       EmptyView()
@@ -735,7 +767,12 @@ struct ContentView: View {
 
   func libraryOrAlbumsShortcut(key: KeyEquivalent) -> some View {
     Button {
-      libraryRouter.selectedTab = libraryViewV2Enabled ? .library : .libraryAlbums
+      let t: AppTab = libraryViewV2Enabled ? .library : .libraryAlbums
+      if availableTabs.contains(t) {
+        libraryRouter.selectedTab = t
+      } else {
+        libraryRouter.clampSelection(to: availableTabs)
+      }
     } label: {
       EmptyView()
     }
@@ -744,7 +781,12 @@ struct ContentView: View {
 
   func albumsOrArtistsShortcut(key: KeyEquivalent) -> some View {
     Button {
-      libraryRouter.selectedTab = libraryViewV2Enabled ? .libraryAlbums : .libraryArtists
+      let t: AppTab = libraryViewV2Enabled ? .libraryAlbums : .libraryArtists
+      if availableTabs.contains(t) {
+        libraryRouter.selectedTab = t
+      } else {
+        libraryRouter.clampSelection(to: availableTabs)
+      }
     } label: {
       EmptyView()
     }
@@ -753,7 +795,11 @@ struct ContentView: View {
 
   func searchShortcut(key: KeyEquivalent) -> some View {
     Button {
-      libraryRouter.selectedTab = .search
+      if availableTabs.contains(.search) {
+        libraryRouter.selectedTab = .search
+      } else {
+        libraryRouter.clampSelection(to: availableTabs)
+      }
     } label: {
       EmptyView()
     }
@@ -797,7 +843,11 @@ struct ContentView: View {
       targetTab = authViewModel.isLoggedIn ? .library : .home
     }
 
-    libraryRouter.selectedTab = targetTab
+    if availableTabs.contains(targetTab) {
+      libraryRouter.selectedTab = targetTab
+    } else {
+      libraryRouter.clampSelection(to: availableTabs)
+    }
 
     DispatchQueue.main.async {
       switch targetTab {
