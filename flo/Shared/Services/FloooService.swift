@@ -35,14 +35,51 @@ class FloooService {
   @MainActor
   func generateStats(_ listeningActivity: [HistoryEntity]) async -> Stats? {
     // Extract values on the main thread — NSManagedObjects must not cross thread boundaries
-    let rawEntries: [(albumId: String, albumName: String, artistName: String)] =
+    let rawEntries: [(albumId: String, albumName: String, artistName: String, trackName: String)] =
       listeningActivity.map {
         (
           albumId: $0.albumId ?? "",
           albumName: $0.albumName ?? "",
-          artistName: $0.artistName ?? ""
+          artistName: $0.artistName ?? "",
+          trackName: $0.trackName ?? ""
         )
       }
+
+    // Build genre lookup from local caches on the main thread.
+    // HistoryEntity has no genre; we resolve via cached albums/songs.
+    var albumIdToGenre: [String: String] = [:]
+    var albumNameToGenre: [String: String] = [:]
+
+    // 1) Downloaded albums (PlaylistEntity stores album genre)
+    let playlistEntities = CoreDataManager.shared.getRecordsByEntity(entity: PlaylistEntity.self)
+    for entity in playlistEntities {
+      if let id = entity.id, !id.isEmpty, let genre = entity.genre, !genre.isEmpty,
+        genre != "Unknown Genre"
+      {
+        if albumIdToGenre[id] == nil {
+          albumIdToGenre[id] = genre
+        }
+      }
+      if let name = entity.name, !name.isEmpty, let genre = entity.genre, !genre.isEmpty,
+        genre != "Unknown Genre"
+      {
+        if albumNameToGenre[name] == nil {
+          albumNameToGenre[name] = genre
+        }
+      }
+    }
+
+    // 2) Library cache (albums fetched from server) — covers non-downloaded listening history
+    if let cachedAlbums: [Album] = LibraryCacheManager.shared.load([Album].self, forKey: "albums") {
+      for album in cachedAlbums where !album.genre.isEmpty && album.genre != "Unknown Genre" {
+        if !album.id.isEmpty, albumIdToGenre[album.id] == nil {
+          albumIdToGenre[album.id] = album.genre
+        }
+        if !album.name.isEmpty, albumNameToGenre[album.name] == nil {
+          albumNameToGenre[album.name] = album.genre
+        }
+      }
+    }
 
     return await Task.detached(priority: .userInitiated) {
       let albumGroups = Dictionary(grouping: rawEntries) { entry in
@@ -63,11 +100,28 @@ class FloooService {
       let artist = String(components?[1] ?? "N/A")
       let albumId = topAlbumGroup?.value.first(where: { !$0.albumId.isEmpty })?.albumId ?? ""
 
+      // Most-played genre via lookup against local song/album cache
+      var genreCounts: [String: Int] = [:]
+      for entry in rawEntries {
+        var genre: String?
+        if !entry.albumId.isEmpty {
+          genre = albumIdToGenre[entry.albumId]
+        }
+        if genre == nil, !entry.albumName.isEmpty {
+          genre = albumNameToGenre[entry.albumName]
+        }
+        if let g = genre, !g.isEmpty, g != "N/A", g != "Unknown Genre", g != "Unknown" {
+          genreCounts[g, default: 0] += 1
+        }
+      }
+      let topGenre = genreCounts.max(by: { $0.value < $1.value })?.key ?? "N/A"
+
       return Stats(
         topArtist: topArtist?.key ?? "N/A",
         topAlbum: album,
         topAlbumArtist: artist,
-        topAlbumId: albumId
+        topAlbumId: albumId,
+        topGenre: topGenre
       )
     }.value
   }

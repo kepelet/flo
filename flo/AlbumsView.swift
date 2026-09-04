@@ -74,6 +74,7 @@ struct AlbumsView: View {
           .lineLimit(1)
           .frame(maxWidth: .infinity, alignment: .leading)
       }.padding()
+      .padding(.bottom, 12)
     }
   }
 
@@ -88,6 +89,79 @@ struct AlbumsView: View {
         )
     }
     .aspectRatio(1, contentMode: .fit)
+  }
+}
+
+/// Inline-searchable wrapper for the Albums tab.
+///
+/// ContentView.swift owns the Albums NavigationStack and builds its tab via
+/// `AlbumsGridView()`. The search field is rendered inline (always visible
+/// at the top of the content, not via `.searchable`) so it works reliably
+/// under the iPad sidebar-adaptable TabView and Mac Catalyst where
+/// `navigationBarDrawer` does not produce a true inline field.
+/// Filtering is live on name + artist/albumArtist, case-insensitive.
+struct AlbumsGridView: View {
+  @EnvironmentObject var albumViewModel: AlbumViewModel
+  @EnvironmentObject var downloadViewModel: DownloadViewModel
+  @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+  @State private var searchText = ""
+
+  private var columns: [GridItem] {
+    if horizontalSizeClass == .regular {
+      return Array(repeating: GridItem(.flexible(), spacing: 10), count: 4)
+    }
+    return Array(repeating: GridItem(.flexible(), spacing: 10), count: 2)
+  }
+
+  private var filteredAlbums: [Album] {
+    if searchText.isEmpty { return albumViewModel.albums }
+    return albumViewModel.albums.filter { album in
+      album.name.localizedCaseInsensitiveContains(searchText)
+        || album.artist.localizedCaseInsensitiveContains(searchText)
+        || album.albumArtist.localizedCaseInsensitiveContains(searchText)
+    }
+  }
+
+  var body: some View {
+    NavigationStack {
+      VStack(spacing: 0) {
+        HStack {
+          Image(systemName: "magnifyingglass").foregroundColor(.gray)
+          TextField("Search", text: $searchText)
+            .autocorrectionDisabled()
+          if !searchText.isEmpty {
+            Button { searchText = "" } label: {
+              Image(systemName: "xmark.circle.fill").foregroundColor(.gray)
+            }
+          }
+        }
+        .padding(8)
+        .background(Color(UIColor.secondarySystemBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 10))
+        .padding(.horizontal, 10)
+        .padding(.vertical, 8)
+
+        ScrollView {
+          LazyVGrid(columns: columns, spacing: 10) {
+            ForEach(filteredAlbums) { album in
+              NavigationLink {
+                AlbumView(viewModel: albumViewModel)
+                  .environmentObject(downloadViewModel)
+                  .onAppear { albumViewModel.setActiveAlbum(album: album) }
+              } label: {
+                AlbumsView(viewModel: albumViewModel, album: album)
+              }
+              .buttonStyle(.plain)
+            }
+          }
+          .padding(.horizontal, 10)
+          .padding(.top, 8)
+          .playerBottomPadding(active: 90, inactive: 12)
+        }
+      }
+      .navigationTitle("Albums")
+      .onAppear { albumViewModel.fetchAlbums() }
+    }
   }
 }
 

@@ -92,6 +92,7 @@ struct PreferencesView: View {
   @State private var accentColor = Color(.accent)
   @State private var playerColor = Color(.player)
   @State private var customFontFamily = "Plus Jakarta Sans"
+  @AppStorage(UserDefaultsKeys.uiFontScale) private var uiFontScale: Double = 1.0
 
   @EnvironmentObject var floooViewModel: FloooViewModel
   @EnvironmentObject var playerViewModel: PlayerViewModel
@@ -298,22 +299,6 @@ struct PreferencesView: View {
           }
         }
 
-        // TODO: finish this later
-        if false {
-          Section(header: Text("Make it yours")) {
-            ColorPicker("Accent color", selection: $accentColor).disabled(true)
-            ColorPicker("Player color", selection: $playerColor).disabled(true)
-
-            Picker(selection: $customFontFamily, label: Text("Font Family")) {
-              ForEach(
-                ["Plus Jakarta Sans", "System", "JetBrains Mono", "Comic Sans MS"], id: \.self
-              ) {
-                Text($0)
-              }
-            }.disabled(true)
-          }
-        }
-
         Section(header: Text("App Icon")) {
           if UIApplication.shared.supportsAlternateIcons {
             ScrollView(.horizontal, showsIndicators: false) {
@@ -453,6 +438,18 @@ struct PreferencesView: View {
               Text("To change this, please do so via the Navidrome Web UI").font(.caption)
                 .foregroundColor(.gray)
             }
+          }
+
+          VStack(alignment: .leading, spacing: 4) {
+            Toggle(
+              "Library View V2",
+              isOn: Binding(
+                get: { UserDefaultsManager.libraryViewV2 },
+                set: { UserDefaultsManager.libraryViewV2 = $0 }
+              ))
+
+            Text("Unified library").font(.caption)
+              .foregroundColor(.gray)
           }
         }
 

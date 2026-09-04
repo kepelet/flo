@@ -10,18 +10,36 @@ import SwiftUI
 struct Login: View {
   @ObservedObject var viewModel: AuthViewModel
   @Binding var showLoginSheet: Bool
-  
+
   @State private var showIAPLogin = false
 
+  // Login form fields are kept as local state so that every keystroke does
+  // not mutate the shared AuthViewModel. On Mac Catalyst the login form is
+  // presented via fullScreenCover from HomeView/PreferencesView, which both
+  // observe the same AuthViewModel; re-rendering the presenter on every
+  // keystroke while the cover is up triggers a re-presentation loop and
+  // crashes the app. Fields are pushed into the view model once on submit.
+  @State private var serverField: String
+  @State private var usernameField: String
+  @State private var passwordField: String
+
+  init(viewModel: AuthViewModel, showLoginSheet: Binding<Bool>) {
+    self.viewModel = viewModel
+    self._showLoginSheet = showLoginSheet
+    self._serverField = State(initialValue: viewModel.serverUrl)
+    self._usernameField = State(initialValue: viewModel.username)
+    self._passwordField = State(initialValue: viewModel.password)
+  }
+
   var isSubmitButtonDisabled: Bool {
-    viewModel.serverUrl.isEmpty || viewModel.username.isEmpty || viewModel.password.isEmpty
+    serverField.isEmpty || usernameField.isEmpty || passwordField.isEmpty
       || viewModel.isSubmitting
   }
 
   var body: some View {
     ScrollView {
-      if !viewModel.extraMessage.isEmpty {
-        extraMessage
+      if !httpWarning.isEmpty {
+        extraMessage(httpWarning)
       }
       headerSection
       formSection
@@ -60,9 +78,15 @@ struct Login: View {
     .presentationDragIndicator(.visible)
   }
 
-  private var extraMessage: some View {
+  private var httpWarning: String {
+    serverField.lowercased().hasPrefix("http://")
+      ? "http:// is only supported within private IP ranges: 192.168.0.0/16, 10.0.0.0/8, and 172.16.0.0/12 — learn more at https://dub.sh/flo-ats"
+      : ""
+  }
+
+  private func extraMessage(_ message: String) -> some View {
     VStack {
-      Text(viewModel.extraMessage)
+      Text(message)
         .customFont(.caption1)
         .lineSpacing(2)
         .multilineTextAlignment(.center)
@@ -110,10 +134,10 @@ struct Login: View {
   private var formSection: some View {
     VStack {
       formField(
-        title: "Server URL", text: $viewModel.serverUrl,
+        title: "Server URL", text: $serverField,
         placeholder: "https://navidrome․your-server․net", keyboardType: .URL)
-      formField(title: "Username", text: $viewModel.username, placeholder: "sigma")
-      secureFormField(title: "Password", text: $viewModel.password, placeholder: "*************")
+      formField(title: "Username", text: $usernameField, placeholder: "sigma")
+      secureFormField(title: "Password", text: $passwordField, placeholder: "*************")
       submitButton
       iapLoginButton
     }
@@ -162,7 +186,7 @@ struct Login: View {
 
   private var submitButton: some View {
     VStack(alignment: .leading) {
-      Button(action: viewModel.login) {
+      Button(action: submitLogin) {
         Text(viewModel.experimentalSaveLoginInfo ? "Save" : "Login")
           .foregroundColor(.white)
           .fontWeight(.bold)
@@ -181,6 +205,13 @@ struct Login: View {
     }
   }
   
+  private func submitLogin() {
+    viewModel.serverUrl = serverField
+    viewModel.username = usernameField
+    viewModel.password = passwordField
+    viewModel.login()
+  }
+
   private var iapLoginButton: some View {
     VStack(spacing: 12) {
       HStack {
