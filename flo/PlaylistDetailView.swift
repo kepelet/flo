@@ -54,7 +54,8 @@ struct PlaylistDetailView: View {
         PlaylistCoverImageView(
           pathOrUrlString: viewModel.getPlaylistCoverArt(
             id: viewModel.playlist.id,
-            coverArtId: viewModel.playlist.coverArtId
+            coverArtId: viewModel.playlist.coverArtId,
+            playlistName: viewModel.playlist.name
           )
         )
         .frame(width: 300, height: 300)

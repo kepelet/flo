@@ -274,9 +274,11 @@ class AlbumViewModel: ObservableObject {
       artistName: artistName, albumName: albumName, albumId: id, albumCover: albumCover)
   }
 
-  func getPlaylistCoverArt(id: String, coverArtId: String? = nil) -> String {
-    let artId = coverArtId ?? id
-    return AlbumService.shared.getPlaylistCover(playlistId: artId)
+  func getPlaylistCoverArt(
+    id: String, coverArtId: String? = nil, playlistName: String? = nil
+  ) -> String {
+    return AlbumService.shared.getPlaylistCover(
+      playlistId: coverArtId ?? id, playlistName: playlistName)
   }
 
   func getArtistCoverArt(id: String, imageURL: String = "") -> String {
@@ -332,6 +334,17 @@ class AlbumViewModel: ObservableObject {
 
     Task(priority: .background) {
       AlbumService.shared.savePlaylist(playlistToDownload)
+
+      // The playlist's own cover lives next to its tracks so the Downloads tab
+      // can pick it up; failure must not affect the song downloads.
+      AlbumService.shared.downloadPlaylistCover(
+        playlistId: playlistToDownload.id, playlistName: playlistToDownload.name,
+        coverArtId: playlistToDownload.coverArtId
+      ) { result in
+        if case .failure(let error) = result {
+          print("Failed to save playlist cover: \(error.localizedDescription)")
+        }
+      }
 
       songs.forEach { song in
         downloadGroup.enter()

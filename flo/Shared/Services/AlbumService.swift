@@ -343,7 +343,17 @@ class AlbumService {
     }
   }
 
-  func getPlaylistCover(playlistId: String) -> String {
+  func getPlaylistCover(playlistId: String, playlistName: String? = nil) -> String {
+    // Downloaded playlists store their own cover next to their tracks:
+    // Media/Various Artists/<playlist name>/cover.png
+    if let playlistName, !playlistName.isEmpty {
+      let nameTarget = "Media/Various Artists/\(playlistName)/cover.png"
+
+      if LocalFileManager.shared.fileExists(fileName: nameTarget) {
+        return LocalFileManager.shared.fileURL(for: nameTarget)?.path ?? ""
+      }
+    }
+
     let target = "Media/Various Artists/\(playlistId)/cover.png"
 
     if LocalFileManager.shared.fileExists(fileName: target) {
@@ -415,6 +425,35 @@ class AlbumService {
 
         LocalFileManager.shared.moveFile(
           source: tempFile, target: target, forceOverride: false, completion: completion)
+      case .failure(let error):
+        completion(.failure(error))
+      }
+    }
+  }
+
+  func downloadPlaylistCover(
+    playlistId: String,
+    playlistName: String,
+    coverArtId: String?,
+    completion: @escaping (Result<URL?, Error>) -> Void
+  ) {
+    let artId = coverArtId ?? (playlistId.hasPrefix("pl-") ? playlistId : "pl-\(playlistId)")
+    let params: [String: Any] = ["id": artId, "size": 300]
+
+    APIManager.shared.SubsonicEndpointDownload(
+      endpoint: API.SubsonicEndpoint.coverArt, parameters: params
+    ) { result in
+      switch result {
+      case .success(let tempFile):
+        guard
+          let target = LocalFileManager.shared.documentsDirectory?.appendingPathComponent("Media")
+            .appendingPathComponent("Various Artists").appendingPathComponent(playlistName)
+            .appendingPathComponent("cover.png")
+        else {
+          return
+        }
+
+        LocalFileManager.shared.moveFile(source: tempFile, target: target, completion: completion)
       case .failure(let error):
         completion(.failure(error))
       }
