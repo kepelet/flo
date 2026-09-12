@@ -71,7 +71,8 @@ class APIManager {
     encoding: ParameterEncoding = URLEncoding.queryString, timeout: TimeInterval? = nil,
     completion: @escaping (DataResponse<T, AFError>) -> Void
   ) {
-    let token: String = AuthService.shared.getCreds(key: "NDToken")
+    let authSession = AuthService.shared.sessionSnapshot()
+    let token = authSession.ndToken
 
     let url = "\(UserDefaultsManager.serverBaseURL)\(endpoint)"
     let headers: HTTPHeaders = [API.NDAuthHeader: "Bearer \(token)"]
@@ -84,8 +85,10 @@ class APIManager {
         }
       }
     )
-    .validate(statusCode: 200..<500)
+    .validate(statusCode: 200..<300)
     .responseDecodable(of: T.self) { response in
+      Self.notifyIfSessionExpired(
+        response: response.response, error: response.error, authSession: authSession)
       completion(response)
     }
   }
@@ -97,8 +100,9 @@ class APIManager {
   ) {
 
     // FIXME: refactor getCreds(key: "subsonicToken")
+    let authSession = AuthService.shared.sessionSnapshot()
     let url =
-      "\(UserDefaultsManager.serverBaseURL)\(endpoint)\(AuthService.shared.getCreds(key: "subsonicToken"))"
+      "\(UserDefaultsManager.serverBaseURL)\(endpoint)\(authSession.subsonicCredentials)"
 
     session.request(
       url, method: method, parameters: parameters, encoding: encoding,
@@ -108,8 +112,10 @@ class APIManager {
         }
       }
     )
-    .validate(statusCode: 200..<500)
+    .validate(statusCode: 200..<300)
     .responseDecodable(of: T.self) { response in
+      Self.notifyIfSessionExpired(
+        response: response.response, error: response.error, authSession: authSession)
       completion(response)
     }
   }
@@ -171,6 +177,19 @@ class APIManager {
 }
 
 extension APIManager {
+  /// Posts .sessionExpired when the underlying HTTP response is 401/403.
+  /// Centralizes ghost-session recovery so NDEndpoint + Subsonic callers do
+  /// not need to duplicate status-code inspection.
+  fileprivate static func notifyIfSessionExpired(
+    response: HTTPURLResponse?, error: AFError?, authSession: AuthSessionSnapshot
+  ) {
+    let status = response?.statusCode ?? error?.responseCode
+    guard let code = status, code == 401 || code == 403 else { return }
+    DispatchQueue.main.async {
+      NotificationCenter.default.post(name: .sessionExpired, object: authSession)
+    }
+  }
+
   func login<T: Decodable>(
     endpoint: String, parameters: Parameters?,
     completion: @escaping (DataResponse<T, AFError>) -> Void
@@ -184,7 +203,7 @@ extension APIManager {
         request.timeoutInterval = 10
       }
     )
-    .validate(statusCode: 200..<500)
+    .validate(statusCode: 200..<300)
     .responseDecodable(of: T.self) { response in
       completion(response)
     }
@@ -205,4 +224,8 @@ extension APIManager {
       completion(response)
     }
   }
+}
+
+extension Notification.Name {
+  static let sessionExpired = Notification.Name("flo.sessionExpired")
 }

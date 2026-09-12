@@ -17,7 +17,7 @@ struct PlaylistsView: View {
       VStack(alignment: .leading) {
         if let image = UIImage(
           contentsOfFile: viewModel.getPlaylistCoverArt(
-            id: playlist.id, coverArtId: playlist.coverArtId))
+            id: playlist.id, coverArtId: playlist.coverArtId, playlistName: playlist.name))
         {
           Image(uiImage: image)
             .resizable()
@@ -30,7 +30,7 @@ struct PlaylistsView: View {
           LazyImage(
             url: URL(
               string: viewModel.getPlaylistCoverArt(
-                id: playlist.id, coverArtId: playlist.coverArtId))
+                id: playlist.id, coverArtId: playlist.coverArtId, playlistName: playlist.name))
           ) { state in
             if let image = state.image {
               image

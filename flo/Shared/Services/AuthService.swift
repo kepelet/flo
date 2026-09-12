@@ -15,11 +15,19 @@ enum IAPSessionCheckResult {
   case unreachable
 }
 
+struct AuthSessionSnapshot: Equatable {
+  let generation: UInt64
+  let ndToken: String
+  let subsonicCredentials: String
+}
+
 class AuthService {
   static let shared = AuthService()
 
   private var NDToken: String?
   private var subsonicParams: String?
+  private var credentialGeneration: UInt64 = 0
+  private let credentialsLock = NSLock()
   private var authMode: AuthMode = .standard
 
   private init() {
@@ -30,6 +38,7 @@ class AuthService {
         NDToken = data.token
         subsonicParams =
           "?u=\(data.username)&t=\(data.subsonicToken)&s=\(data.subsonicSalt)&v=\(AppMeta.subsonicApiVersion)&c=\(AppMeta.name)&f=json"
+        credentialGeneration = 1
       }
     }
 
@@ -39,19 +48,30 @@ class AuthService {
   }
 
   func getCreds(key: String = "") -> String {
+    let snapshot = sessionSnapshot()
     if key == "NDToken" {
-      if let token = NDToken {
-        return token
-      }
+      return snapshot.ndToken
     }
 
     if key == "subsonicToken" {
-      if let token = subsonicParams {
-        return token
-      }
+      return snapshot.subsonicCredentials
     }
 
     return ""
+  }
+
+  func sessionSnapshot() -> AuthSessionSnapshot {
+    credentialsLock.lock()
+    defer { credentialsLock.unlock() }
+    return AuthSessionSnapshot(
+      generation: credentialGeneration,
+      ndToken: NDToken ?? "",
+      subsonicCredentials: subsonicParams ?? ""
+    )
+  }
+
+  func isCurrentSession(_ snapshot: AuthSessionSnapshot) -> Bool {
+    sessionSnapshot() == snapshot
   }
 
   func getAuthMode() -> AuthMode {
@@ -62,8 +82,19 @@ class AuthService {
     let subsonicParams =
       "?u=\(data.username)&t=\(data.subsonicToken)&s=\(data.subsonicSalt)&v=\(AppMeta.subsonicApiVersion)&c=\(AppMeta.name)&f=json"
 
+    credentialsLock.lock()
+    defer { credentialsLock.unlock() }
+    credentialGeneration &+= 1
     self.NDToken = data.token
     self.subsonicParams = subsonicParams
+  }
+
+  func clearCreds() {
+    credentialsLock.lock()
+    defer { credentialsLock.unlock() }
+    credentialGeneration &+= 1
+    NDToken = nil
+    subsonicParams = nil
   }
 
   func setAuthMode(_ mode: AuthMode) {
@@ -108,6 +139,39 @@ class AuthService {
         }
       }
     }
+  }
+
+  /// Lightweight ND JWT liveness check for standard auth.
+  /// Standard mode previously never revalidated (ghost session when ND token
+  /// expires but Subsonic token still returns 200 for getScanStatus). Hits
+  /// `GET /api/album?_start=0&_end=1` with Bearer token and maps 401/403 →
+  /// .invalid so the caller can clear isLoggedIn.
+  func verifyNDSession(
+    serverUrl: String, token: String,
+    completion: @escaping (IAPSessionCheckResult) -> Void
+  ) {
+    guard !serverUrl.isEmpty, !token.isEmpty,
+      let url = URL(string: "\(serverUrl)/api/album?_start=0&_end=1")
+    else {
+      completion(.unreachable)
+      return
+    }
+    var request = URLRequest(url: url)
+    request.setValue("Bearer \(token)", forHTTPHeaderField: API.NDAuthHeader)
+    request.timeoutInterval = 10
+    URLSession.shared.dataTask(with: request) { _, response, _ in
+      guard let http = response as? HTTPURLResponse else {
+        completion(.unreachable)
+        return
+      }
+      if http.statusCode == 401 || http.statusCode == 403 {
+        completion(.invalid("Session expired"))
+      } else if (200..<300).contains(http.statusCode) {
+        completion(.valid)
+      } else {
+        completion(.unreachable)
+      }
+    }.resume()
   }
 
   func verifySubsonicAccess(

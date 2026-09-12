@@ -136,6 +136,12 @@ struct HomeView: View {
               topAlbumCard
             }
 
+            if floooViewModel.stats?.hasTopGenre == true {
+              HStack(alignment: .top, spacing: 16) {
+                topGenreCard
+              }
+            }
+
             HStack(spacing: 16) {
               StatCard(
                 title: "Experimental",
@@ -156,7 +162,7 @@ struct HomeView: View {
           }
           .frame(maxWidth: .infinity, alignment: .leading)
           .padding(.horizontal, horizontalInset)
-          .padding(.bottom, 100)
+          .padding(.bottom, playerContentBottomPadding(viewModel: playerViewModel, iPhoneActive: 100, iPhoneInactive: 12))
         }
       }
       .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
@@ -201,6 +207,38 @@ struct HomeView: View {
         value: artistName,
         icon: "music.mic",
         color: .blue
+      )
+    }
+  }
+
+  @ViewBuilder
+  private var topGenreCard: some View {
+    let genreName = floooViewModel.stats?.topGenre ?? "N/A"
+    let canNavigate = viewModel.isLoggedIn && floooViewModel.stats?.hasTopGenre == true && !genreName.isEmpty && genreName != "N/A"
+    if canNavigate {
+      NavigationLink {
+        GenreAlbumsView(genre: Genre(name: genreName))
+          .environmentObject(albumViewModel)
+          .environmentObject(playerViewModel)
+          .environmentObject(downloadViewModel)
+      } label: {
+        StatCard(
+          title: "Top Genre",
+          value: genreName,
+          icon: "guitars",
+          color: .orange,
+          isWide: true,
+          showArrow: true
+        )
+      }
+      .buttonStyle(.plain)
+    } else {
+      StatCard(
+        title: "Top Genre",
+        value: genreName,
+        icon: "guitars",
+        color: .orange,
+        isWide: true
       )
     }
   }
@@ -282,6 +320,12 @@ struct HomeView: View {
           playerViewModel: playerViewModel,
           downloadViewModel: downloadViewModel
         )
+      }
+      .navigationDestination(for: Genre.self) { genre in
+        GenreAlbumsView(genre: genre)
+          .environmentObject(albumViewModel)
+          .environmentObject(playerViewModel)
+          .environmentObject(downloadViewModel)
       }
     }
   }

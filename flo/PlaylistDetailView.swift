@@ -54,7 +54,8 @@ struct PlaylistDetailView: View {
         PlaylistCoverImageView(
           pathOrUrlString: viewModel.getPlaylistCoverArt(
             id: viewModel.playlist.id,
-            coverArtId: viewModel.playlist.coverArtId
+            coverArtId: viewModel.playlist.coverArtId,
+            playlistName: viewModel.playlist.name
           )
         )
         .frame(width: 300, height: 300)
@@ -251,7 +252,7 @@ struct PlaylistDetailView: View {
           downloadViewModel.downloadWatcher = false  // uh anti pattern
         }
       }
-      .padding(.bottom, 100)
+      .padding(.bottom, playerContentBottomPadding(viewModel: playerViewModel, iPhoneActive: 100, iPhoneInactive: 12))
     }
   }
 }

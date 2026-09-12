@@ -17,9 +17,12 @@ class AlbumViewModel: ObservableObject {
   @Published var album: Album = Album()
   @Published var starredSongs: [Song] = []
   @Published var downloadedAlbums: [Album] = []
+  @Published var recentlyPlayedAlbums: [Album] = []
+  @Published var recentlyAddedAlbums: [Album] = []
 
   @Published var isDownloadingAlbumId: String = ""
   @Published var isDownloaded = false
+  @Published var isViewingPlaylistDownload = false
 
   @Published var isLoading = false
   @Published var error: Error?
@@ -55,8 +58,10 @@ class AlbumViewModel: ObservableObject {
       self.getAlbumById()
 
       if AlbumService.shared.isPlaylistDownload(id: album.id) {
+        self.isViewingPlaylistDownload = true
         self.fetchPlaylistSongsIntoAlbum(id: album.id)
       } else {
+        self.isViewingPlaylistDownload = false
         self.fetchSongs(id: album.id)
       }
     }
@@ -201,6 +206,32 @@ class AlbumViewModel: ObservableObject {
     }
   }
 
+  func fetchRecentlyPlayedAlbums() {
+    AlbumService.shared.getRecentlyPlayedAlbums { result in
+      DispatchQueue.main.async {
+        switch result {
+        case .success(let albums):
+          self.recentlyPlayedAlbums = albums
+        case .failure(let error):
+          self.error = error
+        }
+      }
+    }
+  }
+
+  func fetchRecentlyAddedAlbums() {
+    AlbumService.shared.getRecentlyAddedAlbums { result in
+      DispatchQueue.main.async {
+        switch result {
+        case .success(let albums):
+          self.recentlyAddedAlbums = albums
+        case .failure(let error):
+          self.error = error
+        }
+      }
+    }
+  }
+
   // MARK: - Fetch methods
 
   func fetchAllSongs() {
@@ -246,9 +277,11 @@ class AlbumViewModel: ObservableObject {
       artistName: artistName, albumName: albumName, albumId: id, albumCover: albumCover)
   }
 
-  func getPlaylistCoverArt(id: String, coverArtId: String? = nil) -> String {
-    let artId = coverArtId ?? id
-    return AlbumService.shared.getPlaylistCover(playlistId: artId)
+  func getPlaylistCoverArt(
+    id: String, coverArtId: String? = nil, playlistName: String? = nil
+  ) -> String {
+    return AlbumService.shared.getPlaylistCover(
+      playlistId: coverArtId ?? id, playlistName: playlistName)
   }
 
   func getArtistCoverArt(id: String, imageURL: String = "") -> String {
@@ -304,6 +337,17 @@ class AlbumViewModel: ObservableObject {
 
     Task(priority: .background) {
       AlbumService.shared.savePlaylist(playlistToDownload)
+
+      // The playlist's own cover lives next to its tracks so the Downloads tab
+      // can pick it up; failure must not affect the song downloads.
+      AlbumService.shared.downloadPlaylistCover(
+        playlistId: playlistToDownload.id, playlistName: playlistToDownload.name,
+        coverArtId: playlistToDownload.coverArtId
+      ) { result in
+        if case .failure(let error) = result {
+          print("Failed to save playlist cover: \(error.localizedDescription)")
+        }
+      }
 
       songs.forEach { song in
         downloadGroup.enter()
@@ -551,6 +595,38 @@ class AlbumViewModel: ObservableObject {
     await refreshCached(
       cacheKey: .songs, assign: { self.songs = $0 },
       request: AlbumService.shared.getAllSongs)
+  }
+
+  @MainActor func refreshRecentlyPlayedAlbums() async {
+    await withCheckedContinuation { continuation in
+      AlbumService.shared.getRecentlyPlayedAlbums { result in
+        DispatchQueue.main.async {
+          switch result {
+          case .success(let albums):
+            self.recentlyPlayedAlbums = albums
+          case .failure(let error):
+            self.error = error
+          }
+          continuation.resume()
+        }
+      }
+    }
+  }
+
+  @MainActor func refreshRecentlyAddedAlbums() async {
+    await withCheckedContinuation { continuation in
+      AlbumService.shared.getRecentlyAddedAlbums { result in
+        DispatchQueue.main.async {
+          switch result {
+          case .success(let albums):
+            self.recentlyAddedAlbums = albums
+          case .failure(let error):
+            self.error = error
+          }
+          continuation.resume()
+        }
+      }
+    }
   }
 
   func fetchDownloadedAlbums() {

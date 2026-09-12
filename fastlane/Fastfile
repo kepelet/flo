@@ -29,13 +29,31 @@ platform :ios do
     app_identifier = CredentialsManager::AppfileConfig.try_fetch_value(:app_identifier).first
     api_key = lane_context[SharedValues::APP_STORE_CONNECT_API_KEY]
 
+    # Race-proof: latest_testflight_build_number omits PROCESSING builds, so a
+    # just-uploaded build (e.g. 303 still PROCESSING) would return 302 and
+    # cause a duplicate 303 (409 ENTITY_ERROR.ATTRIBUTE.INVALID.DUPLICATE).
+    # Take the max of ASC latest and the repo's CURRENT_PROJECT_VERSION.
+    # Edit flo.xcodeproj directly via Xcodeproj instead of agvtool-based
+    # increment_build_number: the flo target's Debug/Release configs
+    # (C4E8D967/C4E8D968) override project-level (C4E8D953), and the watch
+    # target (C42B2599/C42B259A) must also be bumped, so we set
+    # CURRENT_PROJECT_VERSION on every build configuration (project + all
+    # targets) and save. Without this the stale target-level 304 survives
+    # and gym builds 409 "must be higher than 304".
     latest_build_number = latest_testflight_build_number(
       api_key: api_key,
       version: get_version_number(target: "flo"),
       app_identifier: app_identifier
     )
-
-    increment_build_number(build_number: (latest_build_number + 1))
+    repo_build_number = get_build_number.to_i
+    next_build_number = [latest_build_number, repo_build_number].max + 1
+    require "xcodeproj"
+    proj = Xcodeproj::Project.open(File.expand_path("../flo.xcodeproj", __dir__))
+    proj.build_configurations.each { |c| c.build_settings["CURRENT_PROJECT_VERSION"] = next_build_number.to_s }
+    proj.targets.each do |target|
+      target.build_configurations.each { |c| c.build_settings["CURRENT_PROJECT_VERSION"] = next_build_number.to_s }
+    end
+    proj.save
   end
 
   desc "build app"
@@ -100,13 +118,31 @@ platform :mac do
     app_identifier = CredentialsManager::AppfileConfig.try_fetch_value(:app_identifier).first
     api_key = lane_context[SharedValues::APP_STORE_CONNECT_API_KEY]
 
+    # Race-proof: latest_testflight_build_number omits PROCESSING builds, so a
+    # just-uploaded build (e.g. 303 still PROCESSING) would return 302 and
+    # cause a duplicate 303 (409 ENTITY_ERROR.ATTRIBUTE.INVALID.DUPLICATE).
+    # Take the max of ASC latest and the repo's CURRENT_PROJECT_VERSION.
+    # Edit flo.xcodeproj directly via Xcodeproj instead of agvtool-based
+    # increment_build_number: the flo target's Debug/Release configs
+    # (C4E8D967/C4E8D968) override project-level (C4E8D953), and the watch
+    # target (C42B2599/C42B259A) must also be bumped, so we set
+    # CURRENT_PROJECT_VERSION on every build configuration (project + all
+    # targets) and save. Without this the stale target-level 304 survives
+    # and gym builds 409 "must be higher than 304".
     latest_build_number = latest_testflight_build_number(
       api_key: api_key,
       version: get_version_number(target: "flo"),
       app_identifier: app_identifier
     )
-
-    increment_build_number(build_number: (latest_build_number + 1))
+    repo_build_number = get_build_number.to_i
+    next_build_number = [latest_build_number, repo_build_number].max + 1
+    require "xcodeproj"
+    proj = Xcodeproj::Project.open(File.expand_path("../flo.xcodeproj", __dir__))
+    proj.build_configurations.each { |c| c.build_settings["CURRENT_PROJECT_VERSION"] = next_build_number.to_s }
+    proj.targets.each do |target|
+      target.build_configurations.each { |c| c.build_settings["CURRENT_PROJECT_VERSION"] = next_build_number.to_s }
+    end
+    proj.save
   end
 
   desc "build the Mac Catalyst app"

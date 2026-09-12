@@ -20,7 +20,10 @@ struct SongView: View {
       ForEach(Array(viewModel.album.songs.enumerated()), id: \.element) { idx, song in
         VStack {
           HStack(alignment: .top) {
-            Text("\(song.trackNumber.description)")
+            Text(
+              viewModel.isViewingPlaylistDownload
+                ? "\(idx + 1)" : "\(song.trackNumber.description)"
+            )
               .customFont(.caption1)
               .foregroundColor(.gray)
               .padding(.trailing, 5)

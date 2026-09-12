@@ -72,7 +72,7 @@ struct CachedSongsView: View {
       }
       .padding(.top, 10)
       .padding(
-        .bottom, playerViewModel.hasNowPlaying() && !playerViewModel.shouldHidePlayer ? 100 : 0)
+        .bottom, playerContentBottomPadding(viewModel: playerViewModel, iPhoneActive: 100, iPhoneInactive: 0))
     }
     .navigationTitle("Cached")
   }

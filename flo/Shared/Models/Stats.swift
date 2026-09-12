@@ -10,6 +10,7 @@ struct Stats {
   let topAlbum: String
   let topAlbumArtist: String
   let topAlbumId: String
+  let topGenre: String
 
   var hasNavigableTopArtist: Bool {
     !topArtist.isEmpty && topArtist != "N/A"
@@ -17,5 +18,9 @@ struct Stats {
 
   var hasNavigableTopAlbum: Bool {
     (!topAlbumId.isEmpty || !topAlbum.isEmpty) && topAlbum != "N/A"
+  }
+
+  var hasTopGenre: Bool {
+    !topGenre.isEmpty && topGenre != "N/A"
   }
 }

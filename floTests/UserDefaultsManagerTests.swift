@@ -23,6 +23,9 @@ final class UserDefaultsManagerTests: XCTestCase {
       UserDefaultsKeys.saveLoginInfo,
       UserDefaultsKeys.LRCLIBServerURL,
       UserDefaultsKeys.streamCacheMaxSize,
+      UserDefaultsKeys.libraryViewV2,
+      UserDefaultsKeys.uiFontScale,
+      UserDefaultsKeys.libraryV2Segment,
     ]
 
     for key in keys {
@@ -43,6 +46,9 @@ final class UserDefaultsManagerTests: XCTestCase {
       UserDefaultsKeys.saveLoginInfo,
       UserDefaultsKeys.LRCLIBServerURL,
       UserDefaultsKeys.streamCacheMaxSize,
+      UserDefaultsKeys.libraryViewV2,
+      UserDefaultsKeys.uiFontScale,
+      UserDefaultsKeys.libraryV2Segment,
     ]
 
     for key in keys {
@@ -187,5 +193,85 @@ final class UserDefaultsManagerTests: XCTestCase {
   func testPlayerBackground_alwaysReturnsTranslucent() {
     // per the implementation, playerBackground always returns translucent
     XCTAssertEqual(UserDefaultsManager.playerBackground, PlayerBackground.translucent)
+  }
+
+  // MARK: - libraryViewV2
+
+  func testLibraryViewV2_getDefault() {
+    XCTAssertFalse(UserDefaultsManager.libraryViewV2)
+  }
+
+  func testLibraryViewV2_setAndGet() {
+    UserDefaultsManager.libraryViewV2 = true
+    XCTAssertTrue(UserDefaultsManager.libraryViewV2)
+    UserDefaultsManager.libraryViewV2 = false
+    XCTAssertFalse(UserDefaultsManager.libraryViewV2)
+  }
+
+  // MARK: - uiFontScale
+
+  func testUiFontScale_getDefault() {
+    XCTAssertEqual(UserDefaultsManager.uiFontScale, 1.0, accuracy: 0.001)
+  }
+
+  func testUiFontScale_setAndGet() {
+    UserDefaultsManager.uiFontScale = 1.15
+    XCTAssertEqual(UserDefaultsManager.uiFontScale, 1.15, accuracy: 0.001)
+  }
+
+  func testUiFontScale_clampingLowerBound() {
+    UserDefaultsManager.uiFontScale = 0.5
+    XCTAssertEqual(UserDefaultsManager.uiFontScale, 0.8, accuracy: 0.001)
+    // persisted value should also be clamped
+    XCTAssertEqual(UserDefaults.standard.float(forKey: UserDefaultsKeys.uiFontScale), 0.8, accuracy: 0.001)
+  }
+
+  func testUiFontScale_clampingUpperBound() {
+    UserDefaultsManager.uiFontScale = 2.0
+    XCTAssertEqual(UserDefaultsManager.uiFontScale, 1.4, accuracy: 0.001)
+    XCTAssertEqual(UserDefaults.standard.float(forKey: UserDefaultsKeys.uiFontScale), 1.4, accuracy: 0.001)
+  }
+
+  func testUiFontScale_persistenceRoundTrip() {
+    UserDefaultsManager.uiFontScale = 0.85
+    XCTAssertEqual(UserDefaultsManager.uiFontScale, 0.85, accuracy: 0.001)
+    UserDefaultsManager.uiFontScale = 1.3
+    XCTAssertEqual(UserDefaultsManager.uiFontScale, 1.3, accuracy: 0.001)
+    // Simulate fresh read from UserDefaults
+    let raw = UserDefaults.standard.float(forKey: UserDefaultsKeys.uiFontScale)
+    XCTAssertEqual(raw, 1.3, accuracy: 0.001)
+  }
+
+  func testUiFontScale_clampOnRead() {
+    // Directly write out-of-bounds value bypassing manager, read should clamp
+    UserDefaults.standard.set(Float(0.1), forKey: UserDefaultsKeys.uiFontScale)
+    XCTAssertEqual(UserDefaultsManager.uiFontScale, 0.8, accuracy: 0.001)
+    UserDefaults.standard.set(Float(5.0), forKey: UserDefaultsKeys.uiFontScale)
+    XCTAssertEqual(UserDefaultsManager.uiFontScale, 1.4, accuracy: 0.001)
+  }
+
+  // MARK: - libraryV2Segment
+
+  func testLibraryV2Segment_getDefault() {
+    XCTAssertEqual(UserDefaultsManager.libraryV2Segment, LibraryV2Segment.library.rawValue)
+  }
+
+  func testLibraryV2Segment_setAndGet_library() {
+    UserDefaultsManager.libraryV2Segment = LibraryV2Segment.library.rawValue
+    XCTAssertEqual(UserDefaultsManager.libraryV2Segment, LibraryV2Segment.library.rawValue)
+  }
+
+  func testLibraryV2Segment_setAndGet_downloads() {
+    UserDefaultsManager.libraryV2Segment = LibraryV2Segment.downloads.rawValue
+    XCTAssertEqual(UserDefaultsManager.libraryV2Segment, LibraryV2Segment.downloads.rawValue)
+  }
+
+  func testLibraryV2Segment_persistenceRoundTrip() {
+    UserDefaultsManager.libraryV2Segment = LibraryV2Segment.downloads.rawValue
+    XCTAssertEqual(UserDefaultsManager.libraryV2Segment, "Downloads")
+    let raw = UserDefaults.standard.string(forKey: UserDefaultsKeys.libraryV2Segment)
+    XCTAssertEqual(raw, "Downloads")
+    UserDefaultsManager.libraryV2Segment = LibraryV2Segment.library.rawValue
+    XCTAssertEqual(UserDefaultsManager.libraryV2Segment, "Library")
   }
 }
