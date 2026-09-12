@@ -22,6 +22,7 @@ class AlbumViewModel: ObservableObject {
 
   @Published var isDownloadingAlbumId: String = ""
   @Published var isDownloaded = false
+  @Published var isViewingPlaylistDownload = false
 
   @Published var isLoading = false
   @Published var error: Error?
@@ -57,8 +58,10 @@ class AlbumViewModel: ObservableObject {
       self.getAlbumById()
 
       if AlbumService.shared.isPlaylistDownload(id: album.id) {
+        self.isViewingPlaylistDownload = true
         self.fetchPlaylistSongsIntoAlbum(id: album.id)
       } else {
+        self.isViewingPlaylistDownload = false
         self.fetchSongs(id: album.id)
       }
     }
