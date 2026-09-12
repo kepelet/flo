@@ -15,11 +15,19 @@ enum IAPSessionCheckResult {
   case unreachable
 }
 
+struct AuthSessionSnapshot: Equatable {
+  let generation: UInt64
+  let ndToken: String
+  let subsonicCredentials: String
+}
+
 class AuthService {
   static let shared = AuthService()
 
   private var NDToken: String?
   private var subsonicParams: String?
+  private var credentialGeneration: UInt64 = 0
+  private let credentialsLock = NSLock()
   private var authMode: AuthMode = .standard
 
   private init() {
@@ -30,6 +38,7 @@ class AuthService {
         NDToken = data.token
         subsonicParams =
           "?u=\(data.username)&t=\(data.subsonicToken)&s=\(data.subsonicSalt)&v=\(AppMeta.subsonicApiVersion)&c=\(AppMeta.name)&f=json"
+        credentialGeneration = 1
       }
     }
 
@@ -39,19 +48,30 @@ class AuthService {
   }
 
   func getCreds(key: String = "") -> String {
+    let snapshot = sessionSnapshot()
     if key == "NDToken" {
-      if let token = NDToken {
-        return token
-      }
+      return snapshot.ndToken
     }
 
     if key == "subsonicToken" {
-      if let token = subsonicParams {
-        return token
-      }
+      return snapshot.subsonicCredentials
     }
 
     return ""
+  }
+
+  func sessionSnapshot() -> AuthSessionSnapshot {
+    credentialsLock.lock()
+    defer { credentialsLock.unlock() }
+    return AuthSessionSnapshot(
+      generation: credentialGeneration,
+      ndToken: NDToken ?? "",
+      subsonicCredentials: subsonicParams ?? ""
+    )
+  }
+
+  func isCurrentSession(_ snapshot: AuthSessionSnapshot) -> Bool {
+    sessionSnapshot() == snapshot
   }
 
   func getAuthMode() -> AuthMode {
@@ -62,8 +82,19 @@ class AuthService {
     let subsonicParams =
       "?u=\(data.username)&t=\(data.subsonicToken)&s=\(data.subsonicSalt)&v=\(AppMeta.subsonicApiVersion)&c=\(AppMeta.name)&f=json"
 
+    credentialsLock.lock()
+    defer { credentialsLock.unlock() }
+    credentialGeneration &+= 1
     self.NDToken = data.token
     self.subsonicParams = subsonicParams
+  }
+
+  func clearCreds() {
+    credentialsLock.lock()
+    defer { credentialsLock.unlock() }
+    credentialGeneration &+= 1
+    NDToken = nil
+    subsonicParams = nil
   }
 
   func setAuthMode(_ mode: AuthMode) {

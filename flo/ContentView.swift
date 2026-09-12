@@ -234,10 +234,13 @@ struct ContentView: View {
               .environmentObject(albumViewModel).environmentObject(playerViewModel).environmentObject(downloadViewModel).environmentObject(libraryRouter).environmentObject(authViewModel)
             LibrarySearchTabView().tabItem { Label("Search", systemImage: "magnifyingglass") }
               .tag(AppTab.search)
-              .environmentObject(albumViewModel).environmentObject(playerViewModel).environmentObject(downloadViewModel)
+              .environmentObject(albumViewModel).environmentObject(playerViewModel).environmentObject(downloadViewModel).environmentObject(authViewModel)
             PreferencesView(authViewModel: authViewModel).tabItem { Label("Preferences", systemImage: "gear") }
               .tag(AppTab.preferences)
               .environmentObject(playerViewModel).environmentObject(floooViewModel).environmentObject(inAppPurchaseManager)
+            if UserDefaultsManager.enableDebug {
+              ConsoleView().tabItem { Label("Debug", systemImage: "terminal") }.tag(AppTab.debug)
+            }
           }
         }
       } else {
@@ -574,7 +577,8 @@ struct ContentView: View {
 
             if isPanelVisible {
               PlayerSidePanelView(
-                activePanel: $floatingSidePanel, viewModel: playerViewModel
+                activePanel: $floatingSidePanel, viewModel: playerViewModel,
+                sidePanelWidth: sidePanelWidth
               )
               .frame(width: sidePanelWidth)
               .frame(maxHeight: .infinity, alignment: .top)
@@ -735,7 +739,7 @@ struct ContentView: View {
       } else {
         tabShortcut(.home, key: "1")
         tabShortcut(.library, key: "2")
-        tabShortcut(.downloads, key: "3")
+        conditionalShortcut(v2Tab: .search, legacyTab: .downloads, key: "3")
         tabShortcut(.preferences, key: "4")
         tabShortcut(.preferences, key: ",")
         searchShortcut(key: "f")

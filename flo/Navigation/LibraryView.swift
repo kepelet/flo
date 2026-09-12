@@ -767,14 +767,14 @@ struct LibraryView: View {
   private func v2PlaylistCover(playlist: Playlist) -> some View {
     let key = playlist.id.isEmpty ? playlist.name : playlist.id
     return Group {
-      if let local = UIImage(contentsOfFile: viewModel.getPlaylistCoverArt(id: playlist.id, coverArtId: playlist.coverArtId)) {
+      if let local = UIImage(contentsOfFile: viewModel.getPlaylistCoverArt(id: playlist.id, coverArtId: playlist.coverArtId, playlistName: playlist.name)) {
         Image(uiImage: local)
           .resizable()
           .aspectRatio(contentMode: .fill)
           .frame(width: 120, height: 120)
           .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
       } else {
-        LazyImage(url: URL(string: viewModel.getPlaylistCoverArt(id: playlist.id, coverArtId: playlist.coverArtId))) { state in
+        LazyImage(url: URL(string: viewModel.getPlaylistCoverArt(id: playlist.id, coverArtId: playlist.coverArtId, playlistName: playlist.name))) { state in
           if let image = state.image {
             image
               .resizable()

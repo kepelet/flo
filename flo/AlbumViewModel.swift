@@ -601,7 +601,12 @@ class AlbumViewModel: ObservableObject {
     await withCheckedContinuation { continuation in
       AlbumService.shared.getRecentlyPlayedAlbums { result in
         DispatchQueue.main.async {
-          if case .success(let albums) = result { self.recentlyPlayedAlbums = albums }
+          switch result {
+          case .success(let albums):
+            self.recentlyPlayedAlbums = albums
+          case .failure(let error):
+            self.error = error
+          }
           continuation.resume()
         }
       }
@@ -612,7 +617,12 @@ class AlbumViewModel: ObservableObject {
     await withCheckedContinuation { continuation in
       AlbumService.shared.getRecentlyAddedAlbums { result in
         DispatchQueue.main.async {
-          if case .success(let albums) = result { self.recentlyAddedAlbums = albums }
+          switch result {
+          case .success(let albums):
+            self.recentlyAddedAlbums = albums
+          case .failure(let error):
+            self.error = error
+          }
           continuation.resume()
         }
       }

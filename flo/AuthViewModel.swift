@@ -43,7 +43,7 @@ class AuthViewModel: ObservableObject {
 
   init() {
     NotificationCenter.default.addObserver(
-      self, selector: #selector(handleSessionExpired), name: .sessionExpired, object: nil)
+      self, selector: #selector(handleSessionExpired(_:)), name: .sessionExpired, object: nil)
 
     do {
       if let jsonString = try KeychainManager.getAuthCreds(),
@@ -63,10 +63,12 @@ class AuthViewModel: ObservableObject {
           )
           AuthService.shared.setCreds(data)
           isLoggedIn = true
+          let verificationSession = AuthService.shared.sessionSnapshot()
 
           AuthService.shared.verifySubsonicAccess(data, serverUrl: serverUrl) { result in
             if case .invalid = result {
               DispatchQueue.main.async {
+                guard AuthService.shared.isCurrentSession(verificationSession) else { return }
                 self.logout()
               }
             }
@@ -86,6 +88,7 @@ class AuthViewModel: ObservableObject {
           )
           AuthService.shared.setCreds(data)
           isLoggedIn = true
+          let verificationSession = AuthService.shared.sessionSnapshot()
 
           // Standard auth was previously never revalidated (only IAP via
           // verifySubsonicAccess in 7a9f844). A stale ND JWT therefore
@@ -97,6 +100,7 @@ class AuthViewModel: ObservableObject {
             result in
             if case .invalid = result {
               DispatchQueue.main.async {
+                guard AuthService.shared.isCurrentSession(verificationSession) else { return }
                 self.logout()
               }
             }
@@ -108,7 +112,10 @@ class AuthViewModel: ObservableObject {
     }
   }
 
-  @objc private func handleSessionExpired() {
+  @objc private func handleSessionExpired(_ notification: Notification) {
+    guard let requestSession = notification.object as? AuthSessionSnapshot,
+      AuthService.shared.isCurrentSession(requestSession)
+    else { return }
     logout()
   }
 
@@ -168,6 +175,7 @@ class AuthViewModel: ObservableObject {
   func logout() {
     do {
       try KeychainManager.removeAuthCreds()
+      AuthService.shared.clearCreds()
 
       destroySavedPassword()
 

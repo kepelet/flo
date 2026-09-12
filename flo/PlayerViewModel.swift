@@ -136,7 +136,8 @@ class PlayerViewModel: ObservableObject {
   func observeInterruptionNotifications() {
     NotificationCenter.default
       .publisher(for: AVAudioSession.interruptionNotification)
-      .sink { notification in
+      .sink { [weak self] notification in
+        guard let self else { return }
         self.handleInterruptionNotification(notification)
       }
       .store(in: &interruptionObservation)
@@ -145,7 +146,8 @@ class PlayerViewModel: ObservableObject {
   func observeRouteChangeNotifications() {
     NotificationCenter.default
       .publisher(for: AVAudioSession.routeChangeNotification)
-      .sink { _ in
+      .sink { [weak self] _ in
+        guard let self else { return }
         self.updateAudioRoute()
       }
       .store(in: &routeChangeObservation)
@@ -266,7 +268,10 @@ class PlayerViewModel: ObservableObject {
       stallRetryCount += 1
       DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { [weak self] in
         guard let self else { return }
-        if self.player?.timeControlStatus == .waitingToPlayAtSpecifiedRate || self.player?.rate == 0 {
+        if self.isPlaying
+          && (self.player?.timeControlStatus == .waitingToPlayAtSpecifiedRate
+            || self.player?.rate == 0)
+        {
           self.player?.play()
           self.updateNowPlayingInfo(progress: self.progress, rate: 1.0)
         }

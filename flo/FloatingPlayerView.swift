@@ -154,6 +154,7 @@ struct PadFloatingPlayerView: View {
     centerHoverDismissTask = Task { @MainActor in
       try? await Task.sleep(nanoseconds: 5_000_000_000)
       guard !Task.isCancelled else { return }
+      guard !viewModel.isSeeking else { return }
       isCenterHovering = false
     }
   }
@@ -271,7 +272,9 @@ struct PadFloatingPlayerView: View {
       cancelVolumeDismiss()
     }
     .onChange(of: viewModel.isSeeking) { seeking in
-      if seeking && isCenterHovering {
+      if seeking {
+        cancelCenterHoverDismiss()
+      } else if isCenterHovering {
         scheduleCenterHoverDismiss()
       }
     }
