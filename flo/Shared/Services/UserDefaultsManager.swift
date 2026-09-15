@@ -137,4 +137,26 @@ class UserDefaultsManager {
       UserDefaults.standard.set(newValue, forKey: UserDefaultsKeys.floPlus)
     }
   }
+
+  // The Navidrome library marked as "audioplay". Navidrome library IDs start at
+  // 1, so a value of 0 means no library has been marked as audioplay.
+  static var audioplayLibraryId: Int {
+    get {
+      return UserDefaults.standard.integer(forKey: UserDefaultsKeys.audioplayLibraryId)
+    }
+    set {
+      UserDefaults.standard.set(newValue, forKey: UserDefaultsKeys.audioplayLibraryId)
+    }
+  }
+
+  // The library the user has chosen to display in the Library view.
+  // 0 means "all libraries".
+  static var selectedLibraryId: Int {
+    get {
+      return UserDefaults.standard.integer(forKey: UserDefaultsKeys.selectedLibraryId)
+    }
+    set {
+      UserDefaults.standard.set(newValue, forKey: UserDefaultsKeys.selectedLibraryId)
+    }
+  }
 }

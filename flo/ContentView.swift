@@ -10,6 +10,7 @@ import SwiftUI
 
 struct ContentView: View {
   @AppStorage(UserDefaultsKeys.enableDebug) private var enableDebug = false
+  @AppStorage(UserDefaultsKeys.audioplayLibraryId) private var audioplayLibraryId: Int = 0
   @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
   @State private var isPlayerExpanded: Bool = false
@@ -87,6 +88,7 @@ struct ContentView: View {
         }.environmentObject(playerViewModel).environmentObject(downloadViewModel)
           .onAppear {
             albumViewModel.fetchAlbums()
+            albumViewModel.fetchLibraries()
           }
       }
 
@@ -96,7 +98,7 @@ struct ContentView: View {
         albumViewModel.fetchDownloadedAlbums()
       }.badge(downloadViewModel.getRemainingDownloadItems())
 
-      PreferencesView(authViewModel: authViewModel).tabItem {
+      PreferencesView(authViewModel: authViewModel, albumViewModel: albumViewModel).tabItem {
         Label("Preferences", systemImage: "gear")
       }.environmentObject(playerViewModel).environmentObject(floooViewModel).environmentObject(
         inAppPurchaseManager)
@@ -168,8 +170,24 @@ struct ContentView: View {
                 .environmentObject(downloadViewModel)
                 .onAppear {
                   albumViewModel.fetchAlbums()
+                  albumViewModel.fetchLibraries()
                 }
             )
+          }
+
+          if audioplayLibraryId != 0 {
+            Tab("Audioplays", systemImage: "books.vertical") {
+              sidebarTabContent(
+                NavigationStack {
+                  AudioplaysView(viewModel: albumViewModel)
+                    .environmentObject(playerViewModel)
+                    .environmentObject(downloadViewModel)
+                }
+                .onAppear {
+                  albumViewModel.fetchAlbums()
+                }
+              )
+            }
           }
 
           Tab("Artists", systemImage: "music.mic") {
@@ -248,7 +266,7 @@ struct ContentView: View {
 
       Tab("Preferences", systemImage: "gear") {
         sidebarTabContent(
-          PreferencesView(authViewModel: authViewModel)
+          PreferencesView(authViewModel: authViewModel, albumViewModel: albumViewModel)
             .environmentObject(playerViewModel)
             .environmentObject(floooViewModel)
             .environmentObject(inAppPurchaseManager)

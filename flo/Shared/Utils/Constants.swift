@@ -17,6 +17,7 @@ enum API {
     static let getArtists = "/api/artist"
     static let getPlaylists = "/api/playlist"
     static let getSong = "/api/song"
+    static let getLibraries = "/api/library"
     static let shareAlbum = "/api/share"
     static let listenBrainzLink = "/api/listenbrainz/link"
     static let lastFMLink = "/api/lastfm/link"
@@ -62,6 +63,8 @@ enum UserDefaultsKeys {
   static let LRCLIBServerURL = "LRCLIBServerURL"
   static let floPlus = "floPlus"
   static let streamCacheMaxSize = "streamCacheMaxSize"
+  static let audioplayLibraryId = "audioplayLibraryId"
+  static let selectedLibraryId = "selectedLibraryId"
 }
 
 enum KeychainKeys {

@@ -38,6 +38,8 @@ struct Album: Codable, Identifiable, Playable {
   var songs: [Song] = []
   var genre: String = ""
   var minYear: Int = 0
+  var libraryId: Int = 0
+  var libraryName: String = ""
 
   enum CodingKeys: String, CodingKey {
     case id
@@ -48,6 +50,8 @@ struct Album: Codable, Identifiable, Playable {
     case genre
     case minYear
     case songs
+    case libraryId
+    case libraryName
   }
 
   init(from decoder: any Decoder) throws {
@@ -69,12 +73,14 @@ struct Album: Codable, Identifiable, Playable {
     self.genre = try container.decode(String.self, forKey: .genre)
     self.minYear = try container.decode(Int.self, forKey: .minYear)
     self.songs = try container.decodeIfPresent([Song].self, forKey: .songs) ?? []
+    self.libraryId = try container.decodeIfPresent(Int.self, forKey: .libraryId) ?? 0
+    self.libraryName = try container.decodeIfPresent(String.self, forKey: .libraryName) ?? ""
   }
 
   init(
     id: String = "", name: String = "", albumArtist: String = "", artist: String = "",
     songs: [Song] = [], genre: String = "",
-    minYear: Int = 0
+    minYear: Int = 0, libraryId: Int = 0, libraryName: String = ""
   ) {
     self.id = id
     self.name = name
@@ -83,6 +89,8 @@ struct Album: Codable, Identifiable, Playable {
     self.songs = songs
     self.genre = genre
     self.minYear = minYear
+    self.libraryId = libraryId
+    self.libraryName = libraryName
   }
 
   #if os(iOS)
