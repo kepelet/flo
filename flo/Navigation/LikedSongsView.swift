@@ -9,11 +9,20 @@ import SwiftUI
 struct LikedSongsView: View {
   @EnvironmentObject private var viewModel: AlbumViewModel
   @EnvironmentObject private var playerViewModel: PlayerViewModel
+  @State private var searchText = ""
+
+  private var filteredSongs: [Song] {
+    if searchText.isEmpty { return viewModel.starredSongs }
+    return viewModel.starredSongs.filter { song in
+      song.title.localizedCaseInsensitiveContains(searchText)
+        || song.artist.localizedCaseInsensitiveContains(searchText)
+    }
+  }
 
   var body: some View {
     ScrollView {
       LazyVStack {
-        ForEach(Array(viewModel.starredSongs.enumerated()), id: \.element.id) { idx, song in
+        ForEach(Array(filteredSongs.enumerated()), id: \.element.id) { idx, song in
           VStack {
             HStack {
               LazyImage(url: URL(string: viewModel.getAlbumCoverArt(id: song.albumId))) { state in
@@ -32,11 +41,17 @@ struct LikedSongsView: View {
               }
 
               VStack(alignment: .leading) {
-                Text(song.title)
-                  .customFont(.headline)
-                  .multilineTextAlignment(.leading)
-                  .lineLimit(2)
-                  .padding(.bottom, 3)
+                HStack(alignment: .center, spacing: 6) {
+                  Text(song.title)
+                    .customFont(.headline)
+                    .multilineTextAlignment(.leading)
+                    .lineLimit(2)
+
+                  if song.isExplicit {
+                    ExplicitBadge(size: .compact)
+                  }
+                }
+                .padding(.bottom, 3)
 
                 Text(song.artist)
                   .customFont(.subheadline)
@@ -55,15 +70,18 @@ struct LikedSongsView: View {
           }
           .onTapGesture {
             let liked = SongCollection(
-              id: "starred-songs", name: "Liked Songs", songs: viewModel.starredSongs)
+              id: "starred-songs", name: "Liked Songs", songs: filteredSongs)
             playerViewModel.playBySong(idx: idx, item: liked, isFromLocal: false)
           }
           .frame(maxWidth: .infinity, alignment: .leading)
         }
       }
       .padding(.top, 10)
-      .padding(.bottom, 100)
+      .padding(.bottom, playerContentBottomPadding(viewModel: playerViewModel, iPhoneActive: 100, iPhoneInactive: 12))
       .navigationTitle("Liked Songs")
+      .searchable(
+        text: $searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search"
+      )
     }
     .onAppear {
       viewModel.fetchStarredSongs()

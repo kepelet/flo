@@ -35,17 +35,58 @@ class FloooService {
   @MainActor
   func generateStats(_ listeningActivity: [HistoryEntity]) async -> Stats? {
     // Extract values on the main thread — NSManagedObjects must not cross thread boundaries
-    let rawEntries: [(albumName: String, artistName: String)] = listeningActivity.map {
-      (albumName: $0.albumName ?? "", artistName: $0.artistName ?? "")
+    let rawEntries: [(albumId: String, albumName: String, artistName: String, trackName: String)] =
+      listeningActivity.map {
+        (
+          albumId: $0.albumId ?? "",
+          albumName: $0.albumName ?? "",
+          artistName: $0.artistName ?? "",
+          trackName: $0.trackName ?? ""
+        )
+      }
+
+    // Build genre lookup from local caches on the main thread.
+    // HistoryEntity has no genre; we resolve via cached albums/songs.
+    var albumIdToGenre: [String: String] = [:]
+    var albumNameToGenre: [String: String] = [:]
+
+    // 1) Downloaded albums (PlaylistEntity stores album genre)
+    let playlistEntities = CoreDataManager.shared.getRecordsByEntity(entity: PlaylistEntity.self)
+    for entity in playlistEntities {
+      if let id = entity.id, !id.isEmpty, let genre = entity.genre, !genre.isEmpty,
+        genre != "Unknown Genre"
+      {
+        if albumIdToGenre[id] == nil {
+          albumIdToGenre[id] = genre
+        }
+      }
+      if let name = entity.name, !name.isEmpty, let genre = entity.genre, !genre.isEmpty,
+        genre != "Unknown Genre"
+      {
+        if albumNameToGenre[name] == nil {
+          albumNameToGenre[name] = genre
+        }
+      }
+    }
+
+    // 2) Library cache (albums fetched from server) — covers non-downloaded listening history
+    if let cachedAlbums: [Album] = LibraryCacheManager.shared.load([Album].self, forKey: "albums") {
+      for album in cachedAlbums where !album.genre.isEmpty && album.genre != "Unknown Genre" {
+        if !album.id.isEmpty, albumIdToGenre[album.id] == nil {
+          albumIdToGenre[album.id] = album.genre
+        }
+        if !album.name.isEmpty, albumNameToGenre[album.name] == nil {
+          albumNameToGenre[album.name] = album.genre
+        }
+      }
     }
 
     return await Task.detached(priority: .userInitiated) {
-      let albumCounts = Dictionary(grouping: rawEntries) { entry in
+      let albumGroups = Dictionary(grouping: rawEntries) { entry in
         "\(entry.albumName)|\(entry.artistName)"
       }
-      .mapValues { $0.count }
 
-      let topAlbum = albumCounts.max(by: { $0.value < $1.value })
+      let topAlbumGroup = albumGroups.max(by: { $0.value.count < $1.value.count })
 
       let artistCounts = Dictionary(grouping: rawEntries) { entry in
         entry.artistName
@@ -54,11 +95,34 @@ class FloooService {
 
       let topArtist = artistCounts.max(by: { $0.value < $1.value })
 
-      let components = topAlbum?.key.split(separator: "|")
+      let components = topAlbumGroup?.key.split(separator: "|")
       let album = String(components?[0] ?? "N/A")
       let artist = String(components?[1] ?? "N/A")
+      let albumId = topAlbumGroup?.value.first(where: { !$0.albumId.isEmpty })?.albumId ?? ""
 
-      return Stats(topArtist: topArtist?.key ?? "N/A", topAlbum: album, topAlbumArtist: artist)
+      // Most-played genre via lookup against local song/album cache
+      var genreCounts: [String: Int] = [:]
+      for entry in rawEntries {
+        var genre: String?
+        if !entry.albumId.isEmpty {
+          genre = albumIdToGenre[entry.albumId]
+        }
+        if genre == nil, !entry.albumName.isEmpty {
+          genre = albumNameToGenre[entry.albumName]
+        }
+        if let g = genre, !g.isEmpty, g != "N/A", g != "Unknown Genre", g != "Unknown" {
+          genreCounts[g, default: 0] += 1
+        }
+      }
+      let topGenre = genreCounts.max(by: { $0.value < $1.value })?.key ?? "N/A"
+
+      return Stats(
+        topArtist: topArtist?.key ?? "N/A",
+        topAlbum: album,
+        topAlbumArtist: artist,
+        topAlbumId: albumId,
+        topGenre: topGenre
+      )
     }.value
   }
 
@@ -67,7 +131,7 @@ class FloooService {
 
     var listenBrainzStatus: Bool?
     var lastFMStatus: Bool?
-    var error: Error?
+    var requestError: Error?
 
     group.enter()
 
@@ -75,8 +139,8 @@ class FloooService {
       switch result {
       case .success(let status):
         listenBrainzStatus = status
-      case .failure:
-        listenBrainzStatus = false
+      case .failure(let error):
+        requestError = error
       }
 
       group.leave()
@@ -88,14 +152,19 @@ class FloooService {
       switch result {
       case .success(let status):
         lastFMStatus = status
-      case .failure:
-        lastFMStatus = false
+      case .failure(let error):
+        requestError = error
       }
 
       group.leave()
     }
 
     group.notify(queue: .main) {
+      if listenBrainzStatus == nil || lastFMStatus == nil, let requestError = requestError {
+        completion(.failure(requestError))
+        return
+      }
+
       completion(
         .success(
           AccountLinkStatus(
@@ -105,8 +174,9 @@ class FloooService {
   }
 
   func checkListenBrainzAccountStatus(completion: @escaping (Result<Bool, Error>) -> Void) {
-    APIManager.shared.NDEndpointRequest(endpoint: API.NDEndpoint.listenBrainzLink, parameters: [:])
-    {
+    APIManager.shared.NDEndpointRequest(
+      endpoint: API.NDEndpoint.listenBrainzLink, parameters: [:], timeout: 8
+    ) {
       (response: DataResponse<AccountStatusResponse, AFError>) in
       switch response.result {
       case .success(let status):
@@ -118,7 +188,9 @@ class FloooService {
   }
 
   func checkLastFMAccountStatus(completion: @escaping (Result<Bool, Error>) -> Void) {
-    APIManager.shared.NDEndpointRequest(endpoint: API.NDEndpoint.lastFMLink, parameters: [:]) {
+    APIManager.shared.NDEndpointRequest(
+      endpoint: API.NDEndpoint.lastFMLink, parameters: [:], timeout: 8
+    ) {
       (response: DataResponse<AccountStatusResponse, AFError>) in
       switch response.result {
       case .success(let status):
@@ -130,17 +202,17 @@ class FloooService {
   }
 
   func scrobbleToBuiltinEndpoint(
-    submission: Bool, songId: String,
+    submission: Bool, songId: String, time: Date? = nil, timeout: TimeInterval? = nil,
     completion: @escaping (Result<BasicSubsonicResponse, Error>) -> Void
   ) {
     var params: [String: Any] = ["submission": String(submission), "id": songId]
 
     if submission {
-      params["time"] = Int(Date().timeIntervalSince1970 * 1000)
+      params["time"] = Int((time ?? Date()).timeIntervalSince1970 * 1000)
     }
 
     APIManager.shared.SubsonicEndpointRequest(
-      endpoint: API.SubsonicEndpoint.scrobble, parameters: params
+      endpoint: API.SubsonicEndpoint.scrobble, parameters: params, timeout: timeout
     ) {
       (response: DataResponse<BasicSubsonicResponse, AFError>) in
       switch response.result {
@@ -156,5 +228,23 @@ class FloooService {
 extension FloooService {
   struct AccountStatusResponse: Decodable {
     let status: Bool
+  }
+}
+
+extension AFError {
+  var receivedServerResponse: Bool {
+    switch self {
+    case .responseValidationFailed, .responseSerializationFailed:
+      return true
+    default:
+      return false
+    }
+  }
+}
+
+extension FloooService {
+  func shouldQueueOfflineScrobble(_ error: Error) -> Bool {
+    guard let afError = error as? AFError else { return true }
+    return !afError.receivedServerResponse
   }
 }

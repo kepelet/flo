@@ -12,6 +12,10 @@ struct HomeView: View {
   @State private var showLoginSheet: Bool = false
 
   @EnvironmentObject var floooViewModel: FloooViewModel
+  @EnvironmentObject var albumViewModel: AlbumViewModel
+  @EnvironmentObject var playerViewModel: PlayerViewModel
+  @EnvironmentObject var downloadViewModel: DownloadViewModel
+  @EnvironmentObject var libraryRouter: LibraryRouter
 
   private enum ConnectionState {
     case online
@@ -125,25 +129,17 @@ struct HomeView: View {
                 color: .purple
               )
 
-              StatCard(
-                title: "Top Artist",
-                value: floooViewModel.stats?.topArtist ?? "N/A",
-                icon: "music.mic",
-                color: .blue,
-                showArrow: true
-              )
+              topArtistCard
             }
 
             HStack(alignment: .top, spacing: 16) {
-              StatCard(
-                title: "Top Album",
-                value: floooViewModel.stats?.topAlbum ?? "N/A",
-                subtitle: floooViewModel.stats?.topAlbumArtist ?? "N/A",
-                icon: "record.circle",
-                color: .pink,
-                isWide: true,
-                showArrow: true
-              )
+              topAlbumCard
+            }
+
+            if floooViewModel.stats?.hasTopGenre == true {
+              HStack(alignment: .top, spacing: 16) {
+                topGenreCard
+              }
             }
 
             HStack(spacing: 16) {
@@ -166,13 +162,130 @@ struct HomeView: View {
           }
           .frame(maxWidth: .infinity, alignment: .leading)
           .padding(.horizontal, horizontalInset)
-          .padding(.bottom, 100)
+          .padding(.bottom, playerContentBottomPadding(viewModel: playerViewModel, iPhoneActive: 100, iPhoneInactive: 12))
         }
       }
       .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
     }
     .onAppear {
       self.floooViewModel.getListeningHistory()
+      if viewModel.isLoggedIn {
+        self.albumViewModel.getArtists()
+        self.albumViewModel.fetchAlbums()
+      }
+    }
+  }
+
+  @ViewBuilder
+  private var topArtistCard: some View {
+    let artistName = floooViewModel.stats?.topArtist ?? "N/A"
+    let canNavigate = viewModel.isLoggedIn && floooViewModel.stats?.hasNavigableTopArtist == true
+    let artist =
+      canNavigate
+      ? albumViewModel.artistForNavigation(name: artistName)
+      : nil
+
+    if let artist {
+      NavigationLink {
+        ArtistDetailView(artist: artist)
+          .environmentObject(albumViewModel)
+          .environmentObject(playerViewModel)
+          .environmentObject(downloadViewModel)
+      } label: {
+        StatCard(
+          title: "Top Artist",
+          value: artistName,
+          icon: "music.mic",
+          color: .blue,
+          showArrow: true
+        )
+      }
+      .buttonStyle(.plain)
+    } else {
+      StatCard(
+        title: "Top Artist",
+        value: artistName,
+        icon: "music.mic",
+        color: .blue
+      )
+    }
+  }
+
+  @ViewBuilder
+  private var topGenreCard: some View {
+    let genreName = floooViewModel.stats?.topGenre ?? "N/A"
+    let canNavigate = viewModel.isLoggedIn && floooViewModel.stats?.hasTopGenre == true && !genreName.isEmpty && genreName != "N/A"
+    if canNavigate {
+      NavigationLink {
+        GenreAlbumsView(genre: Genre(name: genreName))
+          .environmentObject(albumViewModel)
+          .environmentObject(playerViewModel)
+          .environmentObject(downloadViewModel)
+      } label: {
+        StatCard(
+          title: "Top Genre",
+          value: genreName,
+          icon: "guitars",
+          color: .orange,
+          isWide: true,
+          showArrow: true
+        )
+      }
+      .buttonStyle(.plain)
+    } else {
+      StatCard(
+        title: "Top Genre",
+        value: genreName,
+        icon: "guitars",
+        color: .orange,
+        isWide: true
+      )
+    }
+  }
+
+  @ViewBuilder
+  private var topAlbumCard: some View {
+    let albumName = floooViewModel.stats?.topAlbum ?? "N/A"
+    let albumArtist = floooViewModel.stats?.topAlbumArtist ?? "N/A"
+    let canNavigate = viewModel.isLoggedIn && floooViewModel.stats?.hasNavigableTopAlbum == true
+    let album =
+      canNavigate
+      ? albumViewModel.albumForNavigation(
+        id: floooViewModel.stats?.topAlbumId ?? "",
+        name: albumName,
+        artist: albumArtist
+      )
+      : nil
+
+    if let album {
+      NavigationLink {
+        AlbumView(viewModel: albumViewModel)
+          .environmentObject(playerViewModel)
+          .environmentObject(downloadViewModel)
+          .onAppear {
+            albumViewModel.setActiveAlbum(album: album)
+          }
+      } label: {
+        StatCard(
+          title: "Top Album",
+          value: albumName,
+          subtitle: albumArtist,
+          icon: "record.circle",
+          color: .pink,
+          isWide: true,
+          showArrow: true
+        )
+      }
+      .buttonStyle(.plain)
+    } else {
+      StatCard(
+        title: "Top Album",
+        value: albumName,
+        subtitle: albumArtist,
+        icon: "record.circle",
+        color: .pink,
+        isWide: true
+      )
     }
   }
 
@@ -186,15 +299,33 @@ struct HomeView: View {
   }
 
   var body: some View {
-    Group {
-      if UIDevice.current.userInterfaceIdiom == .pad {
-        AnyView(mainContent.fullScreenCover(isPresented: shouldShowLoginSheet()) {
-          loginContent
-        })
-      } else {
-        AnyView(mainContent.sheet(isPresented: shouldShowLoginSheet()) {
-          loginContent
-        })
+    NavigationStack(path: $libraryRouter.homePath) {
+      Group {
+        if UIDevice.current.userInterfaceIdiom == .pad {
+          AnyView(
+            mainContent.fullScreenCover(isPresented: shouldShowLoginSheet()) {
+              loginContent
+            })
+        } else {
+          AnyView(
+            mainContent.sheet(isPresented: shouldShowLoginSheet()) {
+              loginContent
+            })
+        }
+      }
+      .navigationDestination(for: LibraryDestination.self) { destination in
+        LibraryDestinationView(
+          destination: destination,
+          albumViewModel: albumViewModel,
+          playerViewModel: playerViewModel,
+          downloadViewModel: downloadViewModel
+        )
+      }
+      .navigationDestination(for: Genre.self) { genre in
+        GenreAlbumsView(genre: genre)
+          .environmentObject(albumViewModel)
+          .environmentObject(playerViewModel)
+          .environmentObject(downloadViewModel)
       }
     }
   }
@@ -203,8 +334,16 @@ struct HomeView: View {
 struct HomeViewPreviews_Previews: PreviewProvider {
   @StateObject static var viewModel: AuthViewModel = AuthViewModel()
   @StateObject static var floooViewModel: FloooViewModel = FloooViewModel()
+  @StateObject static var albumViewModel: AlbumViewModel = AlbumViewModel()
+  @StateObject static var playerViewModel: PlayerViewModel = PlayerViewModel()
+  @StateObject static var downloadViewModel: DownloadViewModel = DownloadViewModel()
 
   static var previews: some View {
-    HomeView(viewModel: viewModel).environmentObject(floooViewModel)
+    HomeView(viewModel: viewModel)
+      .environmentObject(floooViewModel)
+      .environmentObject(albumViewModel)
+      .environmentObject(playerViewModel)
+      .environmentObject(downloadViewModel)
+      .environmentObject(LibraryRouter())
   }
 }

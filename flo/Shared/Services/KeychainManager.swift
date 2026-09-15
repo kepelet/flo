@@ -29,7 +29,6 @@ class KeychainManager {
       .accessibility(.afterFirstUnlockThisDeviceOnly)
   #endif
 
-  private static let iapAuthInfoKey = "iapAuthInfo"
   private static let authModeKey = "authMode"
 
   static func getAuthCredsAndPasswords() -> [String: Any] {
@@ -116,45 +115,6 @@ class KeychainManager {
     #endif
   }
 
-  static func getIAPAuthInfo() throws -> IAPAuthInfo? {
-    #if targetEnvironment(macCatalyst)
-      guard let jsonString = try store.get(iapAuthInfoKey),
-        let jsonData = jsonString.data(using: .utf8)
-      else {
-        return nil
-      }
-    #else
-      guard let jsonString = try keychain.get(iapAuthInfoKey),
-        let jsonData = jsonString.data(using: .utf8)
-      else {
-        return nil
-      }
-    #endif
-    return try JSONDecoder().decode(IAPAuthInfo.self, from: jsonData)
-  }
-
-  static func setIAPAuthInfo(_ info: IAPAuthInfo) throws {
-    let jsonData = try JSONEncoder().encode(info)
-    guard let jsonString = String(data: jsonData, encoding: .utf8) else {
-      throw NSError(
-        domain: "KeychainManager", code: -1,
-        userInfo: [NSLocalizedDescriptionKey: "Failed to encode IAP auth info"])
-    }
-    #if targetEnvironment(macCatalyst)
-      try store.set(jsonString, for: iapAuthInfoKey)
-    #else
-      try keychain.set(jsonString, key: iapAuthInfoKey)
-    #endif
-  }
-
-  static func removeIAPAuthInfo() throws {
-    #if targetEnvironment(macCatalyst)
-      try store.remove(iapAuthInfoKey)
-    #else
-      try keychain.remove(iapAuthInfoKey)
-    #endif
-  }
-
   static func getAuthMode() throws -> AuthMode? {
     #if targetEnvironment(macCatalyst)
       guard let rawValue = try store.get(authModeKey) else { return nil }
@@ -190,6 +150,11 @@ class KeychainManager {
   /// this app. This is intentionally simple — secure-by-isolation, not by
   /// encryption — and exists because the system Keychain refuses to work on
   /// non-sandboxed, ad-hoc-signed Catalyst builds.
+  ///
+  /// Note: `Data.write` file-protection options (`.completeFileProtection`
+  /// etc.) are iOS-only despite what availability annotations suggest — at
+  /// runtime on macOS they fail with NSFileWriteNoPermissionError (513), so
+  /// they must not be used here.
   final class FileBackedCredentialStore {
     enum StoreError: Error, LocalizedError {
       case directoryUnavailable
@@ -250,7 +215,7 @@ class KeychainManager {
           userInfo: [NSLocalizedDescriptionKey: "Failed to encode value as UTF-8"]
         )
       }
-      try data.write(to: url, options: [.atomic, .completeFileProtection])
+      try data.write(to: url, options: [.atomic])
       try? fileManager.setAttributes([.posixPermissions: 0o600], ofItemAtPath: url.path)
     }
 

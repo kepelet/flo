@@ -13,6 +13,10 @@ struct PlayerView: View {
   @Binding var isExpanded: Bool
 
   @ObservedObject var viewModel: PlayerViewModel
+  @ObservedObject var albumViewModel: AlbumViewModel
+  var onOpenLibraryDestination: ((LibraryDestination) -> Void)?
+
+  @EnvironmentObject var downloadViewModel: DownloadViewModel
 
   @State private var offset = CGSize.zero
   @State private var isDragging = false
@@ -28,9 +32,22 @@ struct PlayerView: View {
       let size = proxy.size
       let topSafeInset = max(proxy.safeAreaInsets.top, windowTopSafeInset)
       let bottomSafeInset = proxy.safeAreaInsets.bottom
-      let imageSize: CGFloat = horizontalSizeClass == .regular ? min(400, size.width * 0.4) : 300
+      let imageSize: CGFloat = {
+        guard size.width.isFinite, size.width > 0 else { return 0 }
+        if horizontalSizeClass == .regular {
+          return min(400, size.width * 0.4)
+        } else {
+          // Compact / narrow window (iPad vertical / Slide Over): clamp to available width
+          return max(0, min(300, size.width - 32))
+        }
+      }()
       let isIPadPortrait = UIDevice.current.userInterfaceIdiom == .pad && size.height > size.width
-      let queueSheetHeight = isIPadPortrait ? min(700, max(500, size.height * 0.62)) : 500
+      let queueSheetHeight: CGFloat = {
+        guard size.height.isFinite, size.height > 0 else { return 500 }
+        let raw: CGFloat = isIPadPortrait ? min(700, max(500, size.height * 0.62)) : 500
+        // Never exceed container height (prevents sheet taller than window on compact height)
+        return min(raw, max(0, size.height - 16))
+      }()
 
       ZStack {
         playerBackground()
@@ -78,7 +95,7 @@ struct PlayerView: View {
                       .fontWeight(.bold)
                       .padding(5)
                       .background(
-                        viewModel.isShuffling ? Color.gray.opacity(0.2) : Color(.systemBackground)
+                        viewModel.isShuffling ? Color.gray.opacity(0.2) : Color.clear
                       )
                       .cornerRadius(5)
                   }
@@ -101,7 +118,7 @@ struct PlayerView: View {
                       .padding(5)
                       .background(
                         viewModel.playbackMode == PlaybackMode.defaultPlayback
-                          ? Color(.systemBackground) : Color.gray.opacity(0.2)
+                          ? Color.clear : Color.gray.opacity(0.2)
                       )
                       .cornerRadius(5)
                   }
@@ -112,22 +129,28 @@ struct PlayerView: View {
 
               ScrollView {
                 LazyVStack(alignment: .leading) {
-                  ForEach(viewModel.queue.indices, id: \.self) { idx in
+                  ForEach(Array(viewModel.queue.enumerated()), id: \.offset) { idx, song in
                     HStack(alignment: .top) {
                       VStack(alignment: .leading) {
-                        Text(viewModel.queue[idx].songName ?? "")
-                          .customFont(.callout)
-                          .fontWeight(.medium)
-                          .padding(.bottom, 3)
+                        HStack(alignment: .center, spacing: 6) {
+                          Text(song.songName ?? "")
+                            .customFont(.callout)
+                            .fontWeight(.medium)
 
-                        Text(viewModel.queue[idx].artistName ?? "")
+                          if ExplicitStatus(from: song.explicitStatus).isExplicit {
+                            ExplicitBadge(size: .compact)
+                          }
+                        }
+                        .padding(.bottom, 3)
+
+                        Text(song.artistName ?? "")
                           .customFont(.caption1)
                       }
                       .frame(maxWidth: .infinity, alignment: .leading)
 
                       Spacer()
 
-                      Text(timeString(for: viewModel.queue[idx].duration)).customFont(.caption1)
+                      Text(timeString(for: song.duration)).customFont(.caption1)
                         .padding(.top, 4)
                     }
                     .padding(.vertical, 5)
@@ -160,6 +183,18 @@ struct PlayerView: View {
           .animation(.spring(duration: 0.4), value: queueDragOffset.height)
           .foregroundColor(.primary)
           .zIndex(1)
+          .overlay {
+            if showQueue {
+              Button {
+                showQueue = false
+              } label: {
+                EmptyView()
+              }
+              .keyboardShortcut(.escape, modifiers: [])
+              .frame(width: 0, height: 0)
+              .opacity(0)
+            }
+          }
           .offset(
             y: showQueue
               ? size.height - queueSheetHeight + queueDragOffset.height : size.height
@@ -188,6 +223,18 @@ struct PlayerView: View {
             }
           }
           .frame(maxHeight: .infinity)
+          .overlay {
+            if viewModel.isLyricsMode {
+              Button {
+                viewModel.toggleLyricsMode()
+              } label: {
+                EmptyView()
+              }
+              .keyboardShortcut(.escape, modifiers: [])
+              .frame(width: 0, height: 0)
+              .opacity(0)
+            }
+          }
           .onChange(of: viewModel.isLiveRadio) { isLive in
             if isLive {
               showQueue = false
@@ -195,6 +242,10 @@ struct PlayerView: View {
           }
         }
         .offset(y: offset.height)
+        .onAppear {
+          albumViewModel.getArtists()
+          albumViewModel.fetchAlbums()
+        }
         .gesture(
           DragGesture()
             .onChanged { gesture in
@@ -214,8 +265,20 @@ struct PlayerView: View {
             }
         )
       }
+      .foregroundColor(.white)
+      .overlay(alignment: .topTrailing) {
+        if !showQueue && !viewModel.isLyricsMode {
+          Button {
+            isExpanded = false
+          } label: {
+            EmptyView()
+          }
+          .keyboardShortcut(.escape, modifiers: [])
+          .frame(width: 0, height: 0)
+          .opacity(0)
+        }
+      }
     }
-    .foregroundColor(.white)
   }
 
   private var windowTopSafeInset: CGFloat {
@@ -241,60 +304,14 @@ struct PlayerView: View {
         .padding(.top, topSafeInset + 8)
 
       Spacer()
-      let coverArtUrl = viewModel.getAlbumCoverArt()
-      if let image = UIImage(contentsOfFile: coverArtUrl) {
-        Image(uiImage: image)
-          .resizable()
-          .aspectRatio(contentMode: .fit)
-          .frame(width: imageSize, height: imageSize)
-          .clipShape(
-            RoundedRectangle(cornerRadius: 15, style: .continuous)
-          )
-      } else {
-        LazyImage(url: URL(string: coverArtUrl)) { state in
-          if state.isLoading {
-            Color.gray.opacity(0.3)
-              .frame(width: imageSize, height: imageSize)
-              .clipShape(
-                RoundedRectangle(cornerRadius: 15, style: .continuous)
-              )
-          } else {
-            if let image = state.image {
-              image
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .frame(width: imageSize, height: imageSize)
-                .clipShape(
-                  RoundedRectangle(cornerRadius: 15, style: .continuous)
-                )
-            } else if state.error != nil {
-              Image("placeholder")
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .frame(width: imageSize, height: imageSize)
-                .clipShape(
-                  RoundedRectangle(cornerRadius: 15, style: .continuous)
-                )
-            }
-          }
-        }
-      }
+      albumCoverArt(imageSize: imageSize)
 
       Spacer().frame(height: horizontalSizeClass == .regular ? 44 : 36)
 
       VStack(alignment: .center, spacing: 10) {
-        Text(viewModel.nowPlaying.songName ?? "")
-          .foregroundColor(.white)
-          .customFont(.title2)
-          .fontWeight(.bold)
-          .multilineTextAlignment(.center)
-          .lineLimit(3)
+        nowPlayingTrackLabel
 
-        Text(viewModel.nowPlaying.artistName ?? "")
-          .foregroundColor(.white.opacity(0.8))
-          .customFont(.title3)
-          .multilineTextAlignment(.center)
-          .lineLimit(2)
+        nowPlayingArtistLabel
       }
       .padding(.horizontal, 30)
 
@@ -316,7 +333,10 @@ struct PlayerView: View {
           Spacer()
         }
       } else {
-        HStack(spacing: size.width * 0.15) {
+        HStack(spacing: {
+          guard size.width.isFinite, size.width > 0 else { return 16 }
+          return max(12, min(32, size.width * 0.12))
+        }()) {
           Button {
             viewModel.prevSong()
           } label: {
@@ -391,7 +411,9 @@ struct PlayerView: View {
         .padding(.bottom, max(bottomSafeInset, 12))
     }
     .frame(maxWidth: horizontalSizeClass == .regular ? 500 : .infinity)
-    .frame(maxWidth: .infinity)
+    .frame(maxWidth: .infinity, alignment: .center)
+    // Clamp content so compact narrow windows never propose non-finite frames
+    .frame(minWidth: 0)
   }
 
   @ViewBuilder
@@ -511,6 +533,118 @@ struct PlayerView: View {
     .ignoresSafeArea()
   }
 
+  private var canNavigateNowPlayingAlbum: Bool {
+    !viewModel.isLiveRadio && viewModel.nowPlaying.isFromPlaylist == false
+  }
+
+  @ViewBuilder
+  private var nowPlayingTrackLabel: some View {
+    let songName = viewModel.nowPlaying.songName ?? ""
+    let album = albumViewModel.albumForNavigation(
+      id: viewModel.nowPlaying.albumId ?? "",
+      name: viewModel.nowPlaying.albumName ?? "",
+      artist: viewModel.nowPlaying.artistName ?? ""
+    )
+
+    let titleLabel = HStack(alignment: .center, spacing: 8) {
+      Text(songName)
+        .foregroundColor(.white)
+        .customFont(.title2)
+        .fontWeight(.bold)
+        .multilineTextAlignment(.center)
+        .lineLimit(3)
+
+      if ExplicitStatus(from: viewModel.nowPlaying.explicitStatus).isExplicit {
+        ExplicitBadge(tint: .white.opacity(0.85))
+      }
+    }
+
+    if canNavigateNowPlayingAlbum, let album, !songName.isEmpty {
+      Button {
+        onOpenLibraryDestination?(
+          .album(id: album.id, name: album.name, artist: album.albumArtist)
+        )
+      } label: {
+        titleLabel
+      }
+      .buttonStyle(.plain)
+    } else {
+      titleLabel
+    }
+  }
+
+  @ViewBuilder
+  private var nowPlayingArtistLabel: some View {
+    let artistName = viewModel.nowPlaying.artistName ?? ""
+    let artist = albumViewModel.artistForNavigation(name: artistName)
+
+    if let artist, !artistName.isEmpty, !viewModel.isLiveRadio {
+      Button {
+        onOpenLibraryDestination?(.artist(id: artist.id, name: artist.name))
+      } label: {
+        Text(artistName)
+          .foregroundColor(.white.opacity(0.8))
+          .customFont(.title3)
+          .multilineTextAlignment(.center)
+          .lineLimit(2)
+      }
+      .buttonStyle(.plain)
+    } else {
+      Text(artistName)
+        .foregroundColor(.white.opacity(0.8))
+        .customFont(.title3)
+        .multilineTextAlignment(.center)
+        .lineLimit(2)
+    }
+  }
+
+  @ViewBuilder
+  private func albumCoverArt(imageSize: CGFloat) -> some View {
+    albumCoverImage(imageSize: imageSize)
+  }
+
+  @ViewBuilder
+  private func albumCoverImage(imageSize: CGFloat) -> some View {
+    let coverArtUrl = viewModel.getAlbumCoverArt()
+    if let image = UIImage(contentsOfFile: coverArtUrl) {
+      Image(uiImage: image)
+        .resizable()
+        .aspectRatio(contentMode: .fit)
+        .frame(width: imageSize, height: imageSize)
+        .clipShape(
+          RoundedRectangle(cornerRadius: 15, style: .continuous)
+        )
+    } else {
+      LazyImage(url: URL(string: coverArtUrl)) { state in
+        if state.isLoading {
+          Color.gray.opacity(0.3)
+            .frame(width: imageSize, height: imageSize)
+            .clipShape(
+              RoundedRectangle(cornerRadius: 15, style: .continuous)
+            )
+        } else {
+          if let image = state.image {
+            image
+              .resizable()
+              .aspectRatio(contentMode: .fit)
+              .frame(width: imageSize, height: imageSize)
+              .clipShape(
+                RoundedRectangle(cornerRadius: 15, style: .continuous)
+              )
+          } else if state.error != nil {
+            Image("placeholder")
+              .resizable()
+              .aspectRatio(contentMode: .fit)
+              .frame(width: imageSize, height: imageSize)
+              .clipShape(
+                RoundedRectangle(cornerRadius: 15, style: .continuous)
+              )
+          }
+        }
+      }
+    }
+  }
+
   @ViewBuilder
   private func liveProgressBar() -> some View {
     GeometryReader { geometry in
@@ -530,10 +664,13 @@ struct PlayerView: View {
 
 struct PlayerView_previews: PreviewProvider {
   @StateObject static var viewModel = PlayerViewModel()
+  @StateObject static var albumViewModel = AlbumViewModel()
+  @StateObject static var downloadViewModel = DownloadViewModel()
   @State static var isExpanded: Bool = true
 
   static var previews: some View {
-    PlayerView(isExpanded: $isExpanded, viewModel: viewModel)
+    PlayerView(isExpanded: $isExpanded, viewModel: viewModel, albumViewModel: albumViewModel)
+      .environmentObject(downloadViewModel)
   }
 }
 
@@ -541,23 +678,23 @@ struct PlayerView_previews: PreviewProvider {
 /// leaving the bottom edges straight so the background extends
 /// fully into the bottom safe area.
 struct TopRoundedRectangle: Shape {
-    var cornerRadius: CGFloat
+  var cornerRadius: CGFloat
 
-    func path(in rect: CGRect) -> Path {
-        var path = Path()
-        path.move(to: CGPoint(x: rect.minX, y: rect.maxY))
-        path.addLine(to: CGPoint(x: rect.minX, y: rect.minY + cornerRadius))
-        path.addQuadCurve(
-            to: CGPoint(x: rect.minX + cornerRadius, y: rect.minY),
-            control: CGPoint(x: rect.minX, y: rect.minY)
-        )
-        path.addLine(to: CGPoint(x: rect.maxX - cornerRadius, y: rect.minY))
-        path.addQuadCurve(
-            to: CGPoint(x: rect.maxX, y: rect.minY + cornerRadius),
-            control: CGPoint(x: rect.maxX, y: rect.minY)
-        )
-        path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
-        path.closeSubpath()
-        return path
-    }
+  func path(in rect: CGRect) -> Path {
+    var path = Path()
+    path.move(to: CGPoint(x: rect.minX, y: rect.maxY))
+    path.addLine(to: CGPoint(x: rect.minX, y: rect.minY + cornerRadius))
+    path.addQuadCurve(
+      to: CGPoint(x: rect.minX + cornerRadius, y: rect.minY),
+      control: CGPoint(x: rect.minX, y: rect.minY)
+    )
+    path.addLine(to: CGPoint(x: rect.maxX - cornerRadius, y: rect.minY))
+    path.addQuadCurve(
+      to: CGPoint(x: rect.maxX, y: rect.minY + cornerRadius),
+      control: CGPoint(x: rect.maxX, y: rect.minY)
+    )
+    path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
+    path.closeSubpath()
+    return path
+  }
 }

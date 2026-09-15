@@ -31,7 +31,7 @@ struct StatCard: View {
     self.icon = icon
     self.color = color
     self.isWide = isWide
-    self.showArrow = false  // FIXME: use `showArrow` after implement deeplinks
+    self.showArrow = showArrow
   }
 
   var body: some View {

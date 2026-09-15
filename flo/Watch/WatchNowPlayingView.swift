@@ -20,9 +20,15 @@
             }
 
             VStack(spacing: 2) {
-              Text(playerViewModel.nowPlayingTitle)
-                .font(.headline)
-                .lineLimit(2)
+              HStack(alignment: .center, spacing: 4) {
+                Text(playerViewModel.nowPlayingTitle)
+                  .font(.headline)
+                  .lineLimit(2)
+
+                if playerViewModel.isNowPlayingExplicit {
+                  ExplicitBadge(size: .compact)
+                }
+              }
 
               Text(playerViewModel.nowPlayingArtist)
                 .font(.caption)

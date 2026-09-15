@@ -46,21 +46,26 @@ struct ArtistDetailView: View {
   var body: some View {
     ScrollView {
       VStack(alignment: .leading) {
-        Text(artist.name)
-          .customFont(.title)
-          .fontWeight(.bold)
-          .multilineTextAlignment(.leading)
-          .padding(.bottom, 3)
-          .frame(maxWidth: .infinity, alignment: .leading)
+        HStack(alignment: .top, spacing: 16) {
+          ArtistImageView(artist: artist, size: 88)
 
-        Text(stripBiography(biography: artist.biography ?? ""))
-          .customFont(.subheadline)
-          .lineSpacing(3)
-          .multilineTextAlignment(.leading)
-          .lineLimit(isExpanded ? nil : 3)
-          .onTapGesture {
-            isExpanded.toggle()
+          VStack(alignment: .leading, spacing: 6) {
+            Text(artist.name)
+              .customFont(.title)
+              .fontWeight(.bold)
+              .multilineTextAlignment(.leading)
+              .frame(maxWidth: .infinity, alignment: .leading)
+
+            Text(stripBiography(biography: artist.biography ?? ""))
+              .customFont(.subheadline)
+              .lineSpacing(3)
+              .multilineTextAlignment(.leading)
+              .lineLimit(isExpanded ? nil : 3)
+              .onTapGesture {
+                isExpanded.toggle()
+              }
           }
+        }
       }
       .padding()
       .onAppear {
@@ -129,7 +134,7 @@ struct ArtistDetailView: View {
             AlbumsView(viewModel: viewModel, album: album)
           }
         }
-      }.padding(.bottom, 100)
+      }.padding(.bottom, playerContentBottomPadding(viewModel: playerViewModel, iPhoneActive: 100, iPhoneInactive: 12))
     }
     .onReceive(artistDetailViewModel.playableSongs) { songs in
       if songs.isEmpty {

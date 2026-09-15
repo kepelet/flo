@@ -14,6 +14,7 @@ struct Playlist: Codable, Identifiable, Hashable, Playable {
   let isPublic: Bool
   let ownerName: String
   let artist: String
+  let coverArtId: String?
   var songs: [Song] = []
 
   enum CodingKeys: String, CodingKey {
@@ -22,18 +23,25 @@ struct Playlist: Codable, Identifiable, Hashable, Playable {
     case comment
     case isPublic = "public"
     case ownerName
+    case coverArtId
     case songs
   }
 
   init(
-    id: String = "", name: String = "", comment: String = "", isPublic: Bool = false,
-    ownerName: String = "", songs: [Song] = []
+    id: String = "",
+    name: String = "",
+    comment: String = "",
+    isPublic: Bool = false,
+    ownerName: String = "",
+    coverArtId: String? = nil,
+    songs: [Song] = []
   ) {
     self.id = id
     self.name = name
     self.comment = comment
     self.isPublic = isPublic
     self.ownerName = ownerName
+    self.coverArtId = coverArtId
     self.songs = songs
     self.artist = ownerName
   }
@@ -46,6 +54,7 @@ struct Playlist: Codable, Identifiable, Hashable, Playable {
     self.comment = try container.decode(String.self, forKey: .comment)
     self.isPublic = try container.decode(Bool.self, forKey: .isPublic)
     self.ownerName = try container.decode(String.self, forKey: .ownerName)
+    self.coverArtId = try container.decodeIfPresent(String.self, forKey: .coverArtId)
     self.songs = try container.decodeIfPresent([Song].self, forKey: .songs) ?? []
     self.artist = try container.decode(String.self, forKey: .ownerName)
   }

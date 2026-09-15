@@ -41,6 +41,6 @@ struct UserAuth: Codable {
     self.lastFMApiKey = try container.decodeIfPresent(String.self, forKey: .lastFMApiKey) ?? ""
     self.subsonicSalt = try container.decode(String.self, forKey: .subsonicSalt)
     self.subsonicToken = try container.decode(String.self, forKey: .subsonicToken)
-    self.token = try container.decode(String.self, forKey: .token)
+    self.token = try container.decodeIfPresent(String.self, forKey: .token) ?? ""
   }
 }

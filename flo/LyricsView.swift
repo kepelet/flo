@@ -44,11 +44,17 @@ struct LyricsView: View {
         .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
 
         VStack(alignment: .leading, spacing: 4) {
-          Text(viewModel.nowPlaying.songName ?? "")
-            .foregroundColor(.white)
-            .customFont(.body)
-            .fontWeight(.bold)
-            .lineLimit(1)
+          HStack(alignment: .center, spacing: 6) {
+            Text(viewModel.nowPlaying.songName ?? "")
+              .foregroundColor(.white)
+              .customFont(.body)
+              .fontWeight(.bold)
+              .lineLimit(1)
+
+            if ExplicitStatus(from: viewModel.nowPlaying.explicitStatus).isExplicit {
+              ExplicitBadge(tint: .white.opacity(0.85), size: .compact)
+            }
+          }
 
           Text(viewModel.nowPlaying.artistName ?? "")
             .foregroundColor(.white.opacity(0.7))
@@ -69,6 +75,7 @@ struct LyricsView: View {
             .clipShape(Capsule())
             .shadow(color: .black.opacity(0.25), radius: 6, x: 0, y: 3)
         }
+        .keyboardShortcut(.escape, modifiers: [])
       }
       .padding(.horizontal, 30)
       .padding(.top, topSafeInset + 8)

@@ -38,9 +38,12 @@ struct ArtistsView: View {
           } label: {
             VStack {
               HStack {
+                ArtistImageView(artist: artist)
+
                 Text(artist.name)
                   .customFont(.headline)
                   .multilineTextAlignment(.leading)
+                  .padding(.leading, 10)
 
                 Spacer()
 
@@ -55,7 +58,7 @@ struct ArtistsView: View {
             }
           }
         }
-      }.padding(.bottom, 100)
+      }.padding(.bottom, playerContentBottomPadding(viewModel: playerViewModel, iPhoneActive: 100, iPhoneInactive: 12))
     }
     .navigationTitle("Artists")
     .refreshable {

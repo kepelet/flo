@@ -55,6 +55,24 @@ build app
 
 push a new build to TestFlight
 
+## Mac Catalyst
+
+### mac build
+
+```sh
+[bundle exec] fastlane mac build
+```
+
+build the Mac Catalyst app
+
+### mac beta
+
+```sh
+[bundle exec] fastlane mac beta
+```
+
+push a Mac Catalyst build to TestFlight. Pass `public:true` to distribute to the external TestFlight group.
+
 ----
 
 This README.md is auto-generated and will be re-generated every time [_fastlane_](https://fastlane.tools) is run.

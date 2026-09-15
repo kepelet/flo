@@ -20,14 +20,24 @@ struct SongView: View {
       ForEach(Array(viewModel.album.songs.enumerated()), id: \.element) { idx, song in
         VStack {
           HStack(alignment: .top) {
-            Text("\(song.trackNumber.description)")
+            Text(
+              viewModel.isViewingPlaylistDownload
+                ? "\(idx + 1)" : "\(song.trackNumber.description)"
+            )
               .customFont(.caption1)
               .foregroundColor(.gray)
               .padding(.trailing, 5)
 
             VStack(alignment: .leading) {
-              Text(song.title)
-                .fontWeight(.medium)
+              HStack(alignment: .center, spacing: 6) {
+                Text(song.title)
+                  .fontWeight(.medium)
+                  .lineLimit(1)
+
+                if song.isExplicit {
+                  ExplicitBadge(size: .compact)
+                }
+              }
 
               if song.id.hasPrefix("pl:") {
                 Text(song.artist).customFont(.caption1).offset(y: 5)

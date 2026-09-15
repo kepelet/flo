@@ -217,6 +217,7 @@ final class PlaybackCoordinator {
       "contextName": nowPlaying.contextName ?? "",
       "isPlaying": playerViewModel.isPlaying,
       "coverArt": coverArtUrl,
+      "isExplicit": ExplicitStatus(from: nowPlaying.explicitStatus).isExplicit,
     ]
   }
 

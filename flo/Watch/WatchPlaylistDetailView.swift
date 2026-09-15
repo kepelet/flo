@@ -50,9 +50,15 @@
               playerViewModel.playSong(song, inPlaylist: playlist)
             } label: {
               VStack(alignment: .leading, spacing: 2) {
-                Text(song.title)
-                  .font(.body)
-                  .lineLimit(1)
+                HStack(alignment: .center, spacing: 4) {
+                  Text(song.title)
+                    .font(.body)
+                    .lineLimit(1)
+
+                  if song.isExplicit {
+                    ExplicitBadge(size: .compact)
+                  }
+                }
 
                 Text(song.artist)
                   .font(.caption)

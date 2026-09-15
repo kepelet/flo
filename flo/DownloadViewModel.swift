@@ -24,6 +24,7 @@ struct DownloadItem: Identifiable {
   let isPlaylist: Bool
   let title: String
   let song: Song
+  let playlistIndex: Int
   var progress: Double = 0
   var status: DownloadStatus = .idle
 }
@@ -36,8 +37,8 @@ struct DownloadTrackCount: Identifiable {
 }
 
 class DownloadViewModel: ObservableObject {
-  @Published private(set) var downloadItems: [DownloadItem] = []
-  @Published private(set) var currentDownloads: Set<String> = []
+  @Published internal(set) var downloadItems: [DownloadItem] = []
+  @Published internal(set) var currentDownloads: Set<String> = []
   @Published var downloadedTrackCount: [DownloadTrackCount] = []
 
   @Published var downloadWatcher: Bool = true
@@ -62,40 +63,48 @@ class DownloadViewModel: ObservableObject {
   }
 
   func addItem(_ album: Album, forceAll: Bool = false, isFromPlaylist: Bool = false) {
-    let songs = forceAll ? album.songs : album.songs.filter { $0.fileUrl.isEmpty }
+    let songsToDownload: [(index: Int, song: Song)] = album.songs.enumerated().compactMap {
+      index, song in
+      forceAll || song.fileUrl.isEmpty ? (index, song) : nil
+    }
 
     let downloadingAlbum = DownloadTrackCount(
-      id: album.id, name: album.name, elapsed: 0, total: songs.count)
+      id: album.id, name: album.name, elapsed: 0, total: songsToDownload.count)
     downloadedTrackCount.append(downloadingAlbum)
 
-    songs.forEach { song in
+    for (index, song) in songsToDownload {
       let songId = isFromPlaylist ? song.mediaFileId : song.id
       let albumId = isFromPlaylist ? album.id : song.albumId
 
       guard !downloadItems.contains(where: { $0.id == songId }) else {
         retryDownload(songId)
 
-        return
+        continue
       }
 
       let queue = DownloadItem(
         id: songId, albumId: albumId, album: album.name, isPlaylist: isFromPlaylist,
-        title: "\(song.artist) - \(song.title)", song: song)
+        title: "\(song.artist) - \(song.title)", song: song,
+        playlistIndex: isFromPlaylist ? index : -1)
       downloadItems.append(queue)
     }
 
     processQueue()
   }
 
-  func addIndividualItem(album: Album, song: Song, isFromPlaylist: Bool = false) {
-    guard !downloadItems.contains(where: { $0.id == song.id }) else { return }
-
+  func addIndividualItem(
+    album: Album, song: Song, isFromPlaylist: Bool = false, playlistIndex: Int = -1
+  ) {
     let songId = isFromPlaylist ? song.mediaFileId : song.id
+
+    guard !downloadItems.contains(where: { $0.id == songId }) else { return }
+
     let albumId = isFromPlaylist ? album.id : song.albumId
 
     let queue = DownloadItem(
       id: songId, albumId: albumId, album: album.name, isPlaylist: isFromPlaylist,
-      title: "\(song.artist) - \(song.title)", song: song)
+      title: "\(song.artist) - \(song.title)", song: song,
+      playlistIndex: isFromPlaylist ? playlistIndex : -1)
     downloadItems.append(queue)
 
     processQueue()
@@ -183,7 +192,8 @@ class DownloadViewModel: ObservableObject {
                   albumName: item.album,
                   song: item.song,
                   status: "Downloaded",
-                  isFromPlaylist: item.isPlaylist
+                  isFromPlaylist: item.isPlaylist,
+                  playlistIndex: item.playlistIndex
                 )
                 self?.updateItemStatus(itemId: item.id, status: DownloadStatus.completed)
                 self?.currentDownloads.remove(item.id)

@@ -34,11 +34,17 @@ struct CachedSongsView: View {
               }
 
               VStack(alignment: .leading) {
-                Text(song.title)
-                  .customFont(.headline)
-                  .multilineTextAlignment(.leading)
-                  .lineLimit(2)
-                  .padding(.bottom, 3)
+                HStack(alignment: .center, spacing: 6) {
+                  Text(song.title)
+                    .customFont(.headline)
+                    .multilineTextAlignment(.leading)
+                    .lineLimit(2)
+
+                  if song.isExplicit {
+                    ExplicitBadge(size: .compact)
+                  }
+                }
+                .padding(.bottom, 3)
 
                 Text(song.artist)
                   .customFont(.subheadline)
@@ -66,7 +72,7 @@ struct CachedSongsView: View {
       }
       .padding(.top, 10)
       .padding(
-        .bottom, playerViewModel.hasNowPlaying() && !playerViewModel.shouldHidePlayer ? 100 : 0)
+        .bottom, playerContentBottomPadding(viewModel: playerViewModel, iPhoneActive: 100, iPhoneInactive: 0))
     }
     .navigationTitle("Cached")
   }

@@ -11,11 +11,11 @@ struct Artist: Codable, Hashable, Identifiable {
   static func == (lhs: Artist, rhs: Artist) -> Bool {
     lhs.id == rhs.id
   }
-  
+
   func hash(into hasher: inout Hasher) {
     hasher.combine(id)
   }
-  
+
   let id, name, orderArtistName: String
   let stats: ArtistStats
   let size, albumCount, songCount: Int
@@ -28,9 +28,10 @@ struct Artist: Codable, Hashable, Identifiable {
   let externalURL: String?
   let externalInfoUpdatedAt: String?
   let fullText: String?
-  
+
   enum CodingKeys: String, CodingKey {
-    case id, name, orderArtistName, stats, size, albumCount, songCount, missing, createdAt, updatedAt, sortArtistName, playCount, playDate, fullText
+    case id, name, orderArtistName, stats, size, albumCount, songCount, missing, createdAt,
+      updatedAt, sortArtistName, playCount, playDate, fullText
     case mbzArtistID = "mbzArtistId"
     case biography
     case smallImageURL = "smallImageUrl"
@@ -38,6 +39,44 @@ struct Artist: Codable, Hashable, Identifiable {
     case largeImageURL = "largeImageUrl"
     case externalURL = "externalUrl"
     case externalInfoUpdatedAt
+  }
+
+  static func placeholder(id: String, name: String) -> Artist {
+    Artist(
+      id: id,
+      name: name,
+      orderArtistName: name,
+      stats: ArtistStats(
+        producer: nil,
+        composer: nil,
+        artist: nil,
+        maincredit: nil,
+        albumartist: nil,
+        arranger: nil,
+        engineer: nil,
+        performer: nil,
+        mixer: nil,
+        lyricist: nil,
+        conductor: nil
+      ),
+      size: 0,
+      albumCount: 0,
+      songCount: 0,
+      missing: false,
+      createdAt: "",
+      updatedAt: "",
+      sortArtistName: nil,
+      playCount: nil,
+      playDate: nil,
+      mbzArtistID: nil,
+      biography: nil,
+      smallImageURL: nil,
+      mediumImageURL: nil,
+      largeImageURL: nil,
+      externalURL: nil,
+      externalInfoUpdatedAt: nil,
+      fullText: nil
+    )
   }
 }
 

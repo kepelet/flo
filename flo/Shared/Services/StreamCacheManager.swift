@@ -56,7 +56,9 @@ class StreamCacheManager {
     return fileURL
   }
 
-  func cacheSong(mediaFileId: String, originalSuffix: String? = nil, from queueItem: QueueEntity? = nil) {
+  func cacheSong(
+    mediaFileId: String, originalSuffix: String? = nil, from queueItem: QueueEntity? = nil
+  ) {
     guard UserDefaultsManager.streamCacheMaxSize > 0 else { return }
     guard !mediaFileId.isEmpty else { return }
 
@@ -104,6 +106,7 @@ class StreamCacheManager {
       entity.duration = q.duration
       entity.bitRate = q.bitRate
       entity.sampleRate = q.sampleRate
+      entity.explicitStatus = q.explicitStatus
     }
 
     CoreDataManager.shared.saveRecord()
@@ -177,7 +180,8 @@ class StreamCacheManager {
 
     // Deduplicate by mediaFileId (keep most recent per song)
     var seen = Set<String>()
-    return records
+    return
+      records
       .filter { $0.state == "ready" && $0.title != nil }
       .filter { record in
         guard let id = record.mediaFileId else { return false }

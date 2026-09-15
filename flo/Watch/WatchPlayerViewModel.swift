@@ -16,6 +16,7 @@
     @Published var contextTitle: String = ""
     @Published var isPlaying: Bool = false
     @Published var coverArt: String = ""
+    @Published var isNowPlayingExplicit: Bool = false
 
     private let connectivity = WatchConnectivityManager.shared
 
@@ -24,6 +25,7 @@
       nowPlayingTitle = songs.first?.title ?? album.name
       nowPlayingArtist = songs.first?.artist ?? album.artist
       coverArt = album.albumCover
+      isNowPlayingExplicit = songs.first?.isExplicit ?? album.isExplicit
 
       isPlaying = true
 
@@ -41,6 +43,7 @@
       contextTitle = playlist.name
       nowPlayingTitle = songs.first?.title ?? playlist.name
       nowPlayingArtist = songs.first?.artist ?? playlist.ownerName
+      isNowPlayingExplicit = songs.first?.isExplicit ?? false
 
       isPlaying = true
 
@@ -59,6 +62,7 @@
       nowPlayingTitle = song.title
       nowPlayingArtist = song.artist
       coverArt = album.albumCover
+      isNowPlayingExplicit = song.isExplicit
 
       isPlaying = true
 
@@ -77,6 +81,7 @@
       contextTitle = playlist.name
       nowPlayingTitle = song.title
       nowPlayingArtist = song.artist
+      isNowPlayingExplicit = song.isExplicit
 
       isPlaying = true
 
@@ -96,6 +101,7 @@
       contextTitle = "All Songs"
       nowPlayingTitle = song.title
       nowPlayingArtist = song.artist
+      isNowPlayingExplicit = song.isExplicit
 
       isPlaying = true
 
@@ -114,6 +120,7 @@
       contextTitle = "Radio"
       nowPlayingTitle = radio.name
       nowPlayingArtist = radio.streamUrl
+      isNowPlayingExplicit = false
 
       isPlaying = true
 
@@ -179,6 +186,7 @@
         contextTitle = ""
         coverArt = ""
         isPlaying = false
+        isNowPlayingExplicit = false
         return
       }
 
@@ -187,6 +195,7 @@
       contextTitle = payload["contextName"] as? String ?? ""
       coverArt = payload["coverArt"] as? String ?? ""
       isPlaying = payload["isPlaying"] as? Bool ?? false
+      isNowPlayingExplicit = payload["isExplicit"] as? Bool ?? false
     }
   }
 #endif

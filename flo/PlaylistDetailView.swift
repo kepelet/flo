@@ -7,6 +7,39 @@
 
 import SwiftUI
 
+struct PlaylistCoverImageView: View {
+  let pathOrUrlString: String
+
+  var body: some View {
+    if pathOrUrlString.hasPrefix("http://") || pathOrUrlString.hasPrefix("https://") {
+      AsyncImage(url: URL(string: pathOrUrlString)) { phase in
+        switch phase {
+        case .success(let image):
+          image
+            .resizable()
+            .aspectRatio(contentMode: .fit)
+        case .failure, .empty:
+          placeholderImage
+        @unknown default:
+          placeholderImage
+        }
+      }
+    } else if let uiImage = UIImage(contentsOfFile: pathOrUrlString) {
+      Image(uiImage: uiImage)
+        .resizable()
+        .aspectRatio(contentMode: .fit)
+    } else {
+      placeholderImage
+    }
+  }
+
+  private var placeholderImage: some View {
+    Image(uiImage: UIImage(named: "placeholder") ?? UIImage())
+      .resizable()
+      .aspectRatio(contentMode: .fit)
+  }
+}
+
 struct PlaylistDetailView: View {
   @EnvironmentObject private var viewModel: AlbumViewModel
   @EnvironmentObject private var playerViewModel: PlayerViewModel
@@ -18,17 +51,19 @@ struct PlaylistDetailView: View {
   var body: some View {
     ScrollView {
       VStack {
-        if let image = UIImage(named: "placeholder") {
-          Image(uiImage: image)
-            .resizable()
-            .aspectRatio(contentMode: .fit)
-            .frame(width: 300, height: 300)
-            .clipShape(
-              RoundedRectangle(cornerRadius: 10, style: .continuous)
-            )
-            .shadow(radius: 5)
-            .padding(.top, 10)
-        }
+        PlaylistCoverImageView(
+          pathOrUrlString: viewModel.getPlaylistCoverArt(
+            id: viewModel.playlist.id,
+            coverArtId: viewModel.playlist.coverArtId,
+            playlistName: viewModel.playlist.name
+          )
+        )
+        .frame(width: 300, height: 300)
+        .clipShape(
+          RoundedRectangle(cornerRadius: 10, style: .continuous)
+        )
+        .shadow(radius: 5)
+        .padding(.top, 10)
 
         Text(viewModel.playlist.name)
           .customFont(.title)
@@ -89,8 +124,15 @@ struct PlaylistDetailView: View {
                 .padding(.trailing, 5)
 
               VStack(alignment: .leading) {
-                Text(song.title)
-                  .fontWeight(.medium)
+                HStack(alignment: .center, spacing: 6) {
+                  Text(song.title)
+                    .fontWeight(.medium)
+                    .lineLimit(1)
+
+                  if song.isExplicit {
+                    ExplicitBadge(size: .compact)
+                  }
+                }
 
                 Text(song.artist).customFont(.caption1).offset(y: 5)
 
@@ -134,7 +176,8 @@ struct PlaylistDetailView: View {
 
                   viewModel.downloadPlaylist(viewModel.playlist, targetIdx: idx)
                   downloadViewModel.addIndividualItem(
-                    album: playlist, song: viewModel.playlist.songs[idx], isFromPlaylist: true)
+                    album: playlist, song: viewModel.playlist.songs[idx], isFromPlaylist: true,
+                    playlistIndex: idx)
                 } label: {
                   HStack {
                     Text("Download")
@@ -209,7 +252,7 @@ struct PlaylistDetailView: View {
           downloadViewModel.downloadWatcher = false  // uh anti pattern
         }
       }
-      .padding(.bottom, 100)
+      .padding(.bottom, playerContentBottomPadding(viewModel: playerViewModel, iPhoneActive: 100, iPhoneInactive: 12))
     }
   }
 }

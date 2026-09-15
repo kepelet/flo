@@ -26,8 +26,9 @@ enum AuthResult<T> {
   }
 }
 
-enum AuthError: Error {
+enum AuthError: Error, Equatable {
   case server(message: String)
+  case sessionExpired
   case unknown
 }
 
@@ -36,7 +37,19 @@ struct ErrorResponse: Decodable {
 }
 
 class ErrorHandler {
+  static func isSessionExpired(statusCode: Int?) -> Bool {
+    guard let code = statusCode else { return false }
+    return code == 401 || code == 403
+  }
+
+  static func isSessionExpired(error: AFError) -> Bool {
+    return error.responseCode == 401 || error.responseCode == 403
+  }
+
   static func mapError(_ error: AFError) -> Error {
+    if isSessionExpired(error: error) {
+      return AuthError.sessionExpired
+    }
     if let underlyingError = error.underlyingError as? URLError {
       return AuthError.server(message: underlyingError.localizedDescription)
     }
@@ -47,6 +60,11 @@ class ErrorHandler {
     _ afError: AFError, response: DataResponse<T, AFError>,
     completion: @escaping (Result<T, Error>) -> Void
   ) {
+    // Preserve server message when available; 401 from /auth/login should
+    // surface as .server("invalid username or password"), not as a ghost
+    // session — the caller is not yet logged in. For other endpoints the
+    // 401 is surfaced via APIManager's sessionExpired notification and
+    // ErrorHandler.isSessionExpired / mapError.
     if let data = response.data {
       do {
         let decoder = JSONDecoder()
