@@ -40,6 +40,8 @@ struct Album: Codable, Identifiable, Playable {
   var songs: [Song] = []
   var genre: String = ""
   var minYear: Int = 0
+  var libraryId: Int = 0
+  var libraryName: String = ""
   var explicitStatus: ExplicitStatus = .unknown
 
   var isExplicit: Bool {
@@ -61,6 +63,8 @@ struct Album: Codable, Identifiable, Playable {
     case genre
     case minYear
     case songs
+    case libraryId
+    case libraryName
     case explicitStatus
   }
 
@@ -85,6 +89,8 @@ struct Album: Codable, Identifiable, Playable {
     self.genre = try container.decode(String.self, forKey: .genre)
     self.minYear = try container.decode(Int.self, forKey: .minYear)
     self.songs = try container.decodeIfPresent([Song].self, forKey: .songs) ?? []
+    self.libraryId = try container.decodeIfPresent(Int.self, forKey: .libraryId) ?? 0
+    self.libraryName = try container.decodeIfPresent(String.self, forKey: .libraryName) ?? ""
     self.explicitStatus = ExplicitStatus(
       from: try container.decodeIfPresent(String.self, forKey: .explicitStatus))
   }
@@ -93,7 +99,8 @@ struct Album: Codable, Identifiable, Playable {
     id: String = "", name: String = "", albumArtist: String = "", artist: String = "",
     artistId: String = "", albumArtistId: String = "",
     songs: [Song] = [], genre: String = "",
-    minYear: Int = 0, explicitStatus: ExplicitStatus = .unknown
+    minYear: Int = 0, libraryId: Int = 0, libraryName: String = "",
+    explicitStatus: ExplicitStatus = .unknown
   ) {
     self.id = id
     self.name = name
@@ -104,6 +111,8 @@ struct Album: Codable, Identifiable, Playable {
     self.songs = songs
     self.genre = genre
     self.minYear = minYear
+    self.libraryId = libraryId
+    self.libraryName = libraryName
     self.explicitStatus = explicitStatus
   }
 

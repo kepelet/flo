@@ -80,6 +80,9 @@ struct PreferencesView: View {
 
   @StateObject private var appIconViewModel = AppIconViewModel()
   @ObservedObject var authViewModel: AuthViewModel
+  @ObservedObject var albumViewModel: AlbumViewModel
+
+  @AppStorage(UserDefaultsKeys.audioplayLibraryId) private var audioplayLibraryId: Int = 0
   @State private var storeCredsInKeychain = false
   @State private var optimizeLocalStorageAlert = false
   @State private var showLoginSheet = false
@@ -295,6 +298,22 @@ struct PreferencesView: View {
               Text("Total Files Scanned")
               Spacer()
               Text(floooViewModel.scanStatus?.data?.count.description ?? "0")
+            }
+          }
+
+          Section(header: Text("Libraries")) {
+            VStack(alignment: .leading, spacing: 4) {
+              Picker("Audioplay library", selection: $audioplayLibraryId) {
+                Text("None").tag(0)
+
+                ForEach(albumViewModel.libraries) { library in
+                  Text(library.name).tag(library.id)
+                }
+              }
+
+              Text(
+                "Albums in the selected library are grouped into their own \"Audioplays\" category instead of appearing alongside your music."
+              ).font(.caption).foregroundColor(.gray)
             }
           }
         }
@@ -558,6 +577,7 @@ struct PreferencesView: View {
       if authViewModel.isLoggedIn {
         self.floooViewModel.checkScanStatus()
         self.floooViewModel.checkAccountLinkStatus()
+        self.albumViewModel.fetchLibraries()
       }
 
       if UserDefaultsManager.enableDebug {
@@ -946,12 +966,14 @@ struct TipJarSheet: View {
 
 struct PreferencesView_Previews: PreviewProvider {
   @State static var authViewModel: AuthViewModel = AuthViewModel()
+  @State static var albumViewModel: AlbumViewModel = AlbumViewModel()
   @State static var floooViewModel: FloooViewModel = FloooViewModel()
   @State static var inAppPurchaseManager: InAppPurchaseManager = InAppPurchaseManager(
     startObservingTransactions: false)
 
   static var previews: some View {
-    PreferencesView(authViewModel: authViewModel).environmentObject(floooViewModel)
+    PreferencesView(authViewModel: authViewModel, albumViewModel: albumViewModel)
+      .environmentObject(floooViewModel)
       .environmentObject(inAppPurchaseManager)
   }
 }

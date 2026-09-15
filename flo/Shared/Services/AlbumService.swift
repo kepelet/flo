@@ -131,6 +131,20 @@ class AlbumService {
     }
   }
 
+  func getLibraries(completion: @escaping (Result<[Library], Error>) -> Void) {
+    let params: [String: Any] = ["_start": 0, "_end": 0, "_order": "ASC", "_sort": "name"]
+
+    APIManager.shared.NDEndpointRequest(endpoint: API.NDEndpoint.getLibraries, parameters: params) {
+      (response: DataResponse<[Library], AFError>) in
+      switch response.result {
+      case .success(let libraries):
+        completion(.success(libraries))
+      case .failure(let error):
+        completion(.failure(error))
+      }
+    }
+  }
+
   func getArtists(completion: @escaping (Result<[Artist], Error>) -> Void) {
     let params: [String: Any] = ["_start": 0, "_end": 0, "_order": "ASC", "_sort": "name"]
 

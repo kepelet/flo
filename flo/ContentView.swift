@@ -169,7 +169,7 @@ struct ContentView: View {
                 .environmentObject(downloadViewModel)
                 .environmentObject(libraryRouter)
                 .environmentObject(authViewModel)
-                .onAppear { albumViewModel.fetchAlbums() }
+                .onAppear { albumViewModel.fetchAlbums(); albumViewModel.fetchLibraries() }
             }
             Tab("Search", systemImage: "magnifyingglass", value: AppTab.search) {
               LibrarySearchTabView()
@@ -179,7 +179,7 @@ struct ContentView: View {
                 .environmentObject(authViewModel)
             }
             Tab("Preferences", systemImage: "gear", value: AppTab.preferences) {
-              PreferencesView(authViewModel: authViewModel)
+              PreferencesView(authViewModel: authViewModel, albumViewModel: albumViewModel)
                 .environmentObject(playerViewModel)
                 .environmentObject(floooViewModel)
                 .environmentObject(inAppPurchaseManager)
@@ -205,7 +205,7 @@ struct ContentView: View {
                 .environmentObject(downloadViewModel)
                 .environmentObject(libraryRouter)
                 .environmentObject(authViewModel)
-                .onAppear { albumViewModel.fetchAlbums() }
+                .onAppear { albumViewModel.fetchAlbums(); albumViewModel.fetchLibraries() }
             }
             Tab("Search", systemImage: "magnifyingglass", value: AppTab.search) {
               LibrarySearchTabView()
@@ -215,7 +215,7 @@ struct ContentView: View {
                 .environmentObject(authViewModel)
             }
             Tab("Preferences", systemImage: "gear", value: AppTab.preferences) {
-              PreferencesView(authViewModel: authViewModel)
+              PreferencesView(authViewModel: authViewModel, albumViewModel: albumViewModel)
                 .environmentObject(playerViewModel)
                 .environmentObject(floooViewModel)
                 .environmentObject(inAppPurchaseManager)
@@ -235,7 +235,7 @@ struct ContentView: View {
             LibrarySearchTabView().tabItem { Label("Search", systemImage: "magnifyingglass") }
               .tag(AppTab.search)
               .environmentObject(albumViewModel).environmentObject(playerViewModel).environmentObject(downloadViewModel).environmentObject(authViewModel)
-            PreferencesView(authViewModel: authViewModel).tabItem { Label("Preferences", systemImage: "gear") }
+            PreferencesView(authViewModel: authViewModel, albumViewModel: albumViewModel).tabItem { Label("Preferences", systemImage: "gear") }
               .tag(AppTab.preferences)
               .environmentObject(playerViewModel).environmentObject(floooViewModel).environmentObject(inAppPurchaseManager)
             if UserDefaultsManager.enableDebug {
@@ -252,14 +252,14 @@ struct ContentView: View {
             LibraryView(viewModel: albumViewModel).tabItem { Label("Library", systemImage: "circle.grid.2x2") }
               .tag(AppTab.library)
               .environmentObject(albumViewModel).environmentObject(playerViewModel).environmentObject(downloadViewModel).environmentObject(libraryRouter)
-              .onAppear { albumViewModel.fetchAlbums() }
+              .onAppear { albumViewModel.fetchAlbums(); albumViewModel.fetchLibraries() }
           }
           DownloadsView(viewModel: albumViewModel).tabItem { Label("Downloads", systemImage: "arrow.down.circle") }
             .tag(AppTab.downloads)
             .environmentObject(playerViewModel).environmentObject(downloadViewModel)
             .onAppear { albumViewModel.fetchDownloadedAlbums() }
             .badge(downloadViewModel.getRemainingDownloadItems())
-          PreferencesView(authViewModel: authViewModel).tabItem { Label("Preferences", systemImage: "gear") }
+          PreferencesView(authViewModel: authViewModel, albumViewModel: albumViewModel).tabItem { Label("Preferences", systemImage: "gear") }
             .tag(AppTab.preferences)
             .environmentObject(playerViewModel).environmentObject(floooViewModel).environmentObject(inAppPurchaseManager)
           if UserDefaultsManager.enableDebug {
@@ -354,7 +354,7 @@ struct ContentView: View {
               .environmentObject(libraryRouter)
               .environmentObject(authViewModel)
               .onAppear {
-                albumViewModel.fetchAlbums()
+                albumViewModel.fetchAlbums(); albumViewModel.fetchLibraries()
               }
           )
         }
@@ -475,7 +475,7 @@ struct ContentView: View {
 
       Tab("Preferences", systemImage: "gear", value: AppTab.preferences) {
         sidebarTabContent(
-          PreferencesView(authViewModel: authViewModel)
+          PreferencesView(authViewModel: authViewModel, albumViewModel: albumViewModel)
             .environmentObject(playerViewModel)
             .environmentObject(floooViewModel)
             .environmentObject(inAppPurchaseManager)
