@@ -1254,7 +1254,7 @@
 		"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 		"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 		"CODE_SIGN_STYLE" = Manual;
-		"CURRENT_PROJECT_VERSION" = 304;
+		"CURRENT_PROJECT_VERSION" = 305;
 		"DEVELOPMENT_ASSET_PATHS" = "\"flo/Resources/Preview Content\"";
 		"DEVELOPMENT_TEAM" = "";
 		"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 8BJ4LW5J8P;
@@ -1286,7 +1286,7 @@
 			"$(inherited)",
 			"@executable_path/Frameworks",
 		);
-		"MARKETING_VERSION" = "2.5";
+		"MARKETING_VERSION" = "2.6";
 		"NEW_SETTING" = "";
 		"PRODUCT_BUNDLE_IDENTIFIER" = "com.penerbangwalet.flo";
 		"PRODUCT_NAME" = "$(TARGET_NAME)";
@@ -1314,7 +1314,7 @@
 		"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
 		"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Distribution";
 		"CODE_SIGN_STYLE" = Manual;
-		"CURRENT_PROJECT_VERSION" = 304;
+		"CURRENT_PROJECT_VERSION" = 305;
 		"DEVELOPMENT_ASSET_PATHS" = "\"flo/Resources/Preview Content\"";
 		"DEVELOPMENT_TEAM" = "";
 		"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 8BJ4LW5J8P;
@@ -1345,7 +1345,7 @@
 			"$(inherited)",
 			"@executable_path/Frameworks",
 		);
-		"MARKETING_VERSION" = "2.5";
+		"MARKETING_VERSION" = "2.6";
 		"MTL_ENABLE_DEBUG_INFO[arch=*]" = NO;
 		"NEW_SETTING" = "";
 		"PRODUCT_BUNDLE_IDENTIFIER" = "com.penerbangwalet.flo";
