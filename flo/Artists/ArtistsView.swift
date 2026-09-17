@@ -60,13 +60,11 @@ struct ArtistsView: View {
         }
       }.padding(.bottom, playerContentBottomPadding(viewModel: playerViewModel, iPhoneActive: 100, iPhoneInactive: 12))
     }
-    .navigationTitle("Artists")
+    .catalystAwareNavigationTitle("Artists")
     .refreshable {
       await viewModel.refreshArtists()
     }
-    .searchable(
-      text: $searchArtist, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search"
-    )
+    .catalystAwareSearch(text: $searchArtist, prompt: "Search")
     .toolbar {
       Menu {
         Button {
@@ -77,8 +75,11 @@ struct ArtistsView: View {
             systemImage: self.filterAlbumArtistOnly ? "checkmark.circle" : "circle")
         }
       } label: {
-        Label("", systemImage: "ellipsis.circle")
+        Label("Filter options", systemImage: "ellipsis.circle")
+          .labelStyle(.iconOnly)
+          .fixedSize()
       }
+      .catalystNativeMenuStyle()
     }
   }
 }

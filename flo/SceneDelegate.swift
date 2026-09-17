@@ -31,8 +31,9 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     guard let windowScene = scene as? UIWindowScene else { return }
 
     #if targetEnvironment(macCatalyst)
+      windowScene.title = "flo"
       if let titlebar = windowScene.titlebar {
-        titlebar.titleVisibility = .hidden
+        titlebar.titleVisibility = .visible
         titlebar.toolbar = nil
         titlebar.toolbarStyle = .unifiedCompact
         if #available(macCatalyst 16.0, *) {
@@ -155,6 +156,12 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
           fflush(stdout)
         }
       #endif
+      // Scope to the app's own windows only. This observer is global
+      // (object: nil), so without this guard the 900x500 minimum is forced
+      // onto every AppKit window in the process — including NSPopupMenuWindow
+      // and popovers — blowing every Menu and context menu up to 900x500
+      // (issue #158: menu content stays 112x34 while its window is clamped).
+      guard NSStringFromClass(type(of: win)).hasPrefix("UINS") else { return }
       guard win.responds(to: NSSelectorFromString("setContentMinSize:")) else { return }
       guard let frame = catalystFrame(of: win) else { return }
 

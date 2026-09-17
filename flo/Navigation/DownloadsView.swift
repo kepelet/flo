@@ -102,12 +102,8 @@ struct DownloadsView: View {
           }
         }.padding(.top, 10).padding(
           .bottom, playerContentBottomPadding(viewModel: playerViewModel, iPhoneActive: 100, iPhoneInactive: 0)
-        ).navigationTitle("Downloads")
-          .searchable(
-            text: $searchAlbum,
-            placement: .navigationBarDrawer(displayMode: .always),
-            prompt: "Search"
-          )
+        ).catalystAwareNavigationTitle("Downloads")
+          .catalystAwareSearch(text: $searchAlbum, prompt: "Search")
       }
       .onAppear {
         cachedSongs = StreamCacheManager.shared.getCachedSongs()

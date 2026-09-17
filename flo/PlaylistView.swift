@@ -69,12 +69,10 @@ struct PlaylistView: View {
     .sheet(isPresented: $showDownloadSheet) {
       DownloadQueueView().environmentObject(downloadViewModel)
     }
-    .navigationTitle("Playlists")
+    .catalystAwareNavigationTitle("Playlists")
     .refreshable {
       await viewModel.refreshPlaylists()
     }
-    .searchable(
-      text: $searchPlaylist, placement: .navigationBarDrawer(displayMode: .always),
-      prompt: "Search")
+    .catalystAwareSearch(text: $searchPlaylist, prompt: "Search")
   }
 }
