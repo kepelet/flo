@@ -233,7 +233,9 @@ extension View {
     #if targetEnvironment(macCatalyst)
       self
     #else
-      self.navigationTitle(title, displayMode: displayMode)
+      // Note: `navigationTitle(_:displayMode:)` does not exist — the older
+      // `navigationBarTitle` spelling with `.automatic` renders identically.
+      self.navigationBarTitle(title, displayMode: displayMode)
     #endif
   }
 }
