@@ -299,8 +299,8 @@ struct PreferencesView: View {
           }
         }
 
-        Section(header: Text("App Icon")) {
-          if UIApplication.shared.supportsAlternateIcons {
+        if UIApplication.shared.supportsAlternateIcons {
+          Section(header: Text("App Icon")) {
             ScrollView(.horizontal, showsIndicators: false) {
               HStack(spacing: 12) {
                 ForEach(appIconOptions) { option in
@@ -329,10 +329,6 @@ struct PreferencesView: View {
                 .disabled(appIconViewModel.isChangingIcon)
               }
             }
-          } else {
-            Text("Alternate app icons are not supported on this device.")
-              .font(.caption)
-              .foregroundColor(.gray)
           }
         }
 
@@ -547,7 +543,7 @@ struct PreferencesView: View {
         if playerViewModel.hasNowPlaying() && !playerViewModel.shouldHidePlayer {
           Color.clear.frame(height: 50).listRowBackground(Color.clear)
         }
-      }.navigationBarTitle("Preferences", displayMode: .inline)
+      }.catalystAwareNavigationTitle("Preferences", displayMode: .inline)
     }.onAppear {
       floooViewModel.getLocalStorageInformation()
 

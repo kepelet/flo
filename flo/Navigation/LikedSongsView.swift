@@ -78,10 +78,8 @@ struct LikedSongsView: View {
       }
       .padding(.top, 10)
       .padding(.bottom, playerContentBottomPadding(viewModel: playerViewModel, iPhoneActive: 100, iPhoneInactive: 12))
-      .navigationTitle("Liked Songs")
-      .searchable(
-        text: $searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search"
-      )
+      .catalystAwareNavigationTitle("Liked Songs")
+      .catalystAwareSearch(text: $searchText, prompt: "Search")
     }
     .onAppear {
       viewModel.fetchStarredSongs()

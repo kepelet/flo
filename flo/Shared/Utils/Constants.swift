@@ -166,4 +166,76 @@ extension View {
   func playerBottomPadding(active: CGFloat, inactive: CGFloat) -> some View {
     modifier(PlayerBottomPadding(active: active, inactive: inactive))
   }
+
+  /// Native popup-button menu on Catalyst, where SwiftUI popover menus can
+  /// size to gigantic proportions. No-op on other platforms.
+  @ViewBuilder
+  func catalystNativeMenuStyle() -> some View {
+    #if targetEnvironment(macCatalyst)
+      self.menuStyle(.button)
+    #else
+      self
+    #endif
+  }
+}
+
+/// Search field: Catalyst hosts a custom field in the window toolbar (title
+/// area) with fully controllable padding; other platforms use the native
+/// navigation-bar drawer. Exactly one renders per platform, so call sites
+/// use this alone (no separate `.searchable`).
+extension View {
+  @ViewBuilder
+  func catalystAwareSearch(text: Binding<String>, prompt: String) -> some View {
+    #if targetEnvironment(macCatalyst)
+      self.toolbar {
+        ToolbarItem(placement: .primaryAction) {
+          HStack(spacing: 6) {
+            Image(systemName: "magnifyingglass")
+              .foregroundColor(.secondary)
+            TextField(prompt, text: text)
+              .textFieldStyle(.plain)
+            if !text.wrappedValue.isEmpty {
+              Button {
+                text.wrappedValue = ""
+              } label: {
+                Image(systemName: "xmark.circle.fill")
+                  .foregroundColor(.secondary)
+              }
+              .buttonStyle(.plain)
+            }
+          }
+          .padding(.horizontal, 8)
+          .padding(.vertical, 5)
+          .frame(width: 200)
+          .background(
+            .ultraThinMaterial, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+          .padding(.top, 2)
+        }
+      }
+    #else
+      self.searchable(
+        text: text, placement: .navigationBarDrawer(displayMode: .always), prompt: prompt)
+    #endif
+  }
+}
+/// Page heading: on Catalyst the window title already shows the active tab,
+/// so set no in-toolbar heading there to avoid a duplicate (even an empty
+/// title renders visibly). iOS keeps its heading.
+///
+/// - Note: Top-level `extension View` lives in this file; the `#if` keeps
+///   both branches' opaque `some View` types consistent per platform.
+extension View {
+  @ViewBuilder
+  func catalystAwareNavigationTitle(
+    _ title: String,
+    displayMode: NavigationBarItem.TitleDisplayMode = .automatic
+  ) -> some View {
+    #if targetEnvironment(macCatalyst)
+      self
+    #else
+      // Note: `navigationTitle(_:displayMode:)` does not exist — the older
+      // `navigationBarTitle` spelling with `.automatic` renders identically.
+      self.navigationBarTitle(title, displayMode: displayMode)
+    #endif
+  }
 }
