@@ -243,8 +243,10 @@ struct PadFloatingPlayerView: View {
     .contentShape(shape)
     .glassedEffect(in: shape)
     .clipShape(shape)
-    .shadow(color: .black.opacity(0.15), radius: 16, x: 0, y: 6)
-    .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 2)
+    #if !targetEnvironment(macCatalyst)
+      .shadow(color: .black.opacity(0.15), radius: 16, x: 0, y: 6)
+      .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 2)
+    #endif
     .padding(.horizontal, 16)
     .padding(.top, 6)
     .overlay(alignment: .topTrailing) {
@@ -506,23 +508,14 @@ struct PadFloatingPlayerView: View {
           .disabled(viewModel.isLiveRadio)
           .opacity(viewModel.isLiveRadio ? 0.35 : 1)
 
-          AirPlayRoutePicker(tintColor: UIColor.label, activeTintColor: UIColor.systemBlue)
+          AirPlayRoutePicker(
+            tintColor: isExternalRouteActive ? UIColor.systemBlue : UIColor.label,
+            activeTintColor: UIColor.systemBlue
+          )
             .frame(width: 30, height: 30)
             .frame(width: 32, height: 32)
             .background(Color.primary.opacity(0.04))
             .clipShape(Circle())
-            .overlay(alignment: .bottom) {
-              if let name = viewModel.externalOutputName, !name.isEmpty {
-                Text(name)
-                  .customFont(.caption2)
-                  .fontWeight(.bold)
-                  .lineLimit(1)
-                  .multilineTextAlignment(.center)
-                  .foregroundColor(.primary.opacity(0.85))
-                  .frame(maxWidth: 120)
-                  .offset(y: 14)
-              }
-            }
 
           Button {
             if isVolumeOverlayVisible {
@@ -558,6 +551,11 @@ struct PadFloatingPlayerView: View {
 
   private var volumeIconColor: Color {
     viewModel.playbackVolume < 0.01 ? Color.red.opacity(0.9) : Color.primary.opacity(0.88)
+  }
+
+  private var isExternalRouteActive: Bool {
+    guard let name = viewModel.externalOutputName else { return false }
+    return !name.isEmpty
   }
 
   private func togglePanel(_ panel: FloatingPlayerPanel) {

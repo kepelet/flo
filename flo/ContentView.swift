@@ -105,6 +105,38 @@ struct ContentView: View {
     return capped.isFinite ? capped : 0
   }
 
+  private var sidebarUsername: String {
+    if let name = authViewModel.user?.username, !name.isEmpty { return name }
+    if !authViewModel.username.isEmpty { return authViewModel.username }
+    return "Offline"
+  }
+
+  #if targetEnvironment(macCatalyst)
+    private func updateCatalystWindowTitle() {
+      let title = Self.windowTitle(for: libraryRouter.selectedTab)
+      UIApplication.shared.connectedScenes
+        .compactMap { $0 as? UIWindowScene }
+        .forEach { $0.title = title }
+    }
+
+    private static func windowTitle(for tab: AppTab) -> String {
+      switch tab {
+      case .home: return "Home"
+      case .library: return "Library"
+      case .libraryAlbums: return "Albums"
+      case .libraryArtists: return "Artists"
+      case .likedSongs: return "Liked Songs"
+      case .playlists: return "Playlists"
+      case .songs: return "Songs"
+      case .radios: return "Radios"
+      case .downloads: return "Downloads"
+      case .preferences: return "Preferences"
+      case .debug: return "Debug"
+      case .search: return "Search"
+      }
+    }
+  #endif
+
   private func floatingPlayerContentCenterOffsetX(totalWidth: CGFloat) -> CGFloat {
     guard isPadSidebar else { return 0 }
     guard totalWidth.isFinite, totalWidth > 0 else { return 0 }
@@ -504,6 +536,28 @@ struct ContentView: View {
       .padding(.top, 2)
       .padding(.bottom, 24)
     }
+    .tabViewSidebarBottomBar {
+      Menu {
+        Button("Logout", role: .destructive) {
+          authViewModel.logout()
+        }
+      } label: {
+        HStack(spacing: 10) {
+          Image(
+            systemName: authViewModel.isLoggedIn
+              ? "person.crop.circle.fill" : "person.crop.circle"
+          )
+          .foregroundColor(.secondary)
+          Text(sidebarUsername)
+            .customFont(.callout)
+            .foregroundColor(.secondary)
+            .lineLimit(1)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+      }
+    }
 #endif
     // Defensive: same removal as baseTabView — no .id(tabViewID) recreation.
 #if targetEnvironment(macCatalyst)
@@ -705,10 +759,16 @@ struct ContentView: View {
       }
       // FLO-36: clamp on appear in case persisted selection is stale after update.
       clampSelection()
+      #if targetEnvironment(macCatalyst)
+        updateCatalystWindowTitle()
+      #endif
     }
     .onChange(of: authViewModel.isLoggedIn) { _ in clampSelection() }
     .onChange(of: libraryViewV2Enabled) { _ in clampSelection() }
     .onChange(of: enableDebug) { _ in clampSelection() }
+    #if targetEnvironment(macCatalyst)
+      .onChange(of: libraryRouter.selectedTab) { _ in updateCatalystWindowTitle() }
+    #endif
   }
 
   @ViewBuilder
@@ -1293,8 +1353,8 @@ private struct LibrarySearchTabView: View {
           }.padding(.top, 10).playerBottomPadding(active: 90, inactive: 12)
         }
       }
-      .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search Library")
-      .navigationTitle("Search")
+      .catalystAwareSearch(text: $searchText, prompt: "Search Library")
+      .catalystAwareNavigationTitle("Search")
       .navigationDestination(for: Genre.self) { genre in
         GenreAlbumsView(genre: genre)
           .environmentObject(albumViewModel)

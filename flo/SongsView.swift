@@ -91,15 +91,11 @@ struct SongsView: View {
       }
       .padding(.top, 10)
       .padding(.bottom, playerContentBottomPadding(viewModel: playerViewModel, iPhoneActive: 100, iPhoneInactive: 12))
-      .navigationTitle("Songs")
+      .catalystAwareNavigationTitle("Songs")
       .refreshable {
         await viewModel.refreshAllSongs()
       }
-      .searchable(
-        text: $searchSong,
-        placement: .navigationBarDrawer(displayMode: .always),
-        prompt: "Search"
-      )
+      .catalystAwareSearch(text: $searchSong, prompt: "Search")
     }
   }
 }

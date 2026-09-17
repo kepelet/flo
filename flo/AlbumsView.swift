@@ -108,7 +108,11 @@ struct AlbumsGridView: View {
 
   private var columns: [GridItem] {
     if horizontalSizeClass == .regular {
-      return Array(repeating: GridItem(.flexible(), spacing: 10), count: 4)
+      #if targetEnvironment(macCatalyst)
+        return Array(repeating: GridItem(.flexible(), spacing: 10), count: 5)
+      #else
+        return Array(repeating: GridItem(.flexible(), spacing: 10), count: 4)
+      #endif
     }
     return Array(repeating: GridItem(.flexible(), spacing: 10), count: 2)
   }
@@ -125,7 +129,8 @@ struct AlbumsGridView: View {
   var body: some View {
     NavigationStack {
       VStack(spacing: 0) {
-        HStack {
+        #if !targetEnvironment(macCatalyst)
+          HStack {
           Image(systemName: "magnifyingglass").foregroundColor(.gray)
           TextField("Search", text: $searchText)
             .autocorrectionDisabled()
@@ -140,6 +145,7 @@ struct AlbumsGridView: View {
         .clipShape(RoundedRectangle(cornerRadius: 10))
         .padding(.horizontal, 10)
         .padding(.vertical, 8)
+        #endif
 
         ScrollView {
           LazyVGrid(columns: columns, spacing: 10) {
@@ -159,7 +165,8 @@ struct AlbumsGridView: View {
           .playerBottomPadding(active: 90, inactive: 12)
         }
       }
-      .navigationTitle("Albums")
+      .catalystAwareNavigationTitle("Albums")
+      .catalystAwareSearch(text: $searchText, prompt: "Search")
       .onAppear { albumViewModel.fetchAlbums() }
     }
   }

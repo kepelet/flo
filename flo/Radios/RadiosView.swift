@@ -68,13 +68,9 @@ struct RadiosView: View {
         .padding(.bottom, playerContentBottomPadding(viewModel: playerViewModel, iPhoneActive: 100, iPhoneInactive: 12))
       }
     }
-    .navigationTitle("Radios")
+    .catalystAwareNavigationTitle("Radios")
     .navigationBarTitleDisplayMode(.large)
-    .searchable(
-      text: $searchRadio,
-      placement: .navigationBarDrawer(displayMode: .always),
-      prompt: "Search"
-    )
+    .catalystAwareSearch(text: $searchRadio, prompt: "Search")
     .onAppear {
       viewModel.fetchAllRadios()
     }

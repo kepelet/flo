@@ -215,8 +215,11 @@ struct AlbumView: View {
               self.showShareAlert = true
             })
         } label: {
-          Label("", systemImage: "ellipsis.circle")
+          Label("Album options", systemImage: "ellipsis.circle")
+            .labelStyle(.iconOnly)
+            .fixedSize()
         }
+        .catalystNativeMenuStyle()
       } else {
         Button(action: {
           showDeleteAlbumAlert.toggle()

@@ -269,11 +269,7 @@ struct LibraryView: View {
         }
         .padding(.top, 10)
         .playerBottomPadding(active: 100, inactive: 0)
-        .searchable(
-          text: $searchAlbum,
-          placement: .navigationBarDrawer(displayMode: .always),
-          prompt: "Search"
-        )
+        .catalystAwareSearch(text: $searchAlbum, prompt: "Search")
       }
     }
     .sheet(isPresented: $showDownloadSheet) {
@@ -288,7 +284,7 @@ struct LibraryView: View {
         }
       }
     }
-    .navigationTitle("Library")
+    .catalystAwareNavigationTitle("Library")
     .refreshable {
       await viewModel.refreshAlbums()
       await viewModel.refreshArtists()
@@ -475,6 +471,9 @@ struct LibraryView: View {
         }
       }
     }
+    #if targetEnvironment(macCatalyst)
+      .catalystAwareSearch(text: $searchAlbum, prompt: "Search")
+    #endif
   }
 
   private var v2DownloadsBody: some View {
