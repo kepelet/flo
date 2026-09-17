@@ -46,6 +46,10 @@
           "name" : "a",
           "opacity-specializations" : [
             {
+              "appearance" : "dark",
+              "value" : 0
+            },
+            {
               "appearance" : "tinted",
               "value" : 0
             }
