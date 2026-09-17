@@ -129,6 +129,10 @@ platform :mac do
     # macOS trains have independent build numbers (2.6 was ios 213 vs osx 320;
     # guarding against the ios train built osx 214 → 409 "must be higher
     # than 320").
+    # Query across any version (no version filter): macOS build numbers must
+    # keep increasing across versions (osx 2.5 already reached 320), while a
+    # version-scoped query for a fresh 2.6 finds nothing and the guard falls
+    # back to the repo number.
     # Read the repo number via Xcodeproj (max over all configs) instead of
     # agvtool-based get_build_number: with no project-level
     # CURRENT_PROJECT_VERSION, agvtool returns the watch target's number (211)
@@ -140,7 +144,6 @@ platform :mac do
     proj = Xcodeproj::Project.open(File.expand_path("../flo.xcodeproj", __dir__))
     latest_build_number = latest_testflight_build_number(
       api_key: api_key,
-      version: get_version_number(target: "flo"),
       platform: "osx",
       app_identifier: app_identifier
     )
