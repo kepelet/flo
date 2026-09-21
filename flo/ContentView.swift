@@ -312,41 +312,16 @@ struct ContentView: View {
     .onChange(of: enableDebug) { _ in clampSelection() }
   }
 
+  /// Wraps a tab's content with per-tab chrome.
+  ///
+  /// The floating player deliberately does **not** live here: an overlay inside
+  /// each tab's content is torn down and re-created with that tab — and
+  /// duplicated across the tabs `TabView` keeps mounted — which reads as the
+  /// whole player bar blinking. It is mounted once beside `rootTabView` in
+  /// `body` instead, where tab hierarchy churn cannot reach it.
   @available(iOS 18.0, *)
   func sidebarTabContent<Content: View>(_ content: Content) -> some View {
     content
-      .overlay(alignment: .bottom) {
-        if playerPresence.hasNowPlaying {
-          PadFloatingPlayerView(viewModel: playerViewModel, activePanel: $floatingSidePanel)
-            .frame(maxWidth: 860)
-            .padding(.bottom, 20)
-            .opacity(playerPresence.hasNowPlaying ? 1 : 0)
-            .offset(x: floatingPlayerOffsetX.isFinite ? floatingPlayerOffsetX : 0)
-            .zIndex(10)
-            .gesture(
-              DragGesture()
-                .onChanged { value in
-                  let tx = value.translation.width
-                  guard tx.isFinite else { return }
-                  if tx < .zero {
-                    floatingPlayerOffsetX = tx
-                  }
-
-                  if abs(floatingPlayerOffsetX) > swipeThreshold, !isSwipping {
-                    isSwipping = true
-                  }
-                }
-                .onEnded { _ in
-                  if abs(floatingPlayerOffsetX) > swipeThreshold, isSwipping {
-                    playerViewModel.destroyPlayerAndQueue()
-                  }
-
-                  self.floatingPlayerOffsetX = .zero
-                  self.isSwipping = false
-                }
-            )
-        }
-      }
   }
 
   @available(iOS 18.0, *)
@@ -639,6 +614,49 @@ struct ContentView: View {
               .transition(.move(edge: .trailing).combined(with: .opacity))
               .zIndex(2)
             }
+
+            // Single, tab-independent floating player (see `sidebarTabContent`).
+            // The leading inset cancels the sidebar and the trailing inset the
+            // side panel, so the bar keeps the content-column centering it had
+            // as a per-tab overlay — without being torn down and re-created
+            // with every tab's content (the "blinking" bar).
+            VStack {
+              Spacer()
+
+              if playerPresence.hasNowPlaying {
+                PadFloatingPlayerView(viewModel: playerViewModel, activePanel: $floatingSidePanel)
+                  .frame(maxWidth: 860)
+                  .padding(.bottom, 20)
+                  .padding(.leading, estimatedSidebarWidth(for: safeWidth))
+                  .padding(.trailing, isPanelVisible ? trailingInset : 0)
+                  .opacity(playerPresence.hasNowPlaying ? 1 : 0)
+                  .offset(x: floatingPlayerOffsetX.isFinite ? floatingPlayerOffsetX : 0)
+                  .zIndex(10)
+                  .gesture(
+                    DragGesture()
+                      .onChanged { value in
+                        let tx = value.translation.width
+                        guard tx.isFinite else { return }
+                        if tx < .zero {
+                          floatingPlayerOffsetX = tx
+                        }
+
+                        if abs(floatingPlayerOffsetX) > swipeThreshold, !isSwipping {
+                          isSwipping = true
+                        }
+                      }
+                      .onEnded { _ in
+                        if abs(floatingPlayerOffsetX) > swipeThreshold, isSwipping {
+                          playerViewModel.destroyPlayerAndQueue()
+                        }
+
+                        self.floatingPlayerOffsetX = .zero
+                        self.isSwipping = false
+                      }
+                  )
+              }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
           }
           .animation(.spring(duration: 0.26, bounce: 0.08), value: isPanelVisible)
         } else {

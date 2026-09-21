@@ -60,6 +60,7 @@ class PlayerViewModel: ObservableObject {
   private var isLocallySaved: Bool = false
   private var isFinished: Bool = false
   private var totalDuration: Double = 0.0
+  private var lastProgressPersistAt: Date?
   private var playerItemObservation: AnyCancellable?
   private var interruptionObservation = Set<AnyCancellable>()
   private var routeChangeObservation = Set<AnyCancellable>()
@@ -522,6 +523,21 @@ class PlayerViewModel: ObservableObject {
     }
   }
 
+  /// Persisting playback progress on every 1s tick writes UserDefaults once per
+  /// second, which invalidates `@AppStorage` state across the app — including
+  /// ContentView's tab hierarchy, which then re-diffs (and UIKit rebuilds its
+  /// tab bar items) every second during playback. The stored value only has to
+  /// be good enough to restore the position on relaunch, so persist on a
+  /// throttle and flush it whenever playback pauses or is seeked.
+  private func persistProgressThrottled(force: Bool = false) {
+    let now = Date()
+    if !force, let last = lastProgressPersistAt, now.timeIntervalSince(last) < 5 {
+      return
+    }
+    lastProgressPersistAt = now
+    UserDefaultsManager.nowPlayingProgress = self.progress
+  }
+
   private func addPeriodicTimeObserver() {
     guard let player = self.player else { return }
 
@@ -540,7 +556,7 @@ class PlayerViewModel: ObservableObject {
 
       self.currentTimeString = timeString(for: currentTime)
 
-      UserDefaultsManager.nowPlayingProgress = self.progress
+      self.persistProgressThrottled()
 
       if self.isLRCLIBEnabled {
         self.updateCurrentLyricsLine(currentTime: currentTime)
@@ -730,6 +746,7 @@ class PlayerViewModel: ObservableObject {
 
     self.isPlaying = false
     self.isRecoveringFromStall = false
+    self.persistProgressThrottled(force: true)
     self.updateNowPlayingInfo(progress: self.progress, rate: 0.0)
     MPNowPlayingInfoCenter.default().playbackState = .paused
   }
@@ -748,6 +765,7 @@ class PlayerViewModel: ObservableObject {
     }
 
     self.progress = progress
+    self.persistProgressThrottled(force: true)
 
     let newTime = CMTime(
       seconds: progress * totalDuration, preferredTimescale: CMTimeScale(NSEC_PER_SEC))
