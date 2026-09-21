@@ -327,6 +327,9 @@ struct HomeView: View {
           .environmentObject(playerViewModel)
           .environmentObject(downloadViewModel)
       }
+      #if targetEnvironment(macCatalyst)
+        .catalystAwareNavigationTitle("Home")
+      #endif
     }
   }
 }

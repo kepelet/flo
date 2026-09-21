@@ -33,7 +33,12 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     #if targetEnvironment(macCatalyst)
       windowScene.title = "flo"
       if let titlebar = windowScene.titlebar {
-        titlebar.titleVisibility = .visible
+        // The page heading is drawn by the navigation bar (see
+        // `catalystAwareNavigationTitle`), which shares its row with the
+        // search field and toolbar actions. The AppKit titlebar title would
+        // duplicate it on a row of its own, so hide it; `windowScene.title`
+        // still drives the Window menu / Mission Control name.
+        titlebar.titleVisibility = .hidden
         titlebar.toolbar = nil
         titlebar.toolbarStyle = .unifiedCompact
         if #available(macCatalyst 16.0, *) {
@@ -64,7 +69,13 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
     #if targetEnvironment(macCatalyst)
       enforceCatalystMinSize()
-      DispatchQueue.main.async { [weak self] in self?.enforceCatalystMinSize() }
+      DispatchQueue.main.async { [weak self] in
+        self?.enforceCatalystMinSize()
+        SceneDelegate.applyCompactCatalystHeader(in: self?.window)
+      }
+      DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+        SceneDelegate.applyCompactCatalystHeader(in: self?.window)
+      }
     #endif
   }
 
@@ -107,8 +118,16 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
       for s in UIApplication.shared.connectedScenes {
         applyRestrictions(to: s as? UIWindowScene)
       }
+      SceneDelegate.applyCompactCatalystHeader(in: window)
       enforceCatalystMinSize()
       DispatchQueue.main.async { [weak self] in self?.enforceCatalystMinSize() }
+      // SwiftUI builds the tab / navigation hierarchy asynchronously; retry a
+      // few times so the header is compact by the time the window paints.
+      for delay in [0.0, 0.25, 1.0] {
+        DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
+          SceneDelegate.applyCompactCatalystHeader(in: self?.window)
+        }
+      }
     #endif
   }
 
@@ -120,7 +139,165 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 }
 
 #if targetEnvironment(macCatalyst)
+  /// Hosts the content column's navigation view and lifts it by the top safe
+  /// area so the navigation bar sits flush with the window top instead of
+  /// below the titlebar strip. SwiftUI keeps laying out this view (the TabView
+  /// sets our frame), and every layout pass re-places the navigation view, so
+  /// the lift survives SwiftUI's frequent re-layouts and follows safe-area
+  /// changes (e.g. full screen). The sidebar column is a sibling, untouched.
+  final class CatalystHeaderLiftView: UIView {
+    /// Small gap kept above the lifted header so the title / search / actions
+    /// are vertically centred with the window's traffic lights instead of
+    /// sitting flush against the window edge.
+    static let topSpacing: CGFloat = 8
+
+    override func layoutSubviews() {
+      super.layoutSubviews()
+      guard let child = subviews.first else { return }
+      let dy = Self.topSpacing - safeAreaInsets.top
+      child.frame = CGRect(x: 0, y: dy, width: bounds.width, height: bounds.height - dy)
+    }
+
+    override func willRemoveSubview(_ subview: UIView) {
+      super.willRemoveSubview(subview)
+      // SwiftUI re-parents the hosted subtree on some updates, which pulls it
+      // out of the lift. Put it straight back so the header never paints in
+      // the unlifted position.
+      DispatchQueue.main.async { [weak subview] in
+        guard let subview = subview, !(subview.superview is CatalystHeaderLiftView) else {
+          return
+        }
+        SceneDelegate.wrapCatalystHeaderIfNeeded(
+          subview, topInset: subview.window?.safeAreaInsets.top ?? 0)
+      }
+    }
+  }
+
+  /// SwiftUI-facing entry point: lift any navigation stack that was built
+  /// since the last pass (tabs create theirs lazily).
+  extension SceneDelegate {
+    static func applyCompactCatalystHeaderToAllWindows() -> Int {
+      var wrapped = 0
+      for scene in UIApplication.shared.connectedScenes {
+        guard let windowScene = scene as? UIWindowScene else { continue }
+        for window in windowScene.windows {
+          wrapped += applyCompactCatalystHeader(in: window)
+        }
+      }
+      return wrapped
+    }
+
+    /// Starts a short display-link burst that lifts any navigation stack built
+    /// during a page transition. SwiftUI builds the new page's content before
+    /// its navigation stack exists, so the anchor cannot catch it; polling per
+    /// frame (before the frame is committed) keeps the header from ever being
+    /// painted in the unlifted position.
+    static func settleCompactCatalystHeader() {
+      CatalystHeaderSettleDriver.shared.start()
+    }
+
+    /// Lifts the SwiftUI host that contains a navigation stack. The host's
+    /// child (the navigation view) is re-inserted by SwiftUI on updates —
+    /// lifting the host keeps the stack inside the lifted subtree, so that
+    /// re-insertion can't drop the header back to its unlifted position.
+    @discardableResult
+    static func wrapCatalystHeader(for navView: UIView, topInset: CGFloat) -> Bool {
+      let target = navView.superview.flatMap { $0 is CatalystHeaderLiftView ? nil : $0 } ?? navView
+      return wrapCatalystHeaderIfNeeded(target, topInset: topInset)
+    }
+
+    /// Wraps one view in a `CatalystHeaderLiftView` if it isn't already
+    /// wrapped. Idempotent; safe to call before the view has a size or
+    /// before the window's safe area has settled (the lift reads the safe area
+    /// itself on every layout pass).
+    @discardableResult
+    static func wrapCatalystHeaderIfNeeded(_ navView: UIView, topInset: CGFloat) -> Bool {
+      guard !(navView.superview is CatalystHeaderLiftView),
+        let superview = navView.superview
+      else {
+        if let lift = navView.superview as? CatalystHeaderLiftView { lift.setNeedsLayout() }
+        return false
+      }
+      let lift = CatalystHeaderLiftView()
+      lift.backgroundColor = .clear
+      superview.addSubview(lift)
+      lift.translatesAutoresizingMaskIntoConstraints = false
+      NSLayoutConstraint.activate([
+        lift.topAnchor.constraint(equalTo: superview.topAnchor),
+        lift.leadingAnchor.constraint(equalTo: superview.leadingAnchor),
+        lift.trailingAnchor.constraint(equalTo: superview.trailingAnchor),
+        lift.bottomAnchor.constraint(equalTo: superview.bottomAnchor),
+      ])
+      // The navigation view is now placed by the lift, not by SwiftUI. No
+      // autoresizing: `layoutSubviews` assigns the frame explicitly, and a
+      // flexible mask would scale the view while the lift still has zero
+      // bounds (visible as a zoom/shift during tab changes).
+      navView.translatesAutoresizingMaskIntoConstraints = true
+      navView.autoresizingMask = []
+      let previousFrame = navView.frame
+      let dy = CatalystHeaderLiftView.topSpacing - topInset
+      CATransaction.begin()
+      CATransaction.setDisableActions(true)
+      lift.addSubview(navView)
+      navView.frame = CGRect(
+        x: 0, y: dy, width: previousFrame.width, height: previousFrame.height - dy)
+      lift.setNeedsLayout()
+      CATransaction.commit()
+      return true
+    }
+  }
+  /// Runs a display link for a short window after a page transition, lifting
+  /// navigation stacks that SwiftUI creates mid-transition.
+  final class CatalystHeaderSettleDriver: NSObject {
+    static let shared = CatalystHeaderSettleDriver()
+    private var link: CADisplayLink?
+    private var deadline: CFTimeInterval = 0
+
+    func start() {
+      deadline = CACurrentMediaTime() + 1.2
+      guard link == nil else { return }
+      let link = CADisplayLink(target: self, selector: #selector(tick))
+      link.add(to: .main, forMode: .common)
+      self.link = link
+    }
+
+    @objc private func tick() {
+      let wrapped = SceneDelegate.applyCompactCatalystHeaderToAllWindows()
+      if CACurrentMediaTime() > deadline {
+        link?.invalidate()
+        link = nil
+      }
+    }
+  }
+
   private extension SceneDelegate {
+    /// Lifts every navigation stack in the content column so the page header
+    /// (title, search field, actions) sits flush with the window top instead
+    /// of below macOS 26's ~41pt titlebar strip. Idempotent: only unwrapped
+    /// navigation views are re-parented.
+    ///
+    /// Call on launch, on activation, and whenever the tab selection changes —
+    /// tabs build their navigation stacks lazily.
+    static func applyCompactCatalystHeader(in window: UIWindow?) -> Int {
+      guard let window = window, let root = window.rootViewController else { return 0 }
+      let topInset = window.safeAreaInsets.top
+      guard topInset > 0 else { return 0 }
+      var wrapped = 0
+
+      func walk(_ vc: UIViewController) {
+        if let nav = vc as? UINavigationController {
+          let inWindow = nav.view.window === window
+          let hasSize = nav.view.bounds.height > 0
+          if inWindow, hasSize, wrapCatalystHeader(for: nav.view, topInset: topInset) {
+            wrapped += 1
+          }
+        }
+        vc.children.forEach(walk)
+      }
+      walk(root)
+      return wrapped
+    }
+
     static func installCatalystResizeObserverIfNeeded() {
       guard catalystResizeObserver == nil else { return }
       catalystResizeObserver = NotificationCenter.default.addObserver(

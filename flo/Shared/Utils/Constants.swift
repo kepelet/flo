@@ -188,28 +188,19 @@ extension View {
   func catalystAwareSearch(text: Binding<String>, prompt: String) -> some View {
     #if targetEnvironment(macCatalyst)
       self.toolbar {
-        ToolbarItem(placement: .primaryAction) {
-          HStack(spacing: 6) {
-            Image(systemName: "magnifyingglass")
-              .foregroundColor(.secondary)
-            TextField(prompt, text: text)
-              .textFieldStyle(.plain)
-            if !text.wrappedValue.isEmpty {
-              Button {
-                text.wrappedValue = ""
-              } label: {
-                Image(systemName: "xmark.circle.fill")
-                  .foregroundColor(.secondary)
-              }
-              .buttonStyle(.plain)
-            }
+        if #available(iOS 26.0, macOS 26.0, macCatalyst 26.0, *) {
+          // macOS 26+ draws one shared capsule behind adjacent toolbar items,
+          // which visually fuses the search field with the filter menu next
+          // to it. Opt out so the field's own rounded background reads as a
+          // separate control (and the filter keeps its own capsule).
+          ToolbarItem(placement: .primaryAction) {
+            CatalystToolbarSearchField(text: text, prompt: prompt)
           }
-          .padding(.horizontal, 8)
-          .padding(.vertical, 5)
-          .frame(width: 200)
-          .background(
-            .ultraThinMaterial, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
-          .padding(.top, 2)
+          .sharedBackgroundVisibility(.hidden)
+        } else {
+          ToolbarItem(placement: .primaryAction) {
+            CatalystToolbarSearchField(text: text, prompt: prompt)
+          }
         }
       }
     #else
@@ -218,9 +209,112 @@ extension View {
     #endif
   }
 }
-/// Page heading: on Catalyst the window title already shows the active tab,
-/// so set no in-toolbar heading there to avoid a duplicate (even an empty
-/// title renders visibly). iOS keeps its heading.
+
+#if targetEnvironment(macCatalyst)
+  /// Custom toolbar search field shared by every Catalyst screen.
+  private struct CatalystToolbarSearchField: View {
+    @Binding var text: String
+    let prompt: String
+
+    var body: some View {
+      HStack(spacing: 6) {
+        Image(systemName: "magnifyingglass")
+          .foregroundColor(.secondary)
+        TextField(prompt, text: $text)
+          .textFieldStyle(.plain)
+        if !text.isEmpty {
+          Button {
+            text = ""
+          } label: {
+            Image(systemName: "xmark.circle.fill")
+              .foregroundColor(.secondary)
+          }
+          .buttonStyle(.plain)
+        }
+      }
+      .padding(.horizontal, 8)
+      .padding(.vertical, 5)
+      .frame(width: 200)
+      .background(
+        .ultraThinMaterial, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+      .padding(.top, 2)
+    }
+  }
+#endif
+#if targetEnvironment(macCatalyst)
+  /// Plain navigation-bar heading: system font and primary label color, no
+  /// toolbar shared background (macOS 26 Liquid Glass). Deliberately not
+  /// `customFont` — that forces the app's purple accent color, which reads as
+  /// a tappable control instead of a window title.
+  private struct CatalystNavigationHeading: View {
+    let title: String
+
+    var body: some View {
+      Text(title)
+        .font(.headline)
+        .foregroundStyle(.primary)
+        .lineLimit(1)
+        .fixedSize()
+    }
+  }
+#endif
+
+#if targetEnvironment(macCatalyst)
+  /// Invisible anchor attached to each screen. When SwiftUI inserts it into the
+  /// window, the enclosing navigation stack already exists — lifting it right
+  /// away means a freshly built page is never painted in the unlifted position
+  /// (which reads as the header jumping after a tab switch).
+  final class CatalystHeaderLiftAnchorView: UIView {
+    var onWindow: (() -> Void)?
+
+    override func willMove(toWindow newWindow: UIWindow?) {
+      super.willMove(toWindow: newWindow)
+      // Fires *before* the subtree is attached and laid out, so the lift is in
+      // place before the navigation controller places its bar.
+      if newWindow != nil { onWindow?() }
+    }
+
+    override func didMoveToWindow() {
+      super.didMoveToWindow()
+      if window != nil { onWindow?() }
+    }
+  }
+
+  struct CatalystHeaderLiftAnchor: UIViewRepresentable {
+    func makeUIView(context: Context) -> CatalystHeaderLiftAnchorView {
+      let view = CatalystHeaderLiftAnchorView(frame: .zero)
+      view.isUserInteractionEnabled = false
+      view.backgroundColor = .clear
+      view.onWindow = { [weak view] in
+        guard let view = view else { return }
+        // Walk up to the enclosing navigation controller's root view (its
+        // `next` responder is the controller) and lift its host before this
+        // page is painted. The window's safe area can still be zero at this
+        // point, so the lift reads the safe area itself on every layout pass.
+        var candidate: UIView? = view
+        while let ancestor = candidate {
+          if let nav = ancestor.next as? UINavigationController {
+            SceneDelegate.wrapCatalystHeader(
+              for: nav.view, topInset: nav.view.window?.safeAreaInsets.top ?? 0)
+            return
+          }
+          candidate = ancestor.superview
+        }
+      }
+      return view
+    }
+
+    func updateUIView(_ uiView: CatalystHeaderLiftAnchorView, context: Context) {}
+  }
+#endif
+
+/// Page heading.
+///
+/// On Catalyst the window titlebar carries no title (see SceneDelegate:
+/// `titleVisibility = .hidden`) and the heading is hosted in the navigation
+/// bar, on the same row as the toolbar actions instead of on a title row of
+/// its own. It sits at the leading edge of the content area (right of the
+/// sidebar), the usual macOS sidebar-app placement. iOS keeps its heading.
 ///
 /// - Note: Top-level `extension View` lives in this file; the `#if` keeps
 ///   both branches' opaque `some View` types consistent per platform.
@@ -231,7 +325,19 @@ extension View {
     displayMode: NavigationBarItem.TitleDisplayMode = .automatic
   ) -> some View {
     #if targetEnvironment(macCatalyst)
-      self
+      self.toolbar {
+        if #available(iOS 26.0, macOS 26.0, macCatalyst 26.0, *) {
+          ToolbarItem(placement: .navigation) {
+            CatalystNavigationHeading(title: title)
+          }
+          .sharedBackgroundVisibility(.hidden)
+        } else {
+          ToolbarItem(placement: .navigation) {
+            CatalystNavigationHeading(title: title)
+          }
+        }
+      }
+      .background(CatalystHeaderLiftAnchor())
     #else
       // Note: `navigationTitle(_:displayMode:)` does not exist — the older
       // `navigationBarTitle` spelling with `.automatic` renders identically.

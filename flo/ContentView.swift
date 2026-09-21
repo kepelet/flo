@@ -767,9 +767,26 @@ struct ContentView: View {
     .onChange(of: libraryViewV2Enabled) { _ in clampSelection() }
     .onChange(of: enableDebug) { _ in clampSelection() }
     #if targetEnvironment(macCatalyst)
-      .onChange(of: libraryRouter.selectedTab) { _ in updateCatalystWindowTitle() }
+      .onChange(of: libraryRouter.selectedTab) { _ in
+        updateCatalystWindowTitle()
+        refreshCatalystHeader()
+      }
+      .onChange(of: authViewModel.isLoggedIn) { _ in refreshCatalystHeader() }
+      .onChange(of: libraryViewV2Enabled) { _ in refreshCatalystHeader() }
     #endif
   }
+
+  #if targetEnvironment(macCatalyst)
+    /// Tabs build their navigation stacks lazily; re-run the compact-header
+    /// pass after a tab switch (or a hierarchy rebuild) so new stacks get
+    /// lifted too.
+    private func refreshCatalystHeader() {
+      SceneDelegate.settleCompactCatalystHeader()
+      DispatchQueue.main.async {
+        SceneDelegate.applyCompactCatalystHeaderToAllWindows()
+      }
+    }
+  #endif
 
   @ViewBuilder
   var tabKeyboardShortcuts: some View {
