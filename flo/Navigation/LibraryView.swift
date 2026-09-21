@@ -88,6 +88,9 @@ struct LibraryView: View {
   var libraryContent: some View {
     if libraryViewV2Enabled {
       libraryV2ContentWrapper
+        #if targetEnvironment(macCatalyst)
+          .catalystAwareNavigationTitle("Library")
+        #endif
     } else {
       libraryLegacyContent
     }
