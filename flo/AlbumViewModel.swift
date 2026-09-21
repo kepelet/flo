@@ -14,6 +14,7 @@ class AlbumViewModel: ObservableObject {
   @Published var songs: [Song] = []
   @Published var artistAlbums: [Album] = []
   @Published var albums: [Album] = []
+  @Published var libraries: [Library] = []
   @Published var album: Album = Album()
   @Published var starredSongs: [Song] = []
   @Published var downloadedAlbums: [Album] = []
@@ -131,7 +132,7 @@ class AlbumViewModel: ObservableObject {
   // MARK: - Generic cache helpers
 
   private enum CacheKey: String {
-    case albums, artists, playlists, songs
+    case albums, artists, playlists, songs, libraries
   }
 
   private func fetchCached<T: Codable>(
@@ -505,6 +506,11 @@ class AlbumViewModel: ObservableObject {
       assign: { self.artists = $0 }, request: AlbumService.shared.getArtists)
   }
 
+  func fetchLibraries() {
+    fetchCached(current: libraries, cacheKey: .libraries,
+      assign: { self.libraries = $0 }, request: AlbumService.shared.getLibraries)
+  }
+
   func artistForNavigation(id: String = "", name: String) -> Artist? {
     let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
     let hasName = !trimmedName.isEmpty && trimmedName != "N/A"
@@ -589,6 +595,11 @@ class AlbumViewModel: ObservableObject {
     await refreshCached(
       cacheKey: .playlists, assign: { self.playlists = $0 },
       request: AlbumService.shared.getPlaylists)
+  }
+
+  @MainActor func refreshLibraries() async {
+    await refreshCached(cacheKey: .libraries, assign: { self.libraries = $0 },
+      request: AlbumService.shared.getLibraries)
   }
 
   @MainActor func refreshAllSongs() async {
