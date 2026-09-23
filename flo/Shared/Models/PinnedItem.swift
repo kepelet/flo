@@ -20,7 +20,7 @@ enum PinnedKind: String, Codable, CaseIterable {
 
   var systemImage: String {
     switch self {
-    case .album: return "square.stack.fill"
+    case .album: return "square.grid.2x2"
     case .artist: return "music.mic"
     case .playlist: return "music.note.list"
     }
