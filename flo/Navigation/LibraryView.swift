@@ -82,7 +82,6 @@ struct LibraryView: View {
     HStack {
       PinArtworkView(
         pathOrUrlString: viewModel.coverArtPath(for: item),
-        fallbackSystemImage: item.kind.systemImage,
         size: 40, cornerRadius: 8
       )
       VStack(alignment: .leading) {
@@ -642,9 +641,7 @@ struct LibraryView: View {
               VStack(spacing: 6) {
                 PinArtworkView(
                   pathOrUrlString: viewModel.coverArtPath(for: item),
-                  fallbackSystemImage: item.kind.systemImage,
-                  size: 86, cornerRadius: 10,
-                  tint: tintColor(for: item.refId)
+                  size: 86, cornerRadius: 10
                 )
                 Text(viewModel.displayName(for: item))
                   .customFont(.footnote)

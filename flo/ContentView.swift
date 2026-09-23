@@ -424,7 +424,6 @@ struct ContentView: View {
               } icon: {
                 PinArtworkView(
                   pathOrUrlString: albumViewModel.coverArtPath(for: item),
-                  fallbackSystemImage: item.kind.systemImage,
                   size: 22, cornerRadius: 5
                 )
               }
