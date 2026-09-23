@@ -11,6 +11,7 @@ struct ArtistDetailView: View {
   @EnvironmentObject var viewModel: AlbumViewModel
   @EnvironmentObject var playerViewModel: PlayerViewModel
   @EnvironmentObject var downloadViewModel: DownloadViewModel
+  @EnvironmentObject var pins: PinnedStore
 
   @StateObject var artistDetailViewModel = ArtistDetailViewModel()
 
@@ -155,6 +156,16 @@ struct ArtistDetailView: View {
       }
     } message: {
       Text(artistDetailViewModel.errorMessage ?? "")
+    }
+    .toolbar {
+      Button(action: {
+        pins.toggle(artist: artist)
+      }) {
+        Label(
+          pins.isPinned(artist: artist) ? "Unpin artist" : "Pin artist",
+          systemImage: pins.isPinned(artist: artist) ? "pin.fill" : "pin"
+        )
+      }
     }
   }
 }

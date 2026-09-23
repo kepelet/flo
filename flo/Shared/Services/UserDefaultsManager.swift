@@ -128,6 +128,34 @@ class UserDefaultsManager {
     }
   }
 
+  /// Ordered list of pinned downloaded-album ids (legacy downloads-only format).
+  /// Kept for one-time migration into `pinnedItems`.
+  static var pinnedAlbumIds: [String] {
+    get {
+      return UserDefaults.standard.stringArray(forKey: UserDefaultsKeys.pinnedAlbums) ?? []
+    }
+    set {
+      UserDefaults.standard.set(newValue, forKey: UserDefaultsKeys.pinnedAlbums)
+    }
+  }
+
+  /// Pinned library items (albums, artists, playlists) in pin order
+  /// (most recently pinned first). Stored as JSON.
+  static var pinnedItems: [PinnedItem] {
+    get {
+      guard let data = UserDefaults.standard.data(forKey: UserDefaultsKeys.pinnedItems),
+        let items = try? JSONDecoder().decode([PinnedItem].self, from: data)
+      else {
+        return []
+      }
+      return items
+    }
+    set {
+      let data = try? JSONEncoder().encode(newValue)
+      UserDefaults.standard.set(data, forKey: UserDefaultsKeys.pinnedItems)
+    }
+  }
+
   static var libraryViewV2: Bool {
     get {
       return UserDefaults.standard.bool(forKey: UserDefaultsKeys.libraryViewV2)

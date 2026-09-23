@@ -27,6 +27,7 @@ struct ContentView: View {
   @StateObject private var albumViewModel = AlbumViewModel()
   @StateObject private var floooViewModel = FloooViewModel()
   @StateObject private var downloadViewModel = DownloadViewModel()
+  @StateObject private var pinnedStore = PinnedStore()
   @StateObject private var inAppPurchaseManager = InAppPurchaseManager()
 
   @State private var floatingPlayerOffsetX: CGFloat = .zero
@@ -70,7 +71,8 @@ struct ContentView: View {
       isPadSidebar: isPadSidebar,
       isLoggedIn: authViewModel.isLoggedIn,
       libraryViewV2Enabled: libraryViewV2Enabled,
-      isDebugEnabled: enableDebug
+      isDebugEnabled: enableDebug,
+      pinnedItems: pinnedStore.items
     )
   }
 
@@ -133,6 +135,7 @@ struct ContentView: View {
       case .preferences: return "Preferences"
       case .debug: return "Debug"
       case .search: return "Search"
+      case .pinned(let item): return item.name.isEmpty ? "Pinned" : item.name
       }
     }
   #endif
@@ -325,6 +328,47 @@ struct ContentView: View {
   }
 
   @available(iOS 18.0, *)
+  private func pinnedSidebarDestination(_ item: PinnedItem) -> some View {
+    Group {
+      switch item.kind {
+      case .album:
+        if let album = albumViewModel.albumForNavigation(
+          id: item.refId, name: item.name, artist: item.subtitle)
+        {
+          AlbumView(viewModel: albumViewModel)
+            .environmentObject(playerViewModel)
+            .environmentObject(downloadViewModel)
+            .onAppear {
+              albumViewModel.setActiveAlbum(album: album)
+            }
+        } else {
+          Text("Album unavailable")
+            .foregroundColor(.secondary)
+        }
+      case .artist:
+        if let artist = albumViewModel.artistForNavigation(id: item.refId, name: item.name) {
+          ArtistDetailView(artist: artist)
+            .environmentObject(albumViewModel)
+            .environmentObject(playerViewModel)
+            .environmentObject(downloadViewModel)
+        } else {
+          Text("Artist unavailable")
+            .foregroundColor(.secondary)
+        }
+      case .playlist:
+        let playlist = albumViewModel.playlistForNavigation(id: item.refId, name: item.name)
+        PlaylistDetailView()
+          .environmentObject(albumViewModel)
+          .environmentObject(playerViewModel)
+          .environmentObject(downloadViewModel)
+          .onAppear {
+            albumViewModel.setActivePlaylist(playlist: playlist)
+          }
+      }
+    }
+  }
+
+  @available(iOS 18.0, *)
   var sidebarTabView: some View {
     TabView(selection: clampedSelection) {
 #if targetEnvironment(macCatalyst)
@@ -364,6 +408,28 @@ struct ContentView: View {
                 albumViewModel.fetchAlbums()
               }
           )
+        }
+      }
+
+      if !pinnedStore.items.isEmpty {
+        TabSection("Pinned") {
+          ForEach(pinnedStore.items) { item in
+            Tab(
+              albumViewModel.displayName(for: item), systemImage: item.kind.systemImage,
+              value: AppTab.pinned(item)
+            ) {
+              sidebarTabContent(
+                pinnedSidebarDestination(item)
+              )
+            }
+            .contextMenu {
+              Button {
+                pinnedStore.unpin(item)
+              } label: {
+                Label(item.kind.toggleTitle(pinned: true), systemImage: "pin.slash")
+              }
+            }
+          }
         }
       }
 
@@ -592,6 +658,7 @@ struct ContentView: View {
           // non-finite/zero keeps the UITabSideBar coordinator stable.
           ZStack(alignment: .trailing) {
             rootTabView
+              .environmentObject(pinnedStore)
               .padding(.trailing, isPanelVisible ? trailingInset : 0)
               .animation(
                 .spring(duration: 0.26, bounce: 0.08), value: isPanelVisible
@@ -661,6 +728,7 @@ struct ContentView: View {
           .animation(.spring(duration: 0.26, bounce: 0.08), value: isPanelVisible)
         } else {
           rootTabView
+            .environmentObject(pinnedStore)
         }
 
         tabKeyboardShortcuts
@@ -953,6 +1021,12 @@ struct ContentView: View {
       }
     case .album:
       targetTab = authViewModel.isLoggedIn ? .library : .home
+    case .playlist:
+      if isPadSidebar {
+        targetTab = libraryViewV2Enabled ? .library : .home
+      } else {
+        targetTab = authViewModel.isLoggedIn ? .library : .home
+      }
     }
 
     if availableTabs.contains(targetTab) {
