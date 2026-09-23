@@ -7,13 +7,12 @@ import NukeUI
 import SwiftUI
 
 /// Cover art thumbnail for a pinned item (album, artist or playlist).
-/// Handles remote URLs, local file paths and a graceful icon fallback.
+/// Handles remote URLs, local file paths and falls back to the app's
+/// Navidrome placeholder artwork.
 struct PinArtworkView: View {
   let pathOrUrlString: String
-  let fallbackSystemImage: String
   var size: CGFloat = 40
   var cornerRadius: CGFloat = 8
-  var tint: Color = .accentColor
 
   var body: some View {
     Group {
@@ -42,12 +41,9 @@ struct PinArtworkView: View {
   }
 
   private var fallback: some View {
-    ZStack {
-      RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-        .fill(tint.opacity(0.35))
-      Image(systemName: fallbackSystemImage)
-        .foregroundColor(.white.opacity(0.9))
-    }
-    .frame(width: size, height: size)
+    Image(uiImage: UIImage(named: "placeholder") ?? UIImage())
+      .resizable()
+      .aspectRatio(contentMode: .fill)
+      .frame(width: size, height: size)
   }
 }
