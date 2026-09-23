@@ -641,13 +641,13 @@ struct LibraryView: View {
               VStack(spacing: 6) {
                 PinArtworkView(
                   pathOrUrlString: viewModel.coverArtPath(for: item),
-                  size: 86, cornerRadius: 10
+                  size: 148, cornerRadius: 10
                 )
                 Text(viewModel.displayName(for: item))
                   .customFont(.footnote)
                   .fontWeight(.bold)
                   .lineLimit(1)
-                  .frame(width: 86)
+                  .frame(width: 148)
               }
             }
             .buttonStyle(.plain)
@@ -979,6 +979,19 @@ struct LibraryView: View {
       .contentShape(Rectangle())
     }
     .buttonStyle(.plain)
+    .contextMenu {
+      if !song.albumId.isEmpty {
+        let albumPin = PinnedItem(
+          kind: .album, refId: song.albumId, name: song.albumName, subtitle: song.artist)
+        Button {
+          pins.toggle(albumPin)
+        } label: {
+          Label(
+            PinnedKind.album.toggleTitle(pinned: pins.isPinned(albumPin)),
+            systemImage: pins.isPinned(albumPin) ? "pin.slash" : "pin")
+        }
+      }
+    }
   }
 
   private func chunkedSongs(_ songs: [Song], chunkSize: Int = 4) -> [[Song]] {
@@ -1212,6 +1225,15 @@ struct LibraryView: View {
                   .frame(width: 148, alignment: .leading)
               }
             }.buttonStyle(.plain)
+            .contextMenu {
+              Button {
+                pins.toggle(album: album)
+              } label: {
+                Label(
+                  PinnedKind.album.toggleTitle(pinned: pins.isPinned(album: album)),
+                  systemImage: pins.isPinned(album: album) ? "pin.slash" : "pin")
+              }
+            }
           }
         }
         .padding(.horizontal)
@@ -1250,6 +1272,15 @@ struct LibraryView: View {
                   .frame(width: 148, alignment: .leading)
               }
             }.buttonStyle(.plain)
+            .contextMenu {
+              Button {
+                pins.toggle(album: album)
+              } label: {
+                Label(
+                  PinnedKind.album.toggleTitle(pinned: pins.isPinned(album: album)),
+                  systemImage: pins.isPinned(album: album) ? "pin.slash" : "pin")
+              }
+            }
           }
         }
         .padding(.horizontal)
@@ -1306,6 +1337,15 @@ struct LibraryView: View {
               }
             }
             .buttonStyle(.plain)
+            .contextMenu {
+              Button {
+                pins.toggle(album: album)
+              } label: {
+                Label(
+                  PinnedKind.album.toggleTitle(pinned: pins.isPinned(album: album)),
+                  systemImage: pins.isPinned(album: album) ? "pin.slash" : "pin")
+              }
+            }
           }
         }
         .padding(.horizontal)
