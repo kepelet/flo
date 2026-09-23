@@ -414,13 +414,20 @@ struct ContentView: View {
       if !pinnedStore.items.isEmpty {
         TabSection("Pinned") {
           ForEach(pinnedStore.items) { item in
-            Tab(
-              albumViewModel.displayName(for: item), systemImage: item.kind.systemImage,
-              value: AppTab.pinned(item)
-            ) {
+            Tab(value: AppTab.pinned(item)) {
               sidebarTabContent(
                 pinnedSidebarDestination(item)
               )
+            } label: {
+              Label {
+                Text(albumViewModel.displayName(for: item))
+              } icon: {
+                PinArtworkView(
+                  pathOrUrlString: albumViewModel.coverArtPath(for: item),
+                  fallbackSystemImage: item.kind.systemImage,
+                  size: 22, cornerRadius: 5
+                )
+              }
             }
             .contextMenu {
               Button {

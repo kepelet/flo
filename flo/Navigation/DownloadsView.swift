@@ -161,14 +161,11 @@ struct DownloadsView: View {
 
   private var pinnedSectionHeader: some View {
     HStack {
-      Image(systemName: "pin.fill")
-        .font(.caption)
-        .foregroundColor(.accentColor)
       Text("Pinned")
         .customFont(.headline)
       Spacer()
     }
-    .padding(.horizontal, 4)
+    .padding(.horizontal, 16)
   }
 
   private var allDownloadsSectionHeader: some View {
@@ -177,7 +174,7 @@ struct DownloadsView: View {
         .customFont(.headline)
       Spacer()
     }
-    .padding(.horizontal, 4)
+    .padding(.horizontal, 16)
   }
 }
 
