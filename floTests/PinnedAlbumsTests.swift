@@ -205,4 +205,21 @@ final class PinnedAlbumsTests: XCTestCase {
       sut.displayName(for: PinnedItem(kind: .album, refId: "unknown", name: "")),
       "unknown")
   }
+
+  func testCoverArtPath_prefersLiveLibraryData() {
+    let sut = AlbumViewModel()
+    sut.albums = [Album(id: "a1", name: "A1", albumArtist: "Art", artist: "Art")]
+    sut.artists = [Artist.placeholder(id: "ar1", name: "Artist")]
+    sut.playlists = [Playlist(id: "p1", name: "Mix")]
+
+    XCTAssertTrue(
+      sut.coverArtPath(for: PinnedItem(kind: .album, refId: "a1", name: "")).contains("a1"))
+    XCTAssertTrue(
+      sut.coverArtPath(for: PinnedItem(kind: .artist, refId: "ar1", name: "")).contains("ar1"))
+    XCTAssertTrue(
+      sut.coverArtPath(for: PinnedItem(kind: .playlist, refId: "p1", name: "")).contains("p1"))
+    // Unknown ids still resolve to a remote art URL, never empty.
+    XCTAssertFalse(
+      sut.coverArtPath(for: PinnedItem(kind: .album, refId: "missing", name: "")).isEmpty)
+  }
 }

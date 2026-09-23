@@ -80,9 +80,11 @@ struct LibraryView: View {
 
   private func pinRowLabel(_ item: PinnedItem) -> some View {
     HStack {
-      Image(systemName: item.kind.systemImage)
-        .frame(width: 20, height: 10)
-        .foregroundColor(.accent)
+      PinArtworkView(
+        pathOrUrlString: viewModel.coverArtPath(for: item),
+        fallbackSystemImage: item.kind.systemImage,
+        size: 40, cornerRadius: 8
+      )
       VStack(alignment: .leading) {
         Text(viewModel.displayName(for: item))
           .customFont(.headline)
@@ -638,12 +640,12 @@ struct LibraryView: View {
           ForEach(pins.items) { item in
             NavigationLink(value: pinDestination(item)) {
               VStack(spacing: 6) {
-                ZStack {
-                  RoundedRectangle(cornerRadius: 10).fill(tintColor(for: item.refId).opacity(0.35))
-                  Image(systemName: item.kind.systemImage)
-                    .foregroundColor(.white.opacity(0.9))
-                }
-                .frame(width: 86, height: 86)
+                PinArtworkView(
+                  pathOrUrlString: viewModel.coverArtPath(for: item),
+                  fallbackSystemImage: item.kind.systemImage,
+                  size: 86, cornerRadius: 10,
+                  tint: tintColor(for: item.refId)
+                )
                 Text(viewModel.displayName(for: item))
                   .customFont(.footnote)
                   .fontWeight(.bold)

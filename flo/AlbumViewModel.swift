@@ -698,4 +698,31 @@ class AlbumViewModel: ObservableObject {
       return playlists.first(where: { $0.id == pin.refId })?.ownerName ?? ""
     }
   }
+
+  /// Cover-art path-or-URL for a pin, preferring live library data
+  /// (local files when downloaded) and falling back to remote art URLs.
+  func coverArtPath(for pin: PinnedItem) -> String {
+    switch pin.kind {
+    case .album:
+      if let match = (albums + downloadedAlbums).first(where: { $0.id == pin.refId }) {
+        return getAlbumCoverArt(
+          id: match.id, artistName: match.artist, albumName: match.name,
+          albumCover: match.albumCover)
+      }
+      return getAlbumCoverArt(id: pin.refId, albumCover: "")
+    case .artist:
+      if let match = artists.first(where: { $0.id == pin.refId }) {
+        return getArtistCoverArt(
+          id: match.id,
+          imageURL: match.mediumImageURL ?? match.smallImageURL ?? match.largeImageURL ?? "")
+      }
+      return getArtistCoverArt(id: pin.refId)
+    case .playlist:
+      if let match = playlists.first(where: { $0.id == pin.refId }) {
+        return getPlaylistCoverArt(
+          id: match.id, coverArtId: match.coverArtId, playlistName: match.name)
+      }
+      return getPlaylistCoverArt(id: pin.refId)
+    }
+  }
 }
