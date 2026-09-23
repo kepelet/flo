@@ -44,6 +44,7 @@ struct PlaylistDetailView: View {
   @EnvironmentObject private var viewModel: AlbumViewModel
   @EnvironmentObject private var playerViewModel: PlayerViewModel
   @EnvironmentObject private var downloadViewModel: DownloadViewModel
+  @EnvironmentObject private var pins: PinnedStore
 
   @State private var showDownloadSheet: Bool = false
   @State private var showDeleteAlbumAlert: Bool = false
@@ -183,6 +184,15 @@ struct PlaylistDetailView: View {
         .listStyle(PlainListStyle()).customFont(.body)
       }
       .toolbar {
+        Button(action: {
+          pins.toggle(playlist: viewModel.playlist)
+        }) {
+          Label(
+            pins.isPinned(playlist: viewModel.playlist) ? "Unpin playlist" : "Pin playlist",
+            systemImage: pins.isPinned(playlist: viewModel.playlist) ? "pin.fill" : "pin"
+          )
+        }
+
         DownloadButton(
           isDownloading: downloadViewModel.isDownloading(viewModel.playlist.name),
           isDownloaded: downloadViewModel.isDownloading(viewModel.playlist.name)

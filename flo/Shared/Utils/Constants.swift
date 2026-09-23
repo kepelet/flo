@@ -65,6 +65,8 @@ enum UserDefaultsKeys {
   static let saveLoginInfo = "saveLoginInfo"
   static let LRCLIBServerURL = "LRCLIBServerURL"
   static let streamCacheMaxSize = "streamCacheMaxSize"
+  static let pinnedAlbums = "pinnedAlbums"
+  static let pinnedItems = "pinnedItems"
   static let libraryViewV2 = "libraryViewV2"
   static let playbackVolume = "playbackVolume"
   static let uiFontScale = "uiFontScale"

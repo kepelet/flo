@@ -11,6 +11,7 @@ struct PlaylistView: View {
   @EnvironmentObject private var viewModel: AlbumViewModel
   @EnvironmentObject private var playerViewModel: PlayerViewModel
   @EnvironmentObject private var downloadViewModel: DownloadViewModel
+  @EnvironmentObject private var pins: PinnedStore
 
   @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
@@ -49,6 +50,15 @@ struct PlaylistView: View {
               }
           } label: {
             PlaylistsView(viewModel: viewModel, playlist: playlist)
+          }
+          .contextMenu {
+            Button {
+              pins.toggle(playlist: playlist)
+            } label: {
+              Label(
+                PinnedKind.playlist.toggleTitle(pinned: pins.isPinned(playlist: playlist)),
+                systemImage: pins.isPinned(playlist: playlist) ? "pin.slash" : "pin")
+            }
           }
         }
       }

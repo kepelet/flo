@@ -11,6 +11,7 @@ struct ArtistsView: View {
   @EnvironmentObject private var viewModel: AlbumViewModel
   @EnvironmentObject private var playerViewModel: PlayerViewModel
   @EnvironmentObject private var downloadViewModel: DownloadViewModel
+  @EnvironmentObject private var pins: PinnedStore
 
   @State private var searchArtist = ""
   @State private var filterAlbumArtistOnly: Bool = true
@@ -57,6 +58,15 @@ struct ArtistsView: View {
               Divider()
             }
           }
+          .contextMenu {
+            Button {
+              pins.toggle(artist: artist)
+            } label: {
+              Label(
+                PinnedKind.artist.toggleTitle(pinned: pins.isPinned(artist: artist)),
+                systemImage: pins.isPinned(artist: artist) ? "pin.slash" : "pin")
+            }
+          }
         }
       }.padding(.bottom, playerContentBottomPadding(viewModel: playerViewModel, iPhoneActive: 100, iPhoneInactive: 12))
     }
@@ -87,5 +97,6 @@ struct ArtistsView: View {
 struct ArtistsView_Previews: PreviewProvider {
   static var previews: some View {
     ArtistsView(artists: [])
+      .environmentObject(PinnedStore())
   }
 }

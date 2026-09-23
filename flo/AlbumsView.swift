@@ -103,6 +103,7 @@ struct AlbumsView: View {
 struct AlbumsGridView: View {
   @EnvironmentObject var albumViewModel: AlbumViewModel
   @EnvironmentObject var downloadViewModel: DownloadViewModel
+  @EnvironmentObject var pins: PinnedStore
   @Environment(\.horizontalSizeClass) private var horizontalSizeClass
   @State private var searchText = ""
 
@@ -158,6 +159,15 @@ struct AlbumsGridView: View {
                 AlbumsView(viewModel: albumViewModel, album: album)
               }
               .buttonStyle(.plain)
+              .contextMenu {
+                Button {
+                  pins.toggle(album: album)
+                } label: {
+                  Label(
+                    PinnedKind.album.toggleTitle(pinned: pins.isPinned(album: album)),
+                    systemImage: pins.isPinned(album: album) ? "pin.slash" : "pin")
+                }
+              }
             }
           }
           .padding(.horizontal, 10)

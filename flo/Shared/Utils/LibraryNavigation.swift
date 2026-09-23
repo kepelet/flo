@@ -18,6 +18,7 @@ enum AppTab: Hashable {
   case preferences
   case debug
   case search
+  case pinned(PinnedItem)
 }
 
 // MARK: - FLO-36: tab selection clamping (single source of truth, pure logic)
@@ -42,11 +43,14 @@ func availableTabs(
   isPadSidebar: Bool,
   isLoggedIn: Bool,
   libraryViewV2Enabled: Bool,
-  isDebugEnabled: Bool
+  isDebugEnabled: Bool,
+  pinnedItems: [PinnedItem] = []
 ) -> Set<AppTab> {
   if isPadSidebar {
     // Mirrors sidebarTabView (iOS 18+)
     var tabs: Set<AppTab> = [.home, .preferences]
+    // Mirrors the sidebar Pinned section, rendered whenever pins exist.
+    tabs.formUnion(pinnedItems.map { .pinned($0) })
     if libraryViewV2Enabled {
       tabs.insert(.library)
       tabs.insert(.search)
@@ -133,6 +137,15 @@ struct LibraryDestinationView: View {
         Text("Album unavailable")
           .foregroundColor(.secondary)
       }
+    case .playlist(let id, let name):
+      let playlist = albumViewModel.playlistForNavigation(id: id, name: name)
+      PlaylistDetailView()
+        .environmentObject(albumViewModel)
+        .environmentObject(playerViewModel)
+        .environmentObject(downloadViewModel)
+        .onAppear {
+          albumViewModel.setActivePlaylist(playlist: playlist)
+        }
     }
   }
 }
