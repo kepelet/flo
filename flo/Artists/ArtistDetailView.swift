@@ -44,6 +44,22 @@ struct ArtistDetailView: View {
     return stripped == "" ? "No biography available" : stripped
   }
 
+  private func playArtistTracks(shuffle: Bool) {
+    artistDetailViewModel.fetchArtistSongs(albums: viewModel.artistAlbums) { songs in
+      if songs.isEmpty {
+        artistDetailViewModel.errorMessage = "No songs found for this artist."
+        displayAlert = true
+      } else {
+        let collection = SongCollection(id: artist.id, name: artist.name, songs: songs)
+        if shuffle {
+          playerViewModel.shuffleItem(item: collection, isFromLocal: false)
+        } else {
+          playerViewModel.playItem(item: collection, isFromLocal: false)
+        }
+      }
+    }
+  }
+
   var body: some View {
     ScrollView {
       VStack(alignment: .leading) {
@@ -72,54 +88,103 @@ struct ArtistDetailView: View {
       .onAppear {
         viewModel.fetchAlbumsByArtist(id: artist.id)
       }
-      HStack {
-        Button(action: {
-          artistDetailViewModel.fetchArtistRadio(artist: artist)
-        }) {
-          HStack {
-            if artistDetailViewModel.isLoadingRadio {
+      ScrollView(.horizontal, showsIndicators: false) {
+        HStack(spacing: 12) {
+          Button(action: {
+            playArtistTracks(shuffle: false)
+          }) {
+            if artistDetailViewModel.isLoadingTracks {
               ProgressView()
                 .tint(Color(UIColor.systemBackground))
             } else {
-              Image(systemName: "dot.radiowaves.up.forward")
-              Text("Play Artist Radio")
+              Image(systemName: "play.fill")
             }
           }
-          .font(.subheadline)
-          .fontWeight(.semibold)
-          .frame(maxWidth: .infinity)
-          .padding(.horizontal, 16)
-          .padding(.vertical, 10)
+          .font(.headline)
+          .frame(width: 44, height: 44)
           .background(Color.accentColor)
-          .cornerRadius(20)
-        }
-        .disabled(artistDetailViewModel.isLoadingRadio || artistDetailViewModel.isLoadingTopSongs)
+          .foregroundStyle(.background)
+          .clipShape(Circle())
+          .accessibilityLabel("Play artist tracks")
+          .disabled(
+            viewModel.artistAlbums.isEmpty || artistDetailViewModel.isLoadingTracks
+              || artistDetailViewModel.isLoadingRadio || artistDetailViewModel.isLoadingTopSongs
+          )
 
-        Button(action: {
-          artistDetailViewModel.fetchTopSongs(artist: artist)
-        }) {
-          HStack {
-            if artistDetailViewModel.isLoadingTopSongs {
+          Button(action: {
+            playArtistTracks(shuffle: true)
+          }) {
+            if artistDetailViewModel.isLoadingTracks {
               ProgressView()
-                .tint(Color(UIColor.systemBackground))
             } else {
-              Image(systemName: "dot.radiowaves.up.forward")
-              Text("Play Top Songs")
+              Image(systemName: "shuffle")
             }
           }
-          .font(.subheadline)
-          .fontWeight(.semibold)
-          .frame(maxWidth: .infinity)
-          .padding(.horizontal, 16)
-          .padding(.vertical, 10)
-          .background(Color.accentColor)
-          .cornerRadius(20)
+          .font(.headline)
+          .frame(width: 44, height: 44)
+          .background(Color.accentColor.opacity(0.15))
+          .foregroundStyle(Color.accentColor)
+          .clipShape(Circle())
+          .accessibilityLabel("Shuffle artist tracks")
+          .disabled(
+            viewModel.artistAlbums.isEmpty || artistDetailViewModel.isLoadingTracks
+              || artistDetailViewModel.isLoadingRadio || artistDetailViewModel.isLoadingTopSongs
+          )
+
+          Button(action: {
+            artistDetailViewModel.fetchArtistRadio(artist: artist)
+          }) {
+            HStack(spacing: 6) {
+              if artistDetailViewModel.isLoadingRadio {
+                ProgressView()
+                  .tint(Color(UIColor.systemBackground))
+              } else {
+                Image(systemName: "dot.radiowaves.left.and.right")
+                Text("Play Artist Radio")
+              }
+            }
+            .font(.subheadline)
+            .fontWeight(.semibold)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 8)
+            .background(Color.accentColor)
+            .cornerRadius(16)
+            .fixedSize(horizontal: true, vertical: false)
+          }
+          .foregroundStyle(.background)
+          .disabled(
+            artistDetailViewModel.isLoadingRadio || artistDetailViewModel.isLoadingTopSongs
+              || artistDetailViewModel.isLoadingTracks
+          )
+
+          Button(action: {
+            artistDetailViewModel.fetchTopSongs(artist: artist)
+          }) {
+            HStack(spacing: 6) {
+              if artistDetailViewModel.isLoadingTopSongs {
+                ProgressView()
+                  .tint(Color(UIColor.systemBackground))
+              } else {
+                Image(systemName: "star")
+                Text("Play Top Songs")
+              }
+            }
+            .font(.subheadline)
+            .fontWeight(.semibold)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 8)
+            .background(Color.accentColor)
+            .cornerRadius(16)
+            .fixedSize(horizontal: true, vertical: false)
+          }
+          .foregroundStyle(.background)
+          .disabled(
+            artistDetailViewModel.isLoadingRadio || artistDetailViewModel.isLoadingTopSongs
+              || artistDetailViewModel.isLoadingTracks
+          )
         }
-        .disabled(artistDetailViewModel.isLoadingRadio || artistDetailViewModel.isLoadingTopSongs)
+        .padding(.horizontal)
       }
-      .foregroundStyle(.background)
-      .frame(maxWidth: .infinity, minHeight: 40)
-      .padding(.horizontal)
       .padding(.bottom, 8)
 
       LazyVGrid(columns: columns) {
@@ -150,7 +215,7 @@ struct ArtistDetailView: View {
         playerViewModel.playItem(item: playable, isFromLocal: false)
       }
     }
-    .alert("Artist Radio", isPresented: $displayAlert) {
+    .alert("Artist", isPresented: $displayAlert) {
       Button("OK") {
         artistDetailViewModel.errorMessage = nil
       }
