@@ -4,6 +4,11 @@
 <dict>
 	<key>CFBundleIconFile</key>
 	<string>floIcon</string>
+	<!-- Build-time release channel (store/beta/preview). $(FLO_CHANNEL) is expanded
+	     by builtin-infoPlistUtility (-expandbuildsettings) from the FLO_CHANNEL
+	     build setting (project default "" + fastlane xcargs stamp). Read by AppChannel. -->
+	<key>FLOChannel</key>
+	<string>$(FLO_CHANNEL)</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>PlusJakartaSans-VariableFont_wght.ttf</string>

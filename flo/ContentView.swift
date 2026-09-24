@@ -597,8 +597,15 @@ struct ContentView: View {
           .scaledToFit()
           .frame(width: 28, height: 28)
           .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
-        Text("flo")
-          .customFont(.headline)
+        HStack(spacing: 10) {
+          Text("flo")
+            .customFont(.headline)
+          if AppChannel.current != .store {
+            Text(AppChannel.current.channelLabel)
+              .font(.caption)
+              .foregroundColor(.secondary)
+          }
+        }
       }
       .padding(.top, 2)
       .padding(.bottom, 24)
