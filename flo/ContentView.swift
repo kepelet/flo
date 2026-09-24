@@ -115,7 +115,16 @@ struct ContentView: View {
 
   #if targetEnvironment(macCatalyst)
     private func updateCatalystWindowTitle() {
-      let title = Self.windowTitle(for: libraryRouter.selectedTab)
+      let title: String
+      if case .pinned(let item) = libraryRouter.selectedTab {
+        // Resolve against the live library: legacy pins may carry an empty
+        // or stale cached name. displayName falls back to the stored name,
+        // then the raw id, so pinned tabs always show just the item title.
+        let resolved = albumViewModel.displayName(for: item)
+        title = resolved.isEmpty ? "Pinned" : resolved
+      } else {
+        title = Self.windowTitle(for: libraryRouter.selectedTab)
+      }
       UIApplication.shared.connectedScenes
         .compactMap { $0 as? UIWindowScene }
         .forEach { $0.title = title }
@@ -135,6 +144,8 @@ struct ContentView: View {
       case .preferences: return "Preferences"
       case .debug: return "Debug"
       case .search: return "Search"
+      // Pinned titles resolve against the live library in updateCatalystWindowTitle;
+      // this is the pre-library-load fallback.
       case .pinned(let item): return item.name.isEmpty ? "Pinned" : item.name
       }
     }
@@ -327,43 +338,58 @@ struct ContentView: View {
     content
   }
 
+  // Pinned tabs each own a NavigationStack: AlbumView links to its artist
+  // and ArtistDetailView links to its albums, both of which are inert
+  // without a navigation context.
   @available(iOS 18.0, *)
   private func pinnedSidebarDestination(_ item: PinnedItem) -> some View {
     Group {
       switch item.kind {
       case .album:
-        if let album = albumViewModel.albumForNavigation(
-          id: item.refId, name: item.name, artist: item.subtitle)
-        {
-          AlbumView(viewModel: albumViewModel)
-            .environmentObject(playerViewModel)
-            .environmentObject(downloadViewModel)
-            .onAppear {
-              albumViewModel.setActiveAlbum(album: album)
-            }
-        } else {
-          Text("Album unavailable")
-            .foregroundColor(.secondary)
+        NavigationStack {
+          if let album = albumViewModel.albumForNavigation(
+            id: item.refId, name: item.name, artist: item.subtitle)
+          {
+            AlbumView(viewModel: albumViewModel)
+              .environmentObject(playerViewModel)
+              .environmentObject(downloadViewModel)
+              .catalystAwareNavigationTitle(
+                albumViewModel.displayName(for: item), displayMode: .inline)
+              .onAppear {
+                albumViewModel.setActiveAlbum(album: album)
+              }
+          } else {
+            Text("Album unavailable")
+              .foregroundColor(.secondary)
+          }
         }
       case .artist:
-        if let artist = albumViewModel.artistForNavigation(id: item.refId, name: item.name) {
-          ArtistDetailView(artist: artist)
+        NavigationStack {
+          if let artist = albumViewModel.artistForNavigation(id: item.refId, name: item.name) {
+            ArtistDetailView(artist: artist)
+              .environmentObject(albumViewModel)
+              .environmentObject(playerViewModel)
+              .environmentObject(downloadViewModel)
+              .catalystAwareNavigationTitle(
+                albumViewModel.displayName(for: item), displayMode: .inline)
+          } else {
+            Text("Artist unavailable")
+              .foregroundColor(.secondary)
+          }
+        }
+      case .playlist:
+        NavigationStack {
+          let playlist = albumViewModel.playlistForNavigation(id: item.refId, name: item.name)
+          PlaylistDetailView()
             .environmentObject(albumViewModel)
             .environmentObject(playerViewModel)
             .environmentObject(downloadViewModel)
-        } else {
-          Text("Artist unavailable")
-            .foregroundColor(.secondary)
+            .catalystAwareNavigationTitle(
+              albumViewModel.displayName(for: item), displayMode: .inline)
+            .onAppear {
+              albumViewModel.setActivePlaylist(playlist: playlist)
+            }
         }
-      case .playlist:
-        let playlist = albumViewModel.playlistForNavigation(id: item.refId, name: item.name)
-        PlaylistDetailView()
-          .environmentObject(albumViewModel)
-          .environmentObject(playerViewModel)
-          .environmentObject(downloadViewModel)
-          .onAppear {
-            albumViewModel.setActivePlaylist(playlist: playlist)
-          }
       }
     }
   }
@@ -857,6 +883,13 @@ struct ContentView: View {
         updateCatalystWindowTitle()
         refreshCatalystHeader()
       }
+      // Library loads after tab selection: re-resolve pinned window titles
+      // once the data they derive from arrives (covers legacy pins with
+      // empty cached names).
+      .onChange(of: albumViewModel.albums.count) { _ in updateCatalystWindowTitle() }
+      .onChange(of: albumViewModel.artists.count) { _ in updateCatalystWindowTitle() }
+      .onChange(of: albumViewModel.playlists.count) { _ in updateCatalystWindowTitle() }
+      .onChange(of: albumViewModel.downloadedAlbums.count) { _ in updateCatalystWindowTitle() }
       .onChange(of: authViewModel.isLoggedIn) { _ in refreshCatalystHeader() }
       .onChange(of: libraryViewV2Enabled) { _ in refreshCatalystHeader() }
     #endif

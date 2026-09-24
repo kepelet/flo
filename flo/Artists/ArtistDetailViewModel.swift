@@ -8,7 +8,47 @@ class ArtistDetailViewModel: ObservableObject {
 
   @Published var isLoadingRadio = false
   @Published var isLoadingTopSongs = false
+  @Published var isLoadingTracks = false
   @Published var errorMessage: String? = nil
+
+  /// Fetches every track across the artist's albums, preserving album order
+  /// and sorting songs within each album by disc/track number.
+  func fetchArtistSongs(albums: [Album], completion: @escaping ([Song]) -> Void) {
+    guard !albums.isEmpty else {
+      completion([])
+      return
+    }
+
+    isLoadingTracks = true
+
+    let group = DispatchGroup()
+    var songsByAlbum: [[Song]] = Array(repeating: [], count: albums.count)
+    let lock = NSLock()
+
+    for (index, album) in albums.enumerated() {
+      group.enter()
+      AlbumService.shared.getSongFromAlbum(id: album.id) { result in
+        if case .success(let songs) = result {
+          let sorted = songs.sorted {
+            if $0.discNumber == $1.discNumber {
+              return $0.trackNumber < $1.trackNumber
+            }
+            return $0.discNumber < $1.discNumber
+          }
+          lock.lock()
+          songsByAlbum[index] = sorted
+          lock.unlock()
+        }
+        group.leave()
+      }
+    }
+
+    group.notify(queue: .main) { [weak self] in
+      guard let self else { return }
+      self.isLoadingTracks = false
+      completion(songsByAlbum.flatMap { $0 })
+    }
+  }
 
   func fetchArtistRadio(artist: Artist) {
     isLoadingRadio = true
