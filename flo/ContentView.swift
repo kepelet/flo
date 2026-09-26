@@ -27,6 +27,7 @@ struct ContentView: View {
   @StateObject private var albumViewModel = AlbumViewModel()
   @StateObject private var floooViewModel = FloooViewModel()
   @StateObject private var downloadViewModel = DownloadViewModel()
+  @StateObject private var pinnedStore = PinnedStore()
   @StateObject private var inAppPurchaseManager = InAppPurchaseManager()
 
   @State private var floatingPlayerOffsetX: CGFloat = .zero
@@ -70,7 +71,8 @@ struct ContentView: View {
       isPadSidebar: isPadSidebar,
       isLoggedIn: authViewModel.isLoggedIn,
       libraryViewV2Enabled: libraryViewV2Enabled,
-      isDebugEnabled: enableDebug
+      isDebugEnabled: enableDebug,
+      pinnedItems: pinnedStore.items
     )
   }
 
@@ -98,12 +100,62 @@ struct ContentView: View {
     // Sidebar collapses to overlay / hidden below ~600pt (Stage Manager narrow
     // or iPad Slide Over). No shift when collapsed to avoid offset artifacts.
     guard totalWidth >= 600 else { return 0 }
-    // Fixed 104 yields the polished -52pt shift; cap to 15% of window so
-    // very narrow/tall windows never over-shift and the value stays finite.
-    let raw: CGFloat = 104
-    let capped = min(raw, max(0, totalWidth * 0.15))
+    // System sidebarAdaptable width is ~320pt on iPad and ~260pt on Catalyst
+    // (not 104) — under-estimating leaves the floating player shifted left of
+    // the content column. Cap to 35% of window so very narrow/tall windows
+    // never over-shift and the value stays finite.
+    #if targetEnvironment(macCatalyst)
+      let raw: CGFloat = 260
+    #else
+      let raw: CGFloat = 320
+    #endif
+    let capped = min(raw, max(0, totalWidth * 0.35))
     return capped.isFinite ? capped : 0
   }
+
+  private var sidebarUsername: String {
+    if let name = authViewModel.user?.username, !name.isEmpty { return name }
+    if !authViewModel.username.isEmpty { return authViewModel.username }
+    return "Offline"
+  }
+
+  #if targetEnvironment(macCatalyst)
+    private func updateCatalystWindowTitle() {
+      let title: String
+      if case .pinned(let item) = libraryRouter.selectedTab {
+        // Resolve against the live library: legacy pins may carry an empty
+        // or stale cached name. displayName falls back to the stored name,
+        // then the raw id, so pinned tabs always show just the item title.
+        let resolved = albumViewModel.displayName(for: item)
+        title = resolved.isEmpty ? "Pinned" : resolved
+      } else {
+        title = Self.windowTitle(for: libraryRouter.selectedTab)
+      }
+      UIApplication.shared.connectedScenes
+        .compactMap { $0 as? UIWindowScene }
+        .forEach { $0.title = title }
+    }
+
+    private static func windowTitle(for tab: AppTab) -> String {
+      switch tab {
+      case .home: return "Home"
+      case .library: return "Library"
+      case .libraryAlbums: return "Albums"
+      case .libraryArtists: return "Artists"
+      case .likedSongs: return "Liked Songs"
+      case .playlists: return "Playlists"
+      case .songs: return "Songs"
+      case .radios: return "Radios"
+      case .downloads: return "Downloads"
+      case .preferences: return "Preferences"
+      case .debug: return "Debug"
+      case .search: return "Search"
+      // Pinned titles resolve against the live library in updateCatalystWindowTitle;
+      // this is the pre-library-load fallback.
+      case .pinned(let item): return item.name.isEmpty ? "Pinned" : item.name
+      }
+    }
+  #endif
 
   private func floatingPlayerContentCenterOffsetX(totalWidth: CGFloat) -> CGFloat {
     guard isPadSidebar else { return 0 }
@@ -280,41 +332,72 @@ struct ContentView: View {
     .onChange(of: enableDebug) { _ in clampSelection() }
   }
 
+  /// Wraps a tab's content with per-tab chrome.
+  ///
+  /// The floating player deliberately does **not** live here: an overlay inside
+  /// each tab's content is torn down and re-created with that tab — and
+  /// duplicated across the tabs `TabView` keeps mounted — which reads as the
+  /// whole player bar blinking. It is mounted once beside `rootTabView` in
+  /// `body` instead, where tab hierarchy churn cannot reach it.
   @available(iOS 18.0, *)
   func sidebarTabContent<Content: View>(_ content: Content) -> some View {
     content
-      .overlay(alignment: .bottom) {
-        if playerPresence.hasNowPlaying {
-          PadFloatingPlayerView(viewModel: playerViewModel, activePanel: $floatingSidePanel)
-            .frame(maxWidth: 860)
-            .padding(.bottom, 20)
-            .opacity(playerPresence.hasNowPlaying ? 1 : 0)
-            .offset(x: floatingPlayerOffsetX.isFinite ? floatingPlayerOffsetX : 0)
-            .zIndex(10)
-            .gesture(
-              DragGesture()
-                .onChanged { value in
-                  let tx = value.translation.width
-                  guard tx.isFinite else { return }
-                  if tx < .zero {
-                    floatingPlayerOffsetX = tx
-                  }
+  }
 
-                  if abs(floatingPlayerOffsetX) > swipeThreshold, !isSwipping {
-                    isSwipping = true
-                  }
-                }
-                .onEnded { _ in
-                  if abs(floatingPlayerOffsetX) > swipeThreshold, isSwipping {
-                    playerViewModel.destroyPlayerAndQueue()
-                  }
-
-                  self.floatingPlayerOffsetX = .zero
-                  self.isSwipping = false
-                }
-            )
+  // Pinned tabs each own a NavigationStack: AlbumView links to its artist
+  // and ArtistDetailView links to its albums, both of which are inert
+  // without a navigation context.
+  @available(iOS 18.0, *)
+  private func pinnedSidebarDestination(_ item: PinnedItem) -> some View {
+    Group {
+      switch item.kind {
+      case .album:
+        NavigationStack {
+          if let album = albumViewModel.albumForNavigation(
+            id: item.refId, name: item.name, artist: item.subtitle)
+          {
+            AlbumView(viewModel: albumViewModel)
+              .environmentObject(playerViewModel)
+              .environmentObject(downloadViewModel)
+              .catalystAwareNavigationTitle(
+                albumViewModel.displayName(for: item), displayMode: .inline)
+              .onAppear {
+                albumViewModel.setActiveAlbum(album: album)
+              }
+          } else {
+            Text("Album unavailable")
+              .foregroundColor(.secondary)
+          }
+        }
+      case .artist:
+        NavigationStack {
+          if let artist = albumViewModel.artistForNavigation(id: item.refId, name: item.name) {
+            ArtistDetailView(artist: artist)
+              .environmentObject(albumViewModel)
+              .environmentObject(playerViewModel)
+              .environmentObject(downloadViewModel)
+              .catalystAwareNavigationTitle(
+                albumViewModel.displayName(for: item), displayMode: .inline)
+          } else {
+            Text("Artist unavailable")
+              .foregroundColor(.secondary)
+          }
+        }
+      case .playlist:
+        NavigationStack {
+          let playlist = albumViewModel.playlistForNavigation(id: item.refId, name: item.name)
+          PlaylistDetailView()
+            .environmentObject(albumViewModel)
+            .environmentObject(playerViewModel)
+            .environmentObject(downloadViewModel)
+            .catalystAwareNavigationTitle(
+              albumViewModel.displayName(for: item), displayMode: .inline)
+            .onAppear {
+              albumViewModel.setActivePlaylist(playlist: playlist)
+            }
         }
       }
+    }
   }
 
   @available(iOS 18.0, *)
@@ -357,6 +440,28 @@ struct ContentView: View {
                 albumViewModel.fetchAlbums()
               }
           )
+        }
+      }
+
+      if !pinnedStore.items.isEmpty {
+        TabSection("Pinned") {
+          ForEach(pinnedStore.items) { item in
+            Tab(
+              albumViewModel.displayName(for: item), systemImage: item.kind.systemImage,
+              value: AppTab.pinned(item)
+            ) {
+              sidebarTabContent(
+                pinnedSidebarDestination(item)
+              )
+            }
+            .contextMenu {
+              Button {
+                pinnedStore.unpin(item)
+              } label: {
+                Label(item.kind.toggleTitle(pinned: true), systemImage: "pin.slash")
+              }
+            }
+          }
         }
       }
 
@@ -498,11 +603,40 @@ struct ContentView: View {
           .scaledToFit()
           .frame(width: 28, height: 28)
           .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
-        Text("flo")
-          .customFont(.headline)
+        HStack(spacing: 10) {
+          Text("flo")
+            .customFont(.headline)
+          if AppChannel.current != .store {
+            Text(AppChannel.current.channelLabel)
+              .font(.caption)
+              .foregroundColor(.secondary)
+          }
+        }
       }
       .padding(.top, 2)
       .padding(.bottom, 24)
+    }
+    .tabViewSidebarBottomBar {
+      Menu {
+        Button("Logout", role: .destructive) {
+          authViewModel.logout()
+        }
+      } label: {
+        HStack(spacing: 10) {
+          Image(
+            systemName: authViewModel.isLoggedIn
+              ? "person.crop.circle.fill" : "person.crop.circle"
+          )
+          .foregroundColor(.secondary)
+          Text(sidebarUsername)
+            .customFont(.callout)
+            .foregroundColor(.secondary)
+            .lineLimit(1)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+      }
     }
 #endif
     // Defensive: same removal as baseTabView — no .id(tabViewID) recreation.
@@ -542,7 +676,11 @@ struct ContentView: View {
 
         if isPadSidebar {
           let rawPanelWidth: CGFloat = 380
-          let panelGutter: CGFloat = 10
+          // No window-margin gutter: the panel sits flush against the content
+          // and owns its own 1pt leading divider (see PlayerSidePanelView),
+          // so the seam reads as panel padding — hovering the top bar never
+          // reveals a contrasting empty strip the way a margin gap does.
+          let panelGutter: CGFloat = 0
           // Clamp panel to window so very narrow Stage Manager windows never
           // overflow (panel + gutter capped to 45% of width, min 0).
           let sidePanelWidth: CGFloat = {
@@ -563,6 +701,10 @@ struct ContentView: View {
           // non-finite/zero keeps the UITabSideBar coordinator stable.
           ZStack(alignment: .trailing) {
             rootTabView
+              .environmentObject(pinnedStore)
+              // Trailing inset reserves the panel's own column (flush, gutter 0).
+              // The ZStack background below keeps the reserved strip on the
+              // content background when the panel animates in/out.
               .padding(.trailing, isPanelVisible ? trailingInset : 0)
               .animation(
                 .spring(duration: 0.26, bounce: 0.08), value: isPanelVisible
@@ -585,10 +727,62 @@ struct ContentView: View {
               .transition(.move(edge: .trailing).combined(with: .opacity))
               .zIndex(2)
             }
+
+            // Single, tab-independent floating player (see `sidebarTabContent`).
+            // The leading inset cancels the sidebar and the trailing inset the
+            // side panel, so the bar keeps the content-column centering it had
+            // as a per-tab overlay — without being torn down and re-created
+            // with every tab's content (the "blinking" bar).
+            VStack {
+              Spacer()
+
+              if playerPresence.hasNowPlaying {
+                PadFloatingPlayerView(
+                  viewModel: playerViewModel, activePanel: $floatingSidePanel,
+                  albumViewModel: albumViewModel, pins: pinnedStore,
+                  onOpenLibraryDestination: openLibraryDestinationFromPlayer)
+                  #if targetEnvironment(macCatalyst)
+                    .frame(maxWidth: 1080)
+                  #else
+                    .frame(maxWidth: 860)
+                  #endif
+                  .padding(.bottom, 20)
+                  .padding(.leading, estimatedSidebarWidth(for: safeWidth))
+                  .padding(.trailing, isPanelVisible ? trailingInset : 0)
+                  .opacity(playerPresence.hasNowPlaying ? 1 : 0)
+                  .offset(x: floatingPlayerOffsetX.isFinite ? floatingPlayerOffsetX : 0)
+                  .zIndex(10)
+                  .gesture(
+                    DragGesture()
+                      .onChanged { value in
+                        let tx = value.translation.width
+                        guard tx.isFinite else { return }
+                        if tx < .zero {
+                          floatingPlayerOffsetX = tx
+                        }
+
+                        if abs(floatingPlayerOffsetX) > swipeThreshold, !isSwipping {
+                          isSwipping = true
+                        }
+                      }
+                      .onEnded { _ in
+                        if abs(floatingPlayerOffsetX) > swipeThreshold, isSwipping {
+                          playerViewModel.destroyPlayerAndQueue()
+                        }
+
+                        self.floatingPlayerOffsetX = .zero
+                        self.isSwipping = false
+                      }
+                  )
+              }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
           }
+          .background(Color(.systemBackground).ignoresSafeArea())
           .animation(.spring(duration: 0.26, bounce: 0.08), value: isPanelVisible)
         } else {
           rootTabView
+            .environmentObject(pinnedStore)
         }
 
         tabKeyboardShortcuts
@@ -705,11 +899,41 @@ struct ContentView: View {
       }
       // FLO-36: clamp on appear in case persisted selection is stale after update.
       clampSelection()
+      #if targetEnvironment(macCatalyst)
+        updateCatalystWindowTitle()
+      #endif
     }
     .onChange(of: authViewModel.isLoggedIn) { _ in clampSelection() }
     .onChange(of: libraryViewV2Enabled) { _ in clampSelection() }
     .onChange(of: enableDebug) { _ in clampSelection() }
+    #if targetEnvironment(macCatalyst)
+      .onChange(of: libraryRouter.selectedTab) { _ in
+        updateCatalystWindowTitle()
+        refreshCatalystHeader()
+      }
+      // Library loads after tab selection: re-resolve pinned window titles
+      // once the data they derive from arrives (covers legacy pins with
+      // empty cached names).
+      .onChange(of: albumViewModel.albums.count) { _ in updateCatalystWindowTitle() }
+      .onChange(of: albumViewModel.artists.count) { _ in updateCatalystWindowTitle() }
+      .onChange(of: albumViewModel.playlists.count) { _ in updateCatalystWindowTitle() }
+      .onChange(of: albumViewModel.downloadedAlbums.count) { _ in updateCatalystWindowTitle() }
+      .onChange(of: authViewModel.isLoggedIn) { _ in refreshCatalystHeader() }
+      .onChange(of: libraryViewV2Enabled) { _ in refreshCatalystHeader() }
+    #endif
   }
+
+  #if targetEnvironment(macCatalyst)
+    /// Tabs build their navigation stacks lazily; re-run the compact-header
+    /// pass after a tab switch (or a hierarchy rebuild) so new stacks get
+    /// lifted too.
+    private func refreshCatalystHeader() {
+      SceneDelegate.settleCompactCatalystHeader()
+      DispatchQueue.main.async {
+        SceneDelegate.applyCompactCatalystHeaderToAllWindows()
+      }
+    }
+  #endif
 
   @ViewBuilder
   var tabKeyboardShortcuts: some View {
@@ -858,6 +1082,12 @@ struct ContentView: View {
       }
     case .album:
       targetTab = authViewModel.isLoggedIn ? .library : .home
+    case .playlist:
+      if isPadSidebar {
+        targetTab = libraryViewV2Enabled ? .library : .home
+      } else {
+        targetTab = authViewModel.isLoggedIn ? .library : .home
+      }
     }
 
     if availableTabs.contains(targetTab) {
@@ -1293,8 +1523,8 @@ private struct LibrarySearchTabView: View {
           }.padding(.top, 10).playerBottomPadding(active: 90, inactive: 12)
         }
       }
-      .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search Library")
-      .navigationTitle("Search")
+      .catalystAwareSearch(text: $searchText, prompt: "Search Library")
+      .catalystAwareNavigationTitle("Search")
       .navigationDestination(for: Genre.self) { genre in
         GenreAlbumsView(genre: genre)
           .environmentObject(albumViewModel)

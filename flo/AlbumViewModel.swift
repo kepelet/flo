@@ -647,4 +647,82 @@ class AlbumViewModel: ObservableObject {
       }
     }
   }
+
+  // MARK: - Pinned items (FLO-36)
+
+  /// Resolves a pinned playlist to a live `Playlist`, falling back to a
+  /// lightweight placeholder so pins still open when the library is stale.
+  func playlistForNavigation(id: String, name: String) -> Playlist {
+    if !id.isEmpty, let match = playlists.first(where: { $0.id == id }) {
+      return match
+    }
+    if !name.isEmpty, name != "N/A",
+      let match = playlists.first(where: {
+        $0.name.caseInsensitiveCompare(name) == .orderedSame
+      })
+    {
+      return match
+    }
+    return Playlist(id: id, name: name)
+  }
+
+  /// Display name for a pin: stored name first, then live library lookup,
+  /// then the raw id as a last resort.
+  func displayName(for pin: PinnedItem) -> String {
+    if !pin.name.isEmpty { return pin.name }
+    switch pin.kind {
+    case .album:
+      if let match = (albums + downloadedAlbums).first(where: { $0.id == pin.refId }) {
+        return match.name
+      }
+    case .artist:
+      if let match = artists.first(where: { $0.id == pin.refId }) {
+        return match.name
+      }
+    case .playlist:
+      if let match = playlists.first(where: { $0.id == pin.refId }) {
+        return match.name
+      }
+    }
+    return pin.refId
+  }
+
+  func displaySubtitle(for pin: PinnedItem) -> String {
+    if !pin.subtitle.isEmpty { return pin.subtitle }
+    switch pin.kind {
+    case .album:
+      return (albums + downloadedAlbums).first(where: { $0.id == pin.refId })?.albumArtist ?? ""
+    case .artist:
+      return ""
+    case .playlist:
+      return playlists.first(where: { $0.id == pin.refId })?.ownerName ?? ""
+    }
+  }
+
+  /// Cover-art path-or-URL for a pin, preferring live library data
+  /// (local files when downloaded) and falling back to remote art URLs.
+  func coverArtPath(for pin: PinnedItem) -> String {
+    switch pin.kind {
+    case .album:
+      if let match = (albums + downloadedAlbums).first(where: { $0.id == pin.refId }) {
+        return getAlbumCoverArt(
+          id: match.id, artistName: match.artist, albumName: match.name,
+          albumCover: match.albumCover)
+      }
+      return getAlbumCoverArt(id: pin.refId, albumCover: "")
+    case .artist:
+      if let match = artists.first(where: { $0.id == pin.refId }) {
+        return getArtistCoverArt(
+          id: match.id,
+          imageURL: match.mediumImageURL ?? match.smallImageURL ?? match.largeImageURL ?? "")
+      }
+      return getArtistCoverArt(id: pin.refId)
+    case .playlist:
+      if let match = playlists.first(where: { $0.id == pin.refId }) {
+        return getPlaylistCoverArt(
+          id: match.id, coverArtId: match.coverArtId, playlistName: match.name)
+      }
+      return getPlaylistCoverArt(id: pin.refId)
+    }
+  }
 }

@@ -33,22 +33,25 @@ platform :ios do
     # just-uploaded build (e.g. 303 still PROCESSING) would return 302 and
     # cause a duplicate 303 (409 ENTITY_ERROR.ATTRIBUTE.INVALID.DUPLICATE).
     # Take the max of ASC latest and the repo's CURRENT_PROJECT_VERSION.
-    # Edit flo.xcodeproj directly via Xcodeproj instead of agvtool-based
-    # increment_build_number: the flo target's Debug/Release configs
-    # (C4E8D967/C4E8D968) override project-level (C4E8D953), and the watch
-    # target (C42B2599/C42B259A) must also be bumped, so we set
+    # Read the repo number via Xcodeproj (max over all configs) instead of
+    # agvtool-based get_build_number: with no project-level
+    # CURRENT_PROJECT_VERSION, agvtool returns the watch target's number (211)
+    # instead of the flo target's (305). The Xcodeproj edit below already sets
     # CURRENT_PROJECT_VERSION on every build configuration (project + all
     # targets) and save. Without this the stale target-level 304 survives
     # and gym builds 409 "must be higher than 304".
+    require "xcodeproj"
+    proj = Xcodeproj::Project.open(File.expand_path("../flo.xcodeproj", __dir__))
     latest_build_number = latest_testflight_build_number(
       api_key: api_key,
       version: get_version_number(target: "flo"),
       app_identifier: app_identifier
     )
-    repo_build_number = get_build_number.to_i
+    repo_build_number = (
+      proj.build_configurations.map { |c| c.build_settings["CURRENT_PROJECT_VERSION"].to_i } +
+      proj.targets.flat_map { |t| t.build_configurations.map { |c| c.build_settings["CURRENT_PROJECT_VERSION"].to_i } }
+    ).max
     next_build_number = [latest_build_number, repo_build_number].max + 1
-    require "xcodeproj"
-    proj = Xcodeproj::Project.open(File.expand_path("../flo.xcodeproj", __dir__))
     proj.build_configurations.each { |c| c.build_settings["CURRENT_PROJECT_VERSION"] = next_build_number.to_s }
     proj.targets.each do |target|
       target.build_configurations.each { |c| c.build_settings["CURRENT_PROJECT_VERSION"] = next_build_number.to_s }
@@ -122,22 +125,33 @@ platform :mac do
     # just-uploaded build (e.g. 303 still PROCESSING) would return 302 and
     # cause a duplicate 303 (409 ENTITY_ERROR.ATTRIBUTE.INVALID.DUPLICATE).
     # Take the max of ASC latest and the repo's CURRENT_PROJECT_VERSION.
-    # Edit flo.xcodeproj directly via Xcodeproj instead of agvtool-based
-    # increment_build_number: the flo target's Debug/Release configs
-    # (C4E8D967/C4E8D968) override project-level (C4E8D953), and the watch
-    # target (C42B2599/C42B259A) must also be bumped, so we set
+    # Query the osx platform explicitly: the default is ios, but the iOS and
+    # macOS trains have independent build numbers (2.6 was ios 213 vs osx 320;
+    # guarding against the ios train built osx 214 → 409 "must be higher
+    # than 320").
+    # Query across any version (no version filter): macOS build numbers must
+    # keep increasing across versions (osx 2.5 already reached 320), while a
+    # version-scoped query for a fresh 2.6 finds nothing and the guard falls
+    # back to the repo number.
+    # Read the repo number via Xcodeproj (max over all configs) instead of
+    # agvtool-based get_build_number: with no project-level
+    # CURRENT_PROJECT_VERSION, agvtool returns the watch target's number (211)
+    # instead of the flo target's (305). The Xcodeproj edit below already sets
     # CURRENT_PROJECT_VERSION on every build configuration (project + all
     # targets) and save. Without this the stale target-level 304 survives
     # and gym builds 409 "must be higher than 304".
-    latest_build_number = latest_testflight_build_number(
-      api_key: api_key,
-      version: get_version_number(target: "flo"),
-      app_identifier: app_identifier
-    )
-    repo_build_number = get_build_number.to_i
-    next_build_number = [latest_build_number, repo_build_number].max + 1
     require "xcodeproj"
     proj = Xcodeproj::Project.open(File.expand_path("../flo.xcodeproj", __dir__))
+    latest_build_number = latest_testflight_build_number(
+      api_key: api_key,
+      platform: "osx",
+      app_identifier: app_identifier
+    )
+    repo_build_number = (
+      proj.build_configurations.map { |c| c.build_settings["CURRENT_PROJECT_VERSION"].to_i } +
+      proj.targets.flat_map { |t| t.build_configurations.map { |c| c.build_settings["CURRENT_PROJECT_VERSION"].to_i } }
+    ).max
+    next_build_number = [latest_build_number, repo_build_number].max + 1
     proj.build_configurations.each { |c| c.build_settings["CURRENT_PROJECT_VERSION"] = next_build_number.to_s }
     proj.targets.each do |target|
       target.build_configurations.each { |c| c.build_settings["CURRENT_PROJECT_VERSION"] = next_build_number.to_s }
@@ -146,35 +160,39 @@ platform :mac do
   end
 
   desc "build the Mac Catalyst app"
-  lane :build do
+  lane :build do |options|
     load_asc_api_key
     sync_certs
     fetch_and_increment_build_number
+
+    channel = options[:channel] || "store"
 
     build_mac_app(
       configuration: configuration,
       scheme: "flo",
       export_method: "app-store",
       output_directory: "./fastlane/builds",
-      skip_package_dependencies_resolution: true
+      skip_package_dependencies_resolution: true,
+      xcargs: "FLO_CHANNEL=#{channel}"
     )
   end
 
   desc "push a Mac Catalyst build to TestFlight"
   lane :beta do |options|
     is_public = options[:public] || false
+    channel = options[:channel] || (is_public ? "beta" : "preview")
 
     setup_ci if ENV["CI"]
 
     app_identifier = CredentialsManager::AppfileConfig.try_fetch_value(:app_identifier).first
     api_key = lane_context[SharedValues::APP_STORE_CONNECT_API_KEY]
 
-    build
+    build(channel: channel)
 
     upload_to_testflight(
       pkg: lane_context[SharedValues::PKG_OUTPUT_PATH],
       app_platform: "osx",
-      changelog: "Mac Catalyst build #{get_build_number}",
+      changelog: "Mac Catalyst build #{get_build_number} (#{channel})",
       api_key: api_key,
       app_identifier: app_identifier,
       distribute_external: is_public,

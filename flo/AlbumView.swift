@@ -14,6 +14,7 @@ struct AlbumView: View {
 
   @EnvironmentObject var playerViewModel: PlayerViewModel
   @EnvironmentObject var downloadViewModel: DownloadViewModel
+  @EnvironmentObject var pins: PinnedStore
 
   @ObservedObject var viewModel: AlbumViewModel
 
@@ -204,6 +205,11 @@ struct AlbumView: View {
 
         Menu {
           Button(
+            PinnedKind.album.toggleTitle(pinned: pins.isPinned(album: viewModel.album)),
+            action: {
+              pins.toggle(album: viewModel.album)
+            })
+          Button(
             "Album Info",
             action: {
               self.showAlbumInfo.toggle()
@@ -215,9 +221,21 @@ struct AlbumView: View {
               self.showShareAlert = true
             })
         } label: {
-          Label("", systemImage: "ellipsis.circle")
+          Label("Album options", systemImage: "ellipsis.circle")
+            .labelStyle(.iconOnly)
+            .fixedSize()
         }
+        .catalystNativeMenuStyle()
       } else {
+        Button(action: {
+          pins.toggle(album: viewModel.album)
+        }) {
+          Label(
+            pins.isPinned(album: viewModel.album) ? "Unpin album" : "Pin album",
+            systemImage: pins.isPinned(album: viewModel.album)
+              ? "pin.fill" : "pin"
+          )
+        }
         Button(action: {
           showDeleteAlbumAlert.toggle()
         }) {
@@ -359,7 +377,8 @@ struct AlbumViewPreview_Previews: PreviewProvider {
 
   static var previews: some View {
     AlbumView(viewModel: viewModel).environmentObject(
-      PlayerViewModel())
+      PlayerViewModel()
+    ).environmentObject(PinnedStore())
   }
 }
 

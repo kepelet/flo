@@ -14,6 +14,7 @@ struct DownloadsView: View {
   @ObservedObject var viewModel: AlbumViewModel
 
   @EnvironmentObject var playerViewModel: PlayerViewModel
+  @EnvironmentObject var pins: PinnedStore
 
   @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
@@ -26,13 +27,27 @@ struct DownloadsView: View {
   }
 
   var filteredAlbums: [Album] {
+    let sorted = PinnedStore.sortedAlbumPinsFirst(
+      albums: viewModel.downloadedAlbums, order: pins.albumPinOrder)
     if searchAlbum.isEmpty {
-      return viewModel.downloadedAlbums
+      return sorted
     } else {
-      return viewModel.downloadedAlbums.filter { album in
+      return sorted.filter { album in
         album.name.localizedCaseInsensitiveContains(searchAlbum)
       }
     }
+  }
+
+  private var pinnedFilteredAlbums: [Album] {
+    filteredAlbums.filter { pins.isPinned(album: $0) }
+  }
+
+  private var unpinnedFilteredAlbums: [Album] {
+    filteredAlbums.filter { !pins.isPinned(album: $0) }
+  }
+
+  private var isSearching: Bool {
+    !searchAlbum.isEmpty
   }
 
   var body: some View {
@@ -90,29 +105,76 @@ struct DownloadsView: View {
         }
 
         LazyVGrid(columns: columns, spacing: 20) {
-          ForEach(filteredAlbums) { album in
-            NavigationLink {
-              AlbumView(viewModel: viewModel, isDownloadScreen: true)
-                .onAppear {
-                  viewModel.setActiveAlbum(album: album)
-                }
-            } label: {
-              AlbumsView(viewModel: viewModel, album: album, isDownloadScreen: true)
+          if !isSearching && !pinnedFilteredAlbums.isEmpty {
+            Section {
+              ForEach(pinnedFilteredAlbums) { album in
+                downloadedAlbumLink(album)
+              }
+            } header: {
+              pinnedSectionHeader
+            }
+          }
+
+          if !isSearching && !pinnedFilteredAlbums.isEmpty && !unpinnedFilteredAlbums.isEmpty {
+            Section {
+              ForEach(unpinnedFilteredAlbums) { album in
+                downloadedAlbumLink(album)
+              }
+            } header: {
+              allDownloadsSectionHeader
+            }
+          } else {
+            ForEach(filteredAlbums) { album in
+              downloadedAlbumLink(album)
             }
           }
         }.padding(.top, 10).padding(
           .bottom, playerContentBottomPadding(viewModel: playerViewModel, iPhoneActive: 100, iPhoneInactive: 0)
-        ).navigationTitle("Downloads")
-          .searchable(
-            text: $searchAlbum,
-            placement: .navigationBarDrawer(displayMode: .always),
-            prompt: "Search"
-          )
+        ).catalystAwareNavigationTitle("Downloads")
+          .catalystAwareSearch(text: $searchAlbum, prompt: "Search")
       }
       .onAppear {
         cachedSongs = StreamCacheManager.shared.getCachedSongs()
       }
     }
+  }
+
+  private func downloadedAlbumLink(_ album: Album) -> some View {
+    NavigationLink {
+      AlbumView(viewModel: viewModel, isDownloadScreen: true)
+        .onAppear {
+          viewModel.setActiveAlbum(album: album)
+        }
+    } label: {
+      AlbumsView(viewModel: viewModel, album: album, isDownloadScreen: true)
+    }
+    .contextMenu {
+      Button {
+        pins.toggle(album: album)
+      } label: {
+        Label(
+          PinnedKind.album.toggleTitle(pinned: pins.isPinned(album: album)),
+          systemImage: pins.isPinned(album: album) ? "pin.slash" : "pin")
+      }
+    }
+  }
+
+  private var pinnedSectionHeader: some View {
+    HStack {
+      Text("Pinned")
+        .customFont(.headline)
+      Spacer()
+    }
+    .padding(.horizontal, 16)
+  }
+
+  private var allDownloadsSectionHeader: some View {
+    HStack {
+      Text("All downloads")
+        .customFont(.headline)
+      Spacer()
+    }
+    .padding(.horizontal, 16)
   }
 }
 
@@ -121,5 +183,6 @@ struct DownloadsView_Previews: PreviewProvider {
 
   static var previews: some View {
     DownloadsView(viewModel: viewModel)
+      .environmentObject(PinnedStore())
   }
 }

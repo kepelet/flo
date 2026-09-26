@@ -44,6 +44,7 @@ struct PlaylistDetailView: View {
   @EnvironmentObject private var viewModel: AlbumViewModel
   @EnvironmentObject private var playerViewModel: PlayerViewModel
   @EnvironmentObject private var downloadViewModel: DownloadViewModel
+  @EnvironmentObject private var pins: PinnedStore
 
   @State private var showDownloadSheet: Bool = false
   @State private var showDeleteAlbumAlert: Bool = false
@@ -158,17 +159,13 @@ struct PlaylistDetailView: View {
               idx: idx, item: viewModel.playlist, isFromLocal: false)
           }
           .contextMenu {
-            VStack {
-              if !song.fileUrl.isEmpty {
+            if !song.fileUrl.isEmpty {
                 Button(role: .destructive) {
                   viewModel.removeDownloadSong(
                     album: viewModel.playlist, songId: song.id, isFromPlaylist: true)
                   viewModel.setActivePlaylist(playlist: viewModel.playlist)
                 } label: {
-                  HStack {
-                    Text("Remove Download")
-                    Image(systemName: "arrow.down.circle")
-                  }
+                  Label("Remove Download", systemImage: "arrow.down.circle")
                 }
               } else {
                 Button {
@@ -179,18 +176,23 @@ struct PlaylistDetailView: View {
                     album: playlist, song: viewModel.playlist.songs[idx], isFromPlaylist: true,
                     playlistIndex: idx)
                 } label: {
-                  HStack {
-                    Text("Download")
-                    Image(systemName: "arrow.down.circle")
-                  }
+                  Label("Download", systemImage: "arrow.down.circle")
                 }
               }
             }
-          }
         }
         .listStyle(PlainListStyle()).customFont(.body)
       }
       .toolbar {
+        Button(action: {
+          pins.toggle(playlist: viewModel.playlist)
+        }) {
+          Label(
+            pins.isPinned(playlist: viewModel.playlist) ? "Unpin playlist" : "Pin playlist",
+            systemImage: pins.isPinned(playlist: viewModel.playlist) ? "pin.fill" : "pin"
+          )
+        }
+
         DownloadButton(
           isDownloading: downloadViewModel.isDownloading(viewModel.playlist.name),
           isDownloaded: downloadViewModel.isDownloading(viewModel.playlist.name)
