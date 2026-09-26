@@ -92,13 +92,12 @@ struct AlbumsView: View {
   }
 }
 
-/// Inline-searchable wrapper for the Albums tab.
+/// Searchable wrapper for the Albums tab.
 ///
 /// ContentView.swift owns the Albums NavigationStack and builds its tab via
-/// `AlbumsGridView()`. The search field is rendered inline (always visible
-/// at the top of the content, not via `.searchable`) so it works reliably
-/// under the iPad sidebar-adaptable TabView and Mac Catalyst where
-/// `navigationBarDrawer` does not produce a true inline field.
+/// `AlbumsGridView()`. Search is provided solely by `.catalystAwareSearch` —
+/// native `.searchable` on iOS/iPadOS, custom toolbar field on Catalyst — so
+/// exactly one field renders per platform. No inline duplicate.
 /// Filtering is live on name + artist/albumArtist, case-insensitive.
 struct AlbumsGridView: View {
   @EnvironmentObject var albumViewModel: AlbumViewModel
@@ -130,24 +129,6 @@ struct AlbumsGridView: View {
   var body: some View {
     NavigationStack {
       VStack(spacing: 0) {
-        #if !targetEnvironment(macCatalyst)
-          HStack {
-          Image(systemName: "magnifyingglass").foregroundColor(.gray)
-          TextField("Search", text: $searchText)
-            .autocorrectionDisabled()
-          if !searchText.isEmpty {
-            Button { searchText = "" } label: {
-              Image(systemName: "xmark.circle.fill").foregroundColor(.gray)
-            }
-          }
-        }
-        .padding(8)
-        .background(Color(UIColor.secondarySystemBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 10))
-        .padding(.horizontal, 10)
-        .padding(.vertical, 8)
-        #endif
-
         ScrollView {
           LazyVGrid(columns: columns, spacing: 10) {
             ForEach(filteredAlbums) { album in
