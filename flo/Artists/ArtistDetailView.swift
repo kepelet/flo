@@ -135,13 +135,18 @@ struct ArtistDetailView: View {
             artistDetailViewModel.fetchArtistRadio(artist: artist)
           }) {
             HStack(spacing: 6) {
-              if artistDetailViewModel.isLoadingRadio {
-                ProgressView()
-                  .tint(Color(UIColor.systemBackground))
-              } else {
-                Image(systemName: "dot.radiowaves.left.and.right")
-                Text("Play Artist Radio")
+              Group {
+                if artistDetailViewModel.isLoadingRadio {
+                  ProgressView()
+                    .tint(Color(UIColor.systemBackground))
+                } else {
+                  Image(systemName: "dot.radiowaves.left.and.right")
+                }
               }
+              // Fixed slot so the spinner swaps the icon 1:1 — text stays
+              // put and the button never changes width while loading.
+              .frame(width: 20, height: 20)
+              Text("Play Artist Radio")
             }
             .font(.subheadline)
             .fontWeight(.semibold)
@@ -161,13 +166,18 @@ struct ArtistDetailView: View {
             artistDetailViewModel.fetchTopSongs(artist: artist)
           }) {
             HStack(spacing: 6) {
-              if artistDetailViewModel.isLoadingTopSongs {
-                ProgressView()
-                  .tint(Color(UIColor.systemBackground))
-              } else {
-                Image(systemName: "star")
-                Text("Play Top Songs")
+              Group {
+                if artistDetailViewModel.isLoadingTopSongs {
+                  ProgressView()
+                    .tint(Color(UIColor.systemBackground))
+                } else {
+                  Image(systemName: "star")
+                }
               }
+              // Fixed slot so the spinner swaps the icon 1:1 — text stays
+              // put and the button never changes width while loading.
+              .frame(width: 20, height: 20)
+              Text("Play Top Songs")
             }
             .font(.subheadline)
             .fontWeight(.semibold)
