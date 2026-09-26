@@ -143,6 +143,9 @@ enum FloatingPlayerPanel: Equatable {
 struct PadFloatingPlayerView: View {
   @ObservedObject var viewModel: PlayerViewModel
   @Binding var activePanel: FloatingPlayerPanel?
+  @ObservedObject var albumViewModel: AlbumViewModel
+  @ObservedObject var pins: PinnedStore
+  var onOpenLibraryDestination: ((LibraryDestination) -> Void)?
 
   @State private var isCenterHovering = false
   @State private var isVolumeOverlayVisible = false
@@ -214,9 +217,9 @@ struct PadFloatingPlayerView: View {
 
         Divider().opacity(0.12).frame(height: 44)
 
-        // Column 3: right controls (fixed width, ~210)
+        // Column 3: right controls (fixed width, ~248 for 6 buttons)
         rightColumn
-          .frame(width: 210)
+          .frame(width: 248)
           .padding(.leading, 10)
           .padding(.trailing, 14)
           .onHover { hovering in
@@ -470,6 +473,8 @@ struct PadFloatingPlayerView: View {
         .transition(.opacity.combined(with: .scale(scale: 0.98)))
       } else {
         HStack(spacing: 6) {
+          nowPlayingMenu
+
           Button {
             togglePanel(.lyrics)
           } label: {
@@ -566,6 +571,75 @@ struct PadFloatingPlayerView: View {
         activePanel = panel
       }
     }
+  }
+
+  // MARK: Now-playing context menu (beside lyrics)
+
+  private var nowPlayingAlbumId: String { viewModel.nowPlaying.albumId ?? "" }
+  private var nowPlayingAlbumName: String { viewModel.nowPlaying.albumName ?? "" }
+  private var nowPlayingArtistName: String { viewModel.nowPlaying.artistName ?? "" }
+
+  private var resolvedAlbum: Album? {
+    albumViewModel.albumForNavigation(
+      id: nowPlayingAlbumId, name: nowPlayingAlbumName, artist: nowPlayingArtistName)
+  }
+
+  private var resolvedArtist: Artist? {
+    let name = nowPlayingArtistName
+    guard !name.isEmpty else { return nil }
+    return albumViewModel.artistForNavigation(name: name)
+  }
+
+  private var nowPlayingAlbumPin: PinnedItem {
+    if let album = resolvedAlbum {
+      return PinnedItem(album: album)
+    }
+    return PinnedItem(
+      kind: .album, refId: nowPlayingAlbumId, name: nowPlayingAlbumName,
+      subtitle: nowPlayingArtistName)
+  }
+
+  @ViewBuilder
+  private var nowPlayingMenu: some View {
+    Menu {
+      if !viewModel.isLiveRadio {
+        if let album = resolvedAlbum {
+          Button {
+            onOpenLibraryDestination?(
+              .album(id: album.id, name: album.name, artist: album.albumArtist))
+          } label: {
+            Label("Go to Album", systemImage: "square.grid.2x2")
+          }
+        }
+        if let artist = resolvedArtist {
+          Button {
+            onOpenLibraryDestination?(.artist(id: artist.id, name: artist.name))
+          } label: {
+            Label("Go to Artist", systemImage: "music.mic")
+          }
+        }
+        let pin = nowPlayingAlbumPin
+        if !pin.refId.isEmpty || !pin.name.isEmpty {
+          Divider()
+          Button {
+            pins.toggle(pin)
+          } label: {
+            Label(
+              PinnedKind.album.toggleTitle(pinned: pins.isPinned(pin)),
+              systemImage: pins.isPinned(pin) ? "pin.slash" : "pin")
+          }
+        }
+      }
+    } label: {
+      Image(systemName: "ellipsis")
+        .font(.system(size: 15, weight: .semibold))
+        .foregroundColor(Color.primary.opacity(0.88))
+        .frame(width: 32, height: 32)
+        .background(Color.primary.opacity(0.04))
+        .clipShape(Circle())
+    }
+    .disabled(viewModel.isLiveRadio)
+    .opacity(viewModel.isLiveRadio ? 0.35 : 1)
   }
 }
 
@@ -695,12 +769,20 @@ struct FloatingMusicPlayerView_previews: PreviewProvider {
   static var previews: some View {
     Group {
       FloatingPlayerView(viewModel: viewModel)
-      PadFloatingPlayerView(viewModel: viewModel, activePanel: .constant(nil))
-        .previewDisplayName("Pad 3-col")
+      PadFloatingPlayerView(
+        viewModel: viewModel, activePanel: .constant(nil),
+        albumViewModel: AlbumViewModel(), pins: PinnedStore(),
+        onOpenLibraryDestination: nil
+      )
+      .previewDisplayName("Pad 3-col")
         .padding(.vertical, 20)
         .background(Color.gray.opacity(0.12))
-      PadFloatingPlayerView(viewModel: viewModel, activePanel: .constant(.queue))
-        .previewDisplayName("Pad queue active")
+      PadFloatingPlayerView(
+        viewModel: viewModel, activePanel: .constant(.queue),
+        albumViewModel: AlbumViewModel(), pins: PinnedStore(),
+        onOpenLibraryDestination: nil
+      )
+      .previewDisplayName("Pad queue active")
         .padding(.vertical, 20)
         .background(Color.gray.opacity(0.12))
     }

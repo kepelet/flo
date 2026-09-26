@@ -633,7 +633,7 @@ struct LibraryView: View {
 
   private var v2PinnedSection: some View {
     VStack(alignment: .leading, spacing: 14) {
-      v2SectionHeaderNoMore(title: "Pinned")
+      v2SectionHeaderStatic(title: "Pinned", subtitle: "You pinned it!")
       ScrollView(.horizontal, showsIndicators: false) {
         HStack(spacing: 12) {
           ForEach(pins.items) { item in

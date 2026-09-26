@@ -100,10 +100,16 @@ struct ContentView: View {
     // Sidebar collapses to overlay / hidden below ~600pt (Stage Manager narrow
     // or iPad Slide Over). No shift when collapsed to avoid offset artifacts.
     guard totalWidth >= 600 else { return 0 }
-    // Fixed 104 yields the polished -52pt shift; cap to 15% of window so
-    // very narrow/tall windows never over-shift and the value stays finite.
-    let raw: CGFloat = 104
-    let capped = min(raw, max(0, totalWidth * 0.15))
+    // System sidebarAdaptable width is ~320pt on iPad and ~260pt on Catalyst
+    // (not 104) — under-estimating leaves the floating player shifted left of
+    // the content column. Cap to 35% of window so very narrow/tall windows
+    // never over-shift and the value stays finite.
+    #if targetEnvironment(macCatalyst)
+      let raw: CGFloat = 260
+    #else
+      let raw: CGFloat = 320
+    #endif
+    let capped = min(raw, max(0, totalWidth * 0.35))
     return capped.isFinite ? capped : 0
   }
 
@@ -670,7 +676,11 @@ struct ContentView: View {
 
         if isPadSidebar {
           let rawPanelWidth: CGFloat = 380
-          let panelGutter: CGFloat = 10
+          // No window-margin gutter: the panel sits flush against the content
+          // and owns its own 1pt leading divider (see PlayerSidePanelView),
+          // so the seam reads as panel padding — hovering the top bar never
+          // reveals a contrasting empty strip the way a margin gap does.
+          let panelGutter: CGFloat = 0
           // Clamp panel to window so very narrow Stage Manager windows never
           // overflow (panel + gutter capped to 45% of width, min 0).
           let sidePanelWidth: CGFloat = {
@@ -692,6 +702,9 @@ struct ContentView: View {
           ZStack(alignment: .trailing) {
             rootTabView
               .environmentObject(pinnedStore)
+              // Trailing inset reserves the panel's own column (flush, gutter 0).
+              // The ZStack background below keeps the reserved strip on the
+              // content background when the panel animates in/out.
               .padding(.trailing, isPanelVisible ? trailingInset : 0)
               .animation(
                 .spring(duration: 0.26, bounce: 0.08), value: isPanelVisible
@@ -724,8 +737,15 @@ struct ContentView: View {
               Spacer()
 
               if playerPresence.hasNowPlaying {
-                PadFloatingPlayerView(viewModel: playerViewModel, activePanel: $floatingSidePanel)
-                  .frame(maxWidth: 860)
+                PadFloatingPlayerView(
+                  viewModel: playerViewModel, activePanel: $floatingSidePanel,
+                  albumViewModel: albumViewModel, pins: pinnedStore,
+                  onOpenLibraryDestination: openLibraryDestinationFromPlayer)
+                  #if targetEnvironment(macCatalyst)
+                    .frame(maxWidth: 1080)
+                  #else
+                    .frame(maxWidth: 860)
+                  #endif
                   .padding(.bottom, 20)
                   .padding(.leading, estimatedSidebarWidth(for: safeWidth))
                   .padding(.trailing, isPanelVisible ? trailingInset : 0)
@@ -758,6 +778,7 @@ struct ContentView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
           }
+          .background(Color(.systemBackground).ignoresSafeArea())
           .animation(.spring(duration: 0.26, bounce: 0.08), value: isPanelVisible)
         } else {
           rootTabView
