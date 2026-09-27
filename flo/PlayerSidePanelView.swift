@@ -5,6 +5,7 @@
 
 import NukeUI
 import SwiftUI
+import UniformTypeIdentifiers
 
 private struct SidePanelHeaderModifier: ViewModifier {
   func body(content: Content) -> some View {
@@ -39,7 +40,17 @@ struct PlayerSidePanelView: View {
   @Environment(\.colorScheme) private var colorScheme
   @Binding var activePanel: FloatingPlayerPanel?
   @ObservedObject var viewModel: PlayerViewModel
+  @ObservedObject var albumViewModel: AlbumViewModel
+  @EnvironmentObject var downloads: DownloadViewModel
   let sidePanelWidth: CGFloat
+
+  var onOpenLibraryDestination: ((LibraryDestination) -> Void)?
+
+  @StateObject private var rowStore = QueueRowStore()
+  @State private var draggingIdx: Int?
+  @State private var dropTargetIdx: Int?
+  @State private var dropEdge: Edge?
+  @State private var showClearConfirm = false
 
   var body: some View {
     ZStack(alignment: .topLeading) {
@@ -218,6 +229,19 @@ struct PlayerSidePanelView: View {
               .cornerRadius(6)
           }
           .buttonStyle(.plain)
+          Button {
+            showClearConfirm = true
+          } label: {
+            Label("Clear Queue", systemImage: "arrow.counterclockwise")
+              .labelStyle(.iconOnly)
+              .foregroundColor(Color.accentColor)
+              .fontWeight(.bold)
+              .padding(6)
+              .background(Color.clear)
+              .cornerRadius(6)
+          }
+          .buttonStyle(.plain)
+          .disabled(viewModel.queue.isEmpty)
         }
       }
       .sidePanelHeader()
@@ -252,18 +276,65 @@ struct PlayerSidePanelView: View {
             }
             .padding(.vertical, 8)
             .padding(.horizontal, 14)
-            .background(viewModel.activeQueueIdx == idx ? Color.accentColor.opacity(0.10) : Color.clear)
+            .background(
+              dropTargetIdx == idx
+                ? Color.accentColor.opacity(0.25)
+                : (viewModel.activeQueueIdx == idx ? Color.accentColor.opacity(0.10) : Color.clear))
+            .overlay(alignment: dropEdge == .bottom ? .bottom : .top) {
+              if dropTargetIdx == idx {
+                RoundedRectangle(cornerRadius: 2)
+                  .fill(Color.accentColor)
+                  .frame(height: 4)
+              }
+            }
+            .opacity(draggingIdx == idx ? 0.45 : 1)
             .contentShape(Rectangle())
             .onTapGesture {
               viewModel.playFromQueue(idx: idx)
+            }
+            .onDrag {
+              draggingIdx = idx
+              return NSItemProvider(object: String(idx) as NSString)
+            }
+            .onDrop(
+              of: [.text],
+              delegate: QueueReorderDropDelegate(
+                player: viewModel, targetIdx: idx, draggingIdx: $draggingIdx,
+                dropTargetIdx: $dropTargetIdx, dropEdge: $dropEdge))
+            .contextMenu {
+              QueueRowMenu(
+                player: viewModel, albums: albumViewModel, store: rowStore, idx: idx,
+                song: song, onNavigate: onOpenLibraryDestination
+              )
+              .environmentObject(downloads)
             }
             Divider().opacity(0.06)
           }
         }
       }
       .clipped()
+      .onDrop(
+        of: [.text],
+        delegate: QueueListDropDelegate(
+          player: viewModel, draggingIdx: $draggingIdx, dropTargetIdx: $dropTargetIdx,
+          dropEdge: $dropEdge))
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
     .background(Color(.systemBackground))
+    .alert("Clear queue?", isPresented: $showClearConfirm) {
+      Button("Cancel", role: .cancel) {}
+      Button("Clear Queue", role: .destructive) {
+        viewModel.clearQueue()
+      }
+    } message: {
+      Text("This removes all songs from the queue and stops playback.")
+    }
+    .onAppear {
+      rowStore.refreshStars()
+      rowStore.refreshDownloads(queue: viewModel.queue)
+    }
+    .onReceive(downloads.$downloadWatcher) { _ in
+      rowStore.refreshDownloads(queue: viewModel.queue)
+    }
   }
 }

@@ -334,6 +334,7 @@ struct LibraryView: View {
               AlbumsView(viewModel: viewModel, album: album)
             }
             .contextMenu {
+              AlbumQueueMenu(player: playerViewModel, album: album)
               Button {
                 pins.toggle(album: album)
               } label: {
@@ -599,6 +600,7 @@ struct LibraryView: View {
                 AlbumsView(viewModel: viewModel, album: album, isDownloadScreen: true)
               }
               .contextMenu {
+                AlbumQueueMenu(player: playerViewModel, album: album)
                 Button {
                   pins.toggle(album: album)
                 } label: {
@@ -838,7 +840,7 @@ struct LibraryView: View {
           ForEach(Array(chunkedSongs(Array(viewModel.starredSongs.prefix(16))).enumerated()), id: \.offset) { _, chunk in
             VStack(spacing: 12) {
               ForEach(chunk, id: \.id) { song in
-                v2SongHorizontalCard(song: song, onTap: {
+                v2SongHorizontalCard(song: song, queueContext: "Liked Songs", onTap: {
                   if let idx = viewModel.starredSongs.firstIndex(where: { $0.id == song.id }) {
                     let liked = SongCollection(id: "starred-songs", name: "Liked Songs", songs: viewModel.starredSongs)
                     playerViewModel.playBySong(idx: idx, item: liked, isFromLocal: false)
@@ -889,6 +891,7 @@ struct LibraryView: View {
             }
             .buttonStyle(.plain)
             .contextMenu {
+              PlaylistQueueMenu(player: playerViewModel, playlist: playlist)
               Button {
                 pins.toggle(playlist: playlist)
               } label: {
@@ -949,7 +952,9 @@ struct LibraryView: View {
     }
   }
 
-  private func v2SongHorizontalCard(song: Song, onTap: @escaping () -> Void) -> some View {
+  private func v2SongHorizontalCard(
+    song: Song, queueContext: String? = nil, onTap: @escaping () -> Void
+  ) -> some View {
     Button(action: onTap) {
       HStack(spacing: 12) {
         v2SongCoverTiny(song: song)
@@ -980,6 +985,11 @@ struct LibraryView: View {
     }
     .buttonStyle(.plain)
     .contextMenu {
+      if let queueContext {
+        QueueMenuButtons(
+          player: playerViewModel, song: song, contextName: queueContext,
+          isFromLocal: !song.fileUrl.isEmpty)
+      }
       if !song.albumId.isEmpty {
         let albumPin = PinnedItem(
           kind: .album, refId: song.albumId, name: song.albumName, subtitle: song.artist)
@@ -1011,7 +1021,7 @@ struct LibraryView: View {
           ForEach(Array(chunkedSongs(Array(viewModel.songs.prefix(16))).enumerated()), id: \.offset) { _, chunk in
             VStack(spacing: 12) {
               ForEach(chunk, id: \.id) { song in
-                v2SongHorizontalCard(song: song) {
+                v2SongHorizontalCard(song: song, queueContext: "All Tracks") {
                   if let idx = viewModel.songs.firstIndex(where: { $0.id == song.id }) {
                     var playlist = Playlist(name: "\"All Tracks\"")
                     playlist.songs = viewModel.songs
@@ -1226,6 +1236,7 @@ struct LibraryView: View {
               }
             }.buttonStyle(.plain)
             .contextMenu {
+              AlbumQueueMenu(player: playerViewModel, album: album)
               Button {
                 pins.toggle(album: album)
               } label: {
@@ -1273,6 +1284,7 @@ struct LibraryView: View {
               }
             }.buttonStyle(.plain)
             .contextMenu {
+              AlbumQueueMenu(player: playerViewModel, album: album)
               Button {
                 pins.toggle(album: album)
               } label: {
@@ -1302,6 +1314,16 @@ struct LibraryView: View {
               } label: {
                 v2AlbumGridItem(album: album)
               }.buttonStyle(.plain)
+              .contextMenu {
+                AlbumQueueMenu(player: playerViewModel, album: album)
+                Button {
+                  pins.toggle(album: album)
+                } label: {
+                  Label(
+                    PinnedKind.album.toggleTitle(pinned: pins.isPinned(album: album)),
+                    systemImage: pins.isPinned(album: album) ? "pin.slash" : "pin")
+                }
+              }
             }
           }.padding()
         }.navigationTitle("Albums")
@@ -1338,6 +1360,7 @@ struct LibraryView: View {
             }
             .buttonStyle(.plain)
             .contextMenu {
+              AlbumQueueMenu(player: playerViewModel, album: album)
               Button {
                 pins.toggle(album: album)
               } label: {
@@ -1432,6 +1455,7 @@ struct LibraryView: View {
     }
     .padding(6)
     .contextMenu {
+      AlbumQueueMenu(player: playerViewModel, album: album)
       Button {
         pins.toggle(album: album)
       } label: {

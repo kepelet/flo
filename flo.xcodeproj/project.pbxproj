@@ -108,6 +108,8 @@
 		C42B25BE2F4464AE00E62008 /* WatchRadiosView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C42B25BD2F4464AE00E62008 /* WatchRadiosView.swift */; };
 		C42E7E182CE7EF5500505B4E /* PlaylistDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C42E7E172CE7EF4D00505B4E /* PlaylistDetailView.swift */; };
 		C440228D2C09BE2E004EE9CD /* PlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C440228C2C09BE2E004EE9CD /* PlayerView.swift */; };
+		C4D7F8532C7F2E5D00165EFD /* QueueSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4D7F8522C7F2E5D00165EFD /* QueueSupport.swift */; };
+		C4D7F8512C7F2E5D00165EFD /* QueueSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4D7F8502C7F2E5D00165EFD /* QueueSheetView.swift */; };
 		C446A6B72C08DE8800CC9787 /* UserAuth.swift in Sources */ = {isa = PBXBuildFile; fileRef = C446A6B62C08DE8800CC9787 /* UserAuth.swift */; };
 		C456D8F62F2FBD61002AAB8B /* LRCLIB.swift in Sources */ = {isa = PBXBuildFile; fileRef = C456D8F52F2FBD61002AAB8B /* LRCLIB.swift */; };
 		C456D8F82F2FBD64002AAB8B /* LRCLIBService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C456D8F72F2FBD64002AAB8B /* LRCLIBService.swift */; };
@@ -297,6 +299,8 @@
 		C42B25BD2F4464AE00E62008 /* WatchRadiosView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchRadiosView.swift; sourceTree = "<group>"; };
 		C42E7E172CE7EF4D00505B4E /* PlaylistDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaylistDetailView.swift; sourceTree = "<group>"; };
 		C440228C2C09BE2E004EE9CD /* PlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerView.swift; sourceTree = "<group>"; };
+		C4D7F8522C7F2E5D00165EFD /* QueueSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QueueSupport.swift; sourceTree = "<group>"; };
+		C4D7F8502C7F2E5D00165EFD /* QueueSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QueueSheetView.swift; sourceTree = "<group>"; };
 		C446A6B62C08DE8800CC9787 /* UserAuth.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserAuth.swift; sourceTree = "<group>"; };
 		C456D8F52F2FBD61002AAB8B /* LRCLIB.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LRCLIB.swift; sourceTree = "<group>"; };
 		C456D8F72F2FBD64002AAB8B /* LRCLIBService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LRCLIBService.swift; sourceTree = "<group>"; };
@@ -657,6 +661,8 @@
 				C4E8D95B2B763BA900C2353E /* App.swift */,
 				C46C85C32C07114200903F54 /* LoginView.swift */,
 				C440228C2C09BE2E004EE9CD /* PlayerView.swift */,
+				C4D7F8522C7F2E5D00165EFD /* QueueSupport.swift */,
+				C4D7F8502C7F2E5D00165EFD /* QueueSheetView.swift */,
 				C41E15122C0F952A005BAE63 /* PlayerViewModel.swift */,
 				C41E15142C0F95AD005BAE63 /* PlayerCustomSlider.swift */,
 				C415F54D2C11908100E3E1D2 /* AuthViewModel.swift */,
@@ -970,6 +976,8 @@
 				C429DB322D33C707009F2684 /* DownloadButtonView.swift in Sources */,
 				C4824D232CE8C41F003EAB52 /* Playable.swift in Sources */,
 				C41E15132C0F952A005BAE63 /* PlayerViewModel.swift in Sources */,
+				C4D7F8532C7F2E5D00165EFD /* QueueSupport.swift in Sources */,
+				C4D7F8512C7F2E5D00165EFD /* QueueSheetView.swift in Sources */,
 				B0BAAAA92F3213AF002A5FBB /* RadiosViewModel.swift in Sources */,
 				C4875E042C149F9A00D9BAEB /* APIManager.swift in Sources */,
 				C4A4BF312C14433D00363290 /* HomeView.swift in Sources */,

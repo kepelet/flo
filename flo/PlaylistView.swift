@@ -52,6 +52,7 @@ struct PlaylistView: View {
             PlaylistsView(viewModel: viewModel, playlist: playlist)
           }
           .contextMenu {
+            PlaylistQueueMenu(player: playerViewModel, playlist: playlist)
             Button {
               pins.toggle(playlist: playlist)
             } label: {

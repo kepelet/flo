@@ -86,6 +86,11 @@ struct SongsView: View {
               idx: selectedSongIdx, item: playlist, isFromLocal: false
             )
           }
+          .contextMenu {
+            QueueMenuButtons(
+              player: playerViewModel, song: song, contextName: "All Tracks",
+              isFromLocal: false)
+          }
           .frame(maxWidth: .infinity, alignment: .leading)
         }
       }

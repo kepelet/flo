@@ -67,6 +67,11 @@ struct CachedSongsView: View {
             let cached = SongCollection(id: "cached-songs", name: "Cached", songs: songs)
             playerViewModel.playBySong(idx: idx, item: cached, isFromLocal: true)
           }
+          .contextMenu {
+            QueueMenuButtons(
+              player: playerViewModel, song: song, contextName: "Cached",
+              isFromLocal: true)
+          }
           .frame(maxWidth: .infinity, alignment: .leading)
         }
       }

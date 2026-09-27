@@ -101,6 +101,7 @@ struct AlbumsView: View {
 /// Filtering is live on name + artist/albumArtist, case-insensitive.
 struct AlbumsGridView: View {
   @EnvironmentObject var albumViewModel: AlbumViewModel
+  @EnvironmentObject var playerViewModel: PlayerViewModel
   @EnvironmentObject var downloadViewModel: DownloadViewModel
   @EnvironmentObject var pins: PinnedStore
   @Environment(\.horizontalSizeClass) private var horizontalSizeClass
@@ -141,6 +142,7 @@ struct AlbumsGridView: View {
               }
               .buttonStyle(.plain)
               .contextMenu {
+                AlbumQueueMenu(player: playerViewModel, album: album)
                 Button {
                   pins.toggle(album: album)
                 } label: {

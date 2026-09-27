@@ -924,6 +924,288 @@ class PlayerViewModel: ObservableObject {
     UserDefaultsManager.queueActiveIdx = self.activeQueueIdx
   }
 
+  // MARK: - Queue management (reorder / insert / remove)
+
+  /// Where newly queued songs should land relative to the current queue.
+  enum QueueInsertPosition {
+    /// Directly after the currently playing song.
+    case next
+    /// After the last consecutive song sharing the now-playing context
+    /// (keeps the current album/playlist block together).
+    case afterContext
+    /// At the very end of the queue.
+    case end
+  }
+
+  /// Rewrites the persisted queue so it matches the in-memory order
+  /// (positions are normalized to the array order).
+  private func persistQueueOrdering() {
+    let objects = PlaybackService.shared.snapshotObjects(from: queue)
+    queue = PlaybackService.shared.replaceQueue(objects: objects)
+    UserDefaultsManager.queueActiveIdx = activeQueueIdx
+  }
+
+  private func insertSongs(
+    _ songs: [Song], at position: QueueInsertPosition, contextName: String? = nil,
+    isFromLocal: Bool = false, isFromPlaylist: Bool = false
+  ) {
+    guard !songs.isEmpty else { return }
+
+    let context: String = {
+      if let contextName, !contextName.isEmpty { return contextName }
+      return songs.first?.albumName ?? ""
+    }()
+
+    let makeObjects: () -> [[String: Any]] = {
+      songs.map { song in
+        var object = PlaybackService.shared.queueObject(
+          from: song, contextName: context,
+          isFromLocal: isFromLocal || !song.fileUrl.isEmpty, position: 0)
+        object["isFromPlaylist"] = isFromPlaylist
+        return object
+      }
+    }
+
+    // Empty queue: the inserted songs become the queue and start playing.
+    if queue.isEmpty {
+      var objects = makeObjects()
+      for idx in objects.indices { objects[idx]["position"] = idx }
+      queue = PlaybackService.shared.replaceQueue(objects: objects)
+      activeQueueIdx = 0
+      setNowPlaying()
+      UserDefaultsManager.queueActiveIdx = activeQueueIdx
+      return
+    }
+
+    let insertIdx: Int
+    switch position {
+    case .next:
+      insertIdx = min(activeQueueIdx + 1, queue.count)
+    case .end:
+      insertIdx = queue.count
+    case .afterContext:
+      let current = queue[activeQueueIdx].contextName ?? ""
+      var idx = activeQueueIdx
+      while idx + 1 < queue.count, (queue[idx + 1].contextName ?? "") == current {
+        idx += 1
+      }
+      insertIdx = idx + 1
+    }
+
+    // Insertions always land after the now-playing index, so it is unchanged.
+    var snapshot = PlaybackService.shared.snapshotObjects(from: queue)
+    snapshot.insert(contentsOf: makeObjects(), at: insertIdx)
+    for idx in snapshot.indices { snapshot[idx]["position"] = idx }
+    queue = PlaybackService.shared.replaceQueue(objects: snapshot)
+    UserDefaultsManager.queueActiveIdx = activeQueueIdx
+  }
+
+  /// "Play Next": inserts songs directly after the now-playing song.
+  func playNext(
+    songs: [Song], contextName: String? = nil, isFromLocal: Bool = false,
+    isFromPlaylist: Bool = false
+  ) {
+    insertSongs(
+      songs, at: .next, contextName: contextName, isFromLocal: isFromLocal,
+      isFromPlaylist: isFromPlaylist)
+  }
+
+  func playNext(
+    song: Song, contextName: String? = nil, isFromLocal: Bool = false,
+    isFromPlaylist: Bool = false
+  ) {
+    playNext(
+      songs: [song], contextName: contextName, isFromLocal: isFromLocal,
+      isFromPlaylist: isFromPlaylist)
+  }
+
+  /// "Play After": inserts songs after the current album/playlist block,
+  /// keeping the now-playing context together.
+  func playAfter(
+    songs: [Song], contextName: String? = nil, isFromLocal: Bool = false,
+    isFromPlaylist: Bool = false
+  ) {
+    insertSongs(
+      songs, at: .afterContext, contextName: contextName, isFromLocal: isFromLocal,
+      isFromPlaylist: isFromPlaylist)
+  }
+
+  func playAfter(
+    song: Song, contextName: String? = nil, isFromLocal: Bool = false,
+    isFromPlaylist: Bool = false
+  ) {
+    playAfter(
+      songs: [song], contextName: contextName, isFromLocal: isFromLocal,
+      isFromPlaylist: isFromPlaylist)
+  }
+
+  /// "Add to Queue": appends songs to the end of the queue.
+  func appendToQueue(
+    songs: [Song], contextName: String? = nil, isFromLocal: Bool = false,
+    isFromPlaylist: Bool = false
+  ) {
+    insertSongs(
+      songs, at: .end, contextName: contextName, isFromLocal: isFromLocal,
+      isFromPlaylist: isFromPlaylist)
+  }
+
+  func appendToQueue(
+    song: Song, contextName: String? = nil, isFromLocal: Bool = false,
+    isFromPlaylist: Bool = false
+  ) {
+    appendToQueue(
+      songs: [song], contextName: contextName, isFromLocal: isFromLocal,
+      isFromPlaylist: isFromPlaylist)
+  }
+
+  /// In-memory reorder without persisting. Used during drag-hover on
+  /// Catalyst (persisting mid-drag would recreate the entities and break
+  /// the drag session); call `saveQueueOrder()` on drop.
+  func moveQueueInMemory(from source: IndexSet, to destination: Int) {
+    guard !queue.isEmpty, queue.indices.contains(activeQueueIdx) else { return }
+    let activeObject = queue[activeQueueIdx]
+    queue.move(fromOffsets: source, toOffset: destination)
+    if let newIdx = queue.firstIndex(where: { $0 === activeObject }) {
+      activeQueueIdx = newIdx
+    }
+  }
+
+  /// Album-level variants for grid context menus. Downloaded albums
+  /// resolve locally (offline-capable); otherwise songs are fetched first.
+  func playNext(album: Album) {
+    queueAlbum(album, at: .next)
+  }
+
+  func playAfter(album: Album) {
+    queueAlbum(album, at: .afterContext)
+  }
+
+  func appendToQueue(album: Album) {
+    queueAlbum(album, at: .end)
+  }
+
+  private func queueAlbum(_ album: Album, at position: QueueInsertPosition) {
+    if AlbumService.shared.checkIfAlbumDownloaded(albumID: album.id) {
+      let local = AlbumService.shared.getSongsByAlbumId(albumId: album.id)
+      if !local.isEmpty {
+        insertSongs(
+          local, at: position, contextName: album.name, isFromLocal: true)
+        return
+      }
+    }
+    AlbumService.shared.getSongFromAlbum(id: album.id) { [weak self] result in
+      guard case .success(let songs) = result, !songs.isEmpty else { return }
+      DispatchQueue.main.async {
+        self?.insertSongs(songs, at: position, contextName: album.name, isFromLocal: false)
+      }
+    }
+  }
+
+  /// Playlist-level variants for grid context menus.
+  func playNext(playlist: Playlist) {
+    queuePlaylist(playlist, at: .next)
+  }
+
+  func playAfter(playlist: Playlist) {
+    queuePlaylist(playlist, at: .afterContext)
+  }
+
+  func appendToQueue(playlist: Playlist) {
+    queuePlaylist(playlist, at: .end)
+  }
+
+  private func queuePlaylist(_ playlist: Playlist, at position: QueueInsertPosition) {
+    let local = AlbumService.shared.getPlaylistSongs(playlistId: playlist.id)
+    if !local.isEmpty {
+      insertSongs(
+        local, at: position, contextName: playlist.name, isFromLocal: false,
+        isFromPlaylist: true)
+      return
+    }
+    AlbumService.shared.getSongsByPlaylist(id: playlist.id) { [weak self] result in
+      guard case .success(let songs) = result, !songs.isEmpty else { return }
+      DispatchQueue.main.async {
+        self?.insertSongs(
+          songs, at: position, contextName: playlist.name, isFromLocal: false,
+          isFromPlaylist: true)
+      }
+    }
+  }
+
+  /// Drag-to-reorder handler for `List.onMove`. Tracks the now-playing
+  /// item by identity so playback follows it to its new position.
+  func moveQueue(from source: IndexSet, to destination: Int) {
+    moveQueueInMemory(from: source, to: destination)
+    persistQueueOrdering()
+  }
+
+  /// Persists the current in-memory order (call after drag-and-drop).
+  func saveQueueOrder() {
+    guard !queue.isEmpty else { return }
+    persistQueueOrdering()
+  }
+
+  /// Moves a queue item to the very top, keeping now-playing in sync.
+  func moveToTop(idx: Int) {
+    guard queue.indices.contains(idx), idx != 0 else { return }
+    guard queue.indices.contains(activeQueueIdx) else { return }
+    let activeObject = queue[activeQueueIdx]
+    let item = queue.remove(at: idx)
+    queue.insert(item, at: 0)
+    activeQueueIdx = queue.firstIndex(where: { $0 === activeObject }) ?? activeQueueIdx
+    persistQueueOrdering()
+  }
+
+  /// Removes a single item. Removing the now-playing song advances
+  /// playback to the item sliding into its place.
+  func removeFromQueue(at idx: Int) {
+    guard queue.indices.contains(idx) else { return }
+    removeFromQueue(atOffsets: IndexSet(integer: idx))
+  }
+
+  /// Swipe-to-delete handler for `List.onDelete`.
+  func removeFromQueue(atOffsets offsets: IndexSet) {
+    guard !queue.isEmpty else { return }
+    let sorted = offsets.sorted().filter { queue.indices.contains($0) }
+    guard !sorted.isEmpty else { return }
+
+    if queue.count - sorted.count <= 0 {
+      clearQueue()
+      return
+    }
+
+    let activeRemoved = sorted.contains(activeQueueIdx)
+    let activeObject: QueueEntity? = activeRemoved ? nil : queue[activeQueueIdx]
+
+    var arr = queue
+    for idx in sorted.reversed() {
+      arr.remove(at: idx)
+    }
+    queue = arr
+
+    if let activeObject,
+      let newIdx = queue.firstIndex(where: { $0 === activeObject })
+    {
+      activeQueueIdx = newIdx
+      persistQueueOrdering()
+    } else {
+      activeQueueIdx = min(sorted.first ?? 0, queue.count - 1)
+      persistQueueOrdering()
+      setNowPlaying()
+    }
+    UserDefaultsManager.queueActiveIdx = activeQueueIdx
+  }
+
+  /// "Clear Queue": stops playback and empties the queue.
+  func clearQueue() {
+    destroyPlayerAndQueue()
+    queue = []
+    activeQueueIdx = 0
+    progress = 0.0
+    currentTimeString = "00:00"
+    UserDefaultsManager.removeObject(key: UserDefaultsKeys.queueActiveIdx)
+  }
+
   func prevSong() {
     // TODO: handle experience saat album abis -> balik ke index 0 -> prevSong() -> expect nya i guess ke index .count?
     if self.activeQueueIdx != 0 {
