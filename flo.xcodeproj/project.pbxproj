@@ -163,6 +163,8 @@
 		C4F870CE2CEFCC5E00312F8A /* FloooService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4F870CD2CEFCC5B00312F8A /* FloooService.swift */; };
 		C4F870D02CEFD25900312F8A /* StatCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4F870CF2CEFD24D00312F8A /* StatCardView.swift */; };
 		C4FE524B2C14E1F70053763A /* UserDefaultsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4FE524A2C14E1F70053763A /* UserDefaultsManager.swift */; };
+		E0E0E0032F4B0001AAAAAA /* EqualizerPreset.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0E0E0012F4B0001AAAAAA /* EqualizerPreset.swift */; };
+		E0E0E0042F4B0001AAAAAA /* EqualizerManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0E0E0022F4B0001AAAAAA /* EqualizerManager.swift */; };
 		C4FE524D2C14E71B0053763A /* KeychainManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4FE524C2C14E71B0053763A /* KeychainManager.swift */; };
 		C4PLSTVW012F4B0001AAAAAA /* PlaylistsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4PLSTVW002F4B0001AAAAAA /* PlaylistsView.swift */; };
 		C5F2B0042F5C000200BBCCDD /* ConfettiView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5F2B0032F5C000200BBCCDD /* ConfettiView.swift */; };
@@ -345,6 +347,8 @@
 		C4F870CD2CEFCC5B00312F8A /* FloooService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloooService.swift; sourceTree = "<group>"; };
 		C4F870CF2CEFD24D00312F8A /* StatCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatCardView.swift; sourceTree = "<group>"; };
 		C4FE524A2C14E1F70053763A /* UserDefaultsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserDefaultsManager.swift; sourceTree = "<group>"; };
+		E0E0E0012F4B0001AAAAAA /* EqualizerPreset.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EqualizerPreset.swift; sourceTree = "<group>"; };
+		E0E0E0022F4B0001AAAAAA /* EqualizerManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EqualizerManager.swift; sourceTree = "<group>"; };
 		C4FE524C2C14E71B0053763A /* KeychainManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainManager.swift; sourceTree = "<group>"; };
 		C4PLSTVW002F4B0001AAAAAA /* PlaylistsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaylistsView.swift; sourceTree = "<group>"; };
 		C5F2B0032F5C000200BBCCDD /* ConfettiView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views/ConfettiView.swift; sourceTree = "<group>"; };
@@ -511,6 +515,7 @@
 				C456D8F52F2FBD61002AAB8B /* LRCLIB.swift */,
 				C456D8FB2F2FF397002AAB8B /* LyricsLine.swift */,
 				65905AF2ED2E55B266D8EE5C /* AppChannel.swift */,
+				E0E0E0012F4B0001AAAAAA /* EqualizerPreset.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -601,6 +606,7 @@
 				C42B25852F44551B00E62008 /* WatchConnectivityManager.swift */,
 				C42B25872F4456BF00E62008 /* WatchLibraryResponder.swift */,
 				C4F1A0022F4A000100AAAAAA /* InAppPurchaseManager.swift */,
+				E0E0E0022F4B0001AAAAAA /* EqualizerManager.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -968,6 +974,8 @@
 				C4875E042C149F9A00D9BAEB /* APIManager.swift in Sources */,
 				C4A4BF312C14433D00363290 /* HomeView.swift in Sources */,
 				C4A4BF392C14445000363290 /* PreferencesView.swift in Sources */,
+				E0E0E0032F4B0001AAAAAA /* EqualizerPreset.swift in Sources */,
+				E0E0E0042F4B0001AAAAAA /* EqualizerManager.swift in Sources */,
 				B0AD2E712F4B037400577062 /* ArtistDetailView.swift in Sources */,
 				B0AD2E782F4B037D00577062 /* ArtistImageView.swift in Sources */,
 				B0AD2E722F4B037400577062 /* ArtistsView.swift in Sources */,
