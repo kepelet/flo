@@ -73,98 +73,16 @@ struct PlayerView: View {
 
                 Spacer()
               }
-              VStack(alignment: .leading, spacing: 3) {
-                Text("Playing Next").customFont(.headline)
-
-                HStack(alignment: .bottom, spacing: 10) {
-                  if viewModel.queue.isEmpty {
-                    Text("").customFont(.subheadline)
-                  } else {
-                    Text(
-                      "From \(viewModel.nowPlaying.contextName ?? viewModel.nowPlaying.albumName ?? "")"
-                    ).customFont(.subheadline)
-                  }
-
-                  Spacer()
-
-                  Button {
-                    viewModel.shuffleCurrentQueue()
-                  } label: {
-                    Image(systemName: "shuffle")
-                      .foregroundColor(Color.accentColor)
-                      .fontWeight(.bold)
-                      .padding(5)
-                      .background(
-                        viewModel.isShuffling ? Color.gray.opacity(0.2) : Color.clear
-                      )
-                      .cornerRadius(5)
-                  }
-
-                  Button {
-                    viewModel.setPlaybackMode()
-                  } label: {
-                    Image(systemName: "repeat")
-                      .foregroundColor(Color.accentColor)
-                      .fontWeight(.bold)
-                      .overlay(
-                        Group {
-                          Text("1")
-                            .font(.caption)
-                            .clipShape(Circle())
-                            .offset(x: 10, y: -5)
-                            .fontWeight(.bold)
-                        }.opacity(viewModel.playbackMode == PlaybackMode.repeatOnce ? 1 : 0)
-                      )
-                      .padding(5)
-                      .background(
-                        viewModel.playbackMode == PlaybackMode.defaultPlayback
-                          ? Color.clear : Color.gray.opacity(0.2)
-                      )
-                      .cornerRadius(5)
-                  }
-                }
+              QueueSheetView(
+                player: viewModel,
+                albums: albumViewModel,
+                isPresented: $showQueue
+              ) { destination in
+                showQueue = false
+                onOpenLibraryDestination?(destination)
               }
-              .padding(.horizontal)
-              .padding(.bottom, 5)
-
-              ScrollView {
-                LazyVStack(alignment: .leading) {
-                  ForEach(Array(viewModel.queue.enumerated()), id: \.offset) { idx, song in
-                    HStack(alignment: .top) {
-                      VStack(alignment: .leading) {
-                        HStack(alignment: .center, spacing: 6) {
-                          Text(song.songName ?? "")
-                            .customFont(.callout)
-                            .fontWeight(.medium)
-
-                          if ExplicitStatus(from: song.explicitStatus).isExplicit {
-                            ExplicitBadge(size: .compact)
-                          }
-                        }
-                        .padding(.bottom, 3)
-
-                        Text(song.artistName ?? "")
-                          .customFont(.caption1)
-                      }
-                      .frame(maxWidth: .infinity, alignment: .leading)
-
-                      Spacer()
-
-                      Text(timeString(for: song.duration)).customFont(.caption1)
-                        .padding(.top, 4)
-                    }
-                    .padding(.vertical, 5)
-                    .padding(.horizontal)
-                    .background(
-                      viewModel.activeQueueIdx == idx
-                        ? Color.gray.opacity(0.1) : Color(.systemBackground)
-                    )
-                    .onTapGesture {
-                      viewModel.playFromQueue(idx: idx)
-                    }
-                  }
-                }
-              }.padding(.bottom, 60)
+              .environmentObject(downloadViewModel)
+              .padding(.bottom, 60)
             }
           }
           .gesture(

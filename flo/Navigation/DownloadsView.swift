@@ -149,6 +149,7 @@ struct DownloadsView: View {
       AlbumsView(viewModel: viewModel, album: album, isDownloadScreen: true)
     }
     .contextMenu {
+      AlbumQueueMenu(player: playerViewModel, album: album)
       Button {
         pins.toggle(album: album)
       } label: {

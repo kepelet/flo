@@ -720,8 +720,10 @@ struct ContentView: View {
             if isPanelVisible {
               PlayerSidePanelView(
                 activePanel: $floatingSidePanel, viewModel: playerViewModel,
-                sidePanelWidth: sidePanelWidth
+                albumViewModel: albumViewModel, sidePanelWidth: sidePanelWidth,
+                onOpenLibraryDestination: openLibraryDestinationFromPlayer
               )
+              .environmentObject(downloadViewModel)
               .frame(width: sidePanelWidth)
               .frame(maxHeight: .infinity, alignment: .top)
               .transition(.move(edge: .trailing).combined(with: .opacity))

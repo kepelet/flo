@@ -69,6 +69,10 @@ struct SongView: View {
             idx: idx, item: viewModel.album, isFromLocal: viewModel.isDownloaded)
         }
         .contextMenu {
+          QueueMenuButtons(
+            player: playerViewModel, song: song, contextName: viewModel.album.name,
+            isFromLocal: viewModel.isDownloaded)
+
           if !song.fileUrl.isEmpty {
               Button(role: .destructive) {
                 viewModel.removeDownloadSong(album: viewModel.album, songId: song.id)

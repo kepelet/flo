@@ -73,6 +73,11 @@ struct LikedSongsView: View {
               id: "starred-songs", name: "Liked Songs", songs: filteredSongs)
             playerViewModel.playBySong(idx: idx, item: liked, isFromLocal: false)
           }
+          .contextMenu {
+            QueueMenuButtons(
+              player: playerViewModel, song: song, contextName: "Liked Songs",
+              isFromLocal: false)
+          }
           .frame(maxWidth: .infinity, alignment: .leading)
         }
       }
