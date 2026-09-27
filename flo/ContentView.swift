@@ -36,6 +36,22 @@ struct ContentView: View {
   @State private var lastSidePanel: FloatingPlayerPanel = .lyrics
   @Environment(\.dynamicTypeSize) private var systemDynamicTypeSize
   @State private var forcedDynamicTypeSize: DynamicTypeSize?
+  // Live detail-column width of the sidebar TabView, reported by
+  // `sidebarTabContent` via `DetailColumnWidthKey`. Lets the floating
+  // player derive the real sidebar width instead of guessing it, so the
+  // bar stays centered over the content column in portrait, landscape,
+  // Stage Manager and collapsed-sidebar states.
+  @State private var measuredDetailWidth: CGFloat?
+
+  /// Preference carrying the measured detail-column width. Multiple tabs
+  /// may report (TabView keeps neighbours mounted); all share the same
+  /// detail width, so the first non-nil value wins.
+  private struct DetailColumnWidthKey: PreferenceKey {
+    static var defaultValue: CGFloat? { nil }
+    static func reduce(value: inout CGFloat?, nextValue: () -> CGFloat?) {
+      if value == nil { value = nextValue() }
+    }
+  }
 
   var swipeThreshold: CGFloat = 150.0
 
@@ -102,15 +118,40 @@ struct ContentView: View {
     guard totalWidth >= 600 else { return 0 }
     // System sidebarAdaptable width is ~320pt on iPad and ~260pt on Catalyst
     // (not 104) — under-estimating leaves the floating player shifted left of
-    // the content column. Cap to 35% of window so very narrow/tall windows
-    // never over-shift and the value stays finite.
+    // the content column. This is only the pre-measurement fallback (see
+    // `resolvedSidebarWidth`); cap to 45% of window so very narrow Stage
+    // Manager windows never over-shift and the value stays finite.
     #if targetEnvironment(macCatalyst)
       let raw: CGFloat = 260
     #else
       let raw: CGFloat = 320
     #endif
-    let capped = min(raw, max(0, totalWidth * 0.35))
+    let capped = min(raw, max(0, totalWidth * 0.45))
     return capped.isFinite ? capped : 0
+  }
+
+  /// Sidebar width derived from the live detail-column measurement.
+  ///
+  /// `detail = TabView width − sidebar`, and TabView width is
+  /// `totalWidth − appliedTrailingInset` (the trailing inset reserves the
+  /// side panel's column), so `sidebar = totalWidth − inset − detail`.
+  /// When the sidebar collapses to an overlay (narrow Stage Manager /
+  /// Slide Over) the detail fills the TabView and this yields 0 — no
+  /// width threshold needed. Falls back to `estimatedSidebarWidth` until
+  /// the first measurement arrives.
+  private func resolvedSidebarWidth(totalWidth: CGFloat, appliedTrailingInset: CGFloat) -> CGFloat {
+    if let detail = measuredDetailWidth,
+      detail.isFinite, detail > 0,
+      totalWidth.isFinite, totalWidth > 0,
+      appliedTrailingInset.isFinite, appliedTrailingInset >= 0,
+      detail <= totalWidth
+    {
+      let derived = totalWidth - appliedTrailingInset - detail
+      if derived.isFinite {
+        return min(max(derived, 0), totalWidth)
+      }
+    }
+    return estimatedSidebarWidth(for: totalWidth)
   }
 
   private var sidebarUsername: String {
@@ -339,9 +380,23 @@ struct ContentView: View {
   /// duplicated across the tabs `TabView` keeps mounted — which reads as the
   /// whole player bar blinking. It is mounted once beside `rootTabView` in
   /// `body` instead, where tab hierarchy churn cannot reach it.
+  ///
+  /// The wrapper does report the detail-column width (via
+  /// `DetailColumnWidthKey`) so the floating player can derive the real
+  /// sidebar width and stay centered over the content column. Every tab in
+  /// `sidebarTabView` goes through here, so the measurement tracks the
+  /// live layout (rotation, Stage Manager, collapse) on all of them.
   @available(iOS 18.0, *)
   func sidebarTabContent<Content: View>(_ content: Content) -> some View {
-    content
+    content.background(
+      GeometryReader { proxy in
+        let w = proxy.size.width
+        Color.clear.preference(
+          key: DetailColumnWidthKey.self,
+          value: (w.isFinite && w > 0) ? w : nil
+        )
+      }
+    )
   }
 
   // Pinned tabs each own a NavigationStack: AlbumView links to its artist
@@ -693,6 +748,13 @@ struct ContentView: View {
           }()
           let isPanelVisible =
             floatingSidePanel != nil && playerPresence.hasNowPlaying
+          let appliedTrailingInset: CGFloat = isPanelVisible ? trailingInset : 0
+          // Measured sidebar inset: derived from the live detail-column
+          // width (exact in portrait, landscape, Stage Manager and
+          // collapsed-sidebar states), falling back to the static estimate
+          // before the first measurement arrives.
+          let sidebarInset: CGFloat = resolvedSidebarWidth(
+            totalWidth: safeWidth, appliedTrailingInset: appliedTrailingInset)
           // Defensive: use isPanelVisible (Bool) as animation value — the
           // previous `value: floatingSidePanel` (enum) + duplicated outer &
           // inner spring both firing during geometry/WINDOW_RESIZE collided
@@ -749,8 +811,8 @@ struct ContentView: View {
                     .frame(maxWidth: 860)
                   #endif
                   .padding(.bottom, 20)
-                  .padding(.leading, estimatedSidebarWidth(for: safeWidth))
-                  .padding(.trailing, isPanelVisible ? trailingInset : 0)
+                  .padding(.leading, sidebarInset)
+                  .padding(.trailing, appliedTrailingInset)
                   .opacity(playerPresence.hasNowPlaying ? 1 : 0)
                   .offset(x: floatingPlayerOffsetX.isFinite ? floatingPlayerOffsetX : 0)
                   .zIndex(10)
@@ -780,6 +842,7 @@ struct ContentView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
           }
+          .onPreferenceChange(DetailColumnWidthKey.self) { measuredDetailWidth = $0 }
           .background(Color(.systemBackground).ignoresSafeArea())
           .animation(.spring(duration: 0.26, bounce: 0.08), value: isPanelVisible)
         } else {
