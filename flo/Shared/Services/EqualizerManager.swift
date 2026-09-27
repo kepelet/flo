@@ -15,6 +15,10 @@ import os
 
 private let eqLog = Logger(subsystem: "net.faultables.flo", category: "EQ")
 
+extension Notification.Name {
+  static let eqPresetDidChange = Notification.Name("flo.eqPresetDidChange")
+}
+
 /// Throttled per-tap source-error log (audio thread; first 3 only).
 private func eqLogSourceError(tap: MTAudioProcessingTap, status: OSStatus) {
   guard UserDefaultsManager.enableDebug else { return }
@@ -286,8 +290,15 @@ final class EqualizerManager {
   var preset: EqualizerPreset {
     get { EqualizerPreset.from(rawValue: UserDefaultsManager.equalizerPreset) }
     set {
+      let wasBypassed = preset.isBypass
       UserDefaultsManager.equalizerPreset = newValue.rawValue
       applyGains(newValue.gains)
+      NotificationCenter.default.post(
+        name: .eqPresetDidChange,
+        object: nil,
+        userInfo: [
+          "wasBypassed": wasBypassed, "isBypassed": newValue.isBypass,
+        ])
     }
   }
 

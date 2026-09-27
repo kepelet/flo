@@ -64,6 +64,7 @@ class PlayerViewModel: ObservableObject {
   private var playerItemObservation: AnyCancellable?
   private var interruptionObservation = Set<AnyCancellable>()
   private var routeChangeObservation = Set<AnyCancellable>()
+  private var eqPresetObservation = Set<AnyCancellable>()
 
   // FLO-5/FLO-3 hardening: stall and end-of-track state machine
   private var bufferEmptyCancellable: AnyCancellable?
@@ -110,6 +111,7 @@ class PlayerViewModel: ObservableObject {
     self.volumeBeforeMute = UserDefaultsManager.playbackVolume > 0 ? UserDefaultsManager.playbackVolume : 1.0
     self.observeInterruptionNotifications()
     self.observeRouteChangeNotifications()
+    self.observeEqualizerPresetChanges()
     self.updateAudioRoute()
 
     let lastPlayData = PlaybackService.shared.getQueue()
@@ -152,6 +154,24 @@ class PlayerViewModel: ObservableObject {
         self.updateAudioRoute()
       }
       .store(in: &routeChangeObservation)
+  }
+
+  func observeEqualizerPresetChanges() {
+    NotificationCenter.default
+      .publisher(for: .eqPresetDidChange)
+      .receive(on: DispatchQueue.main)
+      .sink { [weak self] notification in
+        guard let self, let item = self.playerItem, self.hasNowPlaying() else { return }
+        let wasBypassed = (notification.userInfo?["wasBypassed"] as? Bool) ?? true
+        let isBypassed = (notification.userInfo?["isBypassed"] as? Bool) ?? true
+        // Preset-to-preset updates flow through the tap's live gains.
+        // Only (de)attach the mix when bypass state flips — e.g. Off->Rock
+        // on the playing item, which otherwise would stay unequalized
+        // until the next track.
+        guard wasBypassed != isBypassed else { return }
+        item.audioMix = EqualizerManager.shared.makeAudioMix()
+      }
+      .store(in: &eqPresetObservation)
   }
 
   func updateAudioRoute() {
