@@ -464,6 +464,8 @@ class PlayerViewModel: ObservableObject {
     } else {
       self.playerItem = AVPlayerItem(url: audioURL)
     }
+    // EQ: per-item tap (nil when Off/Flat = bit-perfect bypass).
+    self.playerItem?.audioMix = EqualizerManager.shared.makeAudioMix()
     if let item = self.playerItem {
       // Prefer smaller forward buffer for transcoded streams so gaps surface faster and recover.
       item.preferredForwardBufferDuration = 3
@@ -830,6 +832,7 @@ class PlayerViewModel: ObservableObject {
     self.playerItemObservation = nil
 
     self.playerItem = AVPlayerItem(url: radioUrl)
+    self.playerItem?.audioMix = EqualizerManager.shared.makeAudioMix()
     if let item = self.playerItem {
       item.preferredForwardBufferDuration = 3
       // Radio: still benefit from stall recovery but DidPlayToEndTime is ignored via isLiveRadio guard.

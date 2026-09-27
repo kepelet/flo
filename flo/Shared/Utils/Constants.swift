@@ -70,6 +70,7 @@ enum UserDefaultsKeys {
   static let libraryViewV2 = "libraryViewV2"
   static let playbackVolume = "playbackVolume"
   static let uiFontScale = "uiFontScale"
+  static let equalizerPreset = "equalizerPreset"
 }
 
 enum KeychainKeys {

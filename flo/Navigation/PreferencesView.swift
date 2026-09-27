@@ -118,6 +118,7 @@ struct PreferencesView: View {
       iconName: "AppIconAlt3"),
   ]
 
+  @State private var eqPreset = UserDefaultsManager.equalizerPreset
   @State private var experimentalMaxBitrate = UserDefaultsManager.maxBitRate
   @State private var experimentalPlayerBackground = UserDefaultsManager.playerBackground
   @State private var experimentalStreamCacheSize = UserDefaultsManager.streamCacheMaxSize
@@ -446,6 +447,20 @@ struct PreferencesView: View {
 
             Text("Unified library").font(.caption)
               .foregroundColor(.gray)
+          }
+
+          VStack(alignment: .leading, spacing: 4) {
+            Picker("Equalizer", selection: $eqPreset) {
+              ForEach(EqualizerPreset.allCases) { preset in
+                Text(preset.displayName).tag(preset.rawValue)
+              }
+            }
+            .onChange(of: eqPreset) { value in
+              EqualizerManager.shared.preset = EqualizerPreset.from(rawValue: value)
+              eqPreset = EqualizerManager.shared.preset.rawValue
+            }
+
+            Text("EQ presets. Off = original sound.").font(.caption).foregroundColor(.gray)
           }
         }
 

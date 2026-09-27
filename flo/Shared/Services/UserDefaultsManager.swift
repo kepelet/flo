@@ -177,6 +177,15 @@ class UserDefaultsManager {
     }
   }
 
+  static var equalizerPreset: String {
+    get {
+      return UserDefaults.standard.string(forKey: UserDefaultsKeys.equalizerPreset) ?? "off"
+    }
+    set {
+      UserDefaults.standard.set(newValue, forKey: UserDefaultsKeys.equalizerPreset)
+    }
+  }
+
   static var uiFontScale: Float {
     get {
       if UserDefaults.standard.object(forKey: UserDefaultsKeys.uiFontScale) == nil {
