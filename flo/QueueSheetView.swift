@@ -146,18 +146,6 @@ struct QueueSheetView: View {
         Text("Playing Next").customFont(.headline)
 
         Spacer()
-      }
-
-      HStack(alignment: .top, spacing: 10) {
-        if player.queue.isEmpty {
-          Text("").customFont(.subheadline)
-        } else {
-          Text(
-            "From \(player.nowPlaying.contextName ?? player.nowPlaying.albumName ?? "")"
-          ).customFont(.subheadline)
-        }
-
-        Spacer()
 
         Button {
           if !player.queue.isEmpty {
@@ -220,6 +208,14 @@ struct QueueSheetView: View {
             )
             .cornerRadius(5)
         }
+      }
+
+      if player.queue.isEmpty {
+        Text("").customFont(.subheadline)
+      } else {
+        Text(
+          "From \(player.nowPlaying.contextName ?? player.nowPlaying.albumName ?? "")"
+        ).customFont(.subheadline)
       }
     }
   }

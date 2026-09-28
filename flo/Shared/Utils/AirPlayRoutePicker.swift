@@ -63,18 +63,14 @@ struct AirPlayRoutePicker: UIViewRepresentable {
   }
 }
 
-/// Small active-route badge for the player bars. Mirrors the queue button's
-/// repeat badge (accent dot, top-trailing) so the connected state reads the
-/// same everywhere without tinting the system AirPlay glyph.
-struct AirPlayActiveBadge: View {
+/// Active-route indicator for the player bars. Same language as the pad
+/// floating player's round icon buttons (e.g. the ellipsis): a soft circle
+/// behind the glyph when a route is connected, instead of tinting the
+/// system AirPlay glyph itself.
+struct AirPlayActiveCircle: View {
   var body: some View {
     Circle()
-      .fill(Color.accentColor)
-      .frame(width: 10, height: 10)
-      .overlay(
-        Circle()
-          .stroke(Color.black.opacity(0.45), lineWidth: 1.5)
-      )
-      .offset(x: 10, y: -10)
+      .fill(Color.white.opacity(0.16))
+      .frame(width: 32, height: 32)
   }
 }

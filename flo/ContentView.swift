@@ -124,12 +124,22 @@ struct ContentView: View {
   @StateObject private var detailWidthPipe = DetailWidthDebouncer()
 
   /// Preference carrying the measured detail-column width. Multiple tabs
-  /// may report (TabView keeps neighbours mounted); all share the same
-  /// detail width, so the first non-nil value wins.
+  /// may report (TabView keeps neighbours mounted); every tab's content is
+  /// forced to fill the detail column, so all reports agree — but a tab
+  /// caught mid-transition can transiently report a narrower width, so the
+  /// maximum wins instead of the first report. A narrow stray must never be
+  /// allowed to inflate the derived sidebar width and throw the floating
+  /// player off-center.
   private struct DetailColumnWidthKey: PreferenceKey {
     static var defaultValue: CGFloat? { nil }
     static func reduce(value: inout CGFloat?, nextValue: () -> CGFloat?) {
-      if value == nil { value = nextValue() }
+      guard let next = nextValue() else { return }
+      guard next.isFinite, next > 0 else { return }
+      if let current = value {
+        value = max(current, next)
+      } else {
+        value = next
+      }
     }
   }
 
@@ -238,7 +248,9 @@ struct ContentView: View {
     {
       let derived = totalWidth - appliedTrailingInset - detail
       if derived.isFinite {
-        return min(max(derived, 0), totalWidth)
+        // Same 45% cap as the estimate: a stale/partial measurement must
+        // never shove the floating player across the window.
+        return min(max(derived, 0), totalWidth * 0.45)
       }
     }
     return estimatedSidebarWidth(for: totalWidth)
