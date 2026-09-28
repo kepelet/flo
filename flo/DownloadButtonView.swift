@@ -28,13 +28,13 @@ struct DownloadButton: View {
           Circle()
             .trim(from: 0, to: 1)
             .stroke(
-              isDownloading ? Color.gray.opacity(0.2) : Color(.accent),
+              isDownloading ? Color.gray.opacity(0.2) : Color.gray.opacity(0.5),
               style: StrokeStyle(lineWidth: 1.5)
             )
             .overlay(
               Circle()
                 .trim(from: 0, to: progress)
-                .stroke(Color(.accent), style: StrokeStyle(lineWidth: 1.5, lineCap: .round))
+                .stroke(Color.gray, style: StrokeStyle(lineWidth: 1.5, lineCap: .round))
                 .rotationEffect(isDownloading ? .degrees(-90) : .zero)
             )
 
@@ -44,6 +44,7 @@ struct DownloadButton: View {
             .padding(4)
             .frame(width: 17, height: 17)
             .font(.system(size: 17, weight: .bold))
+            .foregroundColor(.secondary)
         }
       }
       .frame(width: 21, height: 21)

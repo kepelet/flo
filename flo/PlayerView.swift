@@ -82,6 +82,7 @@ struct PlayerView: View {
             }
           }
           .frame(maxHeight: .infinity)
+          .animation(.easeInOut(duration: 0.25), value: showQueue)
           .overlay {
             if viewModel.isLyricsMode {
               Button {

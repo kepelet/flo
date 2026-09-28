@@ -244,6 +244,37 @@ extension View {
     }
   }
 #endif
+
+/// Inline search field for iOS screens where the navigation-bar search
+/// drawer is unavailable. Same look as the native drawer field; call sites
+/// render it above their content on iOS only (Catalyst uses the toolbar
+/// field via `catalystAwareSearch`).
+struct InlineSearchField: View {
+  @Binding var text: String
+  var prompt = "Search"
+
+  var body: some View {
+    HStack(spacing: 6) {
+      Image(systemName: "magnifyingglass")
+        .foregroundColor(.secondary)
+      TextField(prompt, text: $text)
+        .textFieldStyle(.plain)
+      if !text.isEmpty {
+        Button {
+          text = ""
+        } label: {
+          Image(systemName: "xmark.circle.fill")
+            .foregroundColor(.secondary)
+        }
+        .buttonStyle(.plain)
+      }
+    }
+    .padding(.horizontal, 8)
+    .padding(.vertical, 7)
+    .background(Color(.secondarySystemBackground))
+    .cornerRadius(10)
+  }
+}
 #if targetEnvironment(macCatalyst)
   /// Plain navigation-bar heading: system font and primary label color, no
   /// toolbar shared background (macOS 26 Liquid Glass). Deliberately not

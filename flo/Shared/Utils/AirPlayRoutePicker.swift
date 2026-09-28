@@ -39,7 +39,7 @@ final class AirPlayPickerRef: ObservableObject {
 struct AirPlayRoutePicker: UIViewRepresentable {
   var tintColor: UIColor = .white
   var activeTintColor: UIColor = .white
-  var pickerRef: AirPlayPickerRef?
+  var pickerRef: AirPlayPickerRef? = nil
 
   func makeUIView(context: Context) -> AVRoutePickerView {
     let view = AVRoutePickerView()
@@ -70,7 +70,7 @@ struct AirPlayRoutePicker: UIViewRepresentable {
 struct AirPlayActiveCircle: View {
   var body: some View {
     Circle()
-      .fill(Color.white.opacity(0.16))
+      .fill(Color.primary.opacity(0.12))
       .frame(width: 32, height: 32)
   }
 }

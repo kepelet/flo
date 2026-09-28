@@ -115,9 +115,24 @@ struct QueueView: View {
         ScrollView(.vertical, showsIndicators: false) {
           LazyVStack(spacing: 0) {
             ForEach(Array(player.queue.enumerated()), id: \.element.objectID) { idx, song in
-              queueRow(idx: idx, song: song)
+              if isEditing {
+                queueRow(idx: idx, song: song)
+              } else {
+                queueRow(idx: idx, song: song)
+                  .contextMenu {
+                    QueueRowMenu(
+                      player: player, albums: albums, store: rowStore, idx: idx, song: song,
+                      disableActiveRemove: true
+                    ) { destination in
+                      isPresented = false
+                      onNavigate?(destination)
+                    }
+                    .environmentObject(downloads)
+                  }
+              }
             }
           }
+          .padding(.horizontal, 4)
           .padding(.bottom, max(bottomSafeInset, 12) + 24)
         }
         .onDrop(
@@ -126,6 +141,11 @@ struct QueueView: View {
             player: player, draggingIdx: $draggingIdx, dropTargetIdx: $dropTargetIdx,
             dropEdge: $dropEdge))
       }
+
+      bottomBar
+        .padding(.horizontal, 18)
+        .padding(.top, 10)
+        .padding(.bottom, max(bottomSafeInset, 12))
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity)
     .background(Color(.systemBackground).ignoresSafeArea())
@@ -243,6 +263,7 @@ struct QueueView: View {
             .overlay(
               Group {
                 Text("1")
+                  .foregroundColor(Color.accentColor)
                   .font(.caption)
                   .clipShape(Circle())
                   .offset(x: 10, y: -5)
@@ -339,15 +360,88 @@ struct QueueView: View {
       delegate: QueueReorderDropDelegate(
         player: player, targetIdx: idx, draggingIdx: $draggingIdx,
         dropTargetIdx: $dropTargetIdx, dropEdge: $dropEdge))
-    .contextMenu {
-      QueueRowMenu(
-        player: player, albums: albums, store: rowStore, idx: idx, song: song,
-        disableActiveRemove: true
-      ) { destination in
+  }
+
+  // MARK: - Bottom bar (mirrors the lyrics screen)
+
+  @ViewBuilder
+  private var bottomBar: some View {
+    let isLyricsDisabled =
+      player.isLiveRadio || (player.lyrics.isEmpty && (player.lyricsError != nil))
+
+    HStack(spacing: 0) {
+      Button {
         isPresented = false
-        onNavigate?(destination)
+        if !player.isLyricsMode {
+          player.toggleLyricsMode()
+        }
+      } label: {
+        Image(systemName: player.isLyricsMode ? "quote.bubble.fill" : "quote.bubble")
+          .font(.title2)
+          .foregroundColor(isLyricsDisabled ? .secondary.opacity(0.5) : .primary)
       }
-      .environmentObject(downloads)
+      .disabled(isLyricsDisabled)
+      .frame(width: 44, height: 44)
+
+      Spacer(minLength: 0)
+
+      Button {
+        player.toggleStar()
+      } label: {
+        Image(systemName: player.isStarred ? "heart.fill" : "heart")
+          .font(.title2)
+          .foregroundColor(player.isStarred ? .red : .primary)
+      }
+      .disabled(player.isLiveRadio)
+      .opacity(player.isLiveRadio ? 0.4 : 1)
+      .frame(width: 44, height: 44)
+
+      Spacer(minLength: 0)
+
+      AirPlayRoutePicker(tintColor: UIColor.label, activeTintColor: UIColor.label)
+        .frame(width: 36, height: 36)
+        .frame(width: 44, height: 44)
+        .background {
+          if player.externalOutputName != nil {
+            AirPlayActiveCircle()
+          }
+        }
+
+      Spacer(minLength: 0)
+
+      Button {
+        isPresented = false
+      } label: {
+        Image(systemName: "list.bullet")
+          .font(.title2)
+          .foregroundColor(.primary)
+          .overlay(
+            Group {
+              Image(systemName: "repeat")
+                .font(.caption)
+                .foregroundColor(.primary)
+                .overlay(
+                  Group {
+                    Text("1")
+                      .foregroundColor(.primary)
+                      .font(.system(size: 8))
+                  }
+                  .offset(x: 7, y: -4)
+                  .opacity(player.playbackMode == PlaybackMode.repeatOnce ? 1 : 0)
+                )
+                .opacity(player.playbackMode == PlaybackMode.defaultPlayback ? 0 : 1)
+            }
+            .padding(5)
+            .background(
+              Color.primary.opacity(
+                player.playbackMode == PlaybackMode.defaultPlayback ? 0 : 0.08)
+            )
+            .clipShape(Circle())
+            .offset(x: 10, y: -10)
+          )
+      }
+      .frame(width: 44, height: 44)
     }
+    .frame(height: 44)
   }
 }

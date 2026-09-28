@@ -52,7 +52,13 @@ struct DownloadsView: View {
 
   var body: some View {
     NavigationStack {
-      ScrollView {
+      VStack(spacing: 0) {
+        #if !targetEnvironment(macCatalyst)
+          InlineSearchField(text: $searchAlbum, prompt: "Search")
+            .padding(.horizontal)
+            .padding(.top, 8)
+        #endif
+        ScrollView {
         if viewModel.downloadedAlbums.isEmpty && cachedSongs.isEmpty {
           VStack(alignment: .center) {
             Image("Downloads").resizable().aspectRatio(contentMode: .fit).frame(width: 300)
@@ -131,10 +137,13 @@ struct DownloadsView: View {
         }.padding(.top, 10).padding(
           .bottom, playerContentBottomPadding(viewModel: playerViewModel, iPhoneActive: 100, iPhoneInactive: 0)
         ).catalystAwareNavigationTitle("Downloads")
+        #if targetEnvironment(macCatalyst)
           .catalystAwareSearch(text: $searchAlbum, prompt: "Search")
+        #endif
       }
       .onAppear {
         cachedSongs = StreamCacheManager.shared.getCachedSongs()
+      }
       }
     }
   }

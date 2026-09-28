@@ -135,7 +135,13 @@ struct LibraryView: View {
   // MARK: - Legacy (V1)
 
   var libraryLegacyContent: some View {
-    ScrollView {
+    VStack(spacing: 0) {
+      #if !targetEnvironment(macCatalyst)
+        InlineSearchField(text: $searchAlbum)
+          .padding(.horizontal)
+          .padding(.top, 8)
+      #endif
+      ScrollView {
       if viewModel.albums.isEmpty && viewModel.error != nil {
         VStack(alignment: .center) {
           Image("Home").resizable().aspectRatio(contentMode: .fit).frame(
@@ -347,7 +353,10 @@ struct LibraryView: View {
         }
         .padding(.top, 10)
         .playerBottomPadding(active: 100, inactive: 0)
-        .catalystAwareSearch(text: $searchAlbum, prompt: "Search")
+        #if targetEnvironment(macCatalyst)
+          .catalystAwareSearch(text: $searchAlbum, prompt: "Search")
+        #endif
+      }
       }
     }
     .sheet(isPresented: $showDownloadSheet) {
