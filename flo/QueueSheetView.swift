@@ -2,9 +2,11 @@
 //  QueueSheetView.swift
 //  flo
 //
-//  Playing queue: reorderable list with Play Next / Play After /
+//  Playing queue: fullscreen lazy list with Play Next / Play After /
 //  Add to Queue entry points, remove, move-to-top, download, like,
-//  go-to-album/artist and clear.
+//  go-to-album/artist and clear. Presented like the lyrics screen —
+//  full-bleed over the player background, no sheet chrome, no borders.
+//  Reorder is always available via press-and-drag on any row.
 //
 
 import SwiftUI
@@ -68,7 +70,7 @@ struct QueueMenuButtons: View {
   }
 }
 
-struct QueueSheetView: View {
+struct QueueView: View {
   @ObservedObject var player: PlayerViewModel
   @ObservedObject var albums: AlbumViewModel
 
@@ -76,38 +78,48 @@ struct QueueSheetView: View {
 
   @Binding var isPresented: Bool
 
+  let topSafeInset: CGFloat
+  let bottomSafeInset: CGFloat
+
   var onNavigate: ((LibraryDestination) -> Void)?
 
   @State private var showClearConfirm = false
-  @State private var isEditing = false
   @StateObject private var rowStore = QueueRowStore()
   @State private var draggingIdx: Int?
   @State private var dropTargetIdx: Int?
   @State private var dropEdge: Edge?
 
   var body: some View {
-    VStack(alignment: .leading, spacing: 0) {
+    VStack(spacing: 0) {
       header
-        .padding(.horizontal)
-        .padding(.bottom, 5)
+        .padding(.horizontal, 30)
+        .padding(.top, topSafeInset + 8)
+        .padding(.bottom, 12)
+        .gesture(
+          DragGesture()
+            .onEnded { value in
+              if value.translation.height > 80 {
+                isPresented = false
+              }
+            }
+        )
 
       if player.queue.isEmpty {
         Spacer()
-        HStack {
-          Spacer()
-          Text("Queue is empty")
-            .customFont(.subheadline)
-            .foregroundColor(.secondary)
-          Spacer()
-        }
+        Text("Queue is empty")
+          .foregroundColor(.white.opacity(0.7))
+          .customFont(.subheadline)
         Spacer()
       } else {
-        List {
-          ForEach(Array(player.queue.enumerated()), id: \.element.objectID) { idx, song in
-            queueRow(idx: idx, song: song)
+        ScrollView(.vertical, showsIndicators: false) {
+          LazyVStack(spacing: 0) {
+            ForEach(Array(player.queue.enumerated()), id: \.element.objectID) { idx, song in
+              queueRow(idx: idx, song: song)
+            }
           }
+          .padding(.horizontal, 30)
+          .padding(.bottom, max(bottomSafeInset, 12) + 24)
         }
-        .listStyle(.plain)
         .onDrop(
           of: [.text],
           delegate: QueueListDropDelegate(
@@ -115,6 +127,7 @@ struct QueueSheetView: View {
             dropEdge: $dropEdge))
       }
     }
+    .frame(maxWidth: .infinity, maxHeight: .infinity)
     .alert("Clear queue?", isPresented: $showClearConfirm) {
       Button("Cancel", role: .cancel) {}
       Button("Clear Queue", role: .destructive) {
@@ -132,7 +145,6 @@ struct QueueSheetView: View {
     }
     .onChange(of: player.queue.isEmpty) { isEmpty in
       if isEmpty {
-        isEditing = false
         isPresented = false
       }
     }
@@ -141,47 +153,68 @@ struct QueueSheetView: View {
   // MARK: - Header
 
   private var header: some View {
-    VStack(alignment: .leading, spacing: 3) {
-      HStack {
-        Text("Playing Next").customFont(.headline)
+    VStack(alignment: .leading, spacing: 12) {
+      HStack(alignment: .center, spacing: 12) {
+        VStack(alignment: .leading, spacing: 2) {
+          Text("Queue")
+            .foregroundColor(.white)
+            .customFont(.title2)
+            .fontWeight(.bold)
+
+          Text(player.queue.isEmpty ? "Nothing queued" : "\(player.queue.count) songs")
+            .foregroundColor(.white.opacity(0.7))
+            .customFont(.subheadline)
+        }
 
         Spacer()
 
         Button {
-          if !player.queue.isEmpty {
-            isEditing.toggle()
-          }
+          isPresented = false
         } label: {
-          Image(systemName: isEditing ? "checkmark" : "pencil")
-            .foregroundColor(Color.accentColor)
-            .fontWeight(.bold)
-            .padding(5)
-            .background(
-              isEditing ? Color.gray.opacity(0.2) : Color.clear
-            )
-            .cornerRadius(5)
+          Image(systemName: "chevron.down")
+            .font(.title3.weight(.semibold))
+            .foregroundColor(.white)
+            .padding(.vertical, 8)
+            .padding(.horizontal, 12)
+            .background(.white.opacity(0.15))
+            .clipShape(Capsule())
+            .shadow(color: .black.opacity(0.25), radius: 6, x: 0, y: 3)
         }
-        .disabled(player.queue.isEmpty)
+        .keyboardShortcut(.escape, modifiers: [])
+      }
+
+      HStack(alignment: .center, spacing: 10) {
+        Text(
+          player.queue.isEmpty
+            ? ""
+            : "From \(player.nowPlaying.contextName ?? player.nowPlaying.albumName ?? "")"
+        )
+        .foregroundColor(.white.opacity(0.7))
+        .customFont(.subheadline)
+        .lineLimit(1)
+
+        Spacer()
 
         Button {
           showClearConfirm = true
         } label: {
           Image(systemName: "trash")
-            .foregroundColor(Color.accentColor)
+            .foregroundColor(.white)
             .fontWeight(.bold)
             .padding(5)
         }
         .disabled(player.queue.isEmpty)
+        .opacity(player.queue.isEmpty ? 0.4 : 1)
 
         Button {
           player.shuffleCurrentQueue()
         } label: {
           Image(systemName: "shuffle")
-            .foregroundColor(Color.accentColor)
+            .foregroundColor(.white)
             .fontWeight(.bold)
             .padding(5)
             .background(
-              player.isShuffling ? Color.gray.opacity(0.2) : Color.clear
+              player.isShuffling ? Color.white.opacity(0.15) : Color.clear
             )
             .cornerRadius(5)
         }
@@ -190,7 +223,7 @@ struct QueueSheetView: View {
           player.setPlaybackMode()
         } label: {
           Image(systemName: "repeat")
-            .foregroundColor(Color.accentColor)
+            .foregroundColor(.white)
             .fontWeight(.bold)
             .overlay(
               Group {
@@ -204,18 +237,10 @@ struct QueueSheetView: View {
             .padding(5)
             .background(
               player.playbackMode == PlaybackMode.defaultPlayback
-                ? Color.clear : Color.gray.opacity(0.2)
+                ? Color.clear : Color.white.opacity(0.15)
             )
             .cornerRadius(5)
         }
-      }
-
-      if player.queue.isEmpty {
-        Text("").customFont(.subheadline)
-      } else {
-        Text(
-          "From \(player.nowPlaying.contextName ?? player.nowPlaying.albumName ?? "")"
-        ).customFont(.subheadline)
       }
     }
   }
@@ -226,90 +251,75 @@ struct QueueSheetView: View {
   private func queueRow(idx: Int, song: QueueEntity) -> some View {
     let isActive = player.activeQueueIdx == idx
 
-    HStack(alignment: .center, spacing: 8) {
-      if isEditing {
-        Image(systemName: "line.3.horizontal")
-          .font(.callout)
-          .foregroundColor(.secondary)
-      }
+    HStack(alignment: .center, spacing: 10) {
+      Image(systemName: "line.3.horizontal")
+        .font(.callout)
+        .foregroundColor(.white.opacity(0.55))
 
       VStack(alignment: .leading, spacing: 2) {
         HStack(alignment: .center, spacing: 6) {
           Text(song.songName ?? "")
+            .foregroundColor(isActive ? Color.accentColor : .white)
             .customFont(.callout)
             .fontWeight(.medium)
             .lineLimit(1)
 
           if ExplicitStatus(from: song.explicitStatus).isExplicit {
-            ExplicitBadge(size: .compact)
+            ExplicitBadge(tint: .white.opacity(0.85), size: .compact)
           }
         }
 
         Text(song.artistName ?? "")
+          .foregroundColor(.white.opacity(0.7))
           .customFont(.caption1)
-          .foregroundColor(.secondary)
           .lineLimit(1)
       }
       .frame(maxWidth: .infinity, alignment: .leading)
 
       Text(timeString(for: song.duration))
+        .foregroundColor(.white.opacity(0.7))
         .customFont(.caption1)
-        .foregroundColor(.secondary)
 
-      if isEditing {
-        Button {
-          guard !isActive else { return }
-          player.removeFromQueue(at: idx)
-        } label: {
-          Image(systemName: "minus.circle.fill")
-            .font(.title3)
-            .foregroundColor(isActive ? .gray.opacity(0.4) : .red)
-        }
-        .disabled(isActive)
-        .buttonStyle(.plain)
+      Button {
+        guard !isActive else { return }
+        player.removeFromQueue(at: idx)
+      } label: {
+        Image(systemName: "minus.circle.fill")
+          .font(.title3)
+          .foregroundColor(isActive ? .white.opacity(0.25) : .red)
       }
+      .disabled(isActive)
+      .buttonStyle(.plain)
     }
-    .padding(.horizontal)
-    .padding(.vertical, 7)
-    .modifier(
-      CatalystQueueReorderModifier(
-        idx: idx, player: player, isEditing: isEditing, draggingIdx: $draggingIdx,
-        dropTargetIdx: $dropTargetIdx, dropEdge: $dropEdge))
+    .padding(.vertical, 8)
+    .padding(.horizontal, 12)
+    .background(
+      dropTargetIdx == idx
+        ? Color.accentColor.opacity(0.25)
+        : (isActive ? Color.white.opacity(0.12) : Color.clear),
+      in: RoundedRectangle(cornerRadius: 10, style: .continuous)
+    )
     .overlay(alignment: dropEdge == .bottom ? .bottom : .top) {
       if dropTargetIdx == idx {
         RoundedRectangle(cornerRadius: 2)
           .fill(Color.accentColor)
-          .frame(height: 4)
+          .frame(height: 3)
       }
     }
     .opacity(draggingIdx == idx ? 0.45 : 1)
     .contentShape(Rectangle())
-    .listRowInsets(EdgeInsets())
-    .listRowBackground(
-      dropTargetIdx == idx
-        ? Color.accentColor.opacity(0.25)
-        : (isActive ? Color.gray.opacity(0.1) : Color(.systemBackground)))
     .onTapGesture {
-      guard !isEditing else { return }
       player.playFromQueue(idx: idx)
     }
-    .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-      Button(role: .destructive) {
-        player.removeFromQueue(at: idx)
-      } label: {
-        Label("Remove", systemImage: "trash")
-      }
-      .disabled(isActive || isEditing)
+    .onDrag {
+      draggingIdx = idx
+      return NSItemProvider(object: String(idx) as NSString)
     }
-    .swipeActions(edge: .leading, allowsFullSwipe: false) {
-      Button {
-        player.moveToTop(idx: idx)
-      } label: {
-        Label("Top", systemImage: "arrow.up.to.line")
-      }
-      .tint(.accentColor)
-      .disabled(idx == 0 || isEditing)
-    }
+    .onDrop(
+      of: [.text],
+      delegate: QueueReorderDropDelegate(
+        player: player, targetIdx: idx, draggingIdx: $draggingIdx,
+        dropTargetIdx: $dropTargetIdx, dropEdge: $dropEdge))
     .contextMenu {
       QueueRowMenu(
         player: player, albums: albums, store: rowStore, idx: idx, song: song,
@@ -319,51 +329,6 @@ struct QueueSheetView: View {
         onNavigate?(destination)
       }
       .environmentObject(downloads)
-    }
-  }
-
-  // MARK: - Catalyst drag-and-drop reorder
-
-  /// Drag source / drop target for queue reorder. Catalyst has no List
-  /// edit-mode reorder handles, so rows reorder via native drag-and-drop
-  /// there; on iOS drag only applies while editing so the reorder grip stays
-  /// on the left and the remove control stays on the right.
-  struct CatalystQueueReorderModifier: ViewModifier {
-    let idx: Int
-    let player: PlayerViewModel
-    var isEditing = false
-    @Binding var draggingIdx: Int?
-    @Binding var dropTargetIdx: Int?
-    @Binding var dropEdge: Edge?
-
-    func body(content: Content) -> some View {
-      #if targetEnvironment(macCatalyst)
-        content
-          .onDrag {
-            draggingIdx = idx
-            return NSItemProvider(object: String(idx) as NSString)
-          }
-          .onDrop(
-            of: [.text],
-            delegate: QueueReorderDropDelegate(
-              player: player, targetIdx: idx, draggingIdx: $draggingIdx,
-              dropTargetIdx: $dropTargetIdx, dropEdge: $dropEdge))
-      #else
-        if isEditing {
-          content
-            .onDrag {
-              draggingIdx = idx
-              return NSItemProvider(object: String(idx) as NSString)
-            }
-            .onDrop(
-              of: [.text],
-              delegate: QueueReorderDropDelegate(
-                player: player, targetIdx: idx, draggingIdx: $draggingIdx,
-                dropTargetIdx: $dropTargetIdx, dropEdge: $dropEdge))
-        } else {
-          content
-        }
-      #endif
     }
   }
 }

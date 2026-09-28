@@ -22,10 +22,7 @@ struct PlayerView: View {
   @State private var isDragging = false
 
   @State private var showQueue = false
-  @State private var queueSheetExpanded = false
   @StateObject private var airPlayPickerRef = AirPlayPickerRef()
-
-  @GestureState private var queueDragOffset: CGSize = .zero
 
   @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
@@ -43,97 +40,25 @@ struct PlayerView: View {
           return max(0, min(300, size.width - 32))
         }
       }()
-      let isIPadPortrait = UIDevice.current.userInterfaceIdiom == .pad && size.height > size.width
-      let queueSheetHeight: CGFloat = {
-        guard size.height.isFinite, size.height > 0 else { return 500 }
-        if queueSheetExpanded {
-          return max(0, size.height - topSafeInset)
-        }
-        let raw: CGFloat = isIPadPortrait ? min(700, max(500, size.height * 0.62)) : 500
-        // Never exceed container height (prevents sheet taller than window on compact height)
-        return min(raw, max(0, size.height - 16))
-      }()
-
       ZStack {
         playerBackground()
           .offset(y: offset.height)
 
         ZStack {
-          // Keep interactive content draggable while preserving full-bleed background.
-          ZStack(alignment: .topLeading) {
-            Color(.systemBackground)
-              .ignoresSafeArea()
-              .clipShape(
-                RoundedRectangle(cornerRadius: 15, style: .continuous)
-              )
-            VStack(alignment: .leading) {
-              HStack {
-                Spacer()
-
-                Rectangle()
-                  .foregroundColor(Color.gray.opacity(0.3))
-                  .frame(width: 50, height: 5)
-                  .cornerRadius(30)
-                  .padding(.top)
-
-                Spacer()
-              }
-              .contentShape(Rectangle())
-              .onTapGesture {
-                queueSheetExpanded.toggle()
-              }
-              QueueSheetView(
-                player: viewModel,
-                albums: albumViewModel,
-                isPresented: $showQueue
-              ) { destination in
-                showQueue = false
-                onOpenLibraryDestination?(destination)
-              }
-              .environmentObject(downloadViewModel)
-              .padding(.bottom, 60)
+          if showQueue {
+            QueueView(
+              player: viewModel,
+              albums: albumViewModel,
+              isPresented: $showQueue,
+              topSafeInset: topSafeInset,
+              bottomSafeInset: bottomSafeInset
+            ) { destination in
+              showQueue = false
+              onOpenLibraryDestination?(destination)
             }
-          }
-          .gesture(
-            DragGesture()
-              .updating($queueDragOffset) { value, state, _ in
-                state = value.translation
-              }
-              .onEnded { value in
-                if value.translation.height < -80 {
-                  self.queueSheetExpanded = true
-                } else if value.translation.height > 80 {
-                  // Expanded sheet dismisses directly — no collapse-first step.
-                  self.showQueue = false
-                }
-              }
-          )
-          .animation(.spring(duration: 0.4), value: queueDragOffset.height)
-          .foregroundColor(.primary)
-          .zIndex(1)
-          .overlay {
-            if showQueue {
-              Button {
-                showQueue = false
-              } label: {
-                EmptyView()
-              }
-              .keyboardShortcut(.escape, modifiers: [])
-              .frame(width: 0, height: 0)
-              .opacity(0)
-            }
-          }
-          .offset(
-            y: showQueue
-              ? size.height - queueSheetHeight + queueDragOffset.height : size.height
-          )
-          .frame(height: queueSheetHeight)
-          .animation(.spring(duration: 0.2), value: showQueue)
-          .animation(.spring(duration: 0.2), value: queueSheetExpanded)
-          .onChange(of: showQueue) { isShown in
-            if !isShown {
-              queueSheetExpanded = false
-            }
+            .environmentObject(downloadViewModel)
+            .transition(.opacity.combined(with: .move(edge: .bottom)))
+            .zIndex(1)
           }
 
           ZStack {
