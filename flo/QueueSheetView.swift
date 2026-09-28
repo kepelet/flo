@@ -148,7 +148,7 @@ struct QueueSheetView: View {
         Spacer()
       }
 
-      HStack(alignment: .bottom, spacing: 10) {
+      HStack(alignment: .top, spacing: 10) {
         if player.queue.isEmpty {
           Text("").customFont(.subheadline)
         } else {

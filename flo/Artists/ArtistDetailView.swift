@@ -107,7 +107,7 @@ struct ArtistDetailView: View {
           .clipShape(Circle())
           .accessibilityLabel("Play artist tracks")
           .disabled(
-            viewModel.artistAlbums.isEmpty || artistDetailViewModel.isLoadingTracks
+            artistDetailViewModel.isLoadingTracks
               || artistDetailViewModel.isLoadingRadio || artistDetailViewModel.isLoadingTopSongs
           )
 
@@ -127,7 +127,7 @@ struct ArtistDetailView: View {
           .clipShape(Circle())
           .accessibilityLabel("Shuffle artist tracks")
           .disabled(
-            viewModel.artistAlbums.isEmpty || artistDetailViewModel.isLoadingTracks
+            artistDetailViewModel.isLoadingTracks
               || artistDetailViewModel.isLoadingRadio || artistDetailViewModel.isLoadingTopSongs
           )
 
