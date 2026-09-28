@@ -5,9 +5,46 @@
 //  Created by rizaldy on 01/06/24.
 //
 
+import Combine
 import NukeUI
 import PulseUI
 import SwiftUI
+
+/// Debounces the sidebar-TabView detail-column measurement.
+///
+/// Committing every preference report straight into @State cascades
+/// preference → state → full ContentView/TabView re-render on every tick of
+/// a continuous window resize; the work per tick exceeds the tick interval
+/// and the main thread never catches up (beachball until the drag ends).
+/// Staging reports without touching view state and committing only after a
+/// quiet window keeps resizes at the baseline single-pass cost; the player
+/// recenters once, when the layout settles.
+private final class DetailWidthDebouncer: ObservableObject {
+  /// Last settled detail-column width (nil until the first quiet window).
+  @Published var committed: CGFloat?
+  private var task: Task<Void, Never>?
+  /// Sub-point jitter that isn't worth a re-render.
+  private let epsilon: CGFloat = 1
+  /// Quiet window before a staged value is adopted.
+  private let quietNanoseconds: UInt64 = 200_000_000
+
+  func stage(_ width: CGFloat?) {
+    guard let width, width.isFinite, width > 0 else { return }
+    if let current = committed, abs(width - current) < epsilon {
+      // Settled on the committed value — drop any pending commit so a
+      // jittering layout can't keep re-rendering forever.
+      task?.cancel()
+      task = nil
+      return
+    }
+    task?.cancel()
+    task = Task { @MainActor [weak self] in
+      try? await Task.sleep(nanoseconds: quietNanoseconds)
+      guard !Task.isCancelled else { return }
+      self?.committed = width
+    }
+  }
+}
 
 struct ContentView: View {
   @AppStorage(UserDefaultsKeys.enableDebug) private var enableDebug = false
@@ -37,11 +74,13 @@ struct ContentView: View {
   @Environment(\.dynamicTypeSize) private var systemDynamicTypeSize
   @State private var forcedDynamicTypeSize: DynamicTypeSize?
   // Live detail-column width of the sidebar TabView, reported by
-  // `sidebarTabContent` via `DetailColumnWidthKey`. Lets the floating
-  // player derive the real sidebar width instead of guessing it, so the
-  // bar stays centered over the content column in portrait, landscape,
-  // Stage Manager and collapsed-sidebar states.
-  @State private var measuredDetailWidth: CGFloat?
+  // `sidebarTabContent` via `DetailColumnWidthKey` and committed by
+  // `detailWidthPipe` once the layout settles (debounced: committing every
+  // report hangs the main thread during continuous window resizes).
+  // Lets the floating player derive the real sidebar width instead of
+  // guessing it, so the bar stays centered over the content column in
+  // portrait, landscape, Stage Manager and collapsed-sidebar states.
+  @StateObject private var detailWidthPipe = DetailWidthDebouncer()
 
   /// Preference carrying the measured detail-column width. Multiple tabs
   /// may report (TabView keeps neighbours mounted); all share the same
@@ -140,7 +179,7 @@ struct ContentView: View {
   /// width threshold needed. Falls back to `estimatedSidebarWidth` until
   /// the first measurement arrives.
   private func resolvedSidebarWidth(totalWidth: CGFloat, appliedTrailingInset: CGFloat) -> CGFloat {
-    if let detail = measuredDetailWidth,
+    if let detail = detailWidthPipe.committed,
       detail.isFinite, detail > 0,
       totalWidth.isFinite, totalWidth > 0,
       appliedTrailingInset.isFinite, appliedTrailingInset >= 0,
@@ -842,7 +881,7 @@ struct ContentView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
           }
-          .onPreferenceChange(DetailColumnWidthKey.self) { measuredDetailWidth = $0 }
+          .onPreferenceChange(DetailColumnWidthKey.self) { detailWidthPipe.stage($0) }
           .background(Color(.systemBackground).ignoresSafeArea())
           .animation(.spring(duration: 0.26, bounce: 0.08), value: isPanelVisible)
         } else {
