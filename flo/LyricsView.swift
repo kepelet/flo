@@ -178,9 +178,9 @@ struct LyricsView: View {
           AirPlayRoutePicker(tintColor: UIColor.white, activeTintColor: UIColor.white)
             .frame(width: 36, height: 36)
             .frame(width: 44, height: 44)
-            .overlay {
+            .background {
               if viewModel.externalOutputName != nil {
-                AirPlayActiveBadge()
+                AirPlayActiveCircle()
               }
             }
 
