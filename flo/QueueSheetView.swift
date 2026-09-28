@@ -345,7 +345,7 @@ struct QueueView: View {
           .frame(height: 3)
       }
     }
-    .opacity(draggingIdx == idx ? 0.45 : 1)
+    .opacity(draggingIdx == idx && dropTargetIdx != nil ? 0.45 : 1)
     .contentShape(Rectangle())
     .onTapGesture {
       guard !isEditing else { return }
