@@ -214,6 +214,11 @@ struct LyricsView: View {
                 .offset(x: 10, y: -10)
               )
           }
+          .background {
+            if showQueue {
+              AirPlayActiveCircle()
+            }
+          }
           .frame(width: 44, height: 44)
         }
         .padding(.horizontal, 18)

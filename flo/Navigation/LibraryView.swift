@@ -17,6 +17,7 @@ enum LibraryV2Segment: String, CaseIterable, Identifiable {
 struct LibraryView: View {
   let showQuickNavigation: Bool
   @State private var searchAlbum = ""
+  @State private var moreAlbumsSearch = ""
   @State private var showDownloadSheet: Bool = false
   @State private var forceShowQuickNavigation: Bool = false
   @State private var selectedSegment: LibraryV2Segment
@@ -65,6 +66,17 @@ struct LibraryView: View {
 
   private var filteredDownloadedAlbums: [Album] {
     PinnedStore.sortedAlbumPinsFirst(albums: viewModel.downloadedAlbums, order: pins.albumPinOrder)
+  }
+
+  /// Live filter for the Albums "More" grid. The grid has its own search
+  /// state (separate from the Library screen's `searchAlbum`).
+  private var moreFilteredAlbums: [Album] {
+    guard !moreAlbumsSearch.isEmpty else { return filteredAlbums }
+    return filteredAlbums.filter { album in
+      album.name.localizedCaseInsensitiveContains(moreAlbumsSearch)
+        || album.artist.localizedCaseInsensitiveContains(moreAlbumsSearch)
+        || album.albumArtist.localizedCaseInsensitiveContains(moreAlbumsSearch)
+    }
   }
 
   private func pinDestination(_ item: PinnedItem) -> LibraryDestination {
@@ -1312,30 +1324,43 @@ struct LibraryView: View {
   private var v2AlbumsHorizontalSection: some View {
     VStack(alignment: .leading, spacing: 14) {
       v2SectionHeader(title: "Albums", subtitle: "Sorted by name", hasMore: filteredAlbums.count > 10, destination:
-        // Expand to grid view for all albums when More tapped
-        ScrollView {
-          LazyVGrid(columns: columns, spacing: 12) {
-            ForEach(filteredAlbums) { album in
-              NavigationLink {
-                AlbumView(viewModel: viewModel)
-                  .environmentObject(downloadViewModel)
-                  .onAppear { viewModel.setActiveAlbum(album: album) }
-              } label: {
-                v2AlbumGridItem(album: album)
-              }.buttonStyle(.plain)
-              .contextMenu {
-                AlbumQueueMenu(player: playerViewModel, album: album)
-                Button {
-                  pins.toggle(album: album)
+        // Expand to grid view for all albums when More tapped.
+        // No own NavigationStack (renders inside Library's) — iOS gets the
+        // inline field, Catalyst the toolbar field.
+        VStack(spacing: 0) {
+          #if !targetEnvironment(macCatalyst)
+            InlineSearchField(text: $moreAlbumsSearch)
+              .padding(.horizontal)
+              .padding(.top, 8)
+          #endif
+          ScrollView {
+            LazyVGrid(columns: columns, spacing: 12) {
+              ForEach(moreFilteredAlbums) { album in
+                NavigationLink {
+                  AlbumView(viewModel: viewModel)
+                    .environmentObject(downloadViewModel)
+                    .onAppear { viewModel.setActiveAlbum(album: album) }
                 } label: {
-                  Label(
-                    PinnedKind.album.toggleTitle(pinned: pins.isPinned(album: album)),
-                    systemImage: pins.isPinned(album: album) ? "pin.slash" : "pin")
+                  v2AlbumGridItem(album: album)
+                }.buttonStyle(.plain)
+                .contextMenu {
+                  AlbumQueueMenu(player: playerViewModel, album: album)
+                  Button {
+                    pins.toggle(album: album)
+                  } label: {
+                    Label(
+                      PinnedKind.album.toggleTitle(pinned: pins.isPinned(album: album)),
+                      systemImage: pins.isPinned(album: album) ? "pin.slash" : "pin")
+                  }
                 }
               }
-            }
-          }.padding()
-        }.navigationTitle("Albums")
+            }.padding()
+          }
+        }
+        .navigationTitle("Albums")
+        #if targetEnvironment(macCatalyst)
+          .catalystAwareSearch(text: $moreAlbumsSearch, prompt: "Search")
+        #endif
       )
       ScrollView(.horizontal, showsIndicators: false) {
         HStack(spacing: 14) {

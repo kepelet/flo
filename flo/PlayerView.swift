@@ -82,7 +82,6 @@ struct PlayerView: View {
             }
           }
           .frame(maxHeight: .infinity)
-          .animation(.easeInOut(duration: 0.25), value: showQueue)
           .overlay {
             if viewModel.isLyricsMode {
               Button {
@@ -101,6 +100,8 @@ struct PlayerView: View {
             }
           }
         }
+        // Same spring as the lyrics screen so open/close match its feel.
+        .animation(.spring(duration: 0.3), value: showQueue)
         .offset(y: offset.height)
         .onAppear {
           albumViewModel.getArtists()
@@ -371,6 +372,11 @@ struct PlayerView: View {
       }
       .disabled(isQueueDisabled)
       .opacity(isQueueDisabled ? 0.4 : 1)
+      .background {
+        if showQueue.wrappedValue {
+          AirPlayActiveCircle()
+        }
+      }
       .frame(width: 44, height: 44)
     }
     .frame(height: 44)
