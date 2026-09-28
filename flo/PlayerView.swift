@@ -23,6 +23,7 @@ struct PlayerView: View {
 
   @State private var showQueue = false
   @State private var queueSheetExpanded = false
+  @StateObject private var airPlayPickerRef = AirPlayPickerRef()
 
   @GestureState private var queueDragOffset: CGSize = .zero
 
@@ -102,11 +103,8 @@ struct PlayerView: View {
                 if value.translation.height < -80 {
                   self.queueSheetExpanded = true
                 } else if value.translation.height > 80 {
-                  if self.queueSheetExpanded {
-                    self.queueSheetExpanded = false
-                  } else if value.translation.height > 100 {
-                    self.showQueue = false
-                  }
+                  // Expanded sheet dismisses directly — no collapse-first step.
+                  self.showQueue = false
                 }
               }
           )
@@ -300,14 +298,19 @@ struct PlayerView: View {
 
       VStack {
         if let outputName = viewModel.externalOutputName {
-          Text(outputName)
-            .foregroundColor(.white.opacity(0.9))
-            .customFont(.caption2)
-            .fontWeight(.bold)
-            .multilineTextAlignment(.center)
-            .lineLimit(1)
-            .frame(maxWidth: .infinity, alignment: .center)
-            .padding(.bottom, 2)
+          Button {
+            airPlayPickerRef.presentPicker()
+          } label: {
+            Text(outputName)
+              .foregroundColor(.white.opacity(0.9))
+              .customFont(.caption2)
+              .fontWeight(.bold)
+              .multilineTextAlignment(.center)
+              .lineLimit(1)
+              .frame(maxWidth: .infinity, alignment: .center)
+          }
+          .buttonStyle(.plain)
+          .padding(.bottom, 2)
         }
 
         if viewModel.isLiveRadio {
@@ -398,11 +401,16 @@ struct PlayerView: View {
 
       AirPlayRoutePicker(
         tintColor: UIColor.white,
-        activeTintColor: viewModel.externalOutputName != nil
-          ? (UIColor(named: "AccentColor") ?? UIColor.systemBlue) : UIColor.white
+        activeTintColor: UIColor.white,
+        pickerRef: airPlayPickerRef
       )
       .frame(width: 36, height: 36)
       .frame(width: 44, height: 44)
+      .overlay {
+        if viewModel.externalOutputName != nil {
+          AirPlayActiveBadge()
+        }
+      }
 
       Spacer(minLength: 0)
 

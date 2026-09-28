@@ -46,6 +46,47 @@ private final class DetailWidthDebouncer: ObservableObject {
   }
 }
 
+/// Conditionally applies the floating player's horizontal swipe-to-close.
+/// A bare `.gesture()` can't be toggled per platform without duplicating
+/// the whole player chain, so this modifier no-ops where swipe-to-close
+/// is disabled (Catalyst / iPadOS).
+private struct SwipeToCloseModifier: ViewModifier {
+  var enabled: Bool
+  @Binding var offsetX: CGFloat
+  @Binding var isSwipping: Bool
+  var threshold: CGFloat
+  var onClose: () -> Void
+
+  func body(content: Content) -> some View {
+    if enabled {
+      content.gesture(
+        DragGesture()
+          .onChanged { value in
+            let tx = value.translation.width
+            guard tx.isFinite else { return }
+            if tx < .zero {
+              offsetX = tx
+            }
+
+            if abs(offsetX) > threshold, !isSwipping {
+              isSwipping = true
+            }
+          }
+          .onEnded { _ in
+            if abs(offsetX) > threshold, isSwipping {
+              onClose()
+            }
+
+            offsetX = .zero
+            isSwipping = false
+          }
+      )
+    } else {
+      content
+    }
+  }
+}
+
 struct ContentView: View {
   @AppStorage(UserDefaultsKeys.enableDebug) private var enableDebug = false
   @AppStorage(UserDefaultsKeys.libraryViewV2) private var libraryViewV2Enabled = false
@@ -93,6 +134,16 @@ struct ContentView: View {
   }
 
   var swipeThreshold: CGFloat = 150.0
+
+  /// Horizontal swipe-to-close on the floating player is iPhone-only.
+  /// Catalyst and iPadOS keep the bar (and its explicit stop button).
+  private var allowSwipeToClose: Bool {
+    #if targetEnvironment(macCatalyst)
+      return false
+    #else
+      return UIDevice.current.userInterfaceIdiom == .phone
+    #endif
+  }
 
   // MARK: iPad sidebar adaptation — intentional stability
   // isPadSidebar is intentionally STABLE (device idiom + OS version only).
@@ -427,15 +478,22 @@ struct ContentView: View {
   /// live layout (rotation, Stage Manager, collapse) on all of them.
   @available(iOS 18.0, *)
   func sidebarTabContent<Content: View>(_ content: Content) -> some View {
-    content.background(
-      GeometryReader { proxy in
-        let w = proxy.size.width
-        Color.clear.preference(
-          key: DetailColumnWidthKey.self,
-          value: (w.isFinite && w > 0) ? w : nil
-        )
-      }
-    )
+    // The frame forces the background reader to span the full detail
+    // column even when a tab's root view is intrinsically narrower (e.g.
+    // centered content): without it the reader reports the content width,
+    // the derived sidebar width comes out too large, and the floating
+    // player sits off-center until a full-width tab (like Home) re-reports.
+    content
+      .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+      .background(
+        GeometryReader { proxy in
+          let w = proxy.size.width
+          Color.clear.preference(
+            key: DetailColumnWidthKey.self,
+            value: (w.isFinite && w > 0) ? w : nil
+          )
+        }
+      )
   }
 
   // Pinned tabs each own a NavigationStack: AlbumView links to its artist
@@ -855,27 +913,13 @@ struct ContentView: View {
                   .opacity(playerPresence.hasNowPlaying ? 1 : 0)
                   .offset(x: floatingPlayerOffsetX.isFinite ? floatingPlayerOffsetX : 0)
                   .zIndex(10)
-                  .gesture(
-                    DragGesture()
-                      .onChanged { value in
-                        let tx = value.translation.width
-                        guard tx.isFinite else { return }
-                        if tx < .zero {
-                          floatingPlayerOffsetX = tx
-                        }
-
-                        if abs(floatingPlayerOffsetX) > swipeThreshold, !isSwipping {
-                          isSwipping = true
-                        }
-                      }
-                      .onEnded { _ in
-                        if abs(floatingPlayerOffsetX) > swipeThreshold, isSwipping {
-                          playerViewModel.destroyPlayerAndQueue()
-                        }
-
-                        self.floatingPlayerOffsetX = .zero
-                        self.isSwipping = false
-                      }
+                  .modifier(
+                    SwipeToCloseModifier(
+                      enabled: allowSwipeToClose, offsetX: $floatingPlayerOffsetX,
+                      isSwipping: $isSwipping, threshold: swipeThreshold
+                    ) {
+                      playerViewModel.destroyPlayerAndQueue()
+                    }
                   )
               }
             }
@@ -945,27 +989,13 @@ struct ContentView: View {
                 .onTapGesture {
                   self.isPlayerExpanded = true
                 }
-                .gesture(
-                  DragGesture()
-                    .onChanged { value in
-                      let tx = value.translation.width
-                      guard tx.isFinite else { return }
-                      if tx < .zero {
-                        floatingPlayerOffsetX = tx
-                      }
-
-                      if abs(floatingPlayerOffsetX) > swipeThreshold, !isSwipping {
-                        isSwipping = true
-                      }
-                    }
-                    .onEnded { _ in
-                      if abs(floatingPlayerOffsetX) > swipeThreshold, isSwipping {
-                        playerViewModel.destroyPlayerAndQueue()
-                      }
-
-                      self.floatingPlayerOffsetX = .zero
-                      self.isSwipping = false
-                    }
+                .modifier(
+                  SwipeToCloseModifier(
+                    enabled: allowSwipeToClose, offsetX: $floatingPlayerOffsetX,
+                    isSwipping: $isSwipping, threshold: swipeThreshold
+                  ) {
+                    playerViewModel.destroyPlayerAndQueue()
+                  }
                 )
             }
           }

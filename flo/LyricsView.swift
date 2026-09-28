@@ -178,17 +178,9 @@ struct LyricsView: View {
           AirPlayRoutePicker(tintColor: UIColor.white, activeTintColor: UIColor.white)
             .frame(width: 36, height: 36)
             .frame(width: 44, height: 44)
-            .overlay(alignment: .bottom) {
-              if let outputName = viewModel.externalOutputName {
-                Text(outputName)
-                  .foregroundColor(.white)
-                  .customFont(.caption2)
-                  .fontWeight(.bold)
-                  .lineLimit(2)
-                  .multilineTextAlignment(.center)
-                  .frame(maxWidth: 260)
-                  .fixedSize(horizontal: false, vertical: true)
-                  .offset(y: 13)
+            .overlay {
+              if viewModel.externalOutputName != nil {
+                AirPlayActiveBadge()
               }
             }
 
