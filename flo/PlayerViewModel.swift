@@ -7,6 +7,7 @@
 
 import AVFoundation
 import Combine
+import CoreData
 import MediaPlayer
 import SwiftUI
 
@@ -82,9 +83,27 @@ class PlayerViewModel: ObservableObject {
   private var scrobbleThreshold = 0.5
   private var hasTriggeredCache: Bool = false
 
+  /// Never-trapping now-playing accessor. Views (and cover-art / CarPlay /
+  /// Watch readers) evaluate this during the teardown window after the queue
+  /// empties but before the presence gates flip — returning a blank sentinel
+  /// instead of subscript-trapping keeps that window crash-free.
   var nowPlaying: QueueEntity {
-    return self.queue[self.activeQueueIdx]
+    if queue.indices.contains(activeQueueIdx) {
+      return queue[activeQueueIdx]
+    }
+    return Self.emptyQueueSentinel
   }
+
+  /// Blank stand-in for `nowPlaying` when there is nothing to play. Lives in
+  /// a store-less scratch context (never saved, never merged, never deleted
+  /// by `clearQueue`), so it is always safe to read: every attribute is
+  /// nil/zero, matching what the hidden player UI would show anyway.
+  private static let emptyQueueSentinel: QueueEntity = {
+    let context = NSManagedObjectContext(concurrencyType: .mainQueueConcurrencyType)
+    context.persistentStoreCoordinator =
+      CoreDataManager.shared.persistentContainer.persistentStoreCoordinator
+    return QueueEntity(context: context)
+  }()
 
   var isPlayFromSource: Bool {
     return self._playFromLocal
@@ -420,6 +439,7 @@ class PlayerViewModel: ObservableObject {
   }
 
   func getAlbumCoverArt() -> String {
+    guard hasNowPlaying() else { return "" }
     return AlbumService.shared.getAlbumCover(
       artistName: self.nowPlaying.artistName ?? "",
       albumName: self.nowPlaying.albumName ?? "",
@@ -1175,7 +1195,8 @@ class PlayerViewModel: ObservableObject {
     }
 
     let activeRemoved = sorted.contains(activeQueueIdx)
-    let activeObject: QueueEntity? = activeRemoved ? nil : queue[activeQueueIdx]
+    let activeObject: QueueEntity? =
+      activeRemoved ? nil : (queue.indices.contains(activeQueueIdx) ? queue[activeQueueIdx] : nil)
 
     var arr = queue
     for idx in sorted.reversed() {
