@@ -22,6 +22,7 @@ struct PlayerView: View {
   @State private var isDragging = false
 
   @State private var showQueue = false
+  @State private var queueSheetExpanded = false
 
   @GestureState private var queueDragOffset: CGSize = .zero
 
@@ -44,6 +45,9 @@ struct PlayerView: View {
       let isIPadPortrait = UIDevice.current.userInterfaceIdiom == .pad && size.height > size.width
       let queueSheetHeight: CGFloat = {
         guard size.height.isFinite, size.height > 0 else { return 500 }
+        if queueSheetExpanded {
+          return max(0, size.height - topSafeInset)
+        }
         let raw: CGFloat = isIPadPortrait ? min(700, max(500, size.height * 0.62)) : 500
         // Never exceed container height (prevents sheet taller than window on compact height)
         return min(raw, max(0, size.height - 16))
@@ -73,6 +77,10 @@ struct PlayerView: View {
 
                 Spacer()
               }
+              .contentShape(Rectangle())
+              .onTapGesture {
+                queueSheetExpanded.toggle()
+              }
               QueueSheetView(
                 player: viewModel,
                 albums: albumViewModel,
@@ -88,13 +96,17 @@ struct PlayerView: View {
           .gesture(
             DragGesture()
               .updating($queueDragOffset) { value, state, _ in
-                if value.translation.height > 0 {
-                  state = value.translation
-                }
+                state = value.translation
               }
               .onEnded { value in
-                if value.translation.height > 100 {
-                  self.showQueue = false
+                if value.translation.height < -80 {
+                  self.queueSheetExpanded = true
+                } else if value.translation.height > 80 {
+                  if self.queueSheetExpanded {
+                    self.queueSheetExpanded = false
+                  } else if value.translation.height > 100 {
+                    self.showQueue = false
+                  }
                 }
               }
           )
@@ -119,6 +131,12 @@ struct PlayerView: View {
           )
           .frame(height: queueSheetHeight)
           .animation(.spring(duration: 0.2), value: showQueue)
+          .animation(.spring(duration: 0.2), value: queueSheetExpanded)
+          .onChange(of: showQueue) { isShown in
+            if !isShown {
+              queueSheetExpanded = false
+            }
+          }
 
           ZStack {
             if viewModel.isLyricsMode {
@@ -281,6 +299,17 @@ struct PlayerView: View {
       Spacer()
 
       VStack {
+        if let outputName = viewModel.externalOutputName {
+          Text(outputName)
+            .foregroundColor(.white.opacity(0.9))
+            .customFont(.caption2)
+            .fontWeight(.bold)
+            .multilineTextAlignment(.center)
+            .lineLimit(1)
+            .frame(maxWidth: .infinity, alignment: .center)
+            .padding(.bottom, 2)
+        }
+
         if viewModel.isLiveRadio {
           liveProgressBar()
         } else {
@@ -367,22 +396,13 @@ struct PlayerView: View {
 
       Spacer(minLength: 0)
 
-      AirPlayRoutePicker(tintColor: UIColor.white, activeTintColor: UIColor.white)
-        .frame(width: 36, height: 36)
-        .frame(width: 44, height: 44)
-        .overlay(alignment: .bottom) {
-          if let outputName = viewModel.externalOutputName {
-            Text(outputName)
-              .foregroundColor(.white)
-              .customFont(.caption2)
-              .fontWeight(.bold)
-              .lineLimit(2)
-              .multilineTextAlignment(.center)
-              .frame(maxWidth: 260)
-              .fixedSize(horizontal: false, vertical: true)
-              .offset(y: 13)
-          }
-        }
+      AirPlayRoutePicker(
+        tintColor: UIColor.white,
+        activeTintColor: viewModel.externalOutputName != nil
+          ? (UIColor(named: "AccentColor") ?? UIColor.systemBlue) : UIColor.white
+      )
+      .frame(width: 36, height: 36)
+      .frame(width: 44, height: 44)
 
       Spacer(minLength: 0)
 

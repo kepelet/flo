@@ -134,6 +134,7 @@ struct QueueRowMenu: View {
 
   let idx: Int
   let song: QueueEntity
+  var disableActiveRemove = false
 
   var onNavigate: ((LibraryDestination) -> Void)?
 
@@ -198,6 +199,7 @@ struct QueueRowMenu: View {
     } label: {
       Label("Remove from Queue", systemImage: "trash")
     }
+    .disabled(disableActiveRemove && idx == player.activeQueueIdx)
   }
 
   private func goToAlbum() {
