@@ -4,9 +4,9 @@
 //
 //  Playing queue: fullscreen lazy list with Play Next / Play After /
 //  Add to Queue entry points, remove, move-to-top, download, like,
-//  go-to-album/artist and clear. Presented like the lyrics screen —
-//  full-bleed over the player background, no sheet chrome, no borders.
-//  Reorder is always available via press-and-drag on any row.
+//  go-to-album/artist and clear. Presented like the lyrics screen but on
+//  the system background (white/black per theme). Reorder works anytime
+//  via long-press drag; edit mode adds the grip + remove controls.
 //
 
 import SwiftUI
@@ -84,6 +84,7 @@ struct QueueView: View {
   var onNavigate: ((LibraryDestination) -> Void)?
 
   @State private var showClearConfirm = false
+  @State private var isEditing = false
   @StateObject private var rowStore = QueueRowStore()
   @State private var draggingIdx: Int?
   @State private var dropTargetIdx: Int?
@@ -92,9 +93,9 @@ struct QueueView: View {
   var body: some View {
     VStack(spacing: 0) {
       header
-        .padding(.horizontal, 30)
+        .padding(.horizontal)
         .padding(.top, topSafeInset + 8)
-        .padding(.bottom, 12)
+        .padding(.bottom, 8)
         .gesture(
           DragGesture()
             .onEnded { value in
@@ -107,7 +108,7 @@ struct QueueView: View {
       if player.queue.isEmpty {
         Spacer()
         Text("Queue is empty")
-          .foregroundColor(.white.opacity(0.7))
+          .foregroundColor(.secondary)
           .customFont(.subheadline)
         Spacer()
       } else {
@@ -117,7 +118,6 @@ struct QueueView: View {
               queueRow(idx: idx, song: song)
             }
           }
-          .padding(.horizontal, 30)
           .padding(.bottom, max(bottomSafeInset, 12) + 24)
         }
         .onDrop(
@@ -128,6 +128,7 @@ struct QueueView: View {
       }
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity)
+    .background(Color(.systemBackground).ignoresSafeArea())
     .alert("Clear queue?", isPresented: $showClearConfirm) {
       Button("Cancel", role: .cancel) {}
       Button("Clear Queue", role: .destructive) {
@@ -145,6 +146,7 @@ struct QueueView: View {
     }
     .onChange(of: player.queue.isEmpty) { isEmpty in
       if isEmpty {
+        isEditing = false
         isPresented = false
       }
     }
@@ -153,16 +155,15 @@ struct QueueView: View {
   // MARK: - Header
 
   private var header: some View {
-    VStack(alignment: .leading, spacing: 12) {
+    VStack(alignment: .leading, spacing: 8) {
       HStack(alignment: .center, spacing: 12) {
         VStack(alignment: .leading, spacing: 2) {
           Text("Queue")
-            .foregroundColor(.white)
             .customFont(.title2)
             .fontWeight(.bold)
 
           Text(player.queue.isEmpty ? "Nothing queued" : "\(player.queue.count) songs")
-            .foregroundColor(.white.opacity(0.7))
+            .foregroundColor(.secondary)
             .customFont(.subheadline)
         }
 
@@ -173,12 +174,11 @@ struct QueueView: View {
         } label: {
           Image(systemName: "chevron.down")
             .font(.title3.weight(.semibold))
-            .foregroundColor(.white)
+            .foregroundColor(.primary)
             .padding(.vertical, 8)
             .padding(.horizontal, 12)
-            .background(.white.opacity(0.15))
+            .background(Color.primary.opacity(0.08))
             .clipShape(Capsule())
-            .shadow(color: .black.opacity(0.25), radius: 6, x: 0, y: 3)
         }
         .keyboardShortcut(.escape, modifiers: [])
       }
@@ -189,32 +189,47 @@ struct QueueView: View {
             ? ""
             : "From \(player.nowPlaying.contextName ?? player.nowPlaying.albumName ?? "")"
         )
-        .foregroundColor(.white.opacity(0.7))
+        .foregroundColor(.secondary)
         .customFont(.subheadline)
         .lineLimit(1)
 
         Spacer()
 
         Button {
+          if !player.queue.isEmpty {
+            isEditing.toggle()
+          }
+        } label: {
+          Image(systemName: isEditing ? "checkmark" : "pencil")
+            .foregroundColor(Color.accentColor)
+            .fontWeight(.bold)
+            .padding(5)
+            .background(
+              isEditing ? Color.gray.opacity(0.2) : Color.clear
+            )
+            .cornerRadius(5)
+        }
+        .disabled(player.queue.isEmpty)
+
+        Button {
           showClearConfirm = true
         } label: {
           Image(systemName: "trash")
-            .foregroundColor(.white)
+            .foregroundColor(Color.accentColor)
             .fontWeight(.bold)
             .padding(5)
         }
         .disabled(player.queue.isEmpty)
-        .opacity(player.queue.isEmpty ? 0.4 : 1)
 
         Button {
           player.shuffleCurrentQueue()
         } label: {
           Image(systemName: "shuffle")
-            .foregroundColor(.white)
+            .foregroundColor(Color.accentColor)
             .fontWeight(.bold)
             .padding(5)
             .background(
-              player.isShuffling ? Color.white.opacity(0.15) : Color.clear
+              player.isShuffling ? Color.gray.opacity(0.2) : Color.clear
             )
             .cornerRadius(5)
         }
@@ -223,7 +238,7 @@ struct QueueView: View {
           player.setPlaybackMode()
         } label: {
           Image(systemName: "repeat")
-            .foregroundColor(.white)
+            .foregroundColor(Color.accentColor)
             .fontWeight(.bold)
             .overlay(
               Group {
@@ -237,7 +252,7 @@ struct QueueView: View {
             .padding(5)
             .background(
               player.playbackMode == PlaybackMode.defaultPlayback
-                ? Color.clear : Color.white.opacity(0.15)
+                ? Color.clear : Color.gray.opacity(0.2)
             )
             .cornerRadius(5)
         }
@@ -252,51 +267,54 @@ struct QueueView: View {
     let isActive = player.activeQueueIdx == idx
 
     HStack(alignment: .center, spacing: 10) {
-      Image(systemName: "line.3.horizontal")
-        .font(.callout)
-        .foregroundColor(.white.opacity(0.55))
+      if isEditing {
+        Image(systemName: "line.3.horizontal")
+          .font(.callout)
+          .foregroundColor(.secondary)
+      }
 
       VStack(alignment: .leading, spacing: 2) {
         HStack(alignment: .center, spacing: 6) {
           Text(song.songName ?? "")
-            .foregroundColor(isActive ? Color.accentColor : .white)
             .customFont(.callout)
             .fontWeight(.medium)
             .lineLimit(1)
 
           if ExplicitStatus(from: song.explicitStatus).isExplicit {
-            ExplicitBadge(tint: .white.opacity(0.85), size: .compact)
+            ExplicitBadge(size: .compact)
           }
         }
 
         Text(song.artistName ?? "")
-          .foregroundColor(.white.opacity(0.7))
+          .foregroundColor(.secondary)
           .customFont(.caption1)
           .lineLimit(1)
       }
       .frame(maxWidth: .infinity, alignment: .leading)
 
       Text(timeString(for: song.duration))
-        .foregroundColor(.white.opacity(0.7))
+        .foregroundColor(.secondary)
         .customFont(.caption1)
 
-      Button {
-        guard !isActive else { return }
-        player.removeFromQueue(at: idx)
-      } label: {
-        Image(systemName: "minus.circle.fill")
-          .font(.title3)
-          .foregroundColor(isActive ? .white.opacity(0.25) : .red)
+      if isEditing {
+        Button {
+          guard !isActive else { return }
+          player.removeFromQueue(at: idx)
+        } label: {
+          Image(systemName: "minus.circle.fill")
+            .font(.title3)
+            .foregroundColor(isActive ? .gray.opacity(0.4) : .red)
+        }
+        .disabled(isActive)
+        .buttonStyle(.plain)
       }
-      .disabled(isActive)
-      .buttonStyle(.plain)
     }
     .padding(.vertical, 8)
     .padding(.horizontal, 12)
     .background(
       dropTargetIdx == idx
         ? Color.accentColor.opacity(0.25)
-        : (isActive ? Color.white.opacity(0.12) : Color.clear),
+        : (isActive ? Color.gray.opacity(0.1) : Color.clear),
       in: RoundedRectangle(cornerRadius: 10, style: .continuous)
     )
     .overlay(alignment: dropEdge == .bottom ? .bottom : .top) {
@@ -309,6 +327,7 @@ struct QueueView: View {
     .opacity(draggingIdx == idx ? 0.45 : 1)
     .contentShape(Rectangle())
     .onTapGesture {
+      guard !isEditing else { return }
       player.playFromQueue(idx: idx)
     }
     .onDrag {
