@@ -17,6 +17,7 @@ enum LibraryV2Segment: String, CaseIterable, Identifiable {
 struct LibraryView: View {
   let showQuickNavigation: Bool
   @State private var searchAlbum = ""
+  @State private var moreAlbumsSearch = ""
   @State private var showDownloadSheet: Bool = false
   @State private var forceShowQuickNavigation: Bool = false
   @State private var selectedSegment: LibraryV2Segment
@@ -30,6 +31,7 @@ struct LibraryView: View {
   private let playerViewModel = PlayerViewModel.shared
   @EnvironmentObject var downloadViewModel: DownloadViewModel
   @EnvironmentObject var libraryRouter: LibraryRouter
+  @EnvironmentObject var pins: PinnedStore
 
   private var isUserLoggedIn: Bool {
     !AuthService.shared.getCreds(key: "NDToken").isEmpty
@@ -63,7 +65,53 @@ struct LibraryView: View {
   }
 
   private var filteredDownloadedAlbums: [Album] {
-    viewModel.downloadedAlbums
+    PinnedStore.sortedAlbumPinsFirst(albums: viewModel.downloadedAlbums, order: pins.albumPinOrder)
+  }
+
+  /// Live filter for the Albums "More" grid. The grid has its own search
+  /// state (separate from the Library screen's `searchAlbum`).
+  private var moreFilteredAlbums: [Album] {
+    guard !moreAlbumsSearch.isEmpty else { return filteredAlbums }
+    return filteredAlbums.filter { album in
+      album.name.localizedCaseInsensitiveContains(moreAlbumsSearch)
+        || album.artist.localizedCaseInsensitiveContains(moreAlbumsSearch)
+        || album.albumArtist.localizedCaseInsensitiveContains(moreAlbumsSearch)
+    }
+  }
+
+  private func pinDestination(_ item: PinnedItem) -> LibraryDestination {
+    switch item.kind {
+    case .album:
+      return .album(id: item.refId, name: item.name, artist: item.subtitle)
+    case .artist:
+      return .artist(id: item.refId, name: item.name)
+    case .playlist:
+      return .playlist(id: item.refId, name: item.name)
+    }
+  }
+
+  private func pinRowLabel(_ item: PinnedItem) -> some View {
+    HStack {
+      PinArtworkView(
+        pathOrUrlString: viewModel.coverArtPath(for: item),
+        size: 40, cornerRadius: 8
+      )
+      VStack(alignment: .leading) {
+        Text(viewModel.displayName(for: item))
+          .customFont(.headline)
+          .padding(.leading, 8)
+        if !viewModel.displaySubtitle(for: item).isEmpty {
+          Text(viewModel.displaySubtitle(for: item))
+            .customFont(.caption1)
+            .foregroundColor(.gray)
+            .padding(.leading, 8)
+        }
+      }
+      Spacer()
+      Image(systemName: "chevron.right")
+        .foregroundColor(.gray)
+        .font(.caption)
+    }.padding(.horizontal).padding(.vertical, 5)
   }
 
   private var shouldShowQuickNavigation: Bool {
@@ -88,6 +136,9 @@ struct LibraryView: View {
   var libraryContent: some View {
     if libraryViewV2Enabled {
       libraryV2ContentWrapper
+        #if targetEnvironment(macCatalyst)
+          .catalystAwareNavigationTitle("Library")
+        #endif
     } else {
       libraryLegacyContent
     }
@@ -96,7 +147,13 @@ struct LibraryView: View {
   // MARK: - Legacy (V1)
 
   var libraryLegacyContent: some View {
-    ScrollView {
+    VStack(spacing: 0) {
+      #if !targetEnvironment(macCatalyst)
+        InlineSearchField(text: $searchAlbum)
+          .padding(.horizontal)
+          .padding(.top, 8)
+      #endif
+      ScrollView {
       if viewModel.albums.isEmpty && viewModel.error != nil {
         VStack(alignment: .center) {
           Image("Home").resizable().aspectRatio(contentMode: .fit).frame(
@@ -118,6 +175,46 @@ struct LibraryView: View {
         }
         .frame(maxWidth: .infinity)
       } else {
+        if viewModel.refreshFailed && !viewModel.albums.isEmpty {
+          offlineRefreshBanner {
+            Task {
+              await viewModel.refreshAlbums()
+              await viewModel.refreshArtists()
+              await viewModel.refreshPlaylists()
+            }
+          }
+          .padding(.horizontal, 4)
+        }
+
+        if !pins.items.isEmpty && searchAlbum.isEmpty {
+          HStack {
+            Image(systemName: "pin.fill")
+              .frame(width: 20, height: 10)
+              .foregroundColor(.accent)
+            Text("Pinned")
+              .customFont(.headline)
+              .padding(.leading, 8)
+            Spacer()
+          }.padding(.horizontal).padding(.vertical, 5)
+
+          Divider()
+
+          ForEach(pins.items) { item in
+            NavigationLink(value: pinDestination(item)) {
+              pinRowLabel(item)
+            }
+            .contextMenu {
+              Button {
+                pins.unpin(item)
+              } label: {
+                Label(item.kind.toggleTitle(pinned: true), systemImage: "pin.slash")
+              }
+            }
+
+            Divider()
+          }
+        }
+
         if !showQuickNavigation && searchAlbum.isEmpty {
           Button(action: {
             forceShowQuickNavigation.toggle()
@@ -265,15 +362,24 @@ struct LibraryView: View {
             } label: {
               AlbumsView(viewModel: viewModel, album: album)
             }
+            .contextMenu {
+              AlbumQueueMenu(player: playerViewModel, album: album)
+              Button {
+                pins.toggle(album: album)
+              } label: {
+                Label(
+                  PinnedKind.album.toggleTitle(pinned: pins.isPinned(album: album)),
+                  systemImage: pins.isPinned(album: album) ? "pin.slash" : "pin")
+              }
+            }
           }
         }
         .padding(.top, 10)
         .playerBottomPadding(active: 100, inactive: 0)
-        .searchable(
-          text: $searchAlbum,
-          placement: .navigationBarDrawer(displayMode: .always),
-          prompt: "Search"
-        )
+        #if targetEnvironment(macCatalyst)
+          .catalystAwareSearch(text: $searchAlbum, prompt: "Search")
+        #endif
+      }
       }
     }
     .sheet(isPresented: $showDownloadSheet) {
@@ -288,12 +394,54 @@ struct LibraryView: View {
         }
       }
     }
-    .navigationTitle("Library")
+    .catalystAwareNavigationTitle("Library")
     .refreshable {
-      await viewModel.refreshAlbums()
-      await viewModel.refreshArtists()
-      await viewModel.refreshPlaylists()
+      await refreshLegacyLibraryContent()
     }
+  }
+
+  @MainActor
+  private func refreshLegacyLibraryContent() async {
+    await viewModel.refreshAlbums()
+    await viewModel.refreshArtists()
+    await viewModel.refreshPlaylists()
+  }
+
+  /// Shown when the latest library load failed (server unreachable, session
+  /// expired, …) while stale cached content is still on screen, so the stall
+  /// is visible instead of silent. The cache is intentionally NOT invalidated
+  /// on an offline refresh — a stale library beats an empty one.
+  private func offlineRefreshBanner(retry: @escaping () -> Void) -> some View {
+    HStack(spacing: 8) {
+      Image(systemName: "wifi.exclamationmark")
+        .foregroundColor(.orange)
+      Text("Couldn't reach your server — showing cached library")
+        .customFont(.caption1)
+        .foregroundColor(.secondary)
+      Spacer()
+      Button("Retry", action: retry)
+        .customFont(.caption1)
+        .fontWeight(.semibold)
+        .buttonStyle(.borderless)
+        .tint(.orange)
+    }
+    .padding(.horizontal, 12)
+    .padding(.vertical, 10)
+    .background(Color.orange.opacity(0.12), in: RoundedRectangle(cornerRadius: 10))
+  }
+
+  @MainActor
+  private func refreshLibraryContent() async {
+    await viewModel.refreshAlbums()
+    await viewModel.refreshArtists()
+    await viewModel.refreshPlaylists()
+    await viewModel.refreshAllSongs()
+    await viewModel.refreshRecentlyPlayedAlbums()
+    await viewModel.refreshRecentlyAddedAlbums()
+    viewModel.fetchStarredSongs()
+    radiosViewModel.fetchAllRadios()
+    viewModel.fetchDownloadedAlbums()
+    cachedSongs = StreamCacheManager.shared.getCachedSongs()
   }
 
   // MARK: - V2
@@ -315,16 +463,7 @@ struct LibraryView: View {
           }
         }
         .refreshable {
-          await viewModel.refreshAlbums()
-          await viewModel.refreshArtists()
-          await viewModel.refreshPlaylists()
-          await viewModel.refreshAllSongs()
-          await viewModel.refreshRecentlyPlayedAlbums()
-          await viewModel.refreshRecentlyAddedAlbums()
-          viewModel.fetchStarredSongs()
-          radiosViewModel.fetchAllRadios()
-          viewModel.fetchDownloadedAlbums()
-          cachedSongs = StreamCacheManager.shared.getCachedSongs()
+          await refreshLibraryContent()
         }
         .onAppear {
           selectedSegment = LibraryV2Segment(rawValue: UserDefaultsManager.libraryV2Segment) ?? .library
@@ -356,16 +495,7 @@ struct LibraryView: View {
           }
         }
         .refreshable {
-          await viewModel.refreshAlbums()
-          await viewModel.refreshArtists()
-          await viewModel.refreshPlaylists()
-          await viewModel.refreshAllSongs()
-          await viewModel.refreshRecentlyPlayedAlbums()
-          await viewModel.refreshRecentlyAddedAlbums()
-          viewModel.fetchStarredSongs()
-          radiosViewModel.fetchAllRadios()
-          viewModel.fetchDownloadedAlbums()
-          cachedSongs = StreamCacheManager.shared.getCachedSongs()
+          await refreshLibraryContent()
         }
         .onAppear {
           selectedSegment = LibraryV2Segment(rawValue: UserDefaultsManager.libraryV2Segment) ?? .library
@@ -444,6 +574,17 @@ struct LibraryView: View {
         ScrollView {
           VStack(alignment: .leading, spacing: 24) {
             libraryV2SegmentedControl
+            if viewModel.refreshFailed && !viewModel.albums.isEmpty {
+              offlineRefreshBanner {
+                Task {
+                  await refreshLibraryContent()
+                }
+              }
+              .padding(.horizontal, 4)
+            }
+            if !pins.items.isEmpty {
+              v2PinnedSection
+            }
             if !viewModel.recentlyPlayedAlbums.isEmpty {
               v2RecentlyPlayedSection
             }
@@ -475,6 +616,9 @@ struct LibraryView: View {
         }
       }
     }
+    #if targetEnvironment(macCatalyst)
+      .catalystAwareSearch(text: $searchAlbum, prompt: "Search")
+    #endif
   }
 
   private var v2DownloadsBody: some View {
@@ -519,6 +663,16 @@ struct LibraryView: View {
               } label: {
                 AlbumsView(viewModel: viewModel, album: album, isDownloadScreen: true)
               }
+              .contextMenu {
+                AlbumQueueMenu(player: playerViewModel, album: album)
+                Button {
+                  pins.toggle(album: album)
+                } label: {
+                  Label(
+                    PinnedKind.album.toggleTitle(pinned: pins.isPinned(album: album)),
+                    systemImage: pins.isPinned(album: album) ? "pin.slash" : "pin")
+                }
+              }
             }
           }.padding(.horizontal, 4).padding(.top, 10)
         }
@@ -542,6 +696,40 @@ struct LibraryView: View {
   }
 
   // MARK: V2 helpers
+
+  private var v2PinnedSection: some View {
+    VStack(alignment: .leading, spacing: 14) {
+      v2SectionHeaderStatic(title: "Pinned", subtitle: "You pinned it!")
+      ScrollView(.horizontal, showsIndicators: false) {
+        HStack(spacing: 12) {
+          ForEach(pins.items) { item in
+            NavigationLink(value: pinDestination(item)) {
+              VStack(spacing: 6) {
+                PinArtworkView(
+                  pathOrUrlString: viewModel.coverArtPath(for: item),
+                  size: 148, cornerRadius: 10
+                )
+                Text(viewModel.displayName(for: item))
+                  .customFont(.footnote)
+                  .fontWeight(.bold)
+                  .lineLimit(1)
+                  .frame(width: 148)
+              }
+            }
+            .buttonStyle(.plain)
+            .contextMenu {
+              Button {
+                pins.unpin(item)
+              } label: {
+                Label(item.kind.toggleTitle(pinned: true), systemImage: "pin.slash")
+              }
+            }
+          }
+        }
+        .padding(.horizontal)
+      }
+    }
+  }
 
   private func v2SectionHeader<Destination: View>(title: String, subtitle: String? = nil, hasMore: Bool = true, destination: Destination) -> some View {
     HStack(alignment: .center) {
@@ -649,6 +837,15 @@ struct LibraryView: View {
               }
             }
             .buttonStyle(.plain)
+            .contextMenu {
+              Button {
+                pins.toggle(artist: artist)
+              } label: {
+                Label(
+                  PinnedKind.artist.toggleTitle(pinned: pins.isPinned(artist: artist)),
+                  systemImage: pins.isPinned(artist: artist) ? "pin.slash" : "pin")
+              }
+            }
           }
         }
         .padding(.horizontal)
@@ -707,7 +904,7 @@ struct LibraryView: View {
           ForEach(Array(chunkedSongs(Array(viewModel.starredSongs.prefix(16))).enumerated()), id: \.offset) { _, chunk in
             VStack(spacing: 12) {
               ForEach(chunk, id: \.id) { song in
-                v2SongHorizontalCard(song: song, onTap: {
+                v2SongHorizontalCard(song: song, queueContext: "Liked Songs", onTap: {
                   if let idx = viewModel.starredSongs.firstIndex(where: { $0.id == song.id }) {
                     let liked = SongCollection(id: "starred-songs", name: "Liked Songs", songs: viewModel.starredSongs)
                     playerViewModel.playBySong(idx: idx, item: liked, isFromLocal: false)
@@ -757,6 +954,16 @@ struct LibraryView: View {
               }
             }
             .buttonStyle(.plain)
+            .contextMenu {
+              PlaylistQueueMenu(player: playerViewModel, playlist: playlist)
+              Button {
+                pins.toggle(playlist: playlist)
+              } label: {
+                Label(
+                  PinnedKind.playlist.toggleTitle(pinned: pins.isPinned(playlist: playlist)),
+                  systemImage: pins.isPinned(playlist: playlist) ? "pin.slash" : "pin")
+              }
+            }
           }
         }
         .padding(.horizontal)
@@ -809,7 +1016,9 @@ struct LibraryView: View {
     }
   }
 
-  private func v2SongHorizontalCard(song: Song, onTap: @escaping () -> Void) -> some View {
+  private func v2SongHorizontalCard(
+    song: Song, queueContext: String? = nil, onTap: @escaping () -> Void
+  ) -> some View {
     Button(action: onTap) {
       HStack(spacing: 12) {
         v2SongCoverTiny(song: song)
@@ -839,6 +1048,24 @@ struct LibraryView: View {
       .contentShape(Rectangle())
     }
     .buttonStyle(.plain)
+    .contextMenu {
+      if let queueContext {
+        QueueMenuButtons(
+          player: playerViewModel, song: song, contextName: queueContext,
+          isFromLocal: !song.fileUrl.isEmpty)
+      }
+      if !song.albumId.isEmpty {
+        let albumPin = PinnedItem(
+          kind: .album, refId: song.albumId, name: song.albumName, subtitle: song.artist)
+        Button {
+          pins.toggle(albumPin)
+        } label: {
+          Label(
+            PinnedKind.album.toggleTitle(pinned: pins.isPinned(albumPin)),
+            systemImage: pins.isPinned(albumPin) ? "pin.slash" : "pin")
+        }
+      }
+    }
   }
 
   private func chunkedSongs(_ songs: [Song], chunkSize: Int = 4) -> [[Song]] {
@@ -858,7 +1085,7 @@ struct LibraryView: View {
           ForEach(Array(chunkedSongs(Array(viewModel.songs.prefix(16))).enumerated()), id: \.offset) { _, chunk in
             VStack(spacing: 12) {
               ForEach(chunk, id: \.id) { song in
-                v2SongHorizontalCard(song: song) {
+                v2SongHorizontalCard(song: song, queueContext: "All Tracks") {
                   if let idx = viewModel.songs.firstIndex(where: { $0.id == song.id }) {
                     var playlist = Playlist(name: "\"All Tracks\"")
                     playlist.songs = viewModel.songs
@@ -1072,6 +1299,16 @@ struct LibraryView: View {
                   .frame(width: 148, alignment: .leading)
               }
             }.buttonStyle(.plain)
+            .contextMenu {
+              AlbumQueueMenu(player: playerViewModel, album: album)
+              Button {
+                pins.toggle(album: album)
+              } label: {
+                Label(
+                  PinnedKind.album.toggleTitle(pinned: pins.isPinned(album: album)),
+                  systemImage: pins.isPinned(album: album) ? "pin.slash" : "pin")
+              }
+            }
           }
         }
         .padding(.horizontal)
@@ -1110,6 +1347,16 @@ struct LibraryView: View {
                   .frame(width: 148, alignment: .leading)
               }
             }.buttonStyle(.plain)
+            .contextMenu {
+              AlbumQueueMenu(player: playerViewModel, album: album)
+              Button {
+                pins.toggle(album: album)
+              } label: {
+                Label(
+                  PinnedKind.album.toggleTitle(pinned: pins.isPinned(album: album)),
+                  systemImage: pins.isPinned(album: album) ? "pin.slash" : "pin")
+              }
+            }
           }
         }
         .padding(.horizontal)
@@ -1120,20 +1367,43 @@ struct LibraryView: View {
   private var v2AlbumsHorizontalSection: some View {
     VStack(alignment: .leading, spacing: 14) {
       v2SectionHeader(title: "Albums", subtitle: "Sorted by name", hasMore: filteredAlbums.count > 10, destination:
-        // Expand to grid view for all albums when More tapped
-        ScrollView {
-          LazyVGrid(columns: columns, spacing: 12) {
-            ForEach(filteredAlbums) { album in
-              NavigationLink {
-                AlbumView(viewModel: viewModel)
-                  .environmentObject(downloadViewModel)
-                  .onAppear { viewModel.setActiveAlbum(album: album) }
-              } label: {
-                v2AlbumGridItem(album: album)
-              }.buttonStyle(.plain)
-            }
-          }.padding()
-        }.navigationTitle("Albums")
+        // Expand to grid view for all albums when More tapped.
+        // No own NavigationStack (renders inside Library's) — iOS gets the
+        // inline field, Catalyst the toolbar field.
+        VStack(spacing: 0) {
+          #if !targetEnvironment(macCatalyst)
+            InlineSearchField(text: $moreAlbumsSearch)
+              .padding(.horizontal)
+              .padding(.top, 8)
+          #endif
+          ScrollView {
+            LazyVGrid(columns: columns, spacing: 12) {
+              ForEach(moreFilteredAlbums) { album in
+                NavigationLink {
+                  AlbumView(viewModel: viewModel)
+                    .environmentObject(downloadViewModel)
+                    .onAppear { viewModel.setActiveAlbum(album: album) }
+                } label: {
+                  v2AlbumGridItem(album: album)
+                }.buttonStyle(.plain)
+                .contextMenu {
+                  AlbumQueueMenu(player: playerViewModel, album: album)
+                  Button {
+                    pins.toggle(album: album)
+                  } label: {
+                    Label(
+                      PinnedKind.album.toggleTitle(pinned: pins.isPinned(album: album)),
+                      systemImage: pins.isPinned(album: album) ? "pin.slash" : "pin")
+                  }
+                }
+              }
+            }.padding()
+          }
+        }
+        .navigationTitle("Albums")
+        #if targetEnvironment(macCatalyst)
+          .catalystAwareSearch(text: $moreAlbumsSearch, prompt: "Search")
+        #endif
       )
       ScrollView(.horizontal, showsIndicators: false) {
         HStack(spacing: 14) {
@@ -1166,6 +1436,16 @@ struct LibraryView: View {
               }
             }
             .buttonStyle(.plain)
+            .contextMenu {
+              AlbumQueueMenu(player: playerViewModel, album: album)
+              Button {
+                pins.toggle(album: album)
+              } label: {
+                Label(
+                  PinnedKind.album.toggleTitle(pinned: pins.isPinned(album: album)),
+                  systemImage: pins.isPinned(album: album) ? "pin.slash" : "pin")
+              }
+            }
           }
         }
         .padding(.horizontal)
@@ -1251,6 +1531,16 @@ struct LibraryView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
     }
     .padding(6)
+    .contextMenu {
+      AlbumQueueMenu(player: playerViewModel, album: album)
+      Button {
+        pins.toggle(album: album)
+      } label: {
+        Label(
+          PinnedKind.album.toggleTitle(pinned: pins.isPinned(album: album)),
+          systemImage: pins.isPinned(album: album) ? "pin.slash" : "pin")
+      }
+    }
   }
 
   private func v2AlbumCover(album: Album) -> some View {
@@ -1325,5 +1615,6 @@ struct LibraryView_Previews: PreviewProvider {
     LibraryView(viewModel: viewModel)
       .environmentObject(playerViewModel)
       .environmentObject(LibraryRouter())
+      .environmentObject(PinnedStore())
   }
 }

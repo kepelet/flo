@@ -7,6 +7,7 @@
 
 import Foundation
 import KeychainAccess
+import UIKit
 
 class AuthViewModel: ObservableObject {
   @Published var user: UserAuth?
@@ -44,6 +45,16 @@ class AuthViewModel: ObservableObject {
   init() {
     NotificationCenter.default.addObserver(
       self, selector: #selector(handleSessionExpired(_:)), name: .sessionExpired, object: nil)
+    NotificationCenter.default.addObserver(
+      self, selector: #selector(handleServerCameOnline), name: .networkBecameOnline, object: nil)
+    NotificationCenter.default.addObserver(
+      self, selector: #selector(handleAppDidBecomeActive),
+      name: UIApplication.didBecomeActiveNotification, object: nil)
+
+    // Remember the configured server even when logged out so the login form
+    // is prefilled and HomeView can tell "logged out of a configured server"
+    // apart from a fresh install.
+    serverUrl = UserDefaultsManager.serverBaseURL
 
     do {
       if let jsonString = try KeychainManager.getAuthCreds(),
@@ -51,7 +62,6 @@ class AuthViewModel: ObservableObject {
       {
         let data: UserAuth = try JSONDecoder().decode(UserAuth.self, from: jsonData)
 
-        serverUrl = UserDefaultsManager.serverBaseURL
         username = data.username
 
         authMode = AuthService.shared.getAuthMode()
@@ -63,16 +73,7 @@ class AuthViewModel: ObservableObject {
           )
           AuthService.shared.setCreds(data)
           isLoggedIn = true
-          let verificationSession = AuthService.shared.sessionSnapshot()
-
-          AuthService.shared.verifySubsonicAccess(data, serverUrl: serverUrl) { result in
-            if case .invalid = result {
-              DispatchQueue.main.async {
-                guard AuthService.shared.isCurrentSession(verificationSession) else { return }
-                self.logout()
-              }
-            }
-          }
+          verifyExistingSession()
         } else if UserDefaultsManager.saveLoginInfo {
           do {
             password = try KeychainManager.getAuthPassword() ?? ""
@@ -80,6 +81,8 @@ class AuthViewModel: ObservableObject {
             print("Error loading password from Keychain: \(error)")
           }
 
+          // login() re-authenticates and issues a fresh token; do not verify
+          // the stale credentials in parallel (that could log out mid-login).
           login()
         } else {
           user = UserAuth(
@@ -88,28 +91,64 @@ class AuthViewModel: ObservableObject {
           )
           AuthService.shared.setCreds(data)
           isLoggedIn = true
-          let verificationSession = AuthService.shared.sessionSnapshot()
 
-          // Standard auth was previously never revalidated (only IAP via
+          // Standard auth was previously only revalidated at launch (IAP via
           // verifySubsonicAccess in 7a9f844). A stale ND JWT therefore
           // produced a ghost isLoggedIn=true while every /api/* returned
           // 401. Verify ND token in background; on 401/403 clear the
           // session so UI flips to .expired / login sheet instead of
-          // hanging empty.
-          AuthService.shared.verifyNDSession(serverUrl: serverUrl, token: data.token) {
-            result in
-            if case .invalid = result {
-              DispatchQueue.main.async {
-                guard AuthService.shared.isCurrentSession(verificationSession) else { return }
-                self.logout()
-              }
-            }
-          }
+          // hanging empty — and re-verify whenever the network comes back
+          // or the app foregrounds, so a launch while the server was down
+          // no longer leaves a ghost session.
+          verifyExistingSession()
         }
       }
     } catch {
       print("Error loading data from Keychain: \(error)")
     }
+  }
+
+  private var isSessionVerificationInFlight = false
+
+  /// Revalidates the restored session against the server.
+  ///
+  /// Runs on launch and again whenever the device network comes back online
+  /// or the app becomes active. A one-shot check at launch is not enough:
+  /// if the server was unreachable at launch the result was `.unreachable`
+  /// (no logout) and the token could expire in the meantime, leaving a ghost
+  /// login until a lucky 401.
+  private func verifyExistingSession() {
+    guard isLoggedIn, !isSessionVerificationInFlight, let user = user else { return }
+
+    isSessionVerificationInFlight = true
+    let verificationSession = AuthService.shared.sessionSnapshot()
+
+    let completion: (IAPSessionCheckResult) -> Void = { [weak self] result in
+      DispatchQueue.main.async {
+        guard let self = self else { return }
+        self.isSessionVerificationInFlight = false
+        guard AuthService.shared.isCurrentSession(verificationSession) else { return }
+
+        if case .invalid = result {
+          self.logout()
+        }
+      }
+    }
+
+    if authMode == .iap {
+      AuthService.shared.verifySubsonicAccess(user, serverUrl: serverUrl, completion: completion)
+    } else {
+      AuthService.shared.verifyNDSession(
+        serverUrl: serverUrl, token: verificationSession.ndToken, completion: completion)
+    }
+  }
+
+  @objc private func handleServerCameOnline() {
+    verifyExistingSession()
+  }
+
+  @objc private func handleAppDidBecomeActive() {
+    verifyExistingSession()
   }
 
   @objc private func handleSessionExpired(_ notification: Notification) {
@@ -148,6 +187,7 @@ class AuthViewModel: ObservableObject {
           self.username = ""
           self.password = ""
           self.serverUrl = ""
+          NetworkMonitor.shared.probeServerReachability()
         }
 
       case .failure(let error):
@@ -183,7 +223,8 @@ class AuthViewModel: ObservableObject {
         try? KeychainManager.removeAuthMode()
       }
 
-      UserDefaultsManager.removeObject(key: UserDefaultsKeys.serverURL)
+      // Keep serverURL: re-login should be one tap away, and the Home dot
+      // needs it to distinguish "logged out" from "fresh install".
 
       user = nil
       isLoggedIn = false

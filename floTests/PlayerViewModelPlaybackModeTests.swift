@@ -4,6 +4,7 @@
 //
 
 import XCTest
+import Foundation
 
 @testable import flo
 
@@ -103,6 +104,146 @@ final class PlayerViewModelPlaybackModeTests: XCTestCase {
     // After init, queue starts empty unless state was persisted
     if sut.queue.isEmpty {
       XCTAssertFalse(sut.isLiveRadio)
+    }
+  }
+
+  // MARK: - Gapless next-index resolution
+
+  func testGaplessNextIndex_defaultPlayback_advances() {
+    sut.queue = makeQueueEntities(count: 3)
+    sut.activeQueueIdx = 1
+    sut.playbackMode = PlaybackMode.defaultPlayback
+
+    XCTAssertEqual(sut.nextQueueIdxForGapless(), 2)
+  }
+
+  func testGaplessNextIndex_defaultPlayback_nilAtEnd() {
+    sut.queue = makeQueueEntities(count: 3)
+    sut.activeQueueIdx = 2
+    sut.playbackMode = PlaybackMode.defaultPlayback
+
+    XCTAssertNil(sut.nextQueueIdxForGapless())
+  }
+
+  func testGaplessNextIndex_repeatAlbum_wrapsAtEnd() {
+    sut.queue = makeQueueEntities(count: 3)
+    sut.activeQueueIdx = 2
+    sut.playbackMode = PlaybackMode.repeatAlbum
+
+    XCTAssertEqual(sut.nextQueueIdxForGapless(), 0)
+  }
+
+  func testGaplessNextIndex_repeatOnce_repeatsCurrent() {
+    sut.queue = makeQueueEntities(count: 3)
+    sut.activeQueueIdx = 1
+    sut.playbackMode = PlaybackMode.repeatOnce
+
+    XCTAssertEqual(sut.nextQueueIdxForGapless(), 1)
+  }
+
+  func testGaplessNextIndex_emptyQueue_returnsNil() {
+    sut.queue = []
+    sut.playbackMode = PlaybackMode.repeatOnce
+
+    XCTAssertNil(sut.nextQueueIdxForGapless())
+  }
+
+  func testGaplessNextIndex_singleTrackRepeatOnce_repeats() {
+    sut.queue = makeQueueEntities(count: 1)
+    sut.activeQueueIdx = 0
+    sut.playbackMode = PlaybackMode.repeatOnce
+
+    XCTAssertEqual(sut.nextQueueIdxForGapless(), 0)
+  }
+
+  // MARK: - Failure skip resolution
+
+  func testFailureNextIndex_defaultPlayback_advances() {
+    sut.queue = makeQueueEntities(count: 3)
+    sut.activeQueueIdx = 1
+    sut.playbackMode = PlaybackMode.defaultPlayback
+
+    XCTAssertEqual(sut.nextDistinctIdxAfterFailure(), 2)
+  }
+
+  func testFailureNextIndex_defaultPlayback_nilAtEnd() {
+    sut.queue = makeQueueEntities(count: 3)
+    sut.activeQueueIdx = 2
+    sut.playbackMode = PlaybackMode.defaultPlayback
+
+    XCTAssertNil(sut.nextDistinctIdxAfterFailure())
+  }
+
+  func testFailureNextIndex_repeatAlbum_wrapsAtEnd() {
+    sut.queue = makeQueueEntities(count: 3)
+    sut.activeQueueIdx = 2
+    sut.playbackMode = PlaybackMode.repeatAlbum
+
+    XCTAssertEqual(sut.nextDistinctIdxAfterFailure(), 0)
+  }
+
+  func testFailureNextIndex_repeatOnce_movesToDistinctTrack() {
+    sut.queue = makeQueueEntities(count: 3)
+    sut.activeQueueIdx = 0
+    sut.playbackMode = PlaybackMode.repeatOnce
+
+    XCTAssertEqual(sut.nextDistinctIdxAfterFailure(), 1)
+  }
+
+  func testFailureNextIndex_singleTrack_returnsNil() {
+    sut.queue = makeQueueEntities(count: 1)
+    sut.activeQueueIdx = 0
+    sut.playbackMode = PlaybackMode.repeatOnce
+
+    XCTAssertNil(sut.nextDistinctIdxAfterFailure())
+  }
+
+  // MARK: - Crossfade setting
+
+  func testCrossfadeDuration_defaultsOff() {
+    UserDefaults.standard.removeObject(forKey: UserDefaultsKeys.crossfadeDuration)
+    XCTAssertEqual(UserDefaultsManager.crossfadeDuration, 0.0, accuracy: 0.001)
+    XCTAssertFalse(UserDefaultsManager.crossfadeEnabled)
+  }
+
+  func testCrossfadeDuration_persistsAndEnables() {
+    UserDefaultsManager.crossfadeDuration = 10.0
+    XCTAssertEqual(UserDefaultsManager.crossfadeDuration, 10.0, accuracy: 0.001)
+    XCTAssertTrue(UserDefaultsManager.crossfadeEnabled)
+
+    UserDefaultsManager.crossfadeDuration = 0.0
+    XCTAssertEqual(UserDefaultsManager.crossfadeDuration, 0.0, accuracy: 0.001)
+    XCTAssertFalse(UserDefaultsManager.crossfadeEnabled)
+  }
+
+  // MARK: - Stream cache completion contract
+
+  func testCacheSong_withCacheDisabled_completesFalse() {
+    UserDefaultsManager.streamCacheMaxSize = 0
+
+    let exp = expectation(description: "cache completion")
+    var result: Bool?
+
+    StreamCacheManager.shared.cacheSong(mediaFileId: "song-1") { ready in
+      result = ready
+      exp.fulfill()
+    }
+
+    wait(for: [exp], timeout: 2)
+    XCTAssertEqual(result, false)
+  }
+
+  // MARK: - Helpers
+
+  private func makeQueueEntities(count: Int) -> [QueueEntity] {
+    let context = CoreDataManager.shared.viewContext
+    return (0..<count).map { i in
+      let entity = QueueEntity(context: context)
+      entity.id = "q\(i)"
+      entity.songName = "Track \(i)"
+      entity.duration = 100
+      entity.sampleRate = 44100
+      return entity
     }
   }
 

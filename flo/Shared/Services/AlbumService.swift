@@ -61,9 +61,13 @@ class AlbumService {
     let url =
       "\(UserDefaultsManager.serverBaseURL)\(API.SubsonicEndpoint.star)\(AuthService.shared.getCreds(key: "subsonicToken"))&id=\(id)"
 
+    let authSession = AuthService.shared.sessionSnapshot()
+
     APIManager.shared.session.request(url)
       .validate(statusCode: 200..<300)
       .response { response in
+        APIManager.notifySessionExpiredIfNeeded(
+          response: response.response, error: response.error, authSession: authSession)
         completion(response.error == nil)
       }
   }
@@ -72,9 +76,13 @@ class AlbumService {
     let url =
       "\(UserDefaultsManager.serverBaseURL)\(API.SubsonicEndpoint.unstar)\(AuthService.shared.getCreds(key: "subsonicToken"))&id=\(id)"
 
+    let authSession = AuthService.shared.sessionSnapshot()
+
     APIManager.shared.session.request(url)
       .validate(statusCode: 200..<300)
       .response { response in
+        APIManager.notifySessionExpiredIfNeeded(
+          response: response.response, error: response.error, authSession: authSession)
         completion(response.error == nil)
       }
   }

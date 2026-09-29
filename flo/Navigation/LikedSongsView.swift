@@ -73,15 +73,18 @@ struct LikedSongsView: View {
               id: "starred-songs", name: "Liked Songs", songs: filteredSongs)
             playerViewModel.playBySong(idx: idx, item: liked, isFromLocal: false)
           }
+          .contextMenu {
+            QueueMenuButtons(
+              player: playerViewModel, song: song, contextName: "Liked Songs",
+              isFromLocal: false)
+          }
           .frame(maxWidth: .infinity, alignment: .leading)
         }
       }
       .padding(.top, 10)
       .padding(.bottom, playerContentBottomPadding(viewModel: playerViewModel, iPhoneActive: 100, iPhoneInactive: 12))
-      .navigationTitle("Liked Songs")
-      .searchable(
-        text: $searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search"
-      )
+      .catalystAwareNavigationTitle("Liked Songs")
+      .catalystAwareSearch(text: $searchText, prompt: "Search")
     }
     .onAppear {
       viewModel.fetchStarredSongs()

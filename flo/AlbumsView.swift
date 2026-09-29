@@ -92,23 +92,28 @@ struct AlbumsView: View {
   }
 }
 
-/// Inline-searchable wrapper for the Albums tab.
+/// Searchable wrapper for the Albums tab.
 ///
 /// ContentView.swift owns the Albums NavigationStack and builds its tab via
-/// `AlbumsGridView()`. The search field is rendered inline (always visible
-/// at the top of the content, not via `.searchable`) so it works reliably
-/// under the iPad sidebar-adaptable TabView and Mac Catalyst where
-/// `navigationBarDrawer` does not produce a true inline field.
+/// `AlbumsGridView()`. Catalyst gets the toolbar field; iOS/iPadOS get the
+/// inline field below (the drawer's `.searchable` doesn't reliably attach
+/// this deep in the hierarchy) — exactly one field per platform.
 /// Filtering is live on name + artist/albumArtist, case-insensitive.
 struct AlbumsGridView: View {
   @EnvironmentObject var albumViewModel: AlbumViewModel
+  @EnvironmentObject var playerViewModel: PlayerViewModel
   @EnvironmentObject var downloadViewModel: DownloadViewModel
+  @EnvironmentObject var pins: PinnedStore
   @Environment(\.horizontalSizeClass) private var horizontalSizeClass
   @State private var searchText = ""
 
   private var columns: [GridItem] {
     if horizontalSizeClass == .regular {
-      return Array(repeating: GridItem(.flexible(), spacing: 10), count: 4)
+      #if targetEnvironment(macCatalyst)
+        return Array(repeating: GridItem(.flexible(), spacing: 10), count: 5)
+      #else
+        return Array(repeating: GridItem(.flexible(), spacing: 10), count: 4)
+      #endif
     }
     return Array(repeating: GridItem(.flexible(), spacing: 10), count: 2)
   }
@@ -125,22 +130,11 @@ struct AlbumsGridView: View {
   var body: some View {
     NavigationStack {
       VStack(spacing: 0) {
-        HStack {
-          Image(systemName: "magnifyingglass").foregroundColor(.gray)
-          TextField("Search", text: $searchText)
-            .autocorrectionDisabled()
-          if !searchText.isEmpty {
-            Button { searchText = "" } label: {
-              Image(systemName: "xmark.circle.fill").foregroundColor(.gray)
-            }
-          }
-        }
-        .padding(8)
-        .background(Color(UIColor.secondarySystemBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 10))
-        .padding(.horizontal, 10)
-        .padding(.vertical, 8)
-
+        #if !targetEnvironment(macCatalyst)
+          InlineSearchField(text: $searchText)
+            .padding(.horizontal)
+            .padding(.top, 8)
+        #endif
         ScrollView {
           LazyVGrid(columns: columns, spacing: 10) {
             ForEach(filteredAlbums) { album in
@@ -152,6 +146,16 @@ struct AlbumsGridView: View {
                 AlbumsView(viewModel: albumViewModel, album: album)
               }
               .buttonStyle(.plain)
+              .contextMenu {
+                AlbumQueueMenu(player: playerViewModel, album: album)
+                Button {
+                  pins.toggle(album: album)
+                } label: {
+                  Label(
+                    PinnedKind.album.toggleTitle(pinned: pins.isPinned(album: album)),
+                    systemImage: pins.isPinned(album: album) ? "pin.slash" : "pin")
+                }
+              }
             }
           }
           .padding(.horizontal, 10)
@@ -159,7 +163,10 @@ struct AlbumsGridView: View {
           .playerBottomPadding(active: 90, inactive: 12)
         }
       }
-      .navigationTitle("Albums")
+      .catalystAwareNavigationTitle("Albums")
+      #if targetEnvironment(macCatalyst)
+        .catalystAwareSearch(text: $searchText, prompt: "Search")
+      #endif
       .onAppear { albumViewModel.fetchAlbums() }
     }
   }

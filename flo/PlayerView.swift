@@ -22,8 +22,7 @@ struct PlayerView: View {
   @State private var isDragging = false
 
   @State private var showQueue = false
-
-  @GestureState private var queueDragOffset: CGSize = .zero
+  @StateObject private var airPlayPickerRef = AirPlayPickerRef()
 
   @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
@@ -41,166 +40,26 @@ struct PlayerView: View {
           return max(0, min(300, size.width - 32))
         }
       }()
-      let isIPadPortrait = UIDevice.current.userInterfaceIdiom == .pad && size.height > size.width
-      let queueSheetHeight: CGFloat = {
-        guard size.height.isFinite, size.height > 0 else { return 500 }
-        let raw: CGFloat = isIPadPortrait ? min(700, max(500, size.height * 0.62)) : 500
-        // Never exceed container height (prevents sheet taller than window on compact height)
-        return min(raw, max(0, size.height - 16))
-      }()
-
       ZStack {
         playerBackground()
           .offset(y: offset.height)
 
         ZStack {
-          // Keep interactive content draggable while preserving full-bleed background.
-          ZStack(alignment: .topLeading) {
-            Color(.systemBackground)
-              .ignoresSafeArea()
-              .clipShape(
-                RoundedRectangle(cornerRadius: 15, style: .continuous)
-              )
-            VStack(alignment: .leading) {
-              HStack {
-                Spacer()
-
-                Rectangle()
-                  .foregroundColor(Color.gray.opacity(0.3))
-                  .frame(width: 50, height: 5)
-                  .cornerRadius(30)
-                  .padding(.top)
-
-                Spacer()
-              }
-              VStack(alignment: .leading, spacing: 3) {
-                Text("Playing Next").customFont(.headline)
-
-                HStack(alignment: .bottom, spacing: 10) {
-                  if viewModel.queue.isEmpty {
-                    Text("").customFont(.subheadline)
-                  } else {
-                    Text(
-                      "From \(viewModel.nowPlaying.contextName ?? viewModel.nowPlaying.albumName ?? "")"
-                    ).customFont(.subheadline)
-                  }
-
-                  Spacer()
-
-                  Button {
-                    viewModel.shuffleCurrentQueue()
-                  } label: {
-                    Image(systemName: "shuffle")
-                      .foregroundColor(Color.accentColor)
-                      .fontWeight(.bold)
-                      .padding(5)
-                      .background(
-                        viewModel.isShuffling ? Color.gray.opacity(0.2) : Color.clear
-                      )
-                      .cornerRadius(5)
-                  }
-
-                  Button {
-                    viewModel.setPlaybackMode()
-                  } label: {
-                    Image(systemName: "repeat")
-                      .foregroundColor(Color.accentColor)
-                      .fontWeight(.bold)
-                      .overlay(
-                        Group {
-                          Text("1")
-                            .font(.caption)
-                            .clipShape(Circle())
-                            .offset(x: 10, y: -5)
-                            .fontWeight(.bold)
-                        }.opacity(viewModel.playbackMode == PlaybackMode.repeatOnce ? 1 : 0)
-                      )
-                      .padding(5)
-                      .background(
-                        viewModel.playbackMode == PlaybackMode.defaultPlayback
-                          ? Color.clear : Color.gray.opacity(0.2)
-                      )
-                      .cornerRadius(5)
-                  }
-                }
-              }
-              .padding(.horizontal)
-              .padding(.bottom, 5)
-
-              ScrollView {
-                LazyVStack(alignment: .leading) {
-                  ForEach(Array(viewModel.queue.enumerated()), id: \.offset) { idx, song in
-                    HStack(alignment: .top) {
-                      VStack(alignment: .leading) {
-                        HStack(alignment: .center, spacing: 6) {
-                          Text(song.songName ?? "")
-                            .customFont(.callout)
-                            .fontWeight(.medium)
-
-                          if ExplicitStatus(from: song.explicitStatus).isExplicit {
-                            ExplicitBadge(size: .compact)
-                          }
-                        }
-                        .padding(.bottom, 3)
-
-                        Text(song.artistName ?? "")
-                          .customFont(.caption1)
-                      }
-                      .frame(maxWidth: .infinity, alignment: .leading)
-
-                      Spacer()
-
-                      Text(timeString(for: song.duration)).customFont(.caption1)
-                        .padding(.top, 4)
-                    }
-                    .padding(.vertical, 5)
-                    .padding(.horizontal)
-                    .background(
-                      viewModel.activeQueueIdx == idx
-                        ? Color.gray.opacity(0.1) : Color(.systemBackground)
-                    )
-                    .onTapGesture {
-                      viewModel.playFromQueue(idx: idx)
-                    }
-                  }
-                }
-              }.padding(.bottom, 60)
+          if showQueue {
+            QueueView(
+              player: viewModel,
+              albums: albumViewModel,
+              isPresented: $showQueue,
+              topSafeInset: topSafeInset,
+              bottomSafeInset: bottomSafeInset
+            ) { destination in
+              showQueue = false
+              onOpenLibraryDestination?(destination)
             }
+            .environmentObject(downloadViewModel)
+            .transition(.opacity.combined(with: .move(edge: .bottom)))
+            .zIndex(1)
           }
-          .gesture(
-            DragGesture()
-              .updating($queueDragOffset) { value, state, _ in
-                if value.translation.height > 0 {
-                  state = value.translation
-                }
-              }
-              .onEnded { value in
-                if value.translation.height > 100 {
-                  self.showQueue = false
-                }
-              }
-          )
-          .animation(.spring(duration: 0.4), value: queueDragOffset.height)
-          .foregroundColor(.primary)
-          .zIndex(1)
-          .overlay {
-            if showQueue {
-              Button {
-                showQueue = false
-              } label: {
-                EmptyView()
-              }
-              .keyboardShortcut(.escape, modifiers: [])
-              .frame(width: 0, height: 0)
-              .opacity(0)
-            }
-          }
-          .offset(
-            y: showQueue
-              ? size.height - queueSheetHeight + queueDragOffset.height : size.height
-          )
-          .frame(height: queueSheetHeight)
-          .animation(.spring(duration: 0.2), value: showQueue)
 
           ZStack {
             if viewModel.isLyricsMode {
@@ -241,6 +100,8 @@ struct PlayerView: View {
             }
           }
         }
+        // Same spring as the lyrics screen so open/close match its feel.
+        .animation(.spring(duration: 0.3), value: showQueue)
         .offset(y: offset.height)
         .onAppear {
           albumViewModel.getArtists()
@@ -363,6 +224,22 @@ struct PlayerView: View {
       Spacer()
 
       VStack {
+        if let outputName = viewModel.externalOutputName {
+          Button {
+            airPlayPickerRef.presentPicker()
+          } label: {
+            Text(outputName)
+              .foregroundColor(.white.opacity(0.9))
+              .customFont(.caption2)
+              .fontWeight(.bold)
+              .multilineTextAlignment(.center)
+              .lineLimit(1)
+              .frame(maxWidth: .infinity, alignment: .center)
+          }
+          .buttonStyle(.plain)
+          .padding(.bottom, 2)
+        }
+
         if viewModel.isLiveRadio {
           liveProgressBar()
         } else {
@@ -449,22 +326,18 @@ struct PlayerView: View {
 
       Spacer(minLength: 0)
 
-      AirPlayRoutePicker(tintColor: UIColor.white, activeTintColor: UIColor.white)
-        .frame(width: 36, height: 36)
-        .frame(width: 44, height: 44)
-        .overlay(alignment: .bottom) {
-          if let outputName = viewModel.externalOutputName {
-            Text(outputName)
-              .foregroundColor(.white)
-              .customFont(.caption2)
-              .fontWeight(.bold)
-              .lineLimit(2)
-              .multilineTextAlignment(.center)
-              .frame(maxWidth: 260)
-              .fixedSize(horizontal: false, vertical: true)
-              .offset(y: 13)
-          }
+      AirPlayRoutePicker(
+        tintColor: UIColor.white,
+        activeTintColor: UIColor.white,
+        pickerRef: airPlayPickerRef
+      )
+      .frame(width: 36, height: 36)
+      .frame(width: 44, height: 44)
+      .background {
+        if viewModel.externalOutputName != nil {
+          AirPlayActiveCircle()
         }
+      }
 
       Spacer(minLength: 0)
 
@@ -499,6 +372,11 @@ struct PlayerView: View {
       }
       .disabled(isQueueDisabled)
       .opacity(isQueueDisabled ? 0.4 : 1)
+      .background {
+        if showQueue.wrappedValue {
+          AirPlayActiveCircle()
+        }
+      }
       .frame(width: 44, height: 44)
     }
     .frame(height: 44)

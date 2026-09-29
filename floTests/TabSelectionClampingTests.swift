@@ -355,4 +355,47 @@ final class TabSelectionClampingTests: XCTestCase {
       }
     }
   }
+
+  // MARK: - availableTabs: pinned items (FLO-36)
+
+  func testAvailableTabs_sidebar_includesPinnedItems() {
+    let pins = [
+      PinnedItem(kind: .album, refId: "a1", name: "Album"),
+      PinnedItem(kind: .artist, refId: "ar1", name: "Artist"),
+    ]
+    let tabs = availableTabs(
+      isPadSidebar: true, isLoggedIn: false, libraryViewV2Enabled: false,
+      isDebugEnabled: false, pinnedItems: pins)
+
+    XCTAssertTrue(tabs.contains(.pinned(pins[0])))
+    XCTAssertTrue(tabs.contains(.pinned(pins[1])))
+  }
+
+  func testAvailableTabs_baseTabBar_excludesPinnedItems() {
+    let pins = [PinnedItem(kind: .album, refId: "a1", name: "Album")]
+    let tabs = availableTabs(
+      isPadSidebar: false, isLoggedIn: true, libraryViewV2Enabled: false,
+      isDebugEnabled: false, pinnedItems: pins)
+
+    XCTAssertFalse(tabs.contains(.pinned(pins[0])))
+  }
+
+  func testNormalizedTab_unpinnedSelectionFallsBack() {
+    let removed = PinnedItem(kind: .playlist, refId: "p1", name: "Mix")
+    let tabs = availableTabs(
+      isPadSidebar: true, isLoggedIn: true, libraryViewV2Enabled: false,
+      isDebugEnabled: false, pinnedItems: [])
+
+    // The pin is gone, so selection clamps away instead of stranding the sidebar.
+    XCTAssertEqual(normalizedTab(.pinned(removed), available: tabs), .home)
+  }
+
+  func testNormalizedTab_keepsExistingPin() {
+    let pin = PinnedItem(kind: .album, refId: "a1", name: "Album")
+    let tabs = availableTabs(
+      isPadSidebar: true, isLoggedIn: true, libraryViewV2Enabled: false,
+      isDebugEnabled: false, pinnedItems: [pin])
+
+    XCTAssertEqual(normalizedTab(.pinned(pin), available: tabs), .pinned(pin))
+  }
 }

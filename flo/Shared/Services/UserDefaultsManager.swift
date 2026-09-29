@@ -7,6 +7,10 @@
 
 import Foundation
 
+extension Notification.Name {
+  static let crossfadeSettingDidChange = Notification.Name("flo.crossfadeSettingDidChange")
+}
+
 class UserDefaultsManager {
   static func getAll() -> [String: Any] {
     var result = [String: Any]()
@@ -128,6 +132,34 @@ class UserDefaultsManager {
     }
   }
 
+  /// Ordered list of pinned downloaded-album ids (legacy downloads-only format).
+  /// Kept for one-time migration into `pinnedItems`.
+  static var pinnedAlbumIds: [String] {
+    get {
+      return UserDefaults.standard.stringArray(forKey: UserDefaultsKeys.pinnedAlbums) ?? []
+    }
+    set {
+      UserDefaults.standard.set(newValue, forKey: UserDefaultsKeys.pinnedAlbums)
+    }
+  }
+
+  /// Pinned library items (albums, artists, playlists) in pin order
+  /// (most recently pinned first). Stored as JSON.
+  static var pinnedItems: [PinnedItem] {
+    get {
+      guard let data = UserDefaults.standard.data(forKey: UserDefaultsKeys.pinnedItems),
+        let items = try? JSONDecoder().decode([PinnedItem].self, from: data)
+      else {
+        return []
+      }
+      return items
+    }
+    set {
+      let data = try? JSONEncoder().encode(newValue)
+      UserDefaults.standard.set(data, forKey: UserDefaultsKeys.pinnedItems)
+    }
+  }
+
   static var libraryViewV2: Bool {
     get {
       return UserDefaults.standard.bool(forKey: UserDefaultsKeys.libraryViewV2)
@@ -135,6 +167,23 @@ class UserDefaultsManager {
     set {
       UserDefaults.standard.set(newValue, forKey: UserDefaultsKeys.libraryViewV2)
     }
+  }
+
+  /// Crossfade duration in seconds. 0 (the default) means off; any positive
+  /// value enables crossfade, which takes precedence over gapless playback.
+  static var crossfadeDuration: Double {
+    get {
+      return UserDefaults.standard.double(forKey: UserDefaultsKeys.crossfadeDuration)
+    }
+    set {
+      UserDefaults.standard.set(newValue, forKey: UserDefaultsKeys.crossfadeDuration)
+      NotificationCenter.default.post(name: .crossfadeSettingDidChange, object: nil)
+    }
+  }
+
+  /// Crossfade is on when a positive duration is set.
+  static var crossfadeEnabled: Bool {
+    return crossfadeDuration > 0
   }
 
   static var playbackVolume: Float {
@@ -146,6 +195,15 @@ class UserDefaultsManager {
     }
     set {
       UserDefaults.standard.set(newValue, forKey: UserDefaultsKeys.playbackVolume)
+    }
+  }
+
+  static var equalizerPreset: String {
+    get {
+      return UserDefaults.standard.string(forKey: UserDefaultsKeys.equalizerPreset) ?? "off"
+    }
+    set {
+      UserDefaults.standard.set(newValue, forKey: UserDefaultsKeys.equalizerPreset)
     }
   }
 

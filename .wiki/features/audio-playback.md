@@ -29,7 +29,7 @@
 
 | Type | File | Description |
 |------|------|-------------|
-| `PlayerViewModel` | `/home/exedev/flo/flo/PlayerViewModel.swift` | Singleton view model that owns the `AVPlayer`, the queue, and playback state. |
+| `PlayerViewModel` | `/home/exedev/flo/flo/PlayerViewModel.swift` | Singleton view model that owns the `AVQueuePlayer`, the queue, and playback state. Preloads the next track for gapless transitions. |
 | `PlaybackService` | `/home/exedev/flo/flo/Shared/Services/PlaybackService.swift` | Converts `Playable` items into persisted `QueueEntity` records and shuffles queues. |
 | `Playable` | `/home/exedev/flo/flo/Shared/Models/Playable.swift` | Protocol that represents anything that can produce a queue, such as `Album`, `Playlist`, and `SongCollection`. |
 | `QueueEntity` | Core Data model | Core Data entity stored in the persistent queue. Used to restore the queue across launches. |
@@ -43,7 +43,7 @@
 
 ## How it works
 
-The player is built around a single `AVPlayer` instance managed by the `PlayerViewModel` singleton. When a user chooses to play an album, playlist, song, or radio, the view model asks `PlaybackService` to create a `QueueEntity` queue, persists it through Core Data, and then calls `setNowPlaying` to load the active stream.
+The player is built around a single `AVQueuePlayer` instance managed by the `PlayerViewModel` singleton. When a user chooses to play an album, playlist, song, or radio, the view model asks `PlaybackService` to create a `QueueEntity` queue, persists it through Core Data, and then calls `setNowPlaying` to load the active stream.
 
 Streaming uses the URL returned by `AlbumService.getStreamUrl`. That method checks for a local download first, then a cached stream, and finally falls back to a remote Subsonic stream URL with the selected bit rate and format. The periodic time observer updates the progress label, saves the current progress to `UserDefaults`, triggers a scrobble once the track passes 50 percent, and starts pre-caching the next song after 10 seconds of playback.
 
@@ -58,7 +58,8 @@ flowchart TD
     AS -->|local file| LF[LocalFileManager]
     AS -->|cached stream| SCM[StreamCacheManager]
     AS -->|remote URL| ND[Navidrome server]
-    VM -->|render| AV[AVPlayer]
+    VM -->|render| AV[AVQueuePlayer]
+    VM -->|preload next| AV
     VM -->|info| MP[MPNowPlayingInfoCenter]
     VM -->|commands| RC[MPRemoteCommandCenter]
     VM -->|lyrics| LS[LRCLIBService]
@@ -75,6 +76,35 @@ The player supports three modes that cycle when the user taps the repeat button:
 3. `repeatOnce` — Repeat the current track forever.
 
 `shuffleCurrentQueue` toggles shuffle mode by either keeping the original queue from `PlaybackService.getQueue` or shuffling the tail after the current index.
+
+## Gapless playback
+
+Transitions between tracks are gapless (always on, no toggle). `PlayerViewModel` keeps an `AVQueuePlayer` with the current item plus at most one preloaded next item:
+
+1. On every track change, `primeGaplessNext()` enqueues the next track when it already exists on disk (offline download or `StreamCacheManager` cache) — no network involved, so the boundary is seamless.
+2. If the next track is not on disk, the periodic observer watches the remaining time. At `gaplessRemoteLeadTime` (10 s) before the end it enqueues the remote stream so AVFoundation can buffer it in time.
+3. When the `StreamCacheManager` pre-cache (started at 10 s into the track) completes first, its completion handler enqueues the local file instead.
+
+`AVQueuePlayer.currentItem` KVO drives state sync on auto-advance: `advanceTrackState()` refreshes now-playing metadata, lyrics, scrobbling, progress, and the star state without touching transport. Repeat modes participate: `repeatAlbum` wraps the last track to index 0, `repeatOnce` queues a duplicate item of the current track.
+
+Manual skips reuse the queued item via `advanceToNextItem()` when it matches the target index, and fall back to a full `setNowPlaying()` swap otherwise. Queue edits (`playNext`, reorder, remove, shuffle, `setPlaybackMode`) call `resyncGaplessQueue()` to drop the stale preload and re-arm the correct one. The old `replaceCurrentItem`-era stall recovery remains as the fallback path when no item is queued (end of queue, failed preload, live radio).
+
+Failure supervision keeps playback from stranding:
+
+- A preload whose status becomes `.failed` is removed and not re-armed for that queue index until the current track or the queue changes (`failedPreloadIdx`). At track end the normal fallback retries once, then the current-item failure path takes over.
+- A current item that fails to load or play surfaces the error and auto-skips to the next distinct track, stopping after `maxFailedSkips` consecutive failures so a dead library cannot cascade through the whole queue.
+- `DidPlayToEndTime` with a next item still queued arms a 1.5 s watchdog: if `AVQueuePlayer` never advances, the preload is dropped and `nextSong()` runs the replace path.
+- `StreamCacheManager.setWillPlayNext(mediaFileId:)` protects the preloaded file from cache eviction.
+
+## Crossfade (experimental)
+
+Preferences → Experimental has an opt-in **Crossfade** picker with Off plus 3–12 s durations (Off by default; `UserDefaultsManager.crossfadeDuration > 0` enables it), directly below the equalizer. When on it takes precedence over gapless: preloading into the primary `AVQueuePlayer` is suppressed and transitions run through a second `AVQueuePlayer`:
+
+- `maybeStartCrossfade` fires when the current track is within the crossfade window and builds the incoming item on a fresh player at volume 0.
+- A 20 Hz timer ramps the outgoing volume down and the incoming volume up with an equal-power curve over the actual time remaining, so the incoming track reaches full volume at the outgoing track's end.
+- `finishCrossfade` promotes the incoming player to `player` (re-subscribing `currentItem` KVO and the periodic time observer), syncs now-playing metadata, and drops the outgoing player. It runs either when the ramp completes or when `DidPlayToEndTime` fires for the outgoing item.
+- Pause, seek, skip, queue edits, queue clearing, and turning the setting off all cancel an in-flight crossfade and restore the outgoing volume.
+- A failed incoming item cancels the crossfade instead of stranding playback in silence.
 
 ## Live radio
 

@@ -8,4 +8,5 @@ import Foundation
 enum LibraryDestination: Hashable {
   case artist(id: String, name: String)
   case album(id: String, name: String, artist: String)
+  case playlist(id: String, name: String)
 }

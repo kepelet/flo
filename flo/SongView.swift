@@ -69,8 +69,11 @@ struct SongView: View {
             idx: idx, item: viewModel.album, isFromLocal: viewModel.isDownloaded)
         }
         .contextMenu {
-          VStack {
-            if !song.fileUrl.isEmpty {
+          QueueMenuButtons(
+            player: playerViewModel, song: song, contextName: viewModel.album.name,
+            isFromLocal: viewModel.isDownloaded)
+
+          if !song.fileUrl.isEmpty {
               Button(role: .destructive) {
                 viewModel.removeDownloadSong(album: viewModel.album, songId: song.id)
                 viewModel.setActiveAlbum(album: viewModel.album)
@@ -79,10 +82,7 @@ struct SongView: View {
                   viewModel.fetchDownloadedAlbums()
                 }
               } label: {
-                HStack {
-                  Text("Remove Download")
-                  Image(systemName: "arrow.down.circle")
-                }
+                Label("Remove Download", systemImage: "arrow.down.circle")
               }
             } else {
               Button {
@@ -90,13 +90,9 @@ struct SongView: View {
                 downloadViewModel.addIndividualItem(
                   album: viewModel.album, song: viewModel.album.songs[idx])
               } label: {
-                HStack {
-                  Text("Download")
-                  Image(systemName: "arrow.down.circle")
-                }
+                Label("Download", systemImage: "arrow.down.circle")
               }
             }
-          }
         }
       }
       .listStyle(PlainListStyle()).customFont(.body)

@@ -118,6 +118,7 @@ struct PreferencesView: View {
       iconName: "AppIconAlt3"),
   ]
 
+  @State private var eqPreset = UserDefaultsManager.equalizerPreset
   @State private var experimentalMaxBitrate = UserDefaultsManager.maxBitRate
   @State private var experimentalPlayerBackground = UserDefaultsManager.playerBackground
   @State private var experimentalStreamCacheSize = UserDefaultsManager.streamCacheMaxSize
@@ -299,8 +300,8 @@ struct PreferencesView: View {
           }
         }
 
-        Section(header: Text("App Icon")) {
-          if UIApplication.shared.supportsAlternateIcons {
+        if UIApplication.shared.supportsAlternateIcons {
+          Section(header: Text("App Icon")) {
             ScrollView(.horizontal, showsIndicators: false) {
               HStack(spacing: 12) {
                 ForEach(appIconOptions) { option in
@@ -329,10 +330,6 @@ struct PreferencesView: View {
                 .disabled(appIconViewModel.isChangingIcon)
               }
             }
-          } else {
-            Text("Alternate app icons are not supported on this device.")
-              .font(.caption)
-              .foregroundColor(.gray)
           }
         }
 
@@ -451,6 +448,43 @@ struct PreferencesView: View {
             Text("Unified library").font(.caption)
               .foregroundColor(.gray)
           }
+
+          VStack(alignment: .leading, spacing: 4) {
+            Picker("Equalizer", selection: $eqPreset) {
+              ForEach(EqualizerPreset.allCases) { preset in
+                Text(preset.displayName).tag(preset.rawValue)
+              }
+            }
+            .onChange(of: eqPreset) { value in
+              EqualizerManager.shared.preset = EqualizerPreset.from(rawValue: value)
+              eqPreset = EqualizerManager.shared.preset.rawValue
+            }
+
+            Text("EQ presets. Off = original sound.").font(.caption).foregroundColor(.gray)
+          }
+
+          VStack(alignment: .leading, spacing: 4) {
+            Picker(
+              "Crossfade",
+              selection: Binding(
+                get: { UserDefaultsManager.crossfadeDuration },
+                set: { UserDefaultsManager.crossfadeDuration = $0 }
+              )
+            ) {
+              Text("Off").tag(0.0)
+              Text("3 seconds").tag(3.0)
+              Text("5 seconds").tag(5.0)
+              Text("6 seconds").tag(6.0)
+              Text("8 seconds").tag(8.0)
+              Text("10 seconds").tag(10.0)
+              Text("12 seconds").tag(12.0)
+            }
+
+            Text(
+              "Overlaps the end of the current track with the start of the next. Takes precedence over gapless playback."
+            )
+            .font(.caption).foregroundColor(.gray)
+          }
         }
 
         Section(header: Text("Development")) {
@@ -547,7 +581,7 @@ struct PreferencesView: View {
         if playerViewModel.hasNowPlaying() && !playerViewModel.shouldHidePlayer {
           Color.clear.frame(height: 50).listRowBackground(Color.clear)
         }
-      }.navigationBarTitle("Preferences", displayMode: .inline)
+      }.catalystAwareNavigationTitle("Preferences", displayMode: .inline)
     }.onAppear {
       floooViewModel.getLocalStorageInformation()
 

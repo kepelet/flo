@@ -26,6 +26,8 @@ final class UserDefaultsManagerTests: XCTestCase {
       UserDefaultsKeys.libraryViewV2,
       UserDefaultsKeys.uiFontScale,
       UserDefaultsKeys.libraryV2Segment,
+      UserDefaultsKeys.pinnedItems,
+      UserDefaultsKeys.pinnedAlbums,
     ]
 
     for key in keys {
@@ -49,6 +51,8 @@ final class UserDefaultsManagerTests: XCTestCase {
       UserDefaultsKeys.libraryViewV2,
       UserDefaultsKeys.uiFontScale,
       UserDefaultsKeys.libraryV2Segment,
+      UserDefaultsKeys.pinnedItems,
+      UserDefaultsKeys.pinnedAlbums,
     ]
 
     for key in keys {

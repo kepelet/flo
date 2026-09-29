@@ -86,20 +86,21 @@ struct SongsView: View {
               idx: selectedSongIdx, item: playlist, isFromLocal: false
             )
           }
+          .contextMenu {
+            QueueMenuButtons(
+              player: playerViewModel, song: song, contextName: "All Tracks",
+              isFromLocal: false)
+          }
           .frame(maxWidth: .infinity, alignment: .leading)
         }
       }
       .padding(.top, 10)
       .padding(.bottom, playerContentBottomPadding(viewModel: playerViewModel, iPhoneActive: 100, iPhoneInactive: 12))
-      .navigationTitle("Songs")
+      .catalystAwareNavigationTitle("Songs")
       .refreshable {
         await viewModel.refreshAllSongs()
       }
-      .searchable(
-        text: $searchSong,
-        placement: .navigationBarDrawer(displayMode: .always),
-        prompt: "Search"
-      )
+      .catalystAwareSearch(text: $searchSong, prompt: "Search")
     }
   }
 }

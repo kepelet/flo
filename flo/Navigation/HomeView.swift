@@ -9,6 +9,7 @@ import SwiftUI
 
 struct HomeView: View {
   @ObservedObject var viewModel: AuthViewModel
+  @ObservedObject private var networkMonitor = NetworkMonitor.shared
   @State private var showLoginSheet: Bool = false
 
   @EnvironmentObject var floooViewModel: FloooViewModel
@@ -19,13 +20,16 @@ struct HomeView: View {
 
   private enum ConnectionState {
     case online
+    case offline
     case expired
     case freshInstall
   }
 
   private var connectionState: ConnectionState {
     if viewModel.isLoggedIn {
-      return .online
+      // Green only when the server is actually reachable; the dot must not
+      // claim online while every request is failing.
+      return networkMonitor.isServerReachable ? .online : .offline
     } else if hasConfiguredServer() {
       return .expired
     } else {
@@ -37,7 +41,7 @@ struct HomeView: View {
     switch connectionState {
     case .online:
       return .green
-    case .expired:
+    case .offline, .expired:
       return .orange
     case .freshInstall:
       return .red
@@ -327,6 +331,9 @@ struct HomeView: View {
           .environmentObject(playerViewModel)
           .environmentObject(downloadViewModel)
       }
+      #if targetEnvironment(macCatalyst)
+        .catalystAwareNavigationTitle("Home")
+      #endif
     }
   }
 }

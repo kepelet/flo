@@ -87,7 +87,7 @@ class APIManager {
     )
     .validate(statusCode: 200..<300)
     .responseDecodable(of: T.self) { response in
-      Self.notifyIfSessionExpired(
+      Self.notifySessionExpiredIfNeeded(
         response: response.response, error: response.error, authSession: authSession)
       completion(response)
     }
@@ -114,8 +114,13 @@ class APIManager {
     )
     .validate(statusCode: 200..<300)
     .responseDecodable(of: T.self) { response in
-      Self.notifyIfSessionExpired(
-        response: response.response, error: response.error, authSession: authSession)
+      // Subsonic servers report stale/invalid credentials as HTTP 200 with
+      // `subsonic-response.status == "failed"` (error code 40/41) instead of
+      // a 401, so a plain status-code check never sees them. Detect it so
+      // the ghost-session recovery fires for Subsonic surfaces too.
+      Self.notifySessionExpiredIfNeeded(
+        response: response.response, error: response.error, authSession: authSession,
+        isAuthFailed: Self.isSubsonicAuthFailure(data: response.data))
       completion(response)
     }
   }
@@ -132,6 +137,8 @@ class APIManager {
     let url =
       "\(UserDefaultsManager.serverBaseURL)\(endpoint)\(AuthService.shared.getCreds(key: "subsonicToken"))"
 
+    let authSession = AuthService.shared.sessionSnapshot()
+
     return session.download(
       url, method: method, parameters: parameters, encoding: encoding,
       requestModifier: { $0.timeoutInterval = 60 }
@@ -141,6 +148,8 @@ class APIManager {
     }
     .validate()
     .responseURL { response in
+      Self.notifySessionExpiredIfNeeded(
+        response: response.response, error: response.error, authSession: authSession)
       switch response.result {
       case .success(let fileURL):
         completion(.success(fileURL))
@@ -160,12 +169,16 @@ class APIManager {
     let url =
       "\(UserDefaultsManager.serverBaseURL)\(endpoint)\(AuthService.shared.getCreds(key: "subsonicToken"))"
 
+    let authSession = AuthService.shared.sessionSnapshot()
+
     session.download(
       url, method: method, parameters: parameters, encoding: encoding,
       requestModifier: { $0.timeoutInterval = 60 }
     )
     .validate()
     .responseURL { response in
+      Self.notifySessionExpiredIfNeeded(
+        response: response.response, error: response.error, authSession: authSession)
       switch response.result {
       case .success(let fileURL):
         completion(.success(fileURL))
@@ -180,14 +193,39 @@ extension APIManager {
   /// Posts .sessionExpired when the underlying HTTP response is 401/403.
   /// Centralizes ghost-session recovery so NDEndpoint + Subsonic callers do
   /// not need to duplicate status-code inspection.
-  fileprivate static func notifyIfSessionExpired(
-    response: HTTPURLResponse?, error: AFError?, authSession: AuthSessionSnapshot
+  static func notifySessionExpiredIfNeeded(
+    response: HTTPURLResponse?, error: AFError?, authSession: AuthSessionSnapshot,
+    isAuthFailed: Bool = false
   ) {
-    let status = response?.statusCode ?? error?.responseCode
-    guard let code = status, code == 401 || code == 403 else { return }
+    if !isAuthFailed {
+      let status = response?.statusCode ?? error?.responseCode
+      guard let code = status, code == 401 || code == 403 else { return }
+    }
     DispatchQueue.main.async {
       NotificationCenter.default.post(name: .sessionExpired, object: authSession)
     }
+  }
+
+  /// True when a Subsonic-shaped body carries an authentication failure:
+  /// `status == "failed"` with error code 40 (wrong username/password) or 41
+  /// (token auth unsupported). Other failure codes (missing params, version
+  /// mismatch, folder not found, …) are not session problems and must not
+  /// log the user out.
+  fileprivate static func isSubsonicAuthFailure(data: Data?) -> Bool {
+    guard let data = data,
+      let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+      let subsonic = json["subsonic-response"] as? [String: Any],
+      let status = subsonic["status"] as? String, status != "ok"
+    else {
+      return false
+    }
+
+    guard let error = subsonic["error"] as? [String: Any], let code = error["code"] as? Int
+    else {
+      return false
+    }
+
+    return code == 40 || code == 41
   }
 
   func login<T: Decodable>(
