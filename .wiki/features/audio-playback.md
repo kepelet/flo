@@ -79,7 +79,7 @@ The player supports three modes that cycle when the user taps the repeat button:
 
 ## Gapless playback
 
-Transitions between tracks are gapless. `PlayerViewModel` keeps an `AVQueuePlayer` with the current item plus at most one preloaded next item:
+Transitions between tracks are gapless (always on, no toggle). `PlayerViewModel` keeps an `AVQueuePlayer` with the current item plus at most one preloaded next item:
 
 1. On every track change, `primeGaplessNext()` enqueues the next track when it already exists on disk (offline download or `StreamCacheManager` cache) — no network involved, so the boundary is seamless.
 2. If the next track is not on disk, the periodic observer watches the remaining time. At `gaplessRemoteLeadTime` (10 s) before the end it enqueues the remote stream so AVFoundation can buffer it in time.
@@ -95,6 +95,16 @@ Failure supervision keeps playback from stranding:
 - A current item that fails to load or play surfaces the error and auto-skips to the next distinct track, stopping after `maxFailedSkips` consecutive failures so a dead library cannot cascade through the whole queue.
 - `DidPlayToEndTime` with a next item still queued arms a 1.5 s watchdog: if `AVQueuePlayer` never advances, the preload is dropped and `nextSong()` runs the replace path.
 - `StreamCacheManager.setWillPlayNext(mediaFileId:)` protects the preloaded file from cache eviction.
+
+## Crossfade (experimental)
+
+Preferences → Experimental has an opt-in **Crossfade** picker with Off plus 3–12 s durations (Off by default; `UserDefaultsManager.crossfadeDuration > 0` enables it), directly below the equalizer. When on it takes precedence over gapless: preloading into the primary `AVQueuePlayer` is suppressed and transitions run through a second `AVQueuePlayer`:
+
+- `maybeStartCrossfade` fires when the current track is within the crossfade window and builds the incoming item on a fresh player at volume 0.
+- A 20 Hz timer ramps the outgoing volume down and the incoming volume up with an equal-power curve over the actual time remaining, so the incoming track reaches full volume at the outgoing track's end.
+- `finishCrossfade` promotes the incoming player to `player` (re-subscribing `currentItem` KVO and the periodic time observer), syncs now-playing metadata, and drops the outgoing player. It runs either when the ramp completes or when `DidPlayToEndTime` fires for the outgoing item.
+- Pause, seek, skip, queue edits, queue clearing, and turning the setting off all cancel an in-flight crossfade and restore the outgoing volume.
+- A failed incoming item cancels the crossfade instead of stranding playback in silence.
 
 ## Live radio
 

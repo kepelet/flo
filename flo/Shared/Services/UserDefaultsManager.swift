@@ -7,6 +7,10 @@
 
 import Foundation
 
+extension Notification.Name {
+  static let crossfadeSettingDidChange = Notification.Name("flo.crossfadeSettingDidChange")
+}
+
 class UserDefaultsManager {
   static func getAll() -> [String: Any] {
     var result = [String: Any]()
@@ -163,6 +167,23 @@ class UserDefaultsManager {
     set {
       UserDefaults.standard.set(newValue, forKey: UserDefaultsKeys.libraryViewV2)
     }
+  }
+
+  /// Crossfade duration in seconds. 0 (the default) means off; any positive
+  /// value enables crossfade, which takes precedence over gapless playback.
+  static var crossfadeDuration: Double {
+    get {
+      return UserDefaults.standard.double(forKey: UserDefaultsKeys.crossfadeDuration)
+    }
+    set {
+      UserDefaults.standard.set(newValue, forKey: UserDefaultsKeys.crossfadeDuration)
+      NotificationCenter.default.post(name: .crossfadeSettingDidChange, object: nil)
+    }
+  }
+
+  /// Crossfade is on when a positive duration is set.
+  static var crossfadeEnabled: Bool {
+    return crossfadeDuration > 0
   }
 
   static var playbackVolume: Float {

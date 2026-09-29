@@ -4,6 +4,7 @@
 //
 
 import XCTest
+import Foundation
 
 @testable import flo
 
@@ -195,6 +196,24 @@ final class PlayerViewModelPlaybackModeTests: XCTestCase {
     sut.playbackMode = PlaybackMode.repeatOnce
 
     XCTAssertNil(sut.nextDistinctIdxAfterFailure())
+  }
+
+  // MARK: - Crossfade setting
+
+  func testCrossfadeDuration_defaultsOff() {
+    UserDefaults.standard.removeObject(forKey: UserDefaultsKeys.crossfadeDuration)
+    XCTAssertEqual(UserDefaultsManager.crossfadeDuration, 0.0, accuracy: 0.001)
+    XCTAssertFalse(UserDefaultsManager.crossfadeEnabled)
+  }
+
+  func testCrossfadeDuration_persistsAndEnables() {
+    UserDefaultsManager.crossfadeDuration = 10.0
+    XCTAssertEqual(UserDefaultsManager.crossfadeDuration, 10.0, accuracy: 0.001)
+    XCTAssertTrue(UserDefaultsManager.crossfadeEnabled)
+
+    UserDefaultsManager.crossfadeDuration = 0.0
+    XCTAssertEqual(UserDefaultsManager.crossfadeDuration, 0.0, accuracy: 0.001)
+    XCTAssertFalse(UserDefaultsManager.crossfadeEnabled)
   }
 
   // MARK: - Stream cache completion contract

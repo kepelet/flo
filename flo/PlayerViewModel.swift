@@ -10,6 +10,7 @@ import Combine
 import CoreData
 import MediaPlayer
 import SwiftUI
+import os
 
 class PlayerViewModel: ObservableObject {
   static let shared = PlayerViewModel()
@@ -51,6 +52,14 @@ class PlayerViewModel: ObservableObject {
   private var queuedNextStatusObservation: AnyCancellable?
   private var queuedNextStatusObservedItem: AVPlayerItem?
 
+  private let playerLog = Logger(subsystem: "net.faultables.flo", category: "player")
+
+  /// Gapless diagnostics only when the debug switch is on (Console.app).
+  private func gaplessLog(_ message: String) {
+    guard UserDefaultsManager.enableDebug else { return }
+    playerLog.debug("\(message, privacy: .public)")
+  }
+
   @Published var queue: [QueueEntity] = []
   @Published var playbackMode = PlaybackMode.defaultPlayback
 
@@ -83,7 +92,10 @@ class PlayerViewModel: ObservableObject {
         return
       }
       UserDefaultsManager.playbackVolume = clamped
-      player?.volume = clamped
+      // During a crossfade the ramp timer owns both players' volumes.
+      if !isCrossfading {
+        player?.volume = clamped
+      }
     }
   }
   private var volumeBeforeMute: Float = UserDefaultsManager.playbackVolume
@@ -99,6 +111,17 @@ class PlayerViewModel: ObservableObject {
   private var interruptionObservation = Set<AnyCancellable>()
   private var routeChangeObservation = Set<AnyCancellable>()
   private var eqPresetObservation = Set<AnyCancellable>()
+  private var crossfadeSettingObservation = Set<AnyCancellable>()
+
+  // MARK: - Crossfade state
+  /// Crossfade plays the incoming track on a second player while the outgoing
+  /// one fades out; the incoming player is promoted to `player` when done.
+  private var crossfadePlayer: AVQueuePlayer?
+  private var crossfadeItem: AVPlayerItem?
+  private var crossfadeTimer: Timer?
+  private var crossfadeStatusObservation: AnyCancellable?
+  private var isCrossfading: Bool = false
+  private var crossfadeGeneration: Int = 0
 
   // FLO-5/FLO-3 hardening: stall and end-of-track state machine
   private var bufferEmptyCancellable: AnyCancellable?
@@ -160,15 +183,12 @@ class PlayerViewModel: ObservableObject {
   init() {
     self.player = AVQueuePlayer()
     self.player?.volume = UserDefaultsManager.playbackVolume
-    self.currentItemObservation = self.player?.publisher(for: \.currentItem)
-      .receive(on: DispatchQueue.main)
-      .sink { [weak self] item in
-        self?.handleCurrentItemChanged(item)
-      }
+    self.observeCurrentItem(of: self.player)
     self.volumeBeforeMute = UserDefaultsManager.playbackVolume > 0 ? UserDefaultsManager.playbackVolume : 1.0
     self.observeInterruptionNotifications()
     self.observeRouteChangeNotifications()
     self.observeEqualizerPresetChanges()
+    self.observeCrossfadeSettingChanges()
     self.updateAudioRoute()
 
     let lastPlayData = PlaybackService.shared.getQueue()
@@ -211,6 +231,40 @@ class PlayerViewModel: ObservableObject {
         self.updateAudioRoute()
       }
       .store(in: &routeChangeObservation)
+  }
+
+  /// Crossfade takes precedence over gapless: enabling it drops any queued
+  /// preload, disabling it cancels an active crossfade and re-arms gapless.
+  func observeCrossfadeSettingChanges() {
+    NotificationCenter.default
+      .publisher(for: .crossfadeSettingDidChange)
+      .receive(on: DispatchQueue.main)
+      .sink { [weak self] _ in
+        guard let self else { return }
+
+        if UserDefaultsManager.crossfadeEnabled {
+          self.removeUpcomingItems()
+        } else {
+          self.cancelCrossfade()
+          self.resyncGaplessQueue()
+        }
+      }
+      .store(in: &crossfadeSettingObservation)
+  }
+
+  /// (Re)subscribes to `currentItem` KVO. Crossfade swaps the primary player,
+  /// so the subscription moves with it.
+  private func observeCurrentItem(of player: AVQueuePlayer?) {
+    currentItemObservation?.cancel()
+    currentItemObservation = nil
+
+    guard let player else { return }
+
+    currentItemObservation = player.publisher(for: \.currentItem)
+      .receive(on: DispatchQueue.main)
+      .sink { [weak self] item in
+        self?.handleCurrentItemChanged(item)
+      }
   }
 
   func observeEqualizerPresetChanges() {
@@ -413,6 +467,7 @@ class PlayerViewModel: ObservableObject {
     }
 
     failedSkipCount += 1
+    gaplessLog("current item failed; consecutive skips=\(failedSkipCount)")
     guard failedSkipCount <= maxFailedSkips, let target = nextDistinctIdxAfterFailure() else {
       player?.pause()
       return
@@ -442,12 +497,22 @@ class PlayerViewModel: ObservableObject {
     // FLO-3: authoritative end-of-track signal; replaces sole reliance on rounding.
     guard !isLiveRadio else { return }
 
+    // Crossfade: the outgoing item ended while the incoming player is already
+    // audible — promote it instead of starting a new transition.
+    if isCrossfading {
+      finishCrossfade()
+      return
+    }
+
     // Gapless: the item already advanced, or a preloaded next item is waiting.
     if let ended = note.object as? AVPlayerItem, ended !== playerItem { return }
     if queuedNextItem != nil {
+      gaplessLog("end: preload present, waiting for AVQueuePlayer advance")
       scheduleAdvanceWatchdog(for: note.object as? AVPlayerItem)
       return
     }
+
+    gaplessLog("end: no preload — fallback nextSong()")
 
     if let last = lastNextSongFire, Date().timeIntervalSince(last) < nextSongDebounce {
       return
@@ -556,6 +621,12 @@ class PlayerViewModel: ObservableObject {
     self.isMediaFailed = false
     self.hasTriggeredCache = false
 
+    cancelCrossfade()
+
+    gaplessLog(
+      "setNowPlaying idx=\(activeQueueIdx)/\(queue.count) '\(nowPlaying.songName ?? "")' playAudio=\(playAudio)"
+    )
+
     StreamCacheManager.shared.cancelAllInFlight()
 
     try? AVAudioSession.sharedInstance().setActive(true)
@@ -637,23 +708,39 @@ class PlayerViewModel: ObservableObject {
 
     // EQ: per-item tap (nil when Off/Flat = bit-perfect bypass).
     item.audioMix = EqualizerManager.shared.makeAudioMix()
-    // Prefer smaller forward buffer for transcoded streams so gaps surface faster and recover.
-    item.preferredForwardBufferDuration = 3
+    // Queued items buffer with the system default: a preloaded next track must
+    // be allowed to get ahead, otherwise the transition can starve. The small
+    // cap for stall recovery is applied when the item actually becomes current.
+    item.preferredForwardBufferDuration = 0
     itemIndexByIdentity[ObjectIdentifier(item)] = idx
 
     return item
   }
 
   /// Points the view model at a new current item: EQ state, status + stall
-  /// observers. The EQ mix is refreshed here because a pre-queued item may
-  /// have been built while a different preset was active.
+  /// observers.
   private func bindCurrentItem(_ item: AVPlayerItem) {
     guard playerItem !== item else { return }
 
     playerItem = item
-    item.audioMix = EqualizerManager.shared.makeAudioMix()
+    refreshEqualizerMixIfNeeded(for: item)
+    // Prefer smaller forward buffer for transcoded streams so gaps surface faster and recover.
+    item.preferredForwardBufferDuration = 3
     observeCurrentItemStatus(item)
     setupPlayerItemObservers(for: item)
+  }
+
+  /// A pre-queued item may predate a preset change, but rebuilding a working
+  /// tap at bind time can glitch the transition. Only attach/detach when the
+  /// item's current mix does not match the bypass state.
+  private func refreshEqualizerMixIfNeeded(for item: AVPlayerItem) {
+    let needsMix = !EqualizerManager.shared.isBypassed
+
+    if needsMix, item.audioMix == nil {
+      item.audioMix = EqualizerManager.shared.makeAudioMix()
+    } else if !needsMix, item.audioMix != nil {
+      item.audioMix = nil
+    }
   }
 
   private func observeCurrentItemStatus(_ item: AVPlayerItem) {
@@ -702,6 +789,8 @@ class PlayerViewModel: ObservableObject {
 
     guard !isSameItem else { return }
     guard let idx = itemIndexByIdentity[ObjectIdentifier(item)] else { return }
+
+    gaplessLog("advanced to idx=\(idx) '\(queue[idx].songName ?? "")'")
 
     // The preloaded item is now the current one; stop tracking it as "next".
     clearQueuedNextTracking()
@@ -777,13 +866,29 @@ class PlayerViewModel: ObservableObject {
   /// disk. Remote tracks wait for the deadline check so two server transcodes
   /// do not compete mid-track.
   private func primeGaplessNext() {
-    guard !isLiveRadio, hasNowPlaying(), queuedNextItem == nil,
-      let nextIdx = nextQueueIdxForGapless(),
-      !isFailedPreloadCandidate(nextIdx),
-      let currentItem = player?.currentItem
+    guard !UserDefaultsManager.crossfadeEnabled, !isLiveRadio, hasNowPlaying(),
+      queuedNextItem == nil
     else { return }
 
-    guard let nextItem = makePlayerItem(forQueueIndex: nextIdx, allowRemote: false) else { return }
+    guard let nextIdx = nextQueueIdxForGapless() else {
+      gaplessLog("prime: no next (mode=\(playbackMode), idx=\(activeQueueIdx)/\(queue.count))")
+      return
+    }
+
+    guard !isFailedPreloadCandidate(nextIdx) else {
+      gaplessLog("prime: idx=\(nextIdx) still blocked by failed-preload guard")
+      return
+    }
+
+    guard let currentItem = player?.currentItem else {
+      gaplessLog("prime: no current item")
+      return
+    }
+
+    guard let nextItem = makePlayerItem(forQueueIndex: nextIdx, allowRemote: false) else {
+      gaplessLog("prime: next idx=\(nextIdx) not local yet — waiting for deadline")
+      return
+    }
 
     insertQueuedNext(nextItem, at: nextIdx, after: currentItem)
   }
@@ -802,12 +907,35 @@ class PlayerViewModel: ObservableObject {
     observeQueuedNextStatus(item, idx: idx)
     StreamCacheManager.shared.setWillPlayNext(
       mediaFileId: queue.indices.contains(idx) ? queue[idx].id : nil)
+
+    let source = ((item.asset as? AVURLAsset)?.url.isFileURL ?? false) ? "local" : "remote"
+    gaplessLog("queued \(source) preload idx=\(idx) '\(queue[idx].songName ?? "")'")
+  }
+
+  /// When the stream-cache download for the next track completes after the
+  /// remote item was already queued, swap the queued item for the local file:
+  /// AVQueuePlayer bridges local items far more reliably than HTTP streams.
+  private func upgradeQueuedNextToLocalIfPossible() {
+    guard let queuedItem = queuedNextItem, let idx = queuedNextIdx,
+      queue.indices.contains(idx), let currentItem = player?.currentItem
+    else {
+      primeGaplessNext()
+      return
+    }
+
+    if let asset = queuedItem.asset as? AVURLAsset, asset.url.isFileURL { return }
+
+    guard let localItem = makePlayerItem(forQueueIndex: idx, allowRemote: false) else { return }
+
+    discardQueuedNextItem()
+    insertQueuedNext(localItem, at: idx, after: currentItem)
+    gaplessLog("upgraded preload to local idx=\(idx)")
   }
 
   /// Once per tick: enqueue the next item when the current track is about to
   /// end and nothing is queued yet (stream-cache miss fallback).
   private func maybeQueueNextItemBeforeDeadline(currentTime: Double) {
-    guard !isLiveRadio, isPlaying, queuedNextItem == nil,
+    guard !UserDefaultsManager.crossfadeEnabled, !isLiveRadio, isPlaying, queuedNextItem == nil,
       totalDuration.isFinite, totalDuration > 0,
       let nextIdx = nextQueueIdxForGapless(),
       !isFailedPreloadCandidate(nextIdx),
@@ -818,6 +946,7 @@ class PlayerViewModel: ObservableObject {
     guard remaining > 0, remaining <= gaplessRemoteLeadTime else { return }
     guard let nextItem = makePlayerItem(forQueueIndex: nextIdx, allowRemote: true) else { return }
 
+    gaplessLog("deadline: remaining=\(Int(remaining))s, arming next idx=\(nextIdx)")
     insertQueuedNext(nextItem, at: nextIdx, after: currentItem)
   }
 
@@ -851,12 +980,167 @@ class PlayerViewModel: ObservableObject {
 
   /// Re-arms the gapless queue after the queue contents or order changed.
   private func resyncGaplessQueue() {
+    cancelCrossfade()
+
     guard player?.currentItem != nil else { return }
 
     clearFailedPreloadGuard()
     removeUpcomingItems()
     pruneItemIndexMap()
     primeGaplessNext()
+  }
+
+  // MARK: - Crossfade
+
+  /// Starts an overlapping fade into `nextIdx` when the current track enters
+  /// the crossfade window. The ramp length is the actual time remaining so the
+  /// incoming track reaches full volume at the outgoing track's end.
+  private func maybeStartCrossfade(currentTime: Double) {
+    guard UserDefaultsManager.crossfadeEnabled, !isCrossfading, isPlaying, !isLiveRadio,
+      hasNowPlaying(), player?.currentItem != nil,
+      totalDuration.isFinite, totalDuration > 0,
+      let nextIdx = nextQueueIdxForGapless()
+    else { return }
+
+    let remaining = totalDuration - currentTime
+    guard remaining > 0, remaining <= UserDefaultsManager.crossfadeDuration else { return }
+
+    startCrossfade(to: nextIdx, remaining: remaining)
+  }
+
+  private func startCrossfade(to nextIdx: Int, remaining: Double) {
+    guard let outgoingPlayer = player, outgoingPlayer.currentItem != nil else { return }
+
+    // The gapless preload for this track, if any, must not play too. Do this
+    // before creating the incoming item so its mapping is not pruned away.
+    removeUpcomingItems()
+    advanceWatchdogWorkItem?.cancel()
+
+    guard let incomingItem = makePlayerItem(forQueueIndex: nextIdx, allowRemote: true) else {
+      return
+    }
+
+    let incoming = AVQueuePlayer()
+    incoming.automaticallyWaitsToMinimizeStalling = false
+    incoming.volume = 0
+    incoming.insert(incomingItem, after: nil)
+
+    crossfadePlayer = incoming
+    crossfadeItem = incomingItem
+    isCrossfading = true
+    crossfadeGeneration += 1
+    let generation = crossfadeGeneration
+
+    let name = queue.indices.contains(nextIdx) ? (queue[nextIdx].songName ?? "") : ""
+    gaplessLog(
+      "crossfade: start idx=\(nextIdx) '\(name)' over \(String(format: "%.1f", remaining))s")
+
+    observeCrossfadeItemStatus(incomingItem)
+
+    let rampSeconds = max(remaining, 0.8)
+    let startedAt = Date()
+    let timer = Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) { [weak self] timer in
+      guard let self, self.isCrossfading, self.crossfadeGeneration == generation else {
+        timer.invalidate()
+        return
+      }
+
+      let progress = Float(min(max(Date().timeIntervalSince(startedAt) / rampSeconds, 0), 1))
+      // Equal-power curve keeps the overlap at roughly constant loudness.
+      self.player?.volume = self.playbackVolume * sqrt(max(0, 1 - progress))
+      self.crossfadePlayer?.volume = self.playbackVolume * sqrt(max(0, progress))
+
+      if progress >= 1 {
+        timer.invalidate()
+        self.finishCrossfade()
+      }
+    }
+    crossfadeTimer = timer
+    incoming.play()
+  }
+
+  private func observeCrossfadeItemStatus(_ item: AVPlayerItem) {
+    crossfadeStatusObservation?.cancel()
+    crossfadeStatusObservation = item.publisher(for: \.status)
+      .receive(on: DispatchQueue.main)
+      .sink { [weak self] status in
+        guard status == .failed, let self, self.crossfadeItem === item else { return }
+        self.gaplessLog("crossfade: incoming item failed, cancelling")
+        self.cancelCrossfade()
+      }
+  }
+
+  /// Promotes the incoming player to primary. Called when the ramp completes
+  /// or when the outgoing item ends, whichever happens first.
+  private func finishCrossfade() {
+    guard isCrossfading, let incoming = crossfadePlayer, let incomingItem = crossfadeItem else {
+      return
+    }
+
+    isCrossfading = false
+    crossfadeGeneration += 1
+    crossfadeTimer?.invalidate()
+    crossfadeTimer = nil
+    crossfadeStatusObservation?.cancel()
+    crossfadeStatusObservation = nil
+
+    guard let idx = itemIndexByIdentity[ObjectIdentifier(incomingItem)],
+      queue.indices.contains(idx)
+    else {
+      incoming.pause()
+      incoming.removeAllItems()
+      crossfadePlayer = nil
+      crossfadeItem = nil
+      player?.volume = playbackVolume
+      return
+    }
+
+    let outgoingPlayer = player
+    outgoingPlayer?.pause()
+    outgoingPlayer?.removeAllItems()
+    if let token = timeObserverToken, let outgoingPlayer {
+      outgoingPlayer.removeTimeObserver(token)
+      timeObserverToken = nil
+    }
+
+    player = incoming
+    playerItem = nil
+    crossfadePlayer = nil
+    crossfadeItem = nil
+
+    bindCurrentItem(incomingItem)
+    activeQueueIdx = idx
+
+    // Let the currentItem observer know this activation is ours.
+    manuallyActivatedItem = incomingItem
+    observeCurrentItem(of: incoming)
+
+    incoming.volume = playbackVolume
+    pruneItemIndexMap()
+    clearQueuedNextTracking()
+
+    gaplessLog("crossfade: finished, now idx=\(idx) '\(queue[idx].songName ?? "")'")
+
+    advanceTrackState()
+    incoming.play()
+  }
+
+  /// Aborts an in-flight crossfade, restoring the outgoing player's volume.
+  private func cancelCrossfade() {
+    guard isCrossfading else { return }
+
+    isCrossfading = false
+    crossfadeGeneration += 1
+    crossfadeTimer?.invalidate()
+    crossfadeTimer = nil
+    crossfadeStatusObservation?.cancel()
+    crossfadeStatusObservation = nil
+
+    crossfadePlayer?.pause()
+    crossfadePlayer?.removeAllItems()
+    crossfadePlayer = nil
+    crossfadeItem = nil
+    player?.volume = playbackVolume
   }
 
   // MARK: - Gapless queue failure supervision
@@ -909,6 +1193,7 @@ class PlayerViewModel: ObservableObject {
   private func handleQueuedNextItemFailure(_ item: AVPlayerItem, idx: Int) {
     failedPreloadIdx = idx
     failedPreloadMediaFileId = queue.indices.contains(idx) ? queue[idx].id : nil
+    gaplessLog("preload failed idx=\(idx), not re-arming until next track")
     discardQueuedNextItem()
   }
 
@@ -921,6 +1206,7 @@ class PlayerViewModel: ObservableObject {
 
     let work = DispatchWorkItem { [weak self] in
       guard let self, self.playerItem === endedItem, self.queuedNextItem != nil else { return }
+      self.gaplessLog("watchdog: AVQueuePlayer did not advance, using fallback")
       self.discardQueuedNextItem()
       self.nextSong()
       UserDefaultsManager.removeObject(key: UserDefaultsKeys.nowPlayingProgress)
@@ -988,13 +1274,17 @@ class PlayerViewModel: ObservableObject {
           StreamCacheManager.shared.cacheSong(
             mediaFileId: nextId, originalSuffix: nextItem.suffix, from: nextItem
           ) { [weak self] ready in
-            // The next track just landed on disk — enqueue it now for a
-            // seamless transition instead of letting the deadline race it.
+            // The next track just landed on disk — enqueue or upgrade the
+            // preload so the transition uses the local file.
             guard ready, let self else { return }
-            self.primeGaplessNext()
+            self.upgradeQueuedNextToLocalIfPossible()
           }
         }
       }
+
+      // Crossfade: overlap the current track's tail with the next track when
+      // enabled. Falls through to gapless when disabled.
+      self.maybeStartCrossfade(currentTime: currentTime)
 
       // Gapless: when the current track is about to end and no next item is
       // queued yet (cache miss), fall back to enqueueing the remote stream.
@@ -1003,7 +1293,9 @@ class PlayerViewModel: ObservableObject {
       // FLO-3/FLO-5: tolerance + stall + debounce guard (replaces round/floor).
       // When a next item is already enqueued, AVQueuePlayer owns the
       // transition — advancing here would cut the tail and rebuild the item.
-      if self.queuedNextItem == nil, self.shouldAdvanceToNextTrack(currentTime: currentTime) {
+      if !self.isCrossfading, self.queuedNextItem == nil,
+        self.shouldAdvanceToNextTrack(currentTime: currentTime)
+      {
         self.nextSong()
         UserDefaultsManager.removeObject(key: UserDefaultsKeys.nowPlayingProgress)
       }
@@ -1147,7 +1439,9 @@ class PlayerViewModel: ObservableObject {
       self.updateNowPlayingInfo(progress: self.progress, rate: 0.0)
     }
 
-    player?.volume = playbackVolume
+    if !isCrossfading {
+      player?.volume = playbackVolume
+    }
     player?.play()
 
     self.isFinished = false
@@ -1163,6 +1457,7 @@ class PlayerViewModel: ObservableObject {
   }
 
   func pause() {
+    cancelCrossfade()
     player?.pause()
 
     self.isPlaying = false
@@ -1173,6 +1468,7 @@ class PlayerViewModel: ObservableObject {
   }
 
   func stop() {
+    cancelCrossfade()
     player?.pause()
     player?.seek(to: CMTime.zero)
 
@@ -1184,6 +1480,8 @@ class PlayerViewModel: ObservableObject {
     if isLiveRadio {
       return
     }
+
+    cancelCrossfade()
 
     self.progress = progress
     self.persistProgressThrottled(force: true)
@@ -1229,6 +1527,8 @@ class PlayerViewModel: ObservableObject {
     guard let radioUrl = Self.normalizedRadioURL(from: radio.streamUrl) else {
       return
     }
+
+    cancelCrossfade()
 
     let item = radio.toPlayable()
     let queue = PlaybackService.shared.addToQueue(item: item, isFromLocal: false)
@@ -1676,6 +1976,7 @@ class PlayerViewModel: ObservableObject {
   }
 
   func destroyPlayerAndQueue() {
+    self.cancelCrossfade()
     self.removePlayerItemObservers()
     self.playerItemObservation?.cancel()
     self.playerItemObservation = nil
