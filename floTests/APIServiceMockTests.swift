@@ -387,4 +387,91 @@ final class APIServiceMockTests: XCTestCase {
     wait(for: [unstarExp], timeout: 5)
     XCTAssertTrue(unstarSuccess)
   }
+
+  // MARK: - Ghost-session recovery
+
+  private func observeSessionExpired() -> (token: NSObjectProtocol, exp: XCTestExpectation) {
+    let exp = expectation(description: "session expired notification")
+    let token = NotificationCenter.default.addObserver(
+      forName: .sessionExpired, object: nil, queue: .main
+    ) { _ in
+      exp.fulfill()
+    }
+    return (token, exp)
+  }
+
+  /// Subsonic servers answer bad credentials with HTTP 200 + status "failed"
+  /// (error 40) instead of 401, so HTTP status alone can't detect it. Any
+  /// Subsonic call returning that shape must trigger ghost-session recovery.
+  func testSubsonicFailedStatus_authError_postsSessionExpired() {
+    MockURLProtocol.stubJSON(
+      "GET", "/rest/getScanStatus",
+      json:
+        #"{"subsonic-response":{"status":"failed","version":"1.16.1","type":"navidrome","serverVersion":"0.52.0","openSubsonic":true,"error":{"code":40,"message":"Wrong username or password"}}}"#
+    )
+
+    let (token, exp) = observeSessionExpired()
+    defer { NotificationCenter.default.removeObserver(token) }
+
+    ScanStatusService.shared.getScanStatus { _ in }
+
+    wait(for: [exp], timeout: 5)
+  }
+
+  /// Non-auth Subsonic failures (missing param, version mismatch, folder not
+  /// found, …) must NOT be treated as a session problem.
+  func testSubsonicFailedStatus_nonAuthError_doesNotPost() {
+    MockURLProtocol.stubJSON(
+      "GET", "/rest/getScanStatus",
+      json:
+        #"{"subsonic-response":{"status":"failed","version":"1.16.1","type":"navidrome","serverVersion":"0.52.0","openSubsonic":true,"error":{"code":10,"message":"Required parameter missing"}}}"#
+    )
+
+    let unexpected = expectation(description: "unexpected session expiry")
+    unexpected.isInverted = true
+    let token = NotificationCenter.default.addObserver(
+      forName: .sessionExpired, object: nil, queue: .main
+    ) { _ in
+      unexpected.fulfill()
+    }
+    defer { NotificationCenter.default.removeObserver(token) }
+
+    let done = expectation(description: "scan status returned")
+    ScanStatusService.shared.getScanStatus { _ in done.fulfill() }
+
+    wait(for: [done], timeout: 5)
+    wait(for: [unexpected], timeout: 0.5)
+  }
+
+  /// Regression guard: a plain 401 on an ND endpoint must still post
+  /// .sessionExpired.
+  func testNDEndpoint_401_postsSessionExpired() {
+    MockURLProtocol.stubJSON("GET", "/api/album", statusCode: 401, json: "{}")
+
+    let (token, exp) = observeSessionExpired()
+    defer { NotificationCenter.default.removeObserver(token) }
+
+    AlbumService.shared.getAlbum { _ in }
+
+    wait(for: [exp], timeout: 5)
+  }
+
+  // MARK: - Refresh failure flag (cache-stall UX)
+
+  @MainActor
+  func testRefreshFailure_marksRefreshFailed_andClearsOnSuccess() async {
+    let vm = AlbumViewModel()
+
+    // 400 fails the 200..<300 validation immediately (RetryPolicy would
+    // otherwise delay a 5xx response with backoff).
+    MockURLProtocol.stubJSON("GET", "/api/album", statusCode: 400, json: "{}")
+    await vm.refreshAlbums()
+    XCTAssertTrue(vm.refreshFailed)
+    XCTAssertTrue(vm.albums.isEmpty)
+
+    MockURLProtocol.stubJSON("GET", "/api/album", json: Self.albumsJSON)
+    await vm.refreshAlbums()
+    XCTAssertFalse(vm.refreshFailed)
+    XCTAssertEqual(vm.albums.count, 1)
+  }
 }

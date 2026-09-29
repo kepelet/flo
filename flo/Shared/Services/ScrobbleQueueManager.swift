@@ -134,8 +134,16 @@ final class ScrobbleQueueManager: ObservableObject {
     CoreDataManager.shared.saveRecord()
     reload()
 
-    NetworkMonitor.shared.probeServerReachability()
-    flush()
+    // Don't flush before the probe's verdict lands — flush() would read the
+    // stale reachability flag and bounce for another retry interval.
+    NetworkMonitor.shared.probeServerReachability { [weak self] reachable in
+      guard let self = self else { return }
+      if reachable {
+        self.flush()
+      } else {
+        self.scheduleRetry()
+      }
+    }
   }
 
   func clearSent() {
@@ -228,8 +236,14 @@ final class ScrobbleQueueManager: ObservableObject {
           return
         }
 
-        NetworkMonitor.shared.probeServerReachability()
-        self.flush()
+        NetworkMonitor.shared.probeServerReachability { [weak self] reachable in
+          guard let self = self else { return }
+          if reachable {
+            self.flush()
+          } else {
+            self.scheduleRetry()
+          }
+        }
       }
     }
   }
@@ -252,12 +266,24 @@ final class ScrobbleQueueManager: ObservableObject {
   }
 
   @objc private func handleNetworkBecameOnline() {
-    NetworkMonitor.shared.probeServerReachability()
-    flush()
+    NetworkMonitor.shared.probeServerReachability { [weak self] reachable in
+      guard let self = self else { return }
+      if reachable {
+        self.flush()
+      } else {
+        self.scheduleRetry()
+      }
+    }
   }
 
   @objc private func handleAppBecameActive() {
-    NetworkMonitor.shared.probeServerReachability()
-    flush()
+    NetworkMonitor.shared.probeServerReachability { [weak self] reachable in
+      guard let self = self else { return }
+      if reachable {
+        self.flush()
+      } else {
+        self.scheduleRetry()
+      }
+    }
   }
 }

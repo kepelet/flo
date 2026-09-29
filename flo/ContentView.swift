@@ -99,6 +99,7 @@ struct ContentView: View {
   @State private var tabViewID = UUID()
 
   @StateObject private var authViewModel = AuthViewModel()
+  @State private var showLoginSheet = false
   @StateObject private var libraryRouter = LibraryRouter()
   private let playerViewModel = PlayerViewModel.shared
   @StateObject private var playerPresence = PlayerPresenceObserver()
@@ -332,15 +333,20 @@ struct ContentView: View {
 
   @ViewBuilder
   private var rootTabView: some View {
-    if isPadSidebar {
-      if #available(iOS 18.0, *) {
-        sidebarTabView
-          .tabViewStyle(.sidebarAdaptable)
+    Group {
+      if isPadSidebar {
+        if #available(iOS 18.0, *) {
+          sidebarTabView
+            .tabViewStyle(.sidebarAdaptable)
+        } else {
+          baseTabView
+        }
       } else {
         baseTabView
       }
-    } else {
-      baseTabView
+    }
+    .sheet(isPresented: $showLoginSheet) {
+      Login(viewModel: authViewModel, showLoginSheet: $showLoginSheet)
     }
   }
 
@@ -782,8 +788,17 @@ struct ContentView: View {
     }
     .tabViewSidebarBottomBar {
       Menu {
-        Button("Logout", role: .destructive) {
-          authViewModel.logout()
+        if authViewModel.isLoggedIn {
+          if let name = authViewModel.user?.name, !name.isEmpty {
+            Text("Logged in as \(name)")
+          }
+          Button("Logout", role: .destructive) {
+            authViewModel.logout()
+          }
+        } else {
+          Button("Login…") {
+            showLoginSheet = true
+          }
         }
       } label: {
         HStack(spacing: 10) {
