@@ -71,6 +71,7 @@ enum UserDefaultsKeys {
   static let playbackVolume = "playbackVolume"
   static let uiFontScale = "uiFontScale"
   static let equalizerPreset = "equalizerPreset"
+  static let crossfadeDuration = "crossfadeDuration"
 }
 
 enum KeychainKeys {

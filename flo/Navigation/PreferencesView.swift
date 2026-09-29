@@ -462,6 +462,29 @@ struct PreferencesView: View {
 
             Text("EQ presets. Off = original sound.").font(.caption).foregroundColor(.gray)
           }
+
+          VStack(alignment: .leading, spacing: 4) {
+            Picker(
+              "Crossfade",
+              selection: Binding(
+                get: { UserDefaultsManager.crossfadeDuration },
+                set: { UserDefaultsManager.crossfadeDuration = $0 }
+              )
+            ) {
+              Text("Off").tag(0.0)
+              Text("3 seconds").tag(3.0)
+              Text("5 seconds").tag(5.0)
+              Text("6 seconds").tag(6.0)
+              Text("8 seconds").tag(8.0)
+              Text("10 seconds").tag(10.0)
+              Text("12 seconds").tag(12.0)
+            }
+
+            Text(
+              "Overlaps the end of the current track with the start of the next. Takes precedence over gapless playback."
+            )
+            .font(.caption).foregroundColor(.gray)
+          }
         }
 
         Section(header: Text("Development")) {
