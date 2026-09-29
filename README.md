@@ -19,6 +19,7 @@ Everything you can expect from a music player: it plays music. However, here are
 - Online streaming (save your storage)
 - Offline streaming (save your bandwidth)
 - Play by album (shuffle for surprises)
+- Gapless playback (continuous album sequencing)
 - Background playback (just don't close the app)
 - Control playback via the "command center" (something in your "notification")
 

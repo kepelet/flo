@@ -14,9 +14,42 @@ import SwiftUI
 class PlayerViewModel: ObservableObject {
   static let shared = PlayerViewModel()
 
-  private var player: AVPlayer?
+  private var player: AVQueuePlayer?
   private var playerItem: AVPlayerItem?
   private var timeObserverToken: Any?
+
+  // MARK: - Gapless queue state
+  /// AVPlayerItem identity → index into `queue`. Resolves which track the
+  /// AVQueuePlayer is playing after a gapless auto-advance.
+  private var itemIndexByIdentity: [ObjectIdentifier: Int] = [:]
+  /// Item preloaded behind the current one. AVQueuePlayer plays it with no
+  /// gap as long as it is buffered in time; nil falls back to a full swap.
+  private var queuedNextItem: AVPlayerItem?
+  private var queuedNextIdx: Int?
+  /// Set right before a manual `setNowPlaying` swap so the `currentItem` KVO
+  /// observer knows that call owns the state update.
+  private var manuallyActivatedItem: AVPlayerItem?
+  private var currentItemObservation: AnyCancellable?
+  private var statusObservedItem: AVPlayerItem?
+  private var observersAttachedToItem: AVPlayerItem?
+  /// How many seconds before the end of the current track a remote next item
+  /// is enqueued when it was not already served from disk.
+  private let gaplessRemoteLeadTime: Double = 10
+
+  // MARK: - Failure supervision
+  /// A failed item must not strand playback. This dedupes the two failure
+  /// signals (status KVO and FailedToPlayToEndTime) per item.
+  private var didHandleFailureForItem: AVPlayerItem?
+  private var failedSkipCount: Int = 0
+  private let maxFailedSkips = 3
+  /// The preload that just failed, so it is not re-armed on every tick until
+  /// the track or queue changes.
+  private var failedPreloadIdx: Int?
+  private var failedPreloadMediaFileId: String?
+  private var advanceWatchdogWorkItem: DispatchWorkItem?
+  private let advanceWatchdogDelay: TimeInterval = 1.5
+  private var queuedNextStatusObservation: AnyCancellable?
+  private var queuedNextStatusObservedItem: AVPlayerItem?
 
   @Published var queue: [QueueEntity] = []
   @Published var playbackMode = PlaybackMode.defaultPlayback
@@ -125,8 +158,13 @@ class PlayerViewModel: ObservableObject {
   }
 
   init() {
-    self.player = AVPlayer()
+    self.player = AVQueuePlayer()
     self.player?.volume = UserDefaultsManager.playbackVolume
+    self.currentItemObservation = self.player?.publisher(for: \.currentItem)
+      .receive(on: DispatchQueue.main)
+      .sink { [weak self] item in
+        self?.handleCurrentItemChanged(item)
+      }
     self.volumeBeforeMute = UserDefaultsManager.playbackVolume > 0 ? UserDefaultsManager.playbackVolume : 1.0
     self.observeInterruptionNotifications()
     self.observeRouteChangeNotifications()
@@ -215,6 +253,7 @@ class PlayerViewModel: ObservableObject {
   // MARK: - FLO-5 / FLO-3: Stall + end-of-track helpers
 
   private func removePlayerItemObservers() {
+    observersAttachedToItem = nil
     bufferEmptyCancellable?.cancel()
     bufferKeepUpCancellable?.cancel()
     bufferEmptyCancellable = nil
@@ -236,7 +275,10 @@ class PlayerViewModel: ObservableObject {
   }
 
   private func setupPlayerItemObservers(for item: AVPlayerItem) {
+    guard observersAttachedToItem !== item else { return }
+
     removePlayerItemObservers()
+    observersAttachedToItem = item
     stallRetryCount = 0
     isRecoveringFromStall = false
 
@@ -286,8 +328,8 @@ class PlayerViewModel: ObservableObject {
 
     didPlayToEndToken = NotificationCenter.default.addObserver(
       forName: .AVPlayerItemDidPlayToEndTime, object: item, queue: .main
-    ) { [weak self] _ in
-      self?.handleDidPlayToEndTime()
+    ) { [weak self] note in
+      self?.handleDidPlayToEndTime(note)
     }
   }
 
@@ -348,17 +390,65 @@ class PlayerViewModel: ObservableObject {
   }
 
   private func handleFailedToPlayToEnd(_ note: Notification) {
-    isMediaFailed = true
-    isMediaLoading = false
-    isRecoveringFromStall = false
-    // Keep NowPlaying paused so CarPlay does not flick to next.
-    updateNowPlayingInfo(progress: progress, rate: 0.0)
-    MPNowPlayingInfoCenter.default().playbackState = .paused
+    handleCurrentItemFailure()
   }
 
-  private func handleDidPlayToEndTime() {
+  /// Terminal item failure: surface the failed state, then try the next
+  /// distinct track. After `maxFailedSkips` consecutive failures we stop and
+  /// leave the error visible instead of skipping through the whole queue.
+  private func handleCurrentItemFailure() {
+    guard let item = playerItem, didHandleFailureForItem !== item else { return }
+    didHandleFailureForItem = item
+
+    isMediaLoading = false
+    isMediaFailed = true
+    isRecoveringFromStall = false
+    updateNowPlayingInfo(progress: progress, rate: 0.0)
+    MPNowPlayingInfoCenter.default().playbackState = .paused
+
+    // Live radio is a single endless item: nothing to skip to.
+    guard !isLiveRadio else {
+      player?.pause()
+      return
+    }
+
+    failedSkipCount += 1
+    guard failedSkipCount <= maxFailedSkips, let target = nextDistinctIdxAfterFailure() else {
+      player?.pause()
+      return
+    }
+
+    // Short delay so a failed item does not flicker; the identity guard below
+    // drops the skip if the user (or a late transition) moved on already.
+    DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { [weak self] in
+      guard let self, self.playerItem === item, self.hasNowPlaying() else { return }
+      self.advanceToTrack(at: target)
+    }
+  }
+
+  /// Next track to try after a failure. Unlike `nextQueueIdxForGapless` this
+  /// never returns the failed track itself (repeat-once would otherwise loop
+  /// on it), but still wraps when a repeat mode is on.
+  func nextDistinctIdxAfterFailure() -> Int? {
+    guard queue.count > 1, queue.indices.contains(activeQueueIdx) else { return nil }
+
+    let nextIdx = activeQueueIdx + 1
+    if nextIdx < queue.count { return nextIdx }
+
+    return playbackMode == PlaybackMode.defaultPlayback ? nil : 0
+  }
+
+  private func handleDidPlayToEndTime(_ note: Notification) {
     // FLO-3: authoritative end-of-track signal; replaces sole reliance on rounding.
     guard !isLiveRadio else { return }
+
+    // Gapless: the item already advanced, or a preloaded next item is waiting.
+    if let ended = note.object as? AVPlayerItem, ended !== playerItem { return }
+    if queuedNextItem != nil {
+      scheduleAdvanceWatchdog(for: note.object as? AVPlayerItem)
+      return
+    }
+
     if let last = lastNextSongFire, Date().timeIntervalSince(last) < nextSongDebounce {
       return
     }
@@ -463,87 +553,34 @@ class PlayerViewModel: ObservableObject {
     }
 
     self.shouldHidePlayer = false
-    self.isLocallySaved = false
+    self.isMediaFailed = false
     self.hasTriggeredCache = false
 
     StreamCacheManager.shared.cancelAllInFlight()
 
     try? AVAudioSession.sharedInstance().setActive(true)
 
-    self.resetLyrics()
-    self.checkStarredStatus()
+    // Tear down the prior item's stall/end observers before swapping items (FLO-5/FLO-3)
+    self.removePlayerItemObservers()
 
-    if let timeObserverToken = timeObserverToken {
-      player?.removeTimeObserver(timeObserverToken)
-      self.timeObserverToken = nil
-    }
-
-    let songId = self.nowPlaying.id ?? ""
-    StreamCacheManager.shared.setCurrentlyPlaying(mediaFileId: songId)
-
-    let streamUrl = AlbumService.shared.getStreamUrl(id: songId)
-
-    guard let audioURL = URL(string: streamUrl), !streamUrl.isEmpty else {
+    guard let newItem = makePlayerItem(forQueueIndex: self.activeQueueIdx, allowRemote: true) else {
       self.isMediaLoading = false
       self.isMediaFailed = true
 
       return
     }
 
-    self._playFromLocal = audioURL.isFileURL
+    removeUpcomingItems()
 
-    // Tear down prior item's stall/end observers before swapping items (FLO-5/FLO-3)
-    self.removePlayerItemObservers()
-    self.playerItemObservation?.cancel()
-    self.playerItemObservation = nil
-
-    if !audioURL.isFileURL, AuthService.shared.getAuthMode() == .iap {
-      let cookies = HTTPCookieStorage.shared.cookies(for: audioURL) ?? []
-      let asset = AVURLAsset(url: audioURL, options: [AVURLAssetHTTPCookiesKey: cookies])
-      self.playerItem = AVPlayerItem(asset: asset)
-    } else {
-      self.playerItem = AVPlayerItem(url: audioURL)
-    }
-    // EQ: per-item tap (nil when Off/Flat = bit-perfect bypass).
-    self.playerItem?.audioMix = EqualizerManager.shared.makeAudioMix()
-    if let item = self.playerItem {
-      // Prefer smaller forward buffer for transcoded streams so gaps surface faster and recover.
-      item.preferredForwardBufferDuration = 3
-      self.setupPlayerItemObservers(for: item)
-    }
+    self.manuallyActivatedItem = newItem
     self.player?.automaticallyWaitsToMinimizeStalling = false
     self.player?.volume = playbackVolume
-    self.player?.replaceCurrentItem(with: self.playerItem)
+    self.player?.removeAllItems()
+    self.player?.insert(newItem, after: nil)
+    self.bindCurrentItem(newItem)
+    self.pruneItemIndexMap()
 
-    let duration = CMTime(
-      seconds: self.nowPlaying.duration, preferredTimescale: self.nowPlaying.sampleRate)
-    let playbackDuration = CMTimeGetSeconds(duration)
-
-    self.totalDuration = playbackDuration
-    self.totalTimeString = timeString(for: playbackDuration)
-
-    let newTimeString = self.progress * playbackDuration
-
-    self.currentTimeString = timeString(for: newTimeString)
-
-    self.playerItemObservation = self.playerItem?.publisher(for: \.status)
-      .sink { [weak self] status in
-        guard let self = self else { return }
-        switch status {
-        case .readyToPlay:
-          DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-            self.isMediaLoading = false
-            self.isMediaFailed = false
-          }
-        case .failed:
-          self.isMediaLoading = false
-          self.isMediaFailed = true
-        case .unknown:
-          self.isMediaLoading = false
-        @unknown default:
-          self.isMediaLoading = true
-        }
-      }
+    applyCommonTrackState(for: newItem)
 
     if playAudio {
       self.seek(to: 0.0)
@@ -552,17 +589,344 @@ class PlayerViewModel: ObservableObject {
       self.seek(to: self.progress)
     }
 
+    primeGaplessNext()
+  }
+
+  // MARK: - Gapless queue
+
+  /// Index of the track that should play after the current one, honoring the
+  /// repeat mode. `nil` means playback stops at the end of the queue.
+  /// Internal (not private) so the unit tests can pin the boundary cases.
+  func nextQueueIdxForGapless() -> Int? {
+    guard !queue.isEmpty, queue.indices.contains(activeQueueIdx) else { return nil }
+
+    if playbackMode == PlaybackMode.repeatOnce {
+      return activeQueueIdx
+    }
+
+    if playbackMode == PlaybackMode.repeatAlbum {
+      return activeQueueIdx + 1 >= queue.count ? 0 : activeQueueIdx + 1
+    }
+
+    let nextIdx = activeQueueIdx + 1
+    return nextIdx < queue.count ? nextIdx : nil
+  }
+
+  /// Builds a player item for a queue index. `allowRemote: false` returns nil
+  /// unless the track already exists on disk (download or stream cache), which
+  /// is what makes a transition gapless without racing the network.
+  private func makePlayerItem(forQueueIndex idx: Int, allowRemote: Bool) -> AVPlayerItem? {
+    guard queue.indices.contains(idx) else { return nil }
+
+    let songId = queue[idx].id ?? ""
+    guard !songId.isEmpty else { return nil }
+
+    let streamUrl = AlbumService.shared.getStreamUrl(id: songId)
+    guard !streamUrl.isEmpty, let audioURL = URL(string: streamUrl) else { return nil }
+    guard allowRemote || audioURL.isFileURL else { return nil }
+
+    let item: AVPlayerItem
+
+    if !audioURL.isFileURL, AuthService.shared.getAuthMode() == .iap {
+      let cookies = HTTPCookieStorage.shared.cookies(for: audioURL) ?? []
+      let asset = AVURLAsset(url: audioURL, options: [AVURLAssetHTTPCookiesKey: cookies])
+      item = AVPlayerItem(asset: asset)
+    } else {
+      item = AVPlayerItem(url: audioURL)
+    }
+
+    // EQ: per-item tap (nil when Off/Flat = bit-perfect bypass).
+    item.audioMix = EqualizerManager.shared.makeAudioMix()
+    // Prefer smaller forward buffer for transcoded streams so gaps surface faster and recover.
+    item.preferredForwardBufferDuration = 3
+    itemIndexByIdentity[ObjectIdentifier(item)] = idx
+
+    return item
+  }
+
+  /// Points the view model at a new current item: EQ state, status + stall
+  /// observers. The EQ mix is refreshed here because a pre-queued item may
+  /// have been built while a different preset was active.
+  private func bindCurrentItem(_ item: AVPlayerItem) {
+    guard playerItem !== item else { return }
+
+    playerItem = item
+    item.audioMix = EqualizerManager.shared.makeAudioMix()
+    observeCurrentItemStatus(item)
+    setupPlayerItemObservers(for: item)
+  }
+
+  private func observeCurrentItemStatus(_ item: AVPlayerItem) {
+    guard statusObservedItem !== item else { return }
+
+    playerItemObservation?.cancel()
+    playerItemObservation = nil
+    statusObservedItem = item
+
+    playerItemObservation = item.publisher(for: \.status)
+      .receive(on: DispatchQueue.main)
+      .sink { [weak self] status in
+        guard let self = self else { return }
+        switch status {
+        case .readyToPlay:
+          self.failedSkipCount = 0
+          self.didHandleFailureForItem = nil
+          DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+            self.isMediaLoading = false
+            self.isMediaFailed = false
+          }
+        case .failed:
+          self.handleCurrentItemFailure()
+        case .unknown:
+          self.isMediaLoading = false
+        @unknown default:
+          self.isMediaLoading = true
+        }
+      }
+  }
+
+  /// KVO entry point for `AVQueuePlayer.currentItem`. Fires for manual swaps
+  /// (owned by `setNowPlaying`) and for gapless auto-advance (owned here).
+  private func handleCurrentItemChanged(_ item: AVPlayerItem?) {
+    guard let item else { return }
+
+    advanceWatchdogWorkItem?.cancel()
+
+    let isSameItem = playerItem === item
+    bindCurrentItem(item)
+
+    if manuallyActivatedItem === item {
+      manuallyActivatedItem = nil
+      return
+    }
+
+    guard !isSameItem else { return }
+    guard let idx = itemIndexByIdentity[ObjectIdentifier(item)] else { return }
+
+    // The preloaded item is now the current one; stop tracking it as "next".
+    clearQueuedNextTracking()
+
+    activeQueueIdx = idx
+    pruneItemIndexMap()
+    advanceTrackState()
+  }
+
+  /// State sync for an automatic (gapless) transition. The audio never
+  /// stopped, so no seek/play is issued — only metadata and bookkeeping.
+  private func advanceTrackState() {
+    guard hasNowPlaying(), let item = playerItem else { return }
+
+    progress = 0.0
+    currentTimeString = "00:00"
+    isMediaLoading = false
+    isMediaFailed = false
+
+    applyCommonTrackState(for: item)
+    updateNowPlayingInfo(progress: 0, rate: isPlaying ? 1.0 : 0.0)
+    UserDefaultsManager.removeObject(key: UserDefaultsKeys.nowPlayingProgress)
+
+    // Resume after a failure-recovery advance; a natural gapless advance is
+    // already playing, where this is a harmless no-op.
+    if isPlaying {
+      player?.play()
+    }
+
+    primeGaplessNext()
+  }
+
+  /// Everything that must change when the now-playing track changes, except
+  /// item swapping and transport (seek/play).
+  private func applyCommonTrackState(for item: AVPlayerItem) {
+    self.shouldHidePlayer = false
+    self.isLocallySaved = false
+    self.hasTriggeredCache = false
+    self.clearFailedPreloadGuard()
+
+    self.resetLyrics()
+    self.checkStarredStatus()
+    StreamCacheManager.shared.setCurrentlyPlaying(mediaFileId: self.nowPlaying.id ?? "")
+
+    if let asset = item.asset as? AVURLAsset {
+      self._playFromLocal = asset.url.isFileURL
+    }
+
+    let duration = CMTime(
+      seconds: self.nowPlaying.duration, preferredTimescale: self.nowPlaying.sampleRate)
+    let playbackDuration = CMTimeGetSeconds(duration)
+
+    self.totalDuration = playbackDuration
+    self.totalTimeString = timeString(for: playbackDuration)
+    self.currentTimeString = timeString(for: self.progress * playbackDuration)
+
     self.addPeriodicTimeObserver()
     self.initNowPlayingInfo(
       title: self.nowPlaying.songName ?? "",
       artist: self.nowPlaying.artistName ?? "",
-      playbackDuration: self.totalDuration)
+      playbackDuration: playbackDuration)
 
     FloooViewModel.shared.setNowPlayingToScrobbleServer(nowPlaying: self.nowPlaying)
 
     if isLRCLIBEnabled && !isLiveRadio {
       self.fetchLyrics()
     }
+
+    UserDefaultsManager.queueActiveIdx = self.activeQueueIdx
+  }
+
+  /// Enqueues the next track behind the current one when it is already on
+  /// disk. Remote tracks wait for the deadline check so two server transcodes
+  /// do not compete mid-track.
+  private func primeGaplessNext() {
+    guard !isLiveRadio, hasNowPlaying(), queuedNextItem == nil,
+      let nextIdx = nextQueueIdxForGapless(),
+      !isFailedPreloadCandidate(nextIdx),
+      let currentItem = player?.currentItem
+    else { return }
+
+    guard let nextItem = makePlayerItem(forQueueIndex: nextIdx, allowRemote: false) else { return }
+
+    insertQueuedNext(nextItem, at: nextIdx, after: currentItem)
+  }
+
+  private func insertQueuedNext(_ item: AVPlayerItem, at idx: Int, after currentItem: AVPlayerItem) {
+    guard queuedNextItem == nil, item !== currentItem,
+      player?.canInsert(item, after: currentItem) == true
+    else {
+      itemIndexByIdentity.removeValue(forKey: ObjectIdentifier(item))
+      return
+    }
+
+    player?.insert(item, after: currentItem)
+    queuedNextItem = item
+    queuedNextIdx = idx
+    observeQueuedNextStatus(item, idx: idx)
+    StreamCacheManager.shared.setWillPlayNext(
+      mediaFileId: queue.indices.contains(idx) ? queue[idx].id : nil)
+  }
+
+  /// Once per tick: enqueue the next item when the current track is about to
+  /// end and nothing is queued yet (stream-cache miss fallback).
+  private func maybeQueueNextItemBeforeDeadline(currentTime: Double) {
+    guard !isLiveRadio, isPlaying, queuedNextItem == nil,
+      totalDuration.isFinite, totalDuration > 0,
+      let nextIdx = nextQueueIdxForGapless(),
+      !isFailedPreloadCandidate(nextIdx),
+      let currentItem = player?.currentItem
+    else { return }
+
+    let remaining = totalDuration - currentTime
+    guard remaining > 0, remaining <= gaplessRemoteLeadTime else { return }
+    guard let nextItem = makePlayerItem(forQueueIndex: nextIdx, allowRemote: true) else { return }
+
+    insertQueuedNext(nextItem, at: nextIdx, after: currentItem)
+  }
+
+  /// Drops every enqueued item behind the current one (queue edit, repeat
+  /// mode change, manual swap). The playing item keeps playing.
+  private func removeUpcomingItems() {
+    guard let player else {
+      clearQueuedNextTracking()
+      itemIndexByIdentity.removeAll()
+      return
+    }
+
+    let current = player.currentItem
+    for item in player.items() where item !== current {
+      player.remove(item)
+    }
+
+    clearQueuedNextTracking()
+    pruneItemIndexMap()
+  }
+
+  private func pruneItemIndexMap() {
+    guard let player else {
+      itemIndexByIdentity.removeAll()
+      return
+    }
+
+    let live = Set(player.items().map(ObjectIdentifier.init))
+    itemIndexByIdentity = itemIndexByIdentity.filter { live.contains($0.key) }
+  }
+
+  /// Re-arms the gapless queue after the queue contents or order changed.
+  private func resyncGaplessQueue() {
+    guard player?.currentItem != nil else { return }
+
+    clearFailedPreloadGuard()
+    removeUpcomingItems()
+    pruneItemIndexMap()
+    primeGaplessNext()
+  }
+
+  // MARK: - Gapless queue failure supervision
+
+  /// Applies the failed-preload guard: the same queue index/media id is not
+  /// re-armed until the current track or the queue changes.
+  private func isFailedPreloadCandidate(_ idx: Int) -> Bool {
+    guard failedPreloadIdx == idx else { return false }
+    let candidateId = queue.indices.contains(idx) ? queue[idx].id : nil
+    return candidateId == failedPreloadMediaFileId
+  }
+
+  private func clearFailedPreloadGuard() {
+    failedPreloadIdx = nil
+    failedPreloadMediaFileId = nil
+  }
+
+  /// Stops tracking the preloaded item (status observation, cache eviction
+  /// protection, queued state).
+  private func clearQueuedNextTracking() {
+    queuedNextStatusObservation?.cancel()
+    queuedNextStatusObservation = nil
+    queuedNextStatusObservedItem = nil
+    queuedNextItem = nil
+    queuedNextIdx = nil
+    StreamCacheManager.shared.setWillPlayNext(mediaFileId: nil)
+  }
+
+  private func discardQueuedNextItem() {
+    if let item = queuedNextItem {
+      player?.remove(item)
+      itemIndexByIdentity.removeValue(forKey: ObjectIdentifier(item))
+    }
+    clearQueuedNextTracking()
+  }
+
+  private func observeQueuedNextStatus(_ item: AVPlayerItem, idx: Int) {
+    queuedNextStatusObservation?.cancel()
+    queuedNextStatusObservedItem = item
+    queuedNextStatusObservation = item.publisher(for: \.status)
+      .receive(on: DispatchQueue.main)
+      .sink { [weak self] status in
+        guard status == .failed, let self, self.queuedNextItem === item else { return }
+        self.handleQueuedNextItemFailure(item, idx: idx)
+      }
+  }
+
+  /// The preloaded item is dead. Drop it and remember not to retry that exact
+  /// track this round; the fallback path at track end handles the retry.
+  private func handleQueuedNextItemFailure(_ item: AVPlayerItem, idx: Int) {
+    failedPreloadIdx = idx
+    failedPreloadMediaFileId = queue.indices.contains(idx) ? queue[idx].id : nil
+    discardQueuedNextItem()
+  }
+
+  /// If AVQueuePlayer fails to advance on its own while a next item is queued,
+  /// drop the preload and take the replaceCurrentItem-era path so playback
+  /// cannot dead-end at the last second of a track.
+  private func scheduleAdvanceWatchdog(for endedItem: AVPlayerItem?) {
+    advanceWatchdogWorkItem?.cancel()
+    guard let endedItem else { return }
+
+    let work = DispatchWorkItem { [weak self] in
+      guard let self, self.playerItem === endedItem, self.queuedNextItem != nil else { return }
+      self.discardQueuedNextItem()
+      self.nextSong()
+      UserDefaultsManager.removeObject(key: UserDefaultsKeys.nowPlayingProgress)
+    }
+    advanceWatchdogWorkItem = work
+    DispatchQueue.main.asyncAfter(deadline: .now() + advanceWatchdogDelay, execute: work)
   }
 
   /// Persisting playback progress on every 1s tick writes UserDefaults once per
@@ -581,7 +945,7 @@ class PlayerViewModel: ObservableObject {
   }
 
   private func addPeriodicTimeObserver() {
-    guard let player = self.player else { return }
+    guard timeObserverToken == nil, let player = self.player else { return }
 
     let interval = CMTime(seconds: 1, preferredTimescale: CMTimeScale(NSEC_PER_SEC))
 
@@ -606,9 +970,12 @@ class PlayerViewModel: ObservableObject {
 
       if !self.isLocallySaved && self.progress >= 0.5 {
         self.isLocallySaved = true
+        // Capture identity now: a very short track may already have advanced
+        // by the time the task runs, which would scrobble the next song.
+        let scrobbledTrack = self.nowPlaying
 
         Task { @MainActor in
-          FloooViewModel.shared.scrobble(submission: true, nowPlaying: self.nowPlaying)
+          FloooViewModel.shared.scrobble(submission: true, nowPlaying: scrobbledTrack)
         }
       }
 
@@ -617,14 +984,26 @@ class PlayerViewModel: ObservableObject {
         if let nextIdx = self.nextQueueIdxForPreCache(),
           let nextId = self.queue[nextIdx].id, !nextId.isEmpty
         {
+          let nextItem = self.queue[nextIdx]
           StreamCacheManager.shared.cacheSong(
-            mediaFileId: nextId, originalSuffix: self.queue[nextIdx].suffix,
-            from: self.queue[nextIdx])
+            mediaFileId: nextId, originalSuffix: nextItem.suffix, from: nextItem
+          ) { [weak self] ready in
+            // The next track just landed on disk — enqueue it now for a
+            // seamless transition instead of letting the deadline race it.
+            guard ready, let self else { return }
+            self.primeGaplessNext()
+          }
         }
       }
 
-      // FLO-3/FLO-5: tolerance + stall + debounce guard (replaces round/floor)
-      if self.shouldAdvanceToNextTrack(currentTime: currentTime) {
+      // Gapless: when the current track is about to end and no next item is
+      // queued yet (cache miss), fall back to enqueueing the remote stream.
+      self.maybeQueueNextItemBeforeDeadline(currentTime: currentTime)
+
+      // FLO-3/FLO-5: tolerance + stall + debounce guard (replaces round/floor).
+      // When a next item is already enqueued, AVQueuePlayer owns the
+      // transition — advancing here would cut the tail and rebuild the item.
+      if self.queuedNextItem == nil, self.shouldAdvanceToNextTrack(currentTime: currentTime) {
         self.nextSong()
         UserDefaultsManager.removeObject(key: UserDefaultsKeys.nowPlayingProgress)
       }
@@ -831,6 +1210,7 @@ class PlayerViewModel: ObservableObject {
     }
 
     UserDefaultsManager.playbackMode = self.playbackMode
+    resyncGaplessQueue()
   }
 
   func playBySong<T: Playable>(idx: Int, item: T, isFromLocal: Bool) {
@@ -861,45 +1241,23 @@ class PlayerViewModel: ObservableObject {
 
     self.resetLyrics()
 
-    if let timeObserverToken = timeObserverToken {
-      player?.removeTimeObserver(timeObserverToken)
-
-      self.timeObserverToken = nil
-    }
-
     self.removePlayerItemObservers()
-    self.playerItemObservation?.cancel()
-    self.playerItemObservation = nil
 
-    self.playerItem = AVPlayerItem(url: radioUrl)
-    self.playerItem?.audioMix = EqualizerManager.shared.makeAudioMix()
-    if let item = self.playerItem {
-      item.preferredForwardBufferDuration = 3
-      // Radio: still benefit from stall recovery but DidPlayToEndTime is ignored via isLiveRadio guard.
-      self.setupPlayerItemObservers(for: item)
-    }
+    let radioItem = AVPlayerItem(url: radioUrl)
+    radioItem.audioMix = EqualizerManager.shared.makeAudioMix()
+    // Radio: still benefit from stall recovery but DidPlayToEndTime is ignored via isLiveRadio guard.
+    radioItem.preferredForwardBufferDuration = 3
+    itemIndexByIdentity[ObjectIdentifier(radioItem)] = 0
+
+    removeUpcomingItems()
+
+    self.manuallyActivatedItem = radioItem
     self.player?.automaticallyWaitsToMinimizeStalling = false
     self.player?.volume = playbackVolume
-    self.player?.replaceCurrentItem(with: self.playerItem)
-
-    self.playerItemObservation = self.playerItem?.publisher(for: \.status)
-      .sink { [weak self] status in
-        guard let self = self else { return }
-        switch status {
-        case .readyToPlay:
-          DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-            self.isMediaLoading = false
-            self.isMediaFailed = false
-          }
-        case .failed:
-          self.isMediaLoading = false
-          self.isMediaFailed = true
-        case .unknown:
-          self.isMediaLoading = false
-        @unknown default:
-          self.isMediaLoading = true
-        }
-      }
+    self.player?.removeAllItems()
+    self.player?.insert(radioItem, after: nil)
+    self.bindCurrentItem(radioItem)
+    self.pruneItemIndexMap()
 
     self.isMediaLoading = true
     self.isMediaFailed = false
@@ -935,9 +1293,16 @@ class PlayerViewModel: ObservableObject {
     } else {
       self.queue = PlaybackService.shared.getQueue()
     }
+
+    resyncGaplessQueue()
   }
 
   func playFromQueue(idx: Int) {
+    if let queued = queuedNextItem, queuedNextIdx == idx {
+      advanceToTrack(at: idx)
+      return
+    }
+
     self.activeQueueIdx = idx
     self.setNowPlaying()
 
@@ -963,6 +1328,7 @@ class PlayerViewModel: ObservableObject {
     let objects = PlaybackService.shared.snapshotObjects(from: queue)
     queue = PlaybackService.shared.replaceQueue(objects: objects)
     UserDefaultsManager.queueActiveIdx = activeQueueIdx
+    resyncGaplessQueue()
   }
 
   private func insertSongs(
@@ -1018,6 +1384,7 @@ class PlayerViewModel: ObservableObject {
     for idx in snapshot.indices { snapshot[idx]["position"] = idx }
     queue = PlaybackService.shared.replaceQueue(objects: snapshot)
     UserDefaultsManager.queueActiveIdx = activeQueueIdx
+    resyncGaplessQueue()
   }
 
   /// "Play Next": inserts songs directly after the now-playing song.
@@ -1250,50 +1617,46 @@ class PlayerViewModel: ObservableObject {
     stallRetryCount = 0
     isRecoveringFromStall = false
     isMediaLoading = false
-    // TODO: refactor later ngantuk bosss
-    // singles
+
     if self.queue.count == 1 {
-      // klo kaga repeat, stop
       if self.playbackMode == PlaybackMode.defaultPlayback {
         self.stop()
       } else {
-        // klo repeat, ulang
         self.setNowPlaying()
       }
+    } else if self.playbackMode == PlaybackMode.repeatOnce {
+      self.setNowPlaying()
+    } else if self.playbackMode == PlaybackMode.repeatAlbum {
+      let target = self.activeQueueIdx + 1 > self.queue.count - 1 ? 0 : self.activeQueueIdx + 1
+      self.advanceToTrack(at: target)
     } else {
-      // albums
-      if self.playbackMode == PlaybackMode.repeatOnce {
-        // klo repeat sekali, ulang
-        self.setNowPlaying()
-      } else if self.playbackMode == PlaybackMode.repeatAlbum {
-        // klo repeat album
-        // ni udah di lagu terakhir blm?
-        // harusnya bisa pakai >= gasi?
-        if self.activeQueueIdx + 1 > self.queue.count - 1 {
-          // klo iya, balik ke lagu pertama
-          self.activeQueueIdx = 0
-          self.setNowPlaying()
-        } else {
-          // klo bukan, lanjut
-          self.activeQueueIdx = self.activeQueueIdx + 1
-          self.setNowPlaying()
-        }
+      if self.activeQueueIdx + 1 > self.queue.count - 1 {
+        self.stop()
       } else {
-        // klo bukan repeat
-        // ni udah di lagu terakhir blm?
-        // harusnya bisa pakai >= gasi?
-        if self.activeQueueIdx + 1 > self.queue.count - 1 {
-          // klo iya, stop
-          self.stop()
-        } else {
-          // klo bukan, lanjut
-          self.activeQueueIdx = self.activeQueueIdx + 1
-          self.setNowPlaying()
-        }
+        self.advanceToTrack(at: self.activeQueueIdx + 1)
       }
     }
 
     UserDefaultsManager.queueActiveIdx = self.activeQueueIdx
+  }
+
+  /// Advances to `idx` using the preloaded queue item when possible (instant,
+  /// no rebuild), otherwise falls back to a fresh swap. State sync for the
+  /// preloaded path is completed by `handleCurrentItemChanged`.
+  private func advanceToTrack(at idx: Int) {
+    guard queue.indices.contains(idx) else {
+      setNowPlaying()
+      return
+    }
+
+    if let queued = queuedNextItem, queuedNextIdx == idx, player?.currentItem !== queued {
+      activeQueueIdx = idx
+      player?.advanceToNextItem()
+      UserDefaultsManager.queueActiveIdx = idx
+    } else {
+      activeQueueIdx = idx
+      setNowPlaying()
+    }
   }
 
   private func nextQueueIdxForPreCache() -> Int? {
@@ -1316,11 +1679,24 @@ class PlayerViewModel: ObservableObject {
     self.removePlayerItemObservers()
     self.playerItemObservation?.cancel()
     self.playerItemObservation = nil
+    self.statusObservedItem = nil
     if let token = timeObserverToken {
       player?.removeTimeObserver(token)
       timeObserverToken = nil
     }
     self.stop()
+
+    self.player?.removeAllItems()
+    self.playerItem = nil
+    self.advanceWatchdogWorkItem?.cancel()
+    self.advanceWatchdogWorkItem = nil
+    self.clearQueuedNextTracking()
+    self.clearFailedPreloadGuard()
+    self.failedSkipCount = 0
+    self.didHandleFailureForItem = nil
+    self.manuallyActivatedItem = nil
+    self.itemIndexByIdentity.removeAll()
+
     self.progress = 0.0
 
     self.resetLyrics()
@@ -1514,6 +1890,7 @@ class PlayerViewModel: ObservableObject {
   deinit {
     removePlayerItemObservers()
     playerItemObservation?.cancel()
+    currentItemObservation?.cancel()
     if let timeObserverToken = timeObserverToken {
       player?.removeTimeObserver(timeObserverToken)
       player?.pause()
