@@ -16,7 +16,11 @@ class StreamCacheManager {
   private var inFlightDownloads: [String: DownloadRequest] = [:]
   private var inFlightProgress: [String: Double] = [:]
   private var inFlightKeys: Set<String> = []
+  private var completionHandlers: [String: [(Bool) -> Void]] = [:]
   private var currentlyPlayingSongId: String?
+  /// Track preloaded by the player as the next item; eviction must keep it on
+  /// disk until it has actually played.
+  private var nextToPlaySongId: String?
 
   private init() {
     self.cacheDirectory =
@@ -57,16 +61,27 @@ class StreamCacheManager {
   }
 
   func cacheSong(
-    mediaFileId: String, originalSuffix: String? = nil, from queueItem: QueueEntity? = nil
+    mediaFileId: String, originalSuffix: String? = nil, from queueItem: QueueEntity? = nil,
+    completion: ((Bool) -> Void)? = nil
   ) {
-    guard UserDefaultsManager.streamCacheMaxSize > 0 else { return }
-    guard !mediaFileId.isEmpty else { return }
+    guard UserDefaultsManager.streamCacheMaxSize > 0 else {
+      if let completion { DispatchQueue.main.async { completion(false) } }
+      return
+    }
+    guard !mediaFileId.isEmpty else {
+      if let completion { DispatchQueue.main.async { completion(false) } }
+      return
+    }
 
     let bitrate = UserDefaultsManager.maxBitRate
     let key = cacheKey(mediaFileId: mediaFileId, bitrate: bitrate)
 
-    // Register in-flight atomically — prevents duplicate downloads
+    // Register in-flight atomically — prevents duplicate downloads. Completion
+    // handlers are stored per key so late callers attach to the running job.
     let didRegister: Bool = syncQueue.sync {
+      if let completion {
+        self.completionHandlers[key, default: []].append(completion)
+      }
       guard !inFlightKeys.contains(key) else { return false }
       inFlightKeys.insert(key)
       return true
@@ -78,6 +93,7 @@ class StreamCacheManager {
       entity: CacheEntity.self, key: \CacheEntity.cacheKey, value: key, limit: 1)
     if !existing.isEmpty {
       syncQueue.async { self.inFlightKeys.remove(key) }
+      finishCacheCompletions(for: key, success: true)
       return
     }
 
@@ -156,9 +172,11 @@ class StreamCacheManager {
             }
 
             self.evictIfNeeded()
+            self.finishCacheCompletions(for: key, success: true)
 
           case .failure:
             self.removeCacheRecord(key: key)
+            self.finishCacheCompletions(for: key, success: false)
           }
         }
 
@@ -167,6 +185,7 @@ class StreamCacheManager {
           // Cancelled — clean up
         }
         self.removeCacheRecord(key: key)
+        self.finishCacheCompletions(for: key, success: false)
       }
     }
 
@@ -194,6 +213,10 @@ class StreamCacheManager {
     syncQueue.async { self.currentlyPlayingSongId = mediaFileId }
   }
 
+  func setWillPlayNext(mediaFileId: String?) {
+    syncQueue.async { self.nextToPlaySongId = mediaFileId }
+  }
+
   func cancelAllInFlight() {
     let keysToClean: [String] = syncQueue.sync {
       let keys = Array(inFlightDownloads.keys)
@@ -208,6 +231,7 @@ class StreamCacheManager {
 
     for key in keysToClean {
       removeCacheRecord(key: key)
+      finishCacheCompletions(for: key, success: false)
     }
   }
 
@@ -218,9 +242,19 @@ class StreamCacheManager {
       inFlightDownloads.removeAll()
       inFlightProgress.removeAll()
       inFlightKeys.removeAll()
+      nextToPlaySongId = nil
     }
 
     // Delete all files
+    let droppedHandlers: [(Bool) -> Void] = syncQueue.sync {
+      let handlers = completionHandlers.values.flatMap { $0 }
+      completionHandlers.removeAll()
+      return handlers
+    }
+    if !droppedHandlers.isEmpty {
+      DispatchQueue.main.async { droppedHandlers.forEach { $0(false) } }
+    }
+
     if let dir = cacheDirectory, fileManager.fileExists(atPath: dir.path) {
       try? fileManager.removeItem(at: dir)
       try? fileManager.createDirectory(at: dir, withIntermediateDirectories: true)
@@ -300,6 +334,17 @@ class StreamCacheManager {
       entity: CacheEntity.self, key: \CacheEntity.cacheKey, value: key)
   }
 
+  /// Delivers `cacheSong` completions on the main queue exactly once per key.
+  private func finishCacheCompletions(for key: String, success: Bool) {
+    let handlers: [(Bool) -> Void] = syncQueue.sync {
+      completionHandlers.removeValue(forKey: key) ?? []
+    }
+    guard !handlers.isEmpty else { return }
+    DispatchQueue.main.async {
+      handlers.forEach { $0(success) }
+    }
+  }
+
   private func evictIfNeeded() {
     let maxSize = UserDefaultsManager.streamCacheMaxSize
     guard maxSize > 0 else { return }
@@ -313,11 +358,13 @@ class StreamCacheManager {
 
     var currentSize = totalSize
     let currentlyPlaying: String? = syncQueue.sync { currentlyPlayingSongId }
+    let nextToPlay: String? = syncQueue.sync { nextToPlaySongId }
 
     for record in records where record.state == "ready" {
       guard currentSize > maxSize else { break }
 
       if let playing = currentlyPlaying, record.mediaFileId == playing { continue }
+      if let next = nextToPlay, record.mediaFileId == next { continue }
 
       let size = record.fileSize
 
