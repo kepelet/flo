@@ -175,6 +175,17 @@ struct LibraryView: View {
         }
         .frame(maxWidth: .infinity)
       } else {
+        if viewModel.refreshFailed && !viewModel.albums.isEmpty {
+          offlineRefreshBanner {
+            Task {
+              await viewModel.refreshAlbums()
+              await viewModel.refreshArtists()
+              await viewModel.refreshPlaylists()
+            }
+          }
+          .padding(.horizontal, 4)
+        }
+
         if !pins.items.isEmpty && searchAlbum.isEmpty {
           HStack {
             Image(systemName: "pin.fill")
@@ -385,10 +396,52 @@ struct LibraryView: View {
     }
     .catalystAwareNavigationTitle("Library")
     .refreshable {
-      await viewModel.refreshAlbums()
-      await viewModel.refreshArtists()
-      await viewModel.refreshPlaylists()
+      await refreshLegacyLibraryContent()
     }
+  }
+
+  @MainActor
+  private func refreshLegacyLibraryContent() async {
+    await viewModel.refreshAlbums()
+    await viewModel.refreshArtists()
+    await viewModel.refreshPlaylists()
+  }
+
+  /// Shown when the latest library load failed (server unreachable, session
+  /// expired, …) while stale cached content is still on screen, so the stall
+  /// is visible instead of silent. The cache is intentionally NOT invalidated
+  /// on an offline refresh — a stale library beats an empty one.
+  private func offlineRefreshBanner(retry: @escaping () -> Void) -> some View {
+    HStack(spacing: 8) {
+      Image(systemName: "wifi.exclamationmark")
+        .foregroundColor(.orange)
+      Text("Couldn't reach your server — showing cached library")
+        .customFont(.caption1)
+        .foregroundColor(.secondary)
+      Spacer()
+      Button("Retry", action: retry)
+        .customFont(.caption1)
+        .fontWeight(.semibold)
+        .buttonStyle(.borderless)
+        .tint(.orange)
+    }
+    .padding(.horizontal, 12)
+    .padding(.vertical, 10)
+    .background(Color.orange.opacity(0.12), in: RoundedRectangle(cornerRadius: 10))
+  }
+
+  @MainActor
+  private func refreshLibraryContent() async {
+    await viewModel.refreshAlbums()
+    await viewModel.refreshArtists()
+    await viewModel.refreshPlaylists()
+    await viewModel.refreshAllSongs()
+    await viewModel.refreshRecentlyPlayedAlbums()
+    await viewModel.refreshRecentlyAddedAlbums()
+    viewModel.fetchStarredSongs()
+    radiosViewModel.fetchAllRadios()
+    viewModel.fetchDownloadedAlbums()
+    cachedSongs = StreamCacheManager.shared.getCachedSongs()
   }
 
   // MARK: - V2
@@ -410,16 +463,7 @@ struct LibraryView: View {
           }
         }
         .refreshable {
-          await viewModel.refreshAlbums()
-          await viewModel.refreshArtists()
-          await viewModel.refreshPlaylists()
-          await viewModel.refreshAllSongs()
-          await viewModel.refreshRecentlyPlayedAlbums()
-          await viewModel.refreshRecentlyAddedAlbums()
-          viewModel.fetchStarredSongs()
-          radiosViewModel.fetchAllRadios()
-          viewModel.fetchDownloadedAlbums()
-          cachedSongs = StreamCacheManager.shared.getCachedSongs()
+          await refreshLibraryContent()
         }
         .onAppear {
           selectedSegment = LibraryV2Segment(rawValue: UserDefaultsManager.libraryV2Segment) ?? .library
@@ -451,16 +495,7 @@ struct LibraryView: View {
           }
         }
         .refreshable {
-          await viewModel.refreshAlbums()
-          await viewModel.refreshArtists()
-          await viewModel.refreshPlaylists()
-          await viewModel.refreshAllSongs()
-          await viewModel.refreshRecentlyPlayedAlbums()
-          await viewModel.refreshRecentlyAddedAlbums()
-          viewModel.fetchStarredSongs()
-          radiosViewModel.fetchAllRadios()
-          viewModel.fetchDownloadedAlbums()
-          cachedSongs = StreamCacheManager.shared.getCachedSongs()
+          await refreshLibraryContent()
         }
         .onAppear {
           selectedSegment = LibraryV2Segment(rawValue: UserDefaultsManager.libraryV2Segment) ?? .library
@@ -539,6 +574,14 @@ struct LibraryView: View {
         ScrollView {
           VStack(alignment: .leading, spacing: 24) {
             libraryV2SegmentedControl
+            if viewModel.refreshFailed && !viewModel.albums.isEmpty {
+              offlineRefreshBanner {
+                Task {
+                  await refreshLibraryContent()
+                }
+              }
+              .padding(.horizontal, 4)
+            }
             if !pins.items.isEmpty {
               v2PinnedSection
             }

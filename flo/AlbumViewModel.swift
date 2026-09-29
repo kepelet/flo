@@ -27,6 +27,11 @@ class AlbumViewModel: ObservableObject {
   @Published var isLoading = false
   @Published var error: Error?
 
+  /// True when the latest library load/refresh failed (server unreachable,
+  /// session expired, …) while the refreshable UI is showing cached data.
+  /// Set false again as soon as any load succeeds.
+  @Published private(set) var refreshFailed = false
+
   init(album: Album = Album(), albums: [Album] = []) {
     self.album = album
     self.albums = albums
@@ -153,6 +158,7 @@ class AlbumViewModel: ObservableObject {
         switch result {
         case .success(let items):
           assign(items)
+          self.refreshFailed = false
           if !items.isEmpty {
             DispatchQueue.global(qos: .utility).async {
               LibraryCacheManager.shared.save(items, forKey: cacheKey.rawValue)
@@ -160,6 +166,7 @@ class AlbumViewModel: ObservableObject {
           }
         case .failure(let error):
           self.error = error
+          self.refreshFailed = true
         }
       }
     }
@@ -179,6 +186,7 @@ class AlbumViewModel: ObservableObject {
           switch result {
           case .success(let items):
             assign(items)
+            self.refreshFailed = false
             if !items.isEmpty {
               DispatchQueue.global(qos: .utility).async {
                 LibraryCacheManager.shared.save(items, forKey: cacheKey.rawValue)
@@ -186,6 +194,7 @@ class AlbumViewModel: ObservableObject {
             }
           case .failure(let error):
             self.error = error
+            self.refreshFailed = true
           }
           continuation.resume()
         }
