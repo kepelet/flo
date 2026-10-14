@@ -101,6 +101,8 @@ struct AlbumsView: View {
 /// `navigationBarDrawer` does not produce a true inline field.
 /// Filtering is live on name + artist/albumArtist, case-insensitive.
 struct AlbumsGridView: View {
+  @AppStorage(UserDefaultsKeys.audioplayLibraryId) private var audioplayLibraryId = 0
+  @AppStorage(UserDefaultsKeys.selectedLibraryId) private var selectedLibraryId = 0
   @EnvironmentObject var albumViewModel: AlbumViewModel
   @EnvironmentObject var downloadViewModel: DownloadViewModel
   @Environment(\.horizontalSizeClass) private var horizontalSizeClass
@@ -114,8 +116,11 @@ struct AlbumsGridView: View {
   }
 
   private var filteredAlbums: [Album] {
-    if searchText.isEmpty { return albumViewModel.albums }
-    return albumViewModel.albums.filter { album in
+    let scope = AlbumLibraryScope(libraries: albumViewModel.libraries,
+      selectedLibraryId: selectedLibraryId, audioplayLibraryId: audioplayLibraryId)
+    let albums = scope.musicAlbums(from: albumViewModel.albums)
+    if searchText.isEmpty { return albums }
+    return albums.filter { album in
       album.name.localizedCaseInsensitiveContains(searchText)
         || album.artist.localizedCaseInsensitiveContains(searchText)
         || album.albumArtist.localizedCaseInsensitiveContains(searchText)
@@ -160,7 +165,49 @@ struct AlbumsGridView: View {
         }
       }
       .navigationTitle("Albums")
-      .onAppear { albumViewModel.fetchAlbums() }
+      .toolbar { LibraryFilterMenu(viewModel: albumViewModel) }
+      .onAppear {
+        albumViewModel.fetchAlbums()
+        albumViewModel.fetchLibraries()
+      }
+      .refreshable {
+        await albumViewModel.refreshLibraries()
+        await albumViewModel.refreshAlbums()
+      }
+    }
+  }
+}
+
+struct LibraryFilterMenu: View {
+  @ObservedObject var viewModel: AlbumViewModel
+  @AppStorage(UserDefaultsKeys.audioplayLibraryId) private var audioplayLibraryId = 0
+  @AppStorage(UserDefaultsKeys.selectedLibraryId) private var selectedLibraryId = 0
+
+  private var scope: AlbumLibraryScope {
+    AlbumLibraryScope(libraries: viewModel.libraries, selectedLibraryId: selectedLibraryId,
+      audioplayLibraryId: audioplayLibraryId)
+  }
+
+  var body: some View {
+    if !scope.selectableLibraries.isEmpty
+      && (scope.selectableLibraries.count > 1 || scope.effectiveLibraryId != 0) {
+      Menu {
+        Picker("Library", selection: Binding(
+          get: { scope.effectiveLibraryId },
+          set: { selectedLibraryId = $0 }
+        )) {
+          Text("All Libraries").tag(0)
+          ForEach(scope.selectableLibraries) { library in
+            Text(library.name).tag(library.id)
+          }
+        }
+      } label: {
+        Label("Library", systemImage: scope.effectiveLibraryId == 0
+          ? "line.3.horizontal.decrease.circle" : "line.3.horizontal.decrease.circle.fill")
+      }
+      .accessibilityLabel("Library")
+      .accessibilityValue(scope.selectableLibraries.first { $0.id == scope.effectiveLibraryId }?.name
+        ?? String(localized: "All Libraries"))
     }
   }
 }

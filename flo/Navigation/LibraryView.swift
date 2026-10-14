@@ -16,6 +16,8 @@ enum LibraryV2Segment: String, CaseIterable, Identifiable {
 
 struct LibraryView: View {
   let showQuickNavigation: Bool
+  @AppStorage(UserDefaultsKeys.audioplayLibraryId) private var audioplayLibraryId = 0
+  @AppStorage(UserDefaultsKeys.selectedLibraryId) private var selectedLibraryId = 0
   @State private var searchAlbum = ""
   @State private var showDownloadSheet: Bool = false
   @State private var forceShowQuickNavigation: Bool = false
@@ -52,14 +54,41 @@ struct LibraryView: View {
     _selectedSegment = State(initialValue: LibraryV2Segment(rawValue: UserDefaultsManager.libraryV2Segment) ?? .library)
   }
 
+  private var libraryScope: AlbumLibraryScope {
+    AlbumLibraryScope(libraries: viewModel.libraries, selectedLibraryId: selectedLibraryId,
+      audioplayLibraryId: audioplayLibraryId)
+  }
+
   var filteredAlbums: [Album] {
-    if searchAlbum.isEmpty {
-      return viewModel.albums
-    } else {
-      return viewModel.albums.filter { album in
-        album.name.localizedCaseInsensitiveContains(searchAlbum)
-      }
+    libraryScope.musicAlbums(from: viewModel.albums).filter {
+      searchAlbum.isEmpty || $0.name.localizedCaseInsensitiveContains(searchAlbum)
     }
+  }
+
+  private var recentlyPlayedAlbums: [Album] {
+    libraryScope.musicAlbums(from: viewModel.recentlyPlayedAlbums)
+  }
+
+  private var recentlyAddedAlbums: [Album] {
+    libraryScope.musicAlbums(from: viewModel.recentlyAddedAlbums)
+  }
+
+  private var audioplaysLink: some View {
+    NavigationLink {
+      AudioplaysView(viewModel: viewModel)
+        .environmentObject(playerViewModel)
+        .environmentObject(downloadViewModel)
+    } label: {
+      HStack {
+        Label("Audioplays", systemImage: "books.vertical")
+          .customFont(.headline)
+        Spacer()
+        Image(systemName: "chevron.right").font(.caption).foregroundColor(.gray)
+      }
+      .padding(.horizontal)
+      .padding(.vertical, 5)
+    }
+    .buttonStyle(.plain)
   }
 
   private var filteredDownloadedAlbums: [Album] {
@@ -73,6 +102,15 @@ struct LibraryView: View {
   var body: some View {
     NavigationStack(path: $libraryRouter.libraryPath) {
       libraryContent
+        .toolbar {
+          if isUserLoggedIn && (!libraryViewV2Enabled || selectedSegment == .library) {
+            LibraryFilterMenu(viewModel: viewModel)
+          }
+        }
+        .onAppear {
+          viewModel.fetchAlbums()
+          viewModel.fetchLibraries()
+        }
         .navigationDestination(for: LibraryDestination.self) { destination in
           LibraryDestinationView(
             destination: destination,
@@ -254,6 +292,11 @@ struct LibraryView: View {
           Divider()
         }
 
+        if audioplayLibraryId != 0 && searchAlbum.isEmpty {
+          audioplaysLink
+          Divider()
+        }
+
         LazyVGrid(columns: columns) {
           ForEach(filteredAlbums) { album in
             NavigationLink {
@@ -290,6 +333,7 @@ struct LibraryView: View {
     }
     .navigationTitle("Library")
     .refreshable {
+      await viewModel.refreshLibraries()
       await viewModel.refreshAlbums()
       await viewModel.refreshArtists()
       await viewModel.refreshPlaylists()
@@ -315,6 +359,7 @@ struct LibraryView: View {
           }
         }
         .refreshable {
+          await viewModel.refreshLibraries()
           await viewModel.refreshAlbums()
           await viewModel.refreshArtists()
           await viewModel.refreshPlaylists()
@@ -356,6 +401,7 @@ struct LibraryView: View {
           }
         }
         .refreshable {
+          await viewModel.refreshLibraries()
           await viewModel.refreshAlbums()
           await viewModel.refreshArtists()
           await viewModel.refreshPlaylists()
@@ -444,11 +490,14 @@ struct LibraryView: View {
         ScrollView {
           VStack(alignment: .leading, spacing: 24) {
             libraryV2SegmentedControl
-            if !viewModel.recentlyPlayedAlbums.isEmpty {
+            if !recentlyPlayedAlbums.isEmpty {
               v2RecentlyPlayedSection
             }
             v2AlbumsHorizontalSection
-            if !viewModel.recentlyAddedAlbums.isEmpty {
+            if audioplayLibraryId != 0 {
+              audioplaysLink
+            }
+            if !recentlyAddedAlbums.isEmpty {
               v2RecentlyAddedSection
             }
 
@@ -1046,7 +1095,7 @@ struct LibraryView: View {
       v2SectionHeaderStatic(title: "Recently Played", subtitle: "I think you will like this?")
       ScrollView(.horizontal, showsIndicators: false) {
         HStack(spacing: 14) {
-          ForEach(Array(viewModel.recentlyPlayedAlbums.prefix(16))) { album in
+          ForEach(Array(recentlyPlayedAlbums.prefix(16))) { album in
             NavigationLink {
               AlbumView(viewModel: viewModel)
                 .environmentObject(downloadViewModel)
@@ -1084,7 +1133,7 @@ struct LibraryView: View {
       v2SectionHeaderStatic(title: "Recently Added", subtitle: "Let's try this one or two, maybe?")
       ScrollView(.horizontal, showsIndicators: false) {
         HStack(spacing: 14) {
-          ForEach(Array(viewModel.recentlyAddedAlbums.prefix(16))) { album in
+          ForEach(Array(recentlyAddedAlbums.prefix(16))) { album in
             NavigationLink {
               AlbumView(viewModel: viewModel)
                 .environmentObject(downloadViewModel)
@@ -1297,6 +1346,90 @@ struct LibraryView: View {
           }
         }
       }
+    }
+  }
+}
+
+// Shows albums that live in the Navidrome library the user has marked as
+// "audioplay", giving that content its own category separate from music.
+struct AudioplaysView: View {
+  @ObservedObject var viewModel: AlbumViewModel
+
+  @EnvironmentObject var playerViewModel: PlayerViewModel
+  @EnvironmentObject var downloadViewModel: DownloadViewModel
+
+  @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+
+  @AppStorage(UserDefaultsKeys.audioplayLibraryId) private var audioplayLibraryId: Int = 0
+
+  @State private var searchAudioplay = ""
+
+  private var columns: [GridItem] {
+    if horizontalSizeClass == .regular {
+      return Array(repeating: GridItem(.flexible()), count: 4)
+    } else {
+      return Array(repeating: GridItem(.flexible()), count: 2)
+    }
+  }
+
+  private var audioplays: [Album] {
+    let scope = AlbumLibraryScope(libraries: viewModel.libraries, selectedLibraryId: 0,
+      audioplayLibraryId: audioplayLibraryId)
+    let base = scope.audioplays(from: viewModel.albums)
+
+    let searched =
+      searchAudioplay.isEmpty
+      ? base
+      : base.filter { $0.name.localizedCaseInsensitiveContains(searchAudioplay) }
+
+    return searched.sorted {
+      $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending
+    }
+  }
+
+  var body: some View {
+    ScrollView {
+      if audioplays.isEmpty {
+        VStack(alignment: .center, spacing: 8) {
+          Image(systemName: "books.vertical")
+            .font(.largeTitle)
+            .foregroundColor(.accent)
+          Text("No audioplays yet")
+            .customFont(.headline)
+          Text("Albums from your audioplay library will appear here.")
+            .customFont(.subheadline)
+            .foregroundColor(.gray)
+            .multilineTextAlignment(.center)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.top, 80)
+        .padding(.horizontal, 20)
+      } else {
+        LazyVGrid(columns: columns) {
+          ForEach(audioplays) { album in
+            NavigationLink {
+              AlbumView(viewModel: viewModel)
+                .environmentObject(downloadViewModel)
+                .onAppear {
+                  viewModel.setActiveAlbum(album: album)
+                }
+            } label: {
+              AlbumsView(viewModel: viewModel, album: album)
+            }
+          }
+        }
+        .padding(.top, 10)
+        .playerBottomPadding(active: 100, inactive: 12)
+      }
+    }
+    .searchable(text: $searchAudioplay, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search")
+    .onAppear {
+      viewModel.fetchAlbums()
+      viewModel.fetchLibraries()
+    }
+    .navigationTitle("Audioplays")
+    .refreshable {
+      await viewModel.refreshAlbums()
     }
   }
 }

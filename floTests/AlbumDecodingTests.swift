@@ -202,3 +202,49 @@ final class AlbumDecodingTests: XCTestCase {
     XCTAssertEqual(album.albumCover, "")
   }
 }
+
+final class AlbumLibraryScopeTests: XCTestCase {
+  private let libraries = [Library(id: 1, name: "Music"), Library(id: 2, name: "Jazz"),
+    Library(id: 3, name: "Audioplays")]
+  private let albums = [Album(id: "music", libraryId: 1), Album(id: "jazz", libraryId: 2),
+    Album(id: "story", libraryId: 3), Album(id: "legacy")]
+
+  func testAllLibrariesExcludesAudioplaysButKeepsLegacyAlbums() {
+    let scope = AlbumLibraryScope(libraries: libraries, selectedLibraryId: 0, audioplayLibraryId: 3)
+    XCTAssertEqual(scope.musicAlbums(from: albums).map(\.id), ["music", "jazz", "legacy"])
+    XCTAssertEqual(scope.audioplays(from: albums).map(\.id), ["story"])
+    XCTAssertEqual(scope.selectableLibraries.map(\.id), [1, 2])
+  }
+
+  func testSelectedLibraryFiltersMusicWithoutChangingAudioplays() {
+    let scope = AlbumLibraryScope(libraries: libraries, selectedLibraryId: 2, audioplayLibraryId: 3)
+    XCTAssertEqual(scope.musicAlbums(from: albums).map(\.id), ["jazz"])
+    XCTAssertEqual(scope.audioplays(from: albums).map(\.id), ["story"])
+  }
+
+  func testReassignedOrRemovedSelectionFallsBackToAllMusic() {
+    for id in [3, 99] {
+      let scope = AlbumLibraryScope(libraries: libraries, selectedLibraryId: id, audioplayLibraryId: 3)
+      XCTAssertEqual(scope.effectiveLibraryId, 0)
+      XCTAssertEqual(scope.musicAlbums(from: albums).map(\.id), ["music", "jazz", "legacy"])
+    }
+  }
+
+  func testOfflineSelectionSurvivesUnavailableLibraryList() {
+    let scope = AlbumLibraryScope(libraries: [], selectedLibraryId: 2, audioplayLibraryId: 3)
+    XCTAssertEqual(scope.musicAlbums(from: albums).map(\.id), ["jazz"])
+  }
+
+  func testDisablingAudioplaysRestoresAllAlbums() {
+    let scope = AlbumLibraryScope(libraries: libraries, selectedLibraryId: 0, audioplayLibraryId: 0)
+    XCTAssertEqual(scope.musicAlbums(from: albums).map(\.id), albums.map(\.id))
+    XCTAssertTrue(scope.audioplays(from: albums).isEmpty)
+  }
+
+  func testLibraryMetadataSurvivesAlbumCacheRoundTrip() throws {
+    let album = Album(id: "story", libraryId: 3, libraryName: "Audioplays")
+    let restored = try JSONDecoder().decode(Album.self, from: JSONEncoder().encode(album))
+    XCTAssertEqual(restored.libraryId, 3)
+    XCTAssertEqual(restored.libraryName, "Audioplays")
+  }
+}

@@ -9,6 +9,22 @@ import XCTest
 
 final class TabSelectionClampingTests: XCTestCase {
 
+  func testAudioplaysAvailabilityAndRemoval() {
+    for v2 in [false, true] {
+      for loggedIn in [false, true] {
+        for sidebar in [false, true] {
+          let tabs = availableTabs(isPadSidebar: sidebar, isLoggedIn: loggedIn,
+            libraryViewV2Enabled: v2, isDebugEnabled: false, audioplayLibraryId: 3)
+          XCTAssertEqual(tabs.contains(.audioplays), sidebar && (loggedIn || v2))
+          let withoutAudioplays = availableTabs(isPadSidebar: sidebar, isLoggedIn: loggedIn,
+            libraryViewV2Enabled: v2, isDebugEnabled: false, audioplayLibraryId: 0)
+          XCTAssertFalse(withoutAudioplays.contains(.audioplays))
+          XCTAssertEqual(clampedSelectionValue(.audioplays, available: withoutAudioplays), .home)
+        }
+      }
+    }
+  }
+
   // MARK: - normalizedTab
 
   func testNormalizedTab_keepingValidSelection() {

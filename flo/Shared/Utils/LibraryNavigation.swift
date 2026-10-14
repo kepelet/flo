@@ -9,6 +9,7 @@ enum AppTab: Hashable {
   case home
   case library
   case libraryAlbums
+  case audioplays
   case libraryArtists
   case likedSongs
   case playlists
@@ -38,11 +39,13 @@ func normalizedTab(_ selected: AppTab, available: Set<AppTab>, fallback: AppTab 
 /// - isLoggedIn: `AuthViewModel.isLoggedIn`
 /// - libraryViewV2Enabled: `UserDefaultsKeys.libraryViewV2`
 /// - isDebugEnabled: `UserDefaultsManager.enableDebug` / `UserDefaultsKeys.enableDebug`
+/// - audioplayLibraryId: nonzero when an Audioplays collection is configured.
 func availableTabs(
   isPadSidebar: Bool,
   isLoggedIn: Bool,
   libraryViewV2Enabled: Bool,
-  isDebugEnabled: Bool
+  isDebugEnabled: Bool,
+  audioplayLibraryId: Int = 0
 ) -> Set<AppTab> {
   if isPadSidebar {
     // Mirrors sidebarTabView (iOS 18+)
@@ -53,6 +56,7 @@ func availableTabs(
     }
     if isLoggedIn || libraryViewV2Enabled {
       tabs.formUnion([.libraryAlbums, .libraryArtists, .likedSongs, .playlists, .songs, .radios])
+      if audioplayLibraryId != 0 { tabs.insert(.audioplays) }
     }
     if !libraryViewV2Enabled {
       tabs.insert(.downloads)

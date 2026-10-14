@@ -10,6 +10,7 @@ import PulseUI
 import SwiftUI
 
 struct ContentView: View {
+  @AppStorage(UserDefaultsKeys.audioplayLibraryId) private var audioplayLibraryId = 0
   @AppStorage(UserDefaultsKeys.enableDebug) private var enableDebug = false
   @AppStorage(UserDefaultsKeys.libraryViewV2) private var libraryViewV2Enabled = false
   @Environment(\.horizontalSizeClass) private var horizontalSizeClass
@@ -70,7 +71,8 @@ struct ContentView: View {
       isPadSidebar: isPadSidebar,
       isLoggedIn: authViewModel.isLoggedIn,
       libraryViewV2Enabled: libraryViewV2Enabled,
-      isDebugEnabled: enableDebug
+      isDebugEnabled: enableDebug,
+      audioplayLibraryId: audioplayLibraryId
     )
   }
 
@@ -169,7 +171,6 @@ struct ContentView: View {
                 .environmentObject(downloadViewModel)
                 .environmentObject(libraryRouter)
                 .environmentObject(authViewModel)
-                .onAppear { albumViewModel.fetchAlbums(); albumViewModel.fetchLibraries() }
             }
             Tab("Search", systemImage: "magnifyingglass", value: AppTab.search) {
               LibrarySearchTabView()
@@ -205,7 +206,6 @@ struct ContentView: View {
                 .environmentObject(downloadViewModel)
                 .environmentObject(libraryRouter)
                 .environmentObject(authViewModel)
-                .onAppear { albumViewModel.fetchAlbums(); albumViewModel.fetchLibraries() }
             }
             Tab("Search", systemImage: "magnifyingglass", value: AppTab.search) {
               LibrarySearchTabView()
@@ -252,7 +252,6 @@ struct ContentView: View {
             LibraryView(viewModel: albumViewModel).tabItem { Label("Library", systemImage: "circle.grid.2x2") }
               .tag(AppTab.library)
               .environmentObject(albumViewModel).environmentObject(playerViewModel).environmentObject(downloadViewModel).environmentObject(libraryRouter)
-              .onAppear { albumViewModel.fetchAlbums(); albumViewModel.fetchLibraries() }
           }
           DownloadsView(viewModel: albumViewModel).tabItem { Label("Downloads", systemImage: "arrow.down.circle") }
             .tag(AppTab.downloads)
@@ -278,6 +277,7 @@ struct ContentView: View {
     .onChange(of: libraryViewV2Enabled) { _ in clampSelection() }
     .onChange(of: authViewModel.isLoggedIn) { _ in clampSelection() }
     .onChange(of: enableDebug) { _ in clampSelection() }
+    .onChange(of: audioplayLibraryId) { _ in clampSelection() }
   }
 
   @available(iOS 18.0, *)
@@ -353,9 +353,6 @@ struct ContentView: View {
               .environmentObject(downloadViewModel)
               .environmentObject(libraryRouter)
               .environmentObject(authViewModel)
-              .onAppear {
-                albumViewModel.fetchAlbums(); albumViewModel.fetchLibraries()
-              }
           )
         }
       }
@@ -372,6 +369,18 @@ struct ContentView: View {
                 .environmentObject(libraryRouter)
                 .environmentObject(authViewModel)
             )
+          }
+
+          if audioplayLibraryId != 0 {
+            Tab("Audioplays", systemImage: "books.vertical", value: AppTab.audioplays) {
+              sidebarTabContent(
+                NavigationStack {
+                  AudioplaysView(viewModel: albumViewModel)
+                    .environmentObject(playerViewModel)
+                    .environmentObject(downloadViewModel)
+                }
+              )
+            }
           }
 
           Tab("Artists", systemImage: "music.mic", value: AppTab.libraryArtists) {
@@ -515,6 +524,7 @@ struct ContentView: View {
     .onChange(of: libraryViewV2Enabled) { _ in clampSelection() }
     .onChange(of: authViewModel.isLoggedIn) { _ in clampSelection() }
     .onChange(of: enableDebug) { _ in clampSelection() }
+    .onChange(of: audioplayLibraryId) { _ in clampSelection() }
   }
 
   var body: some View {
@@ -709,6 +719,7 @@ struct ContentView: View {
     .onChange(of: authViewModel.isLoggedIn) { _ in clampSelection() }
     .onChange(of: libraryViewV2Enabled) { _ in clampSelection() }
     .onChange(of: enableDebug) { _ in clampSelection() }
+    .onChange(of: audioplayLibraryId) { _ in clampSelection() }
   }
 
   @ViewBuilder
