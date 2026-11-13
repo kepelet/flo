@@ -36,12 +36,22 @@ class UserDefaultsManager {
     UserDefaults.standard.removeObject(forKey: key)
   }
 
+  /// Trims whitespace and trailing slashes.
+  static func normalizedServerURL(_ url: String) -> String {
+    var result = url.trimmingCharacters(in: .whitespacesAndNewlines)
+    while result.hasSuffix("/") {
+      result.removeLast()
+    }
+    return result
+  }
+
   static var serverBaseURL: String {
     get {
-      return UserDefaults.standard.string(forKey: UserDefaultsKeys.serverURL) ?? ""
+      return normalizedServerURL(
+        UserDefaults.standard.string(forKey: UserDefaultsKeys.serverURL) ?? "")
     }
     set {
-      UserDefaults.standard.set(newValue, forKey: UserDefaultsKeys.serverURL)
+      UserDefaults.standard.set(normalizedServerURL(newValue), forKey: UserDefaultsKeys.serverURL)
     }
   }
 

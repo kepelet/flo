@@ -109,7 +109,9 @@ class AuthService {
     let serverBaseUrl = UserDefaultsManager.serverBaseURL
     let isServerBaseURLExist = serverBaseUrl != ""
 
-    let url = "\(isServerBaseURLExist ? serverBaseUrl : serverUrl)\(API.NDEndpoint.login)"
+    let baseUrl =
+      isServerBaseURLExist ? serverBaseUrl : UserDefaultsManager.normalizedServerURL(serverUrl)
+    let url = "\(baseUrl)\(API.NDEndpoint.login)"
 
     let parameters: [String: Any] = ["username": username, "password": password]
 
